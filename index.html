@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V7</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- PDF.js Mozilla CDN 라이브러리 포함 (PDF 분석용) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
@@ -17,7 +16,7 @@
             background-color: #f8fafc;
         }
         
-        /* 화면상에서 A4 가상 인쇄 가이드라인 표시용 데코레이션 */
+        
         .a4-guide-active {
             border: 2px dashed #3b82f6 !important;
             position: relative;
@@ -32,7 +31,7 @@
             font-weight: bold;
         }
 
-        /* 명세서 가로 인쇄 가상 가이드라인 데코레이션 */
+        
         .statement-guide-active {
             border: 2px dashed #10b981 !important;
             position: relative;
@@ -47,12 +46,12 @@
             font-weight: bold;
         }
 
-        /* 일괄 인쇄용 동적 은닉 스타일 */
+        
         #temp-batch-print-area {
             display: none;
         }
 
-        /* 인쇄 시 레이아웃 제어 - 한 페이지 정중앙 컴팩트 정렬 */
+        
         @media print {
             @page {
                 size: A4 portrait;
@@ -80,14 +79,14 @@
                 max-width: 100% !important;
             }
             
-            /* 자금청구명세서 가로 인쇄 용지 영역 */
+            
             .print-landscape {
                 width: 100% !important;
                 max-width: 100% !important;
                 page-break-after: always;
             }
             
-            /* 지불의뢰서 가로/세로 중앙 정렬 보정 */
+            
             .print-portrait {
                 width: 100% !important;
                 max-width: 100% !important;
@@ -99,12 +98,12 @@
                 transform-origin: center center !important; /* 중앙 기준 축소 회전 */
             }
 
-            /* 가상 가이드라인 보더 인쇄 시 숨김 처리 */
+            
             .a4-guide-active, .statement-guide-active {
                 border-color: #cbd5e1 !important;
             }
 
-            /* ● 기호 인쇄 누락 방지 가드 */
+            
             .print-bullet {
                 color: #000000 !important;
                 display: inline-block !important;
@@ -148,20 +147,20 @@
                 print-color-adjust: exact !important;
             }
             
-            /* 테두리 점선 인쇄 선명화 */
+            
             .border-dashed {
                 border-style: dashed !important;
                 border-color: #cbd5e1 !important;
             }
 
-            /* 인쇄시에는 스크롤 영역 높이 제한을 해제 */
+            
             .table-scroll-container {
                 max-height: none !important;
                 overflow: visible !important;
                 overflow-x: auto !important;
             }
 
-            /* 일괄 인쇄 모드 동작 시 메인 요소 전면 숨김 가드 */
+            
             body.batch-printing > *:not(#temp-batch-print-area) {
                 display: none !important;
             }
@@ -181,7 +180,7 @@
             }
         }
         
-        /* 스크롤바 디자인 */
+        
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -208,8 +207,8 @@
                     <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight">현장 자금관리 마스터 <span class="bg-blue-500 text-[10px] px-1.5 py-0.5 rounded ml-2 text-white">PRO V6</span></h1>
-                    <p class="text-xs text-slate-400">지불의뢰서 중앙 배치 인쇄 • 상세조회식 구분 집계 대장 • 중복 위험 검출 엔진</p>
+                    <h1 class="text-lg font-bold tracking-tight">현장 자금관리 마스터 <span class="bg-blue-500 text-[10px] px-1.5 py-0.5 rounded ml-2 text-white">PRO V7</span></h1>
+                    <p class="text-xs text-slate-400">지불의뢰서 중앙 배치 인쇄 • 회사별 월별 청구 대장 • 중복 위험 검출 엔진</p>
                 </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap justify-center lg:justify-end">
@@ -226,7 +225,7 @@
                     <i data-lucide="database" class="w-3.5 h-3.5"></i> 백업/복원
                 </button>
                 <button onclick="showResetConfirm()" class="bg-rose-700 hover:bg-rose-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 샘플로 초기화
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 모든 자료 초기화
                 </button>
                 <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-sm transition-all">
                     <i data-lucide="printer" class="w-4 h-4"></i> 현재 화면 인쇄/PDF
@@ -292,6 +291,9 @@
             </div>
             <button onclick="toggleNewDocModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] py-1.5 rounded font-bold w-full flex items-center justify-center gap-1 transition-all">
                 <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 새 회사/월별 청구서 등록
+            </button>
+            <button onclick="deleteCurrentDocument()" class="mt-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] py-1.5 rounded font-bold w-full flex items-center justify-center gap-1 transition-all">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 현재 선택 월 삭제
             </button>
         </div>
     </section>
@@ -373,6 +375,9 @@
                     </button>
                     <button onclick="downloadCsvTemplate()" class="bg-slate-600 hover:bg-slate-700 text-white text-xs px-4 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV 작성 양식 다운
+                    </button>
+                    <button onclick="exportAccountDbToCSV()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                        <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 계좌 DB CSV 내보내기
                     </button>
                     <input type="file" id="csv-account-file-input" accept=".csv" class="hidden" onchange="importAccountsFromCSV(this)">
                 </div>
@@ -693,12 +698,12 @@
                         <div class="border border-slate-300 rounded-lg p-2.5 text-[10px] mb-3">
                             <p class="font-bold text-slate-800 mb-1">● 구비 서류 체크리스트</p>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-medium" id="req-checklist-container">
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-biz" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-bank" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 통장사본</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-tax" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 세금계산서</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-trans" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 거래명세표</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-lease" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 장비임대차계약서</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-equip" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 건설기계등록증</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-biz" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-bank" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 통장사본</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-tax" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 세금계산서</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-trans" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 거래명세표</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-lease" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 장비임대차계약서</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-equip" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 건설기계등록증</label>
                             </div>
                         </div>
 
@@ -743,11 +748,14 @@
                             <i data-lucide="pie-chart" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-base tracking-tight">거래처별/구분별 청구 통계 집계 대장</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">금월 청구된 계정 분류별 거래처 통합액을 파악합니다. 카드를 클릭하면 상세 목록이 표출됩니다.</p>
+                            <h3 class="font-extrabold text-base tracking-tight">자금청구집계표</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">구분별 거래처 통합액을 파악합니다. 카드를 클릭하면 상세 목록이 표출됩니다.</p>
                         </div>
                     </div>
-                    <div class="text-right">
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportStatsToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                            <i data-lucide="file-down" class="w-3.5 h-3.5"></i> CSV 내보내기
+                        </button>
                         <span class="text-xs bg-slate-800 text-slate-300 font-bold px-3 py-1 rounded-full border border-slate-700" id="stats-total-vendor-count">총 0개 거래처 집계 중</span>
                     </div>
                 </div>
@@ -899,7 +907,7 @@
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 mb-1">비고 (메모)</label>
-                    <input type="text" id="modal-note" placeholder="적요 기입" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white outline-none">
+                    <input type="text" id="modal-note" placeholder="(메모)되신 (품목)을 입력하세요" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white outline-none">
                 </div>
             </div>
             <!-- 계좌 자동 매핑 결과 미리보기 -->
@@ -914,6 +922,34 @@
             <div class="flex justify-end gap-2 text-xs mt-2">
                 <button onclick="closeAddRowModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
                 <button onclick="confirmAddRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold transition-all">표에 추가</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 백업/복원 모달 -->
+    <div id="backup-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+                    <i data-lucide="database" class="w-5 h-5 text-blue-600"></i> 데이터 백업 / 복원
+                </h3>
+                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                    <p class="font-bold text-blue-800 mb-1 flex items-center gap-1"><i data-lucide="download" class="w-3.5 h-3.5"></i> 데이터 백업</p>
+                    <p class="text-slate-500 mb-3">현재 저장된 모든 청구 대장과 계좌 DB를 JSON 파일로 다운로드합니다.</p>
+                    <button onclick="downloadBackupJSON()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold w-full transition-all">JSON 백업 파일 다운로드</button>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                    <p class="font-bold text-emerald-800 mb-1 flex items-center gap-1"><i data-lucide="upload" class="w-3.5 h-3.5"></i> 데이터 복원</p>
+                    <p class="text-slate-500 mb-3">이전에 백업한 JSON 파일을 불러와 모든 데이터를 복원합니다. 현재 데이터는 덮어씌워집니다.</p>
+                    <input type="file" id="backup-file-input" accept=".json" class="w-full border border-slate-300 rounded px-2 py-1.5 bg-white mb-2 outline-none">
+                    <button onclick="importBackupJSON()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-semibold w-full transition-all">선택한 파일로 복원</button>
+                </div>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeBackupModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded font-semibold text-xs">닫기</button>
             </div>
         </div>
     </div>
@@ -940,7 +976,7 @@
     <script>
         const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
 
-        // 최종 배포를 위해 초기화 데이터 패키징 분리 (초기 대장은 텅 빈 상태로 실행)
+        
         const demoDataset = [
             { id: 1, type: "외주비", vendor: "(주)휴먼인텍", ceo: "변병주", supply: 53000, tax: 5300, deduction: 0, prepaid: 0, bank: "기업", account: "420-044521-01-048", holder: "(주)휴먼인텍", phone: "010-1234-5678", note: "계산서발행", status: "완료", biznum: "123-45-67890" },
             { id: 2, type: "자재비", vendor: "길한산업", ceo: "유용근", supply: 66000, tax: 6600, deduction: 0, prepaid: 0, bank: "기업", account: "118-039903-04-011", holder: "유용근", phone: "010-9876-5432", note: "부직포 외", status: "대기", biznum: "224-81-11494" },
@@ -983,7 +1019,7 @@
             if (savedDocs) {
                 savedDocuments = JSON.parse(savedDocs);
             } else {
-                // 초기 실행 시 불필요한 데이터를 제외하고 배포용 청정 기본 문서셋으로 구동
+                
                 savedDocuments = [
                     {
                         id: "doc-sample-1",
@@ -1083,7 +1119,7 @@
             }
         }
 
-        // 지불의뢰서 인쇄/화면 폰트 크기 변경기 탑재
+        
         function adjustRequestFont(size) {
             const box = document.getElementById('portrait-print-box');
             if (box) {
@@ -1326,7 +1362,7 @@
             }
         }
 
-        // 실시간 중복 청구 등록 분석 시스템 (동일 거래처 & 동일 공급가액 체크)
+        
         let duplicateItemIds = new Set();
         function checkDuplicateContracts() {
             duplicateItemIds.clear();
@@ -1366,7 +1402,7 @@
             showToast("⚠️ 주황색 배너 및 대장 음영 항목이 중복 의심 상태입니다.");
         }
 
-        // 통계 탭 클릭 시 상세 조회가 가능한 카드식 UI 렌더러
+        
         function renderVendorStatistics() {
             const board = document.getElementById('vendor-stats-board');
             if (!board) return;
@@ -1446,7 +1482,46 @@
             lucide.createIcons();
         }
 
-        // [스마트] 통계 카드 클릭 시 세부 청구 내역 표출 모달 열기
+        function exportStatsToCSV() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const title = currentDoc ? `${currentDoc.company} ${currentDoc.month} 자금청구집계표` : "자금청구집계표";
+
+            let csvContent = "\uFEFF자금청구집계표\n";
+            csvContent += `회사,항목,대표자,공급가액,부가세,합계금액,공제금액,선지급,지급요청금액\n`;
+
+            const categories = ["외주비", "자재비", "장비비", "노무비", "관리비"];
+            categories.forEach(cat => {
+                const catRows = dataset.filter(r => r.type === cat);
+                if (catRows.length === 0) return;
+                const vendorStats = {};
+                catRows.forEach(row => {
+                    if (!row.vendor) return;
+                    if (!vendorStats[row.vendor]) vendorStats[row.vendor] = { supply: 0, tax: 0, deduction: 0, prepaid: 0, ceo: row.ceo || '' };
+                    vendorStats[row.vendor].supply += (row.supply || 0);
+                    vendorStats[row.vendor].tax += (row.tax || 0);
+                    vendorStats[row.vendor].deduction += (row.deduction || 0);
+                    vendorStats[row.vendor].prepaid += (row.prepaid || 0);
+                });
+                Object.keys(vendorStats).sort().forEach(vendor => {
+                    const d = vendorStats[vendor];
+                    const total = d.supply + d.tax;
+                    const reqAmt = total - d.deduction - d.prepaid;
+                    csvContent += `${vendor},${cat},${d.ceo},${d.supply},${d.tax},${total},${d.deduction},${d.prepaid},${reqAmt}\n`;
+                });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${title}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("자금청구집계표 CSV 내보내기 완료!");
+        }
+
+        
         function openStatsDetailModal(vendor, category) {
             const modal = document.getElementById('stats-detail-modal');
             const title = document.getElementById('stats-detail-title');
@@ -1477,6 +1552,19 @@
 
             modal.classList.remove('hidden');
             lucide.createIcons();
+        }
+
+        function updateSupplyAndAutoVat(id, supplyValue) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1) {
+                dataset[index].supply = supplyValue;
+                if (dataset[index].tax > 0) {
+                    dataset[index].tax = Math.floor(supplyValue * 0.1);
+                }
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
         }
 
         function toggleVatCalc(id, type) {
@@ -1532,7 +1620,7 @@
             }
         }
 
-        // 지불의뢰서 기입내용 수정 시 계좌 DB 마스터 및 대장 항목 상호 완전 연계 자동 동기화
+        
         function syncRequestFormToDbAndDataset() {
             const vendorName = document.getElementById('req-field-vendor').value.trim();
             const ceoName = document.getElementById('req-field-ceo').value.trim();
@@ -1692,7 +1780,7 @@
                         <input type="text" value="${row.ceo || ''}" placeholder="기입" onblur="completeEditing(${row.id})" onchange="handleCeoNameChange(${row.id}, this.value)" class="w-full bg-transparent text-center focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" onblur="completeEditing(${row.id})" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'supply', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-semibold text-slate-900 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                        <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateSupplyAndAutoVat(${row.id}, Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-semibold text-slate-900 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
                     </td>
                     <td class="py-1 px-1">
                         <div class="flex items-center gap-1">
@@ -1819,7 +1907,7 @@
             document.getElementById('add-row-modal').classList.add('hidden');
         }
 
-        // 거래처명 입력 시 대표자명이 강제 변경되지 않도록 분리
+        
         function handleModalVendorInput() {
             const vendorVal = document.getElementById('modal-vendor').value.trim();
             const matched = accountDb.find(acc => acc.vendor === vendorVal || acc.holder === vendorVal);
@@ -1833,7 +1921,7 @@
             }
         }
 
-        // 대표자명 기입 시 계좌 및 예금주 자동 탐색 바인딩 연계
+        
         function handleModalCeoInput() {
             const ceoVal = document.getElementById('modal-ceo').value.trim();
             const matched = accountDb.find(acc => acc.ceo === ceoVal || acc.holder === ceoVal);
@@ -1847,7 +1935,7 @@
             }
         }
 
-        // 자금 청구 모달 공급가 입력 시 부가세 10% 실시간 제안식 오토필
+        
         function calcModalVatOnInput() {
             const supplyVal = Number(document.getElementById('modal-supply').value) || 0;
             document.getElementById('modal-tax').value = Math.floor(supplyVal * 0.1);
@@ -1862,7 +1950,7 @@
             document.getElementById('modal-tax').value = 0;
         }
 
-        // 신규 추가 시 곧바로 공종 분류 우선순위에 맞추어 자동 매핑 삽입
+        
         function confirmAddRow() {
             const type = document.getElementById('modal-type').value;
             const vendor = document.getElementById('modal-vendor').value.trim();
@@ -2164,14 +2252,18 @@
 
             const sortedVendorNames = Object.keys(vendorGroups).sort((a,b)=>a.localeCompare(b, 'ko-KR'));
 
-            dataset.forEach(item => {
-                if (item.vendor) {
-                    const opt = document.createElement('option');
-                    opt.value = `row-${item.id}`;
-                    const ceoLabel = item.ceo ? ` / ${item.ceo}` : '';
-                    opt.textContent = `[단일] [${item.type}] ${item.vendor}${ceoLabel} - ${formatNumber(item.supply + item.tax)}원`;
-                    selector.appendChild(opt);
-                }
+            const sortedDataset = [...dataset].filter(item => item.vendor).sort((a,b) => {
+                const nameA = a.ceo || a.vendor || "";
+                const nameB = b.ceo || b.vendor || "";
+                return nameA.localeCompare(nameB, 'ko-KR');
+            });
+
+            sortedDataset.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = `row-${item.id}`;
+                const ceoLabel = item.ceo ? ` / ${item.ceo}` : '';
+                opt.textContent = `[단일] [${item.type}] ${item.vendor}${ceoLabel} - ${formatNumber(item.supply + item.tax)}원`;
+                selector.appendChild(opt);
             });
 
             sortedVendorNames.forEach(vendor => {
@@ -2222,6 +2314,34 @@
                 currentDoc.period = value;
             }
             saveToLocalStorage();
+        }
+
+        function saveChecklist(vendorKey) {
+            if (!vendorKey || vendorKey === 'custom') return;
+            const chks = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const state = {};
+            chks.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) state[id] = el.checked;
+            });
+            localStorage.setItem('checklist_' + vendorKey, JSON.stringify(state));
+        }
+
+        function loadChecklist(vendorKey) {
+            const chks = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            chks.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = false;
+            });
+            if (!vendorKey || vendorKey === 'custom') return;
+            const saved = localStorage.getItem('checklist_' + vendorKey);
+            if (saved) {
+                const state = JSON.parse(saved);
+                chks.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && state[id] !== undefined) el.checked = state[id];
+                });
+            }
         }
 
         function loadRequestData(valueKey) {
@@ -2322,9 +2442,10 @@
             }
 
             renderRequestItemsTable();
+            loadChecklist(valueKey);
         }
 
-        // 지불의뢰서 작성 표 내 천 단위 콤마 자동 바인딩 연계 렌더러
+        
         function renderRequestItemsTable() {
             const tbody = document.getElementById('req-items-tbody');
             if (!tbody) return;
@@ -2478,6 +2599,30 @@
 
         function toggleNewDocModal() {
             document.getElementById('new-doc-modal').classList.toggle('hidden');
+        }
+
+        function deleteCurrentDocument() {
+            if (savedDocuments.length <= 1) {
+                showToast("마지막 문서는 삭제할 수 없습니다. 최소 1개의 문서가 필요합니다.");
+                return;
+            }
+            const curDoc = savedDocuments.find(d => d.id === currentDocId);
+            const label = curDoc ? `[${curDoc.company}] ${curDoc.month}` : "선택된 문서";
+            showConfirmModal(
+                "월별 청구 대장 삭제",
+                `"${label}" 문서와 포함된 모든 청구 항목을 삭제합니다. 되돌릴 수 없습니다.`,
+                function() {
+                    savedDocuments = savedDocuments.filter(d => d.id !== currentDocId);
+                    currentDocId = savedDocuments[0].id;
+                    dataset = savedDocuments[0].dataset || [];
+                    saveToLocalStorage();
+                    buildFilterOptions();
+                    updateSavedSheetsSelector();
+                    renderStatementTable();
+                    refreshRequestSelector();
+                    showToast(`${label} 문서가 삭제되었습니다.`);
+                }
+            );
         }
 
         function createNewDocument() {
@@ -2643,12 +2788,20 @@
                 accountDb[index][field] = value;
                 saveToLocalStorage();
                 const targetHolder = accountDb[index].holder;
+                const targetVendor = accountDb[index].vendor;
                 dataset.forEach(row => {
-                    if (row.holder === targetHolder) {
-                        row[field] = value;
+                    if (row.holder === targetHolder || row.vendor === targetVendor) {
+                        if (field === 'bank') row.bank = value;
+                        if (field === 'account') row.account = value;
+                        if (field === 'ceo') row.ceo = value;
+                        if (field === 'phone') row.phone = value;
+                        if (field === 'biznum') row.biznum = value;
+                        if (field === 'vendor') row.vendor = value;
                     }
                 });
                 renderStatementTable();
+                renderAccountDBList();
+                showToast("계좌 DB 수정 내용이 청구 대장에 반영되었습니다.");
             }
         }
 
@@ -2692,6 +2845,22 @@
 
         function triggerCsvImport() {
             document.getElementById('csv-account-file-input').click();
+        }
+
+        function exportAccountDbToCSV() {
+            let csvContent = "\uFEFF예금주,은행,계좌번호,대표자,거래처,사업자등록번호,연락처\n";
+            accountDb.forEach(acc => {
+                csvContent += `${acc.holder || ''},${acc.bank || ''},${acc.account || ''},${acc.ceo || ''},${acc.vendor || ''},${acc.biznum || ''},${acc.phone || ''}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `계좌DB_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("계좌 DB가 CSV로 내보내기되었습니다.");
         }
 
         function downloadCsvTemplate() {
@@ -2915,34 +3084,36 @@
             pendingConfirmAction = null;
         }
 
-        // 샘플 복원 초기화 루틴
         function showResetConfirm() {
             showConfirmModal(
-                "샘플 데이터 복원",
-                "현재 작성 중인 모든 내용이 사라지며 데모 샘플 데이터(원주 캠프롱 현장)로 초기화됩니다. 진행하시겠습니까?",
+                "모든 자료 초기화",
+                "저장된 모든 청구 대장, 계좌 DB, 문서 데이터가 영구 삭제됩니다. 되돌릴 수 없습니다. 계속하시겠습니까?",
                 function() {
                     savedDocuments = [
                         {
-                            id: "doc-sample-1",
+                            id: "doc-new-1",
                             company: "경산개발(주)",
-                            month: "2026년 04월",
-                            site: "원주 캠프롱 문화체육공원",
-                            dataset: JSON.parse(JSON.stringify(demoDataset)),
-                            period: "2026년 04월 01일 ~ 2026년 04월 30일"
+                            month: new Date().getFullYear() + "년 " + String(new Date().getMonth()+1).padStart(2,'0') + "월",
+                            site: "",
+                            dataset: [],
+                            period: calculateMonthPeriod(new Date().getFullYear() + "년 " + String(new Date().getMonth()+1).padStart(2,'0') + "월")
                         }
                     ];
-                    accountDb = JSON.parse(JSON.stringify(demoAccounts));
-                    currentDocId = "doc-sample-1";
-                    
-                    const curDoc = savedDocuments[0];
-                    dataset = curDoc.dataset;
+                    accountDb = [];
+                    currentDocId = "doc-new-1";
+                    dataset = [];
+
+                    localStorage.removeItem('cons_accounts_v3');
+                    localStorage.removeItem('cons_saved_docs_v3');
+                    localStorage.removeItem('cons_current_doc_id_v3');
 
                     saveToLocalStorage();
-                    loadSavedDocument("doc-sample-1");
+                    buildFilterOptions();
+                    updateSavedSheetsSelector();
                     renderStatementTable();
                     renderAccountDBList();
                     refreshRequestSelector();
-                    showToast("데모 샘플 데이터가 성공적으로 복원되었습니다.");
+                    showToast("모든 자료가 초기화되었습니다.");
                 }
             );
         }
