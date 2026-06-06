@@ -1,0 +1,3156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V7</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        
+        .a4-guide-active {
+            border: 2px dashed #3b82f6 !important;
+            position: relative;
+        }
+        .a4-guide-active::after {
+            content: "A4 인쇄 가상 범위 (지불의뢰서 최적화)";
+            position: absolute;
+            bottom: -22px;
+            right: 10px;
+            font-size: 10px;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        
+        .statement-guide-active {
+            border: 2px dashed #10b981 !important;
+            position: relative;
+        }
+        .statement-guide-active::after {
+            content: "A4 가로 인쇄 가상 범위 (자금청구명세서 최적화)";
+            position: absolute;
+            bottom: -22px;
+            left: 10px;
+            font-size: 10px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        
+        #temp-batch-print-area {
+            display: none;
+        }
+
+        
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0; /* 중앙 정렬을 위해 마진 제거 */
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-size: 11px !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                min-height: 100vh !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-page {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: white !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            
+            .print-landscape {
+                width: 100% !important;
+                max-width: 100% !important;
+                page-break-after: always;
+            }
+            
+            
+            .print-portrait {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: auto !important; /* 세로 및 가로 중앙 정렬 핵심 */
+                padding: 12mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                transform: scale(var(--print-scale, 1.00)) !important;
+                transform-origin: center center !important; /* 중앙 기준 축소 회전 */
+            }
+
+            
+            .a4-guide-active, .statement-guide-active {
+                border-color: #cbd5e1 !important;
+            }
+
+            
+            .print-bullet {
+                color: #000000 !important;
+                display: inline-block !important;
+                font-family: inherit !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            table, th, td, div, hr {
+                border-color: #94a3b8 !important; /* 인쇄 시 외곽선 선명도 향상 */
+            }
+
+            th {
+                background-color: #f1f5f9 !important; 
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                padding: 5px 3px !important;
+            }
+            
+            td {
+                padding: 4px 3px !important;
+            }
+
+            input:not([type="checkbox"]), select:not(.print-checkbox), textarea {
+                border: none !important;
+                outline: none !important;
+                background: transparent !important;
+                padding: 0.1rem !important;
+                width: 100% !important;
+                appearance: none !important;
+                -webkit-appearance: none !important;
+            }
+            
+            input[type="checkbox"] {
+                appearance: checkbox !important;
+                -webkit-appearance: checkbox !important;
+                display: inline-block !important;
+                width: 11px !important;
+                height: 11px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            
+            .border-dashed {
+                border-style: dashed !important;
+                border-color: #cbd5e1 !important;
+            }
+
+            
+            .table-scroll-container {
+                max-height: none !important;
+                overflow: visible !important;
+                overflow-x: auto !important;
+            }
+
+            
+            body.batch-printing > *:not(#temp-batch-print-area) {
+                display: none !important;
+            }
+            body.batch-printing #temp-batch-print-area {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: 100% !important;
+                min-height: 100vh !important;
+            }
+            body.batch-printing .print-page {
+                margin: auto !important;
+                page-break-after: always !important;
+                transform: scale(var(--print-scale, 1.00)) !important;
+                transform-origin: center center !important;
+            }
+        }
+        
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col font-sans">
+
+    <!-- 상단 네비게이션 바 (no-print) -->
+    <header class="no-print bg-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">현장 자금관리 마스터 <span class="bg-blue-500 text-[10px] px-1.5 py-0.5 rounded ml-2 text-white">PRO V7</span></h1>
+                    <p class="text-xs text-slate-400">지불의뢰서 중앙 배치 인쇄 • 회사별 월별 청구 대장 • 중복 위험 검출 엔진</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap justify-center lg:justify-end">
+                <!-- PDF 로드 및 파싱 버튼 -->
+                <button onclick="triggerPdfImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 청구 PDF 가져오기
+                </button>
+                <input type="file" id="pdf-import-input" accept=".pdf" class="hidden" onchange="importPdfBill(this)">
+                
+                <button onclick="exportToCSV()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 엑셀(CSV) 다운
+                </button>
+                <button onclick="openBackupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="database" class="w-3.5 h-3.5"></i> 백업/복원
+                </button>
+                <button onclick="showResetConfirm()" class="bg-rose-700 hover:bg-rose-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 모든 자료 초기화
+                </button>
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-sm transition-all">
+                    <i data-lucide="printer" class="w-4 h-4"></i> 현재 화면 인쇄/PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 대시보드 & 문서 저장 보관함 (no-print) -->
+    <section class="no-print max-w-7xl mx-auto w-full px-4 mt-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <!-- 대시보드 종합 요약 카드 -->
+        <div class="lg:col-span-3 bg-white rounded-xl p-4 shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold text-blue-600 uppercase">총 청구건수</p>
+                    <p class="text-xl font-bold text-slate-900 mt-1" id="summary-count">0건</p>
+                </div>
+            </div>
+            <div class="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold text-emerald-600 uppercase">총 공급가액</p>
+                    <p class="text-xl font-bold text-slate-900 mt-1" id="summary-supply">0원</p>
+                </div>
+            </div>
+            <div class="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold text-indigo-600 uppercase">총 부가세</p>
+                    <p class="text-xl font-bold text-slate-900 mt-1" id="summary-tax">0원</p>
+                </div>
+            </div>
+            <div class="bg-rose-50/50 p-3 rounded-lg border border-rose-100 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold text-rose-600 uppercase">지급요청 총액</p>
+                    <p class="text-xl font-bold text-slate-950 mt-1" id="summary-total">0원</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 멀티 문서/회사/월별 청구 보관함 매니저 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div>
+                <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-2">
+                    <i data-lucide="archive" class="w-4 h-4 text-blue-600"></i> 회사별 • 월별 청구 대장
+                </h4>
+                <div class="grid grid-cols-2 gap-1 mb-2">
+                    <div>
+                        <label class="block text-[9px] text-slate-400 font-bold">회사 필터</label>
+                        <select id="filter-company" onchange="applyDocumentFilters()" class="bg-slate-50 border border-slate-200 text-[10px] rounded p-1 w-full font-medium text-slate-700">
+                            <option value="ALL">전체 회사</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-slate-400 font-bold">월 필터</label>
+                        <select id="filter-month" onchange="applyDocumentFilters()" class="bg-slate-50 border border-slate-200 text-[10px] rounded p-1 w-full font-medium text-slate-700">
+                            <option value="ALL">전체 월</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-1.5 mb-2">
+                    <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)" class="bg-slate-100 border border-slate-200 text-xs rounded p-1.5 w-full font-bold text-slate-700">
+                    </select>
+                </div>
+            </div>
+            <button onclick="toggleNewDocModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] py-1.5 rounded font-bold w-full flex items-center justify-center gap-1 transition-all">
+                <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 새 회사/월별 청구서 등록
+            </button>
+            <button onclick="deleteCurrentDocument()" class="mt-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] py-1.5 rounded font-bold w-full flex items-center justify-center gap-1 transition-all">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 현재 선택 월 삭제
+            </button>
+        </div>
+    </section>
+
+    <!-- 메인 탭 전환 영역 (no-print) -->
+    <div class="no-print max-w-7xl mx-auto w-full px-4 mt-6 flex justify-between items-center border-b border-gray-200 flex-wrap gap-2">
+        <div class="flex flex-wrap">
+            <button id="tab-btn-statement" onclick="switchTab('statement')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-blue-600 text-blue-600 text-xs sm:text-sm flex items-center gap-2">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 1. 자금청구명세서 (가로 양식)
+            </button>
+            <button id="tab-btn-request" onclick="switchTab('request')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs sm:text-sm flex items-center gap-2">
+                <i data-lucide="file-check" class="w-4 h-4"></i> 2. 지불의뢰서 (A4 단면 밀착 세로 양식)
+            </button>
+            <button id="tab-btn-stats" onclick="switchTab('stats')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs sm:text-sm flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4"></i> 3. 구분별 집계표 (통계 분석)
+            </button>
+        </div>
+        <button onclick="toggleAccountModal()" class="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-all mb-2 sm:mb-0">
+            <i data-lucide="folder-key" class="w-3.5 h-3.5"></i> 계좌 마스터 DB 대장 관리
+        </button>
+    </div>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
+        
+        <!-- 계좌 정보 모달/패널 (no-print) -->
+        <div id="account-manager-panel" class="hidden no-print bg-white rounded-xl shadow-md border border-blue-200 p-5 mb-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <div class="flex items-center gap-2 text-blue-800">
+                    <i data-lucide="database" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-base">별도 관리 계좌 DB 대장 (예금주 이름순 자동 정렬)</h3>
+                </div>
+                <button onclick="toggleAccountModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- 새 예금주 등록 폼 -->
+            <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100 mb-4 text-xs">
+                <h4 class="font-bold text-blue-900 mb-2.5 flex items-center gap-1">
+                    <i data-lucide="plus" class="w-4 h-4"></i> 새 예금주 및 거래처 계좌 정보 마스터 등록
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">예금주 (실명 필수)</label>
+                        <input type="text" id="new-db-holder" placeholder="예: 유용근" class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">은행</label>
+                        <input type="text" id="new-db-bank" placeholder="예: 기업" class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">계좌번호 (유일 키)</label>
+                        <input type="text" id="new-db-account" placeholder="예: 110-384-..." class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">대표자명</label>
+                        <input type="text" id="new-db-ceo" placeholder="예: 유용근" class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">거래처 연계 명칭</label>
+                        <input type="text" id="new-db-vendor" placeholder="예: 길한산업" class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">사업자등록번호</label>
+                        <input type="text" id="new-db-biznum" oninput="formatBusinessNumber(this)" placeholder="000-00-00000" class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold mb-1">연락처</label>
+                        <input type="text" id="new-db-phone" oninput="formatPhoneNumberHelper(this)" placeholder="예: 010-1234-5678" class="w-full border border-slate-300 rounded px-2.5 py-1.5 bg-white outline-none">
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-3.5 pt-2 border-t border-blue-100">
+                    <button onclick="addAccountToDb()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 마스터 계좌 수동 추가
+                    </button>
+                    <button onclick="triggerCsvImport()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> CSV 파일 가져오기
+                    </button>
+                    <button onclick="downloadCsvTemplate()" class="bg-slate-600 hover:bg-slate-700 text-white text-xs px-4 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV 작성 양식 다운
+                    </button>
+                    <button onclick="exportAccountDbToCSV()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                        <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 계좌 DB CSV 내보내기
+                    </button>
+                    <input type="file" id="csv-account-file-input" accept=".csv" class="hidden" onchange="importAccountsFromCSV(this)">
+                </div>
+            </div>
+
+            <!-- 테이블 목록형 구조 -->
+            <div class="overflow-x-auto max-h-64 border border-slate-200 rounded-lg relative">
+                <table class="w-full border-collapse text-xs text-left text-slate-700">
+                    <thead class="bg-slate-100 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+                        <tr class="divide-x divide-slate-200 text-center font-bold">
+                            <th class="py-2 px-2 w-24">예금주</th>
+                            <th class="py-2 px-2 w-20">은행</th>
+                            <th class="py-2 px-2 w-40">계좌번호</th>
+                            <th class="py-2 px-2 w-24">대표자</th>
+                            <th class="py-2 px-2 w-32">거래처</th>
+                            <th class="py-2 px-2 w-32">사업자등록번호</th>
+                            <th class="py-2 px-2 w-32">연락처</th>
+                            <th class="py-2 px-2 w-16">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="account-db-list" class="divide-y divide-slate-200 bg-white">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 1. 자금청구명세서 영역 -->
+        <div id="tab-statement" class="block">
+            <!-- [스마트] 중복 청구 등록 경고 배너 -->
+            <div id="duplicate-alert-banner" class="hidden no-print bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg mb-4 shadow-sm flex items-center justify-between gap-3 transition-all duration-300">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5 animate-bounce"></i>
+                    <div class="text-sm text-amber-950">
+                        <p class="font-bold">⚠️ 중복 청구 등록 감지</p>
+                        <p class="mt-0.5" id="duplicate-alert-msg">동일 거래처명과 공급가액을 가진 이중 청구 건이 확인되었습니다. 아래 명세서에서 강조된 항목을 검토하세요.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 자금청구명세서 가독성 제어판 -->
+            <div class="no-print mb-4 bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 bg-emerald-50 text-emerald-700 rounded-lg">
+                        <i data-lucide="sliders" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-xs">명세서 가독성 및 가로 인쇄 제어판</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5">인쇄 및 모니터 규격에 맞게 조정해 줍니다.</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-4 bg-slate-50 p-2 rounded-lg border border-slate-200 text-xs">
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-slate-600">폰트 크기:</span>
+                        <select id="state-font-size-select" onchange="adjustStatementFont(this.value)" class="bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-semibold text-slate-700 outline-none">
+                            <option value="10px">10px (초미세)</option>
+                            <option value="11px" selected>11px (기본 컴팩트)</option>
+                            <option value="12px">12px (중간)</option>
+                            <option value="13px">13px (선명)</option>
+                            <option value="14px">14px (대형)</option>
+                        </select>
+                    </div>
+                    <div class="h-4 w-px bg-slate-300"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-slate-600">행 줄간격:</span>
+                        <select id="state-padding-select" onchange="adjustStatementPadding(this.value)" class="bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-semibold text-slate-700 outline-none">
+                            <option value="py-1">컴팩트 (좁게)</option>
+                            <option value="py-2" selected>기본 (보통)</option>
+                            <option value="py-3">여유있게 (넓게)</option>
+                        </select>
+                    </div>
+                    <div class="h-4 w-px bg-slate-300"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-slate-600">가로 인쇄 가이드 라인:</span>
+                        <input type="checkbox" id="statement-guide-toggle" onchange="toggleStatementGuide(this.checked)" class="w-4 h-4 rounded text-emerald-600 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 명세서 문서 영역 -->
+            <div id="statement-print-box" class="print-page print-landscape bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8">
+                <!-- 상단 메타 정보 영역 -->
+                <div class="flex flex-col gap-4 mb-6 pb-4 border-b border-slate-100">
+                    <div class="w-full">
+                        <input type="text" id="doc-title" value="(2026년 06월) 자금청구명세서" onchange="syncMetaValues('doc-title', this.value)" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 border-b border-gray-300 focus:border-blue-600 pb-1.5 w-full bg-transparent outline-none">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-bold text-slate-400 shrink-0 w-16 font-semibold">현장명:</span>
+                            <input type="text" id="meta-site" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 px-1 py-0.5 focus:border-blue-500 font-semibold w-full text-slate-800 bg-transparent truncate outline-none">
+                        </div>
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-bold text-slate-400 shrink-0 w-16 font-semibold">작성년월:</span>
+                            <input type="text" id="meta-month" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 px-1 py-0.5 focus:border-blue-500 font-semibold w-full text-slate-800 bg-transparent truncate outline-none">
+                        </div>
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-bold text-slate-400 shrink-0 w-16 font-semibold">회사명:</span>
+                            <input type="text" id="meta-company" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 px-1 py-0.5 focus:border-blue-500 font-semibold w-full text-slate-800 bg-transparent truncate outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 명세서 제어 바 -->
+                <div class="no-print mb-4 flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded">정렬 우선순위</span>
+                        <span>외주비 ➔ 자재비 ➔ 장비비 ➔ 노무비 ➔ 관리비 순으로 대장이 완벽 자동정렬됩니다.</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center bg-white border border-slate-300 rounded-lg p-1">
+                            <span class="text-xs font-bold text-slate-600 px-2">표시 단위:</span>
+                            <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded bg-blue-600 text-white transition-all">원</button>
+                            <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded text-slate-600 transition-all">천원</button>
+                        </div>
+
+                        <button onclick="openAddRowModal()" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm transition-all">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> 자금 청구 항목 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 명세서 실물 테이블 -->
+                <div class="table-scroll-container overflow-x-auto max-h-[500px] border border-slate-200 rounded-lg relative">
+                    <table class="w-full border-collapse text-xs text-left text-gray-700 min-w-[1250px]" id="statement-master-table" style="font-size: 11px;">
+                        <thead class="bg-slate-100 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+                            <tr class="divide-x divide-slate-200 text-center font-bold">
+                                <th class="py-2.5 px-1 w-10 bg-slate-100">번호</th>
+                                <th class="py-2.5 px-1 w-20 bg-slate-100">구분(분류)</th>
+                                <th class="py-2.5 px-2 w-32 bg-slate-100">거래처</th>
+                                <th class="py-2.5 px-2 w-16 bg-slate-100">대표자</th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100" id="th-supply">공급가액(원)</th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100" id="th-tax">부가세(원)</th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100" id="th-total">결제금액(원)</th>
+                                <th class="py-2.5 px-1 w-18 bg-slate-100" id="th-deduction">공제금액(원)</th>
+                                <th class="py-2.5 px-1 w-18 bg-slate-100" id="th-prepaid">선지급(원)</th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100" id="th-request">지급요청금액(원)</th>
+                                <th class="py-2.5 px-1 w-16 bg-slate-100">은행</th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100">입금계좌</th>
+                                <th class="py-2.5 px-2 w-24 bg-slate-100">예금주(선택)</th>
+                                <th class="py-2.5 px-1 w-20 no-print bg-slate-100">상태</th>
+                                <th class="py-2.5 px-2 w-20 bg-slate-100">비고</th>
+                                <th class="py-2.5 px-1 w-12 no-print bg-slate-100">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statement-tbody" class="divide-y divide-slate-200 bg-white">
+                        </tbody>
+                        <tfoot class="sticky bottom-0 z-10 shadow-[0_-2px_6px_rgba(0,0,0,0.05)] border-t-2 border-slate-300">
+                            <tr class="bg-slate-50 font-bold divide-x divide-slate-200 text-right">
+                                <td colspan="4" class="py-3 px-3 text-center text-sm font-extrabold text-slate-800 bg-slate-50">합 계</td>
+                                <td class="py-3 px-2 text-blue-700 bg-slate-50" id="foot-supply">0</td>
+                                <td class="py-3 px-2 text-indigo-700 bg-slate-50" id="foot-tax">0</td>
+                                <td class="py-3 px-2 text-emerald-700 bg-slate-50" id="foot-total-calc">0</td>
+                                <td class="py-3 px-2 bg-slate-50" id="foot-deduction">0</td>
+                                <td class="py-3 px-2 bg-slate-50" id="foot-prepaid">0</td>
+                                <td class="py-3 px-2 text-red-600 text-sm font-extrabold bg-slate-50" id="foot-request-amt">0</td>
+                                <td colspan="4" class="bg-slate-50"></td>
+                                <td class="no-print bg-slate-50"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 지불의뢰서 영역 -->
+        <div id="tab-request" class="hidden">
+            <div class="no-print bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="printer" class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"></i>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm">지불의뢰서 인쇄 및 가독성 제어판</h4>
+                            <p class="text-xs text-slate-500 mt-1">
+                                여백 조절 및 슬라이더 배율 조정을 통해 **A4 한 장 안에 정중앙 중앙맞춤 인쇄**됩니다.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-700">A4 가이드라인 표시:</span>
+                            <input type="checkbox" id="a4-guide-toggle" onchange="toggleA4Guide(this.checked)" class="w-4 h-4 rounded text-blue-600 cursor-pointer">
+                        </div>
+                        <div class="h-4 w-px bg-slate-300"></div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-bold text-slate-700">글자 크기:</span>
+                            <select id="req-font-size-select" onchange="adjustRequestFont(this.value)" class="bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-semibold text-slate-700 outline-none">
+                                <option value="9px">9px (초미세)</option>
+                                <option value="10px" selected>10px (기본)</option>
+                                <option value="11px">11px (중간)</option>
+                                <option value="12px">12px (대형)</option>
+                            </select>
+                        </div>
+                        <div class="h-4 w-px bg-slate-300"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-700">인쇄 출력 배율:</span>
+                            <input type="range" id="print-scale-slider" min="0.70" max="1.00" step="0.01" value="1.00" oninput="changePrintScale(this.value)" class="w-32 accent-blue-600 cursor-pointer">
+                            <span id="print-scale-label" class="text-xs font-bold text-blue-700 min-w-[35px]">100%</span>
+                        </div>
+                        <div class="h-4 w-px bg-slate-300"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-slate-600">거래처 선택:</span>
+                            <select id="request-selector" onchange="loadRequestData(this.value)" class="bg-white border border-slate-300 rounded text-xs px-2 py-1 focus:border-indigo-500 outline-none max-w-xs font-medium text-slate-800">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 의뢰서 바로 출력 지원 레이아웃 -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                
+                <!-- 지불의뢰서 실물 A4 portrait 양식 -->
+                <div class="lg:col-span-3">
+                    <div id="portrait-print-box" class="print-page print-portrait bg-white rounded-xl shadow-md border border-slate-200 p-8 max-w-[760px] mx-auto transition-all" style="--print-scale: 1.00; font-size: 10px;">
+                        
+                        <!-- 상단 타이틀 -->
+                        <div class="flex justify-between items-start border-b border-slate-300 pb-2 mb-4">
+                            <div class="w-full">
+                                <h2 class="text-xl md:text-2xl font-black tracking-tight text-gray-900 pb-1 flex items-center">
+                                    (<span id="req-title-category" contenteditable="true" onblur="applyCategoryColor(this.textContent)" class="font-extrabold focus:outline-none min-w-[60px] px-2 py-0.5 rounded-md border text-center inline-block transition-all duration-300 bg-emerald-50 text-emerald-700 border-emerald-300">자재비</span>) 
+                                    <span class="ml-1.5">지불의뢰서</span>
+                                </h2>
+                                <div class="text-[11px] text-slate-500 mt-2 flex flex-col gap-0.5">
+                                    <div class="flex items-center"><span class="w-14 font-semibold text-slate-400">현 장 명:</span> <input type="text" id="req-meta-site" value="원주 캠프롱 현장" class="border-b border-slate-200 w-full font-medium text-slate-700 py-0.5 bg-transparent outline-none"></div>
+                                    <div class="flex items-center"><span class="w-14 font-semibold text-slate-400">청구기간:</span> <input type="text" id="req-meta-period" onchange="syncPeriodValue(this.value)" value="2026년 06월 01일 ~ 2026년 06월 30일" class="border-b border-slate-200 w-full font-medium text-slate-700 py-0.5 bg-transparent outline-none"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 거래처 상세 및 계약 내용 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 border border-slate-300 text-[10px] mb-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300">
+                            <div class="divide-y divide-slate-300">
+                                <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">공종명</span><input type="text" id="req-field-type" value="도소매업" class="px-3 py-1.5 w-full font-medium text-slate-700 bg-transparent outline-none"></div>
+                                <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">청구금액</span><input type="text" id="req-field-contract" value="일금 영원정" class="px-3 py-1.5 w-full font-medium text-slate-600 bg-transparent outline-none"></div>
+                            </div>
+                            <div class="divide-y divide-slate-300">
+                                <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">거래처</span><input type="text" id="req-field-vendor" onchange="syncRequestFormToDbAndDataset()" value="" class="px-3 py-1.5 w-full font-bold text-blue-700 bg-transparent outline-none"></div>
+                                <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">대표자</span><input type="text" id="req-field-ceo" onchange="syncRequestFormToDbAndDataset()" value="" class="px-3 py-1.5 w-full font-medium text-slate-700 bg-transparent outline-none"></div>
+                            </div>
+                        </div>
+
+                        <!-- 청구 품목 정보 -->
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="text-[10px] font-bold text-slate-800">● 청구 및 의뢰 품목 내역</p>
+                                <button onclick="addRequestItemRow()" class="no-print bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] px-2 py-0.5 rounded border border-slate-300 font-semibold">품목 행 추가</button>
+                            </div>
+                            <table class="w-full border-collapse border border-slate-300 text-[10px] text-center">
+                                <thead>
+                                    <tr class="bg-slate-50 divide-x divide-slate-300 border-b border-slate-300 font-semibold text-slate-600">
+                                        <th class="py-1.5 w-1/3 border border-slate-300">품목명 / 비고</th>
+                                        <th class="py-1.5 w-12 border border-slate-300">수량</th>
+                                        <th class="py-1.5 border border-slate-300" id="th-req-supply">공급가액</th>
+                                        <th class="py-1.5 border border-slate-300" id="th-req-tax">부가세</th>
+                                        <th class="py-1.5 border border-slate-300" id="th-req-sum">합계금액</th>
+                                        <th class="py-1.5 w-10 no-print border border-slate-300">삭제</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="req-items-tbody" class="divide-y divide-slate-200 bg-white">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 산출근거 및 하단 계좌정보 -->
+                        <div class="flex flex-col gap-3 text-[10px] mb-4">
+                            
+                            <!-- 청구 산출 근거 -->
+                            <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 w-full">
+                                <p class="font-bold text-slate-800 mb-1 flex items-center">
+                                    <span class="print-bullet text-blue-600 font-black mr-1">●</span> 청구 산출 근거
+                                </p>
+                                <div class="space-y-0.5">
+                                    <div class="flex justify-between border-b border-slate-200 py-0.5">
+                                        <span id="lbl-req-supply">공급가액계 :</span>
+                                        <input type="text" id="req-calc-supply" value="0" class="font-semibold text-slate-800 text-right bg-transparent border-none max-w-[120px] outline-none" readonly>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-200 py-0.5">
+                                        <span id="lbl-req-tax">부가가치세 :</span>
+                                        <input type="text" id="req-calc-tax" value="0" class="font-semibold text-slate-800 text-right bg-transparent border-none max-w-[120px] outline-none" readonly>
+                                    </div>
+                                    <div class="flex justify-between py-0.5 text-indigo-600 font-bold">
+                                        <span id="lbl-req-total">청구 금액 계 :</span>
+                                        <input type="text" id="req-calc-total" value="0 원" class="font-bold text-indigo-600 text-right bg-transparent border-none max-w-[140px] outline-none" readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 거래처 정보 및 입금 계좌 한줄 가로 배치 레이아웃 -->
+                            <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 w-full">
+                                <p class="font-bold text-slate-800 mb-1.5 flex items-center">
+                                    <span class="print-bullet text-emerald-600 font-black mr-1">●</span> 거래처 및 입금 계좌 정보 (수정 시 계좌 DB 및 대장 자동 반영)
+                                </p>
+                                <div class="flex flex-col md:flex-row items-center gap-4 text-[10px] divide-y md:divide-y-0 md:divide-x divide-slate-300">
+                                    <div class="flex items-center w-full md:w-1/4 pb-1 md:pb-0">
+                                        <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">사업자번호:</span>
+                                        <input type="text" id="req-vendor-num" onchange="syncRequestFormToDbAndDataset()" oninput="formatBusinessNumber(this)" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 font-bold focus:outline-none" value="">
+                                    </div>
+                                    <div class="flex items-center w-full md:w-1/5 pt-1 md:pt-0 md:pl-3">
+                                        <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">은행:</span>
+                                        <input type="text" id="req-vendor-bank" onchange="syncRequestFormToDbAndDataset()" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 font-bold focus:outline-none" value="">
+                                    </div>
+                                    <div class="flex items-center w-full md:w-1/3 pt-1 md:pt-0 md:pl-3">
+                                        <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">계좌번호:</span>
+                                        <input type="text" id="req-vendor-account" onchange="syncRequestFormToDbAndDataset()" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 font-bold focus:outline-none" value="">
+                                    </div>
+                                    <div class="flex items-center w-full md:w-1/4 pt-1 md:pt-0 md:pl-3">
+                                        <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">연락처:</span>
+                                        <input type="text" id="req-vendor-phone" onchange="syncRequestFormToDbAndDataset()" oninput="formatPhoneNumberHelper(this)" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 font-bold focus:outline-none" value="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 첨부 구비서류 체크리스트 -->
+                        <div class="border border-slate-300 rounded-lg p-2.5 text-[10px] mb-3">
+                            <p class="font-bold text-slate-800 mb-1">● 구비 서류 체크리스트</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-medium" id="req-checklist-container">
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-biz" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-bank" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 통장사본</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-tax" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 세금계산서</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-trans" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 거래명세표</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-lease" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 장비임대차계약서</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-equip" onchange="saveChecklist(document.getElementById('request-selector').value)" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 건설기계등록증</label>
+                            </div>
+                        </div>
+
+                        <!-- 서명란 -->
+                        <div class="flex justify-end items-center border-t border-slate-300 pt-2 mt-3">
+                            <div class="text-right">
+                                <span class="text-[11px] text-slate-700 font-bold block">위의 청구내역이 틀림없음을 확인합니다.</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 옆쪽 고정 인쇄 퀵 컨트롤러 패널 -->
+                <div class="no-print bg-slate-900 text-white rounded-xl shadow-lg border border-slate-800 p-5 sticky top-6 font-semibold text-xs">
+                    <div class="flex items-center gap-2 text-indigo-400 mb-3 border-b border-slate-800 pb-2">
+                        <i data-lucide="printer-check" class="w-5 h-5"></i>
+                        <h4 class="font-extrabold text-sm text-slate-200">의뢰서 출력 퀵 패널</h4>
+                    </div>
+                    <p class="text-slate-400 leading-relaxed mb-4">
+                        현재 선택한 <span id="quick-vendor-name" class="font-bold text-indigo-300">거래처</span>의 지불의뢰서를 A4 1장에 가로/세로 중앙 정밀 맞춤 인쇄합니다.
+                    </p>
+                    <div class="space-y-2">
+                        <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
+                            <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력 (중앙 배치)
+                        </button>
+                        <button onclick="printAllRequests()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
+                            <i data-lucide="layers" class="w-4 h-4"></i> 전체 거래처 일괄 출력
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 3. 거래처별 청구 통계 집계표 영역 -->
+        <div id="tab-stats" class="hidden">
+            <div class="no-print bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-700 pb-3 mb-5 gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="p-2 bg-emerald-500 rounded-lg text-slate-950">
+                            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-base tracking-tight">자금청구집계표</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">구분별 거래처 통합액을 파악합니다. 카드를 클릭하면 상세 목록이 표출됩니다.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportStatsToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                            <i data-lucide="file-down" class="w-3.5 h-3.5"></i> CSV 내보내기
+                        </button>
+                        <span class="text-xs bg-slate-800 text-slate-300 font-bold px-3 py-1 rounded-full border border-slate-700" id="stats-total-vendor-count">총 0개 거래처 집계 중</span>
+                    </div>
+                </div>
+                
+                <!-- 분석 통계 내부 카드 보드 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="vendor-stats-board">
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- [스마트] 통계 상세조회 모달 팝업 -->
+    <div id="stats-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl p-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-bold text-slate-850 text-base flex items-center gap-1.5" id="stats-detail-title">
+                    <i data-lucide="list-collapse" class="text-emerald-600"></i> 거래처 상세 청구 내역 조회
+                </h3>
+                <button onclick="document.getElementById('stats-detail-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overflow-x-auto max-h-[380px] border border-slate-200 rounded-lg">
+                <table class="w-full border-collapse text-xs text-left text-slate-700">
+                    <thead class="bg-slate-100 border-b border-slate-200 sticky top-0 z-10">
+                        <tr class="divide-x divide-slate-200 text-center font-bold">
+                            <th class="py-2 px-1 w-12 bg-slate-100">번호</th>
+                            <th class="py-2 px-2 bg-slate-100">품목 적요 / 비고</th>
+                            <th class="py-2 px-2 bg-slate-100">공급가액</th>
+                            <th class="py-2 px-2 bg-slate-100">부가세</th>
+                            <th class="py-2 px-2 bg-slate-100">공제액</th>
+                            <th class="py-2 px-2 bg-slate-100">선지급액</th>
+                            <th class="py-2 px-2 bg-slate-100">지급요청액</th>
+                            <th class="py-2 px-1 w-16 bg-slate-100">상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-detail-tbody" class="divide-y divide-slate-200 bg-white">
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="document.getElementById('stats-detail-modal').classList.add('hidden')" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-lg font-bold text-xs">확인 완료</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 새 청구서 등록 모달 -->
+    <div id="new-doc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5"><i data-lucide="file-plus" class="text-blue-600"></i> 새 청구서 등록</h3>
+                <button onclick="toggleNewDocModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">회사명 (선택)</label>
+                    <select id="new-doc-company" class="w-full border border-slate-300 rounded px-3 py-2 bg-white font-semibold text-slate-700 outline-none">
+                        <option value="경산개발(주)">경산개발(주)</option>
+                        <option value="(합)유일건설">(합)유일건설</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">청구년도 (선택)</label>
+                        <select id="new-doc-year" class="w-full border border-slate-300 rounded px-3 py-2 bg-white font-semibold text-slate-700 outline-none">
+                            <option value="2025">2025년</option>
+                            <option value="2026" selected>2026년</option>
+                            <option value="2027">2027년</option>
+                            <option value="2028">2028년</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">청구월 (선택)</label>
+                        <select id="new-doc-month" class="w-full border border-slate-300 rounded px-3 py-2 bg-white font-semibold text-slate-700 outline-none">
+                            <option value="01">1월</option>
+                            <option value="02">2월</option>
+                            <option value="03">3월</option>
+                            <option value="04">4월</option>
+                            <option value="05">5월</option>
+                            <option value="06" selected>6월</option>
+                            <option value="07">7월</option>
+                            <option value="08">8월</option>
+                            <option value="09">9월</option>
+                            <option value="10">10월</option>
+                            <option value="11">11월</option>
+                            <option value="12">12월</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">현장명</label>
+                    <input type="text" id="new-doc-site" placeholder="예: 원주 캠프롱 현장" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-transparent outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 text-xs mt-6">
+                <button onclick="toggleNewDocModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
+                <button onclick="createNewDocument()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold transition-all">신규 청구서 생성</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자금 청구 항목 추가 모달 -->
+    <div id="add-row-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> 자금 청구 항목 신규 등록
+                </h3>
+                <button onclick="closeAddRowModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">구분 (분류) <span class="text-rose-500">*</span></label>
+                    <select id="modal-type" class="w-full border border-slate-300 rounded px-3 py-2 bg-white font-semibold text-slate-700 outline-none">
+                        <option value="외주비">외주비</option>
+                        <option value="자재비" selected>자재비</option>
+                        <option value="장비비">장비비</option>
+                        <option value="노무비">노무비</option>
+                        <option value="관리비">관리비</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">거래처명 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="modal-vendor" list="modal-vendor-list" placeholder="거래처명 입력 또는 선택" oninput="handleModalVendorInput()" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white outline-none">
+                    <datalist id="modal-vendor-list"></datalist>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">대표자명</label>
+                    <input type="text" id="modal-ceo" placeholder="대표자 이름" oninput="handleModalCeoInput()" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">공급가액 (원) <span class="text-rose-500">*</span></label>
+                    <input type="number" id="modal-supply" placeholder="0" oninput="calcModalVatOnInput()" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white text-right outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">부가세 (원)</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="modal-tax" placeholder="0" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white text-right outline-none">
+                        <button onclick="calcModalVat()" class="shrink-0 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-2 rounded text-[10px] font-semibold hover:bg-blue-100">10%</button>
+                        <button onclick="clearModalVat()" class="shrink-0 bg-slate-50 text-slate-600 border border-slate-300 px-2 py-2 rounded text-[10px] font-semibold hover:bg-slate-100">면세</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">공제금액 (원)</label>
+                    <input type="number" id="modal-deduction" placeholder="0" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white text-right outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">선지급 (원)</label>
+                    <input type="number" id="modal-prepaid" placeholder="0" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white text-right outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">비고 (메모)</label>
+                    <input type="text" id="modal-note" placeholder="(메모)되신 (품목)을 입력하세요" class="w-full border border-slate-300 rounded px-3 py-2 text-slate-700 bg-white outline-none">
+                </div>
+            </div>
+            <!-- 계좌 자동 매핑 결과 미리보기 -->
+            <div id="modal-account-preview" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-xs text-slate-700">
+                <p class="font-bold text-blue-700 mb-1 text-[11px] flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> DB에서 계좌 정보가 매핑되었습니다 (대표자명 기준)</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <span>은행: <strong id="modal-preview-bank"></strong></span>
+                    <span>계좌: <strong id="modal-preview-account"></strong></span>
+                    <span>예금주: <strong id="modal-preview-holder"></strong></span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 text-xs mt-2">
+                <button onclick="closeAddRowModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
+                <button onclick="confirmAddRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold transition-all">표에 추가</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 백업/복원 모달 -->
+    <div id="backup-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+                    <i data-lucide="database" class="w-5 h-5 text-blue-600"></i> 데이터 백업 / 복원
+                </h3>
+                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                    <p class="font-bold text-blue-800 mb-1 flex items-center gap-1"><i data-lucide="download" class="w-3.5 h-3.5"></i> 데이터 백업</p>
+                    <p class="text-slate-500 mb-3">현재 저장된 모든 청구 대장과 계좌 DB를 JSON 파일로 다운로드합니다.</p>
+                    <button onclick="downloadBackupJSON()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold w-full transition-all">JSON 백업 파일 다운로드</button>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                    <p class="font-bold text-emerald-800 mb-1 flex items-center gap-1"><i data-lucide="upload" class="w-3.5 h-3.5"></i> 데이터 복원</p>
+                    <p class="text-slate-500 mb-3">이전에 백업한 JSON 파일을 불러와 모든 데이터를 복원합니다. 현재 데이터는 덮어씌워집니다.</p>
+                    <input type="file" id="backup-file-input" accept=".json" class="w-full border border-slate-300 rounded px-2 py-1.5 bg-white mb-2 outline-none">
+                    <button onclick="importBackupJSON()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-semibold w-full transition-all">선택한 파일로 복원</button>
+                </div>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeBackupModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded font-semibold text-xs">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 컨펌/알림 모달 -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-sm p-6">
+            <h3 class="font-bold text-slate-800 text-base mb-2 font-semibold" id="confirm-title">확인</h3>
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed" id="confirm-message">내용</p>
+            <div class="flex justify-end gap-2 text-xs">
+                <button onclick="closeConfirmModal(false)" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
+                <button onclick="closeConfirmModal(true)" id="confirm-ok-btn" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded font-semibold">진행</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 안내창 -->
+    <div id="toast" class="opacity-0 pointer-events-none fixed bottom-5 right-5 bg-slate-950 text-white text-xs py-2.5 px-4 rounded-lg shadow-lg z-50 flex items-center gap-2 transition-all duration-300">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toast-msg">처리 완료</span>
+    </div>
+
+    <!-- 로직 자바스크립트 -->
+    <script>
+        const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
+
+        
+        const demoDataset = [
+            { id: 1, type: "외주비", vendor: "(주)휴먼인텍", ceo: "변병주", supply: 53000, tax: 5300, deduction: 0, prepaid: 0, bank: "기업", account: "420-044521-01-048", holder: "(주)휴먼인텍", phone: "010-1234-5678", note: "계산서발행", status: "완료", biznum: "123-45-67890" },
+            { id: 2, type: "자재비", vendor: "길한산업", ceo: "유용근", supply: 66000, tax: 6600, deduction: 0, prepaid: 0, bank: "기업", account: "118-039903-04-011", holder: "유용근", phone: "010-9876-5432", note: "부직포 외", status: "대기", biznum: "224-81-11494" },
+            { id: 3, type: "자재비", vendor: "만우리건축자재", ceo: "문규석", supply: 1391818, tax: 139182, deduction: 0, prepaid: 0, bank: "농협", account: "302-3088-2211-91", holder: "문규석", phone: "010-2222-3333", note: "안전", status: "대기", biznum: "302-12-34567" },
+            { id: 4, type: "자재비", vendor: "그린시티", ceo: "고연표", supply: 2592400, tax: 259240, deduction: 0, prepaid: 0, bank: "농협", account: "수납통지서전달", holder: "고연표", phone: "010-4444-5555", note: "선지급", status: "완료", biznum: "124-22-34876" },
+            { id: 5, type: "자재비", vendor: "그린시티", ceo: "고연표", supply: 1005600, tax: 100560, deduction: 0, prepaid: 0, bank: "농협", account: "수납통지서전달", holder: "고연표", phone: "010-4444-5555", note: "선지급", status: "완료", biznum: "124-22-34876" },
+            { id: 6, type: "관리비", vendor: "제일ITS", ceo: "원영석", supply: 210000, tax: 21000, deduction: 0, prepaid: 0, bank: "농협", account: "302-3038-22-1191", holder: "제일ITS 원영석", phone: "010-6666-7777", note: "4월 분계산서", status: "대기", biznum: "405-22-09876" },
+            { id: 7, type: "관리비", vendor: "제일ITS", ceo: "원영석", supply: 227273, tax: 22727, deduction: 0, prepaid: 0, bank: "농협", account: "302-3038-22-1191", holder: "제일ITS 원영석", phone: "010-6666-7777", note: "4월 분계산서", status: "대기", biznum: "405-22-09876" },
+            { id: 8, type: "관리비", vendor: "강호식당", ceo: "지봉옥", supply: 1304000, tax: 0, deduction: 0, prepaid: 0, bank: "농협", account: "213-12-131532", holder: "지봉옥", phone: "033-123-4567", note: "식대 청구", status: "완료", biznum: "220-33-12490" },
+            { id: 9, type: "관리비", vendor: "개인경비 (윤영필)", ceo: "윤영필", supply: 68000, tax: 0, deduction: 0, prepaid: 0, bank: "SC제일", account: "62620078372", holder: "윤영필", phone: "010-8888-9999", note: "개인경비", status: "완료", biznum: "777-11-22345" },
+            { id: 10, type: "관리비", vendor: "개인경비 (김병홍)", ceo: "김병홍", supply: 36000, tax: 0, deduction: 0, prepaid: 0, bank: "농협", account: "307126-51-038478", holder: "김병홍", phone: "010-1111-2222", note: "개인경비", status: "완료", biznum: "888-22-33456" },
+            { id: 11, type: "관리비", vendor: "숙소전기요금", ceo: "강세영", supply: 101000, tax: 0, deduction: 0, prepaid: 0, bank: "농협", account: "351-0326-6690-63", holder: "김영미", phone: "010-3333-4444", note: "303동", status: "완료", biznum: "505-12-32111" }
+        ];
+
+        const demoAccounts = [
+            { id: 1, holder: "(주)휴먼인텍", bank: "기업", account: "420-044521-01-048", ceo: "변병주", vendor: "(주)휴먼인텍", phone: "010-1234-5678", biznum: "123-45-67890" },
+            { id: 6, holder: "지봉옥", bank: "농협", account: "213-12-131532", ceo: "지봉옥", vendor: "강호식당", phone: "033-123-4567", biznum: "220-33-12490" },
+            { id: 4, holder: "고연표", bank: "농협", account: "수납통지서전달", ceo: "고연표", vendor: "그린시티", phone: "010-4444-5555", biznum: "124-22-34876" },
+            { id: 2, holder: "유용근", bank: "기업", account: "118-039903-04-011", ceo: "유용근", vendor: "길한산업", phone: "010-9876-5432", biznum: "224-81-11494" },
+            { id: 3, holder: "문규석", bank: "농협", account: "302-3088-2211-91", ceo: "문규석", vendor: "만우리건축자재", phone: "010-2222-3333", biznum: "302-12-34567" },
+            { id: 8, holder: "김병홍", bank: "농협", account: "307126-51-038478", ceo: "김병홍", vendor: "개인경비 (김병홍)", phone: "010-1111-2222", biznum: "888-22-33456" },
+            { id: 7, holder: "윤영필", bank: "SC제일", account: "62620078372", ceo: "윤영필", vendor: "개인경비 (윤영필)", phone: "010-8888-9999", biznum: "777-11-22345" },
+            { id: 9, holder: "김영미", bank: "농협", account: "351-0326-6690-63", ceo: "강세영", vendor: "숙소전기요금", phone: "010-3333-4444", biznum: "505-12-32111" },
+            { id: 5, holder: "제일ITS 원영석", bank: "농협", account: "302-3038-22-1191", ceo: "원영석", vendor: "제일ITS", phone: "010-6666-7777", biznum: "405-22-09876" }
+        ];
+
+        let dataset = [];
+        let accountDb = [];
+        let savedDocuments = [];
+        let currentDocId = "";
+        let pendingConfirmAction = null;
+        let requestItems = [];
+        let currentMoneyUnit = 'won';
+
+        function loadFromLocalStorage() {
+            const savedAccounts = localStorage.getItem('cons_accounts_v3');
+            const savedDocs = localStorage.getItem('cons_saved_docs_v3');
+            const currentId = localStorage.getItem('cons_current_doc_id_v3');
+
+            if (savedDocs) {
+                savedDocuments = JSON.parse(savedDocs);
+            } else {
+                
+                savedDocuments = [
+                    {
+                        id: "doc-sample-1",
+                        company: "경산개발(주)",
+                        month: "2026년 06월",
+                        site: "원주 캠프롱 현장",
+                        dataset: [],
+                        period: "2026년 06월 01일 ~ 2026년 06월 30일"
+                    }
+                ];
+            }
+
+            if (currentId && savedDocuments.some(doc => doc.id === currentId)) {
+                currentDocId = currentId;
+            } else {
+                currentDocId = savedDocuments[0].id;
+            }
+
+            const currentDoc = savedDocuments.find(doc => doc.id === currentDocId);
+            dataset = currentDoc ? currentDoc.dataset : [];
+
+            if (savedAccounts) {
+                accountDb = JSON.parse(savedAccounts);
+            } else {
+                accountDb = [];
+            }
+
+            sortAccountDbByName();
+            sortDatasetByPriority();
+
+            if (currentDoc) {
+                document.getElementById('doc-title').value = `(${currentDoc.month}) 자금청구명세서`;
+                document.getElementById('meta-site').value = currentDoc.site;
+                document.getElementById('meta-month').value = currentDoc.month;
+                document.getElementById('meta-company').value = currentDoc.company;
+                
+                if (!currentDoc.period) {
+                    currentDoc.period = calculateMonthPeriod(currentDoc.month);
+                }
+                document.getElementById('req-meta-period').value = currentDoc.period;
+            }
+
+            buildFilterOptions();
+            updateSavedSheetsSelector();
+        }
+
+        function saveToLocalStorage() {
+            sortAccountDbByName();
+            sortDatasetByPriority();
+
+            const docIndex = savedDocuments.findIndex(doc => doc.id === currentDocId);
+            if (docIndex !== -1) {
+                savedDocuments[docIndex].dataset = dataset;
+                savedDocuments[docIndex].site = document.getElementById('meta-site').value;
+                savedDocuments[docIndex].month = document.getElementById('meta-month').value;
+                savedDocuments[docIndex].company = document.getElementById('meta-company').value;
+                savedDocuments[docIndex].period = document.getElementById('req-meta-period').value;
+            }
+
+            localStorage.setItem('cons_accounts_v3', JSON.stringify(accountDb));
+            localStorage.setItem('cons_saved_docs_v3', JSON.stringify(savedDocuments));
+            localStorage.setItem('cons_current_doc_id_v3', currentDocId);
+            
+            renderVendorStatistics();
+        }
+
+        function sortAccountDbByName() {
+            accountDb.sort((a, b) => {
+                const nameA = a.holder || "";
+                const nameB = b.holder || "";
+                return nameA.localeCompare(nameB, 'ko-KR');
+            });
+        }
+
+        function sortDatasetByPriority() {
+            dataset.sort((a, b) => {
+                if (a.isNew && !b.isNew) return -1;
+                if (!a.isNew && b.isNew) return 1;
+
+                const priorityA = categoryPriority[a.type] || 99;
+                const priorityB = categoryPriority[b.type] || 99;
+
+                if (priorityA !== priorityB) {
+                    return priorityA - priorityB;
+                }
+                
+                const vendorA = a.vendor || "";
+                const vendorB = b.vendor || "";
+                return vendorA.localeCompare(vendorB, 'ko-KR');
+            });
+        }
+
+        function adjustStatementFont(fontSize) {
+            const table = document.getElementById('statement-master-table');
+            if (table) {
+                table.style.fontSize = fontSize;
+            }
+        }
+
+        
+        function adjustRequestFont(size) {
+            const box = document.getElementById('portrait-print-box');
+            if (box) {
+                box.style.fontSize = size;
+                const innerElements = box.querySelectorAll('input, select, textarea, table, td, th, span');
+                innerElements.forEach(el => {
+                    if (!el.classList.contains('text-xl') && !el.classList.contains('text-2xl')) {
+                        el.style.fontSize = size;
+                    }
+                });
+            }
+        }
+
+        function adjustStatementPadding(paddingClass) {
+            const tbody = document.getElementById('statement-tbody');
+            if (!tbody) return;
+            const rows = tbody.getElementsByTagName('tr');
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                for (let cell of cells) {
+                    cell.classList.remove('py-1', 'py-2', 'py-3');
+                    cell.classList.add(paddingClass);
+                }
+            }
+        }
+
+        function toggleStatementGuide(isActive) {
+            const box = document.getElementById('statement-print-box');
+            if (isActive) {
+                box.classList.add('statement-guide-active');
+            } else {
+                box.classList.remove('statement-guide-active');
+            }
+        }
+
+        function switchTab(tabId) {
+            const tabStatement = document.getElementById('tab-statement');
+            const tabRequest = document.getElementById('tab-request');
+            const tabStats = document.getElementById('tab-stats');
+
+            const btnStatement = document.getElementById('tab-btn-statement');
+            const btnRequest = document.getElementById('tab-btn-request');
+            const btnStats = document.getElementById('tab-btn-stats');
+
+            tabStatement.classList.add('hidden');
+            tabRequest.classList.add('hidden');
+            tabStats.classList.add('hidden');
+
+            btnStatement.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs sm:text-sm flex items-center gap-2";
+            btnRequest.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs sm:text-sm flex items-center gap-2";
+            btnStats.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs sm:text-sm flex items-center gap-2";
+
+            if (tabId === 'statement') {
+                tabStatement.classList.remove('hidden');
+                btnStatement.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-blue-600 text-blue-600 text-xs sm:text-sm flex items-center gap-2";
+            } else if (tabId === 'request') {
+                tabRequest.classList.remove('hidden');
+                btnRequest.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-indigo-600 text-indigo-600 text-xs sm:text-sm flex items-center gap-2";
+                refreshRequestSelector();
+            } else if (tabId === 'stats') {
+                tabStats.classList.remove('hidden');
+                btnStats.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-emerald-600 text-emerald-600 text-xs sm:text-sm flex items-center gap-2";
+                renderVendorStatistics();
+            }
+        }
+
+        function triggerPdfImport() {
+            document.getElementById('pdf-import-input').click();
+        }
+
+        function importPdfBill(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            showToast("PDF 파일을 읽고 분석 중입니다...");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const typedarray = new Uint8Array(e.target.result);
+                
+                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                    let maxPages = pdf.numPages;
+                    let countPromises = [];
+                    
+                    for (let j = 1; j <= maxPages; j++) {
+                        countPromises.push(getPageText(j, pdf));
+                    }
+                    
+                    Promise.all(countPromises).then(function(pageTexts) {
+                        const fullText = pageTexts.join('\n');
+                        parsePdfTextAndInsert(fullText);
+                    });
+                }).catch(err => {
+                    showToast("PDF 문서를 해독할 수 없습니다.");
+                });
+            };
+            reader.readAsArrayBuffer(file);
+            input.value = "";
+        }
+
+        function getPageText(pageNum, pdfInstance) {
+            return new Promise((resolve) => {
+                pdfInstance.getPage(pageNum).then(function(pdfPage) {
+                    pdfPage.getTextContent().then(function(textContent) {
+                        let textItems = textContent.items;
+                        let finalString = "";
+                        for (let i = 0; i < textItems.length; i++) {
+                            finalString += textItems[i].str + " ";
+                        }
+                        resolve(finalString);
+                    });
+                });
+            });
+        }
+
+        function parsePdfTextAndInsert(text) {
+            let vendor = "";
+            let ceo = "";
+            let bank = "";
+            let account = "";
+            let supply = 0;
+            let tax = 0;
+            let phone = "";
+            let holder = "";
+            let biznum = "";
+
+            const vendorMatch = text.match(/거래처\s*:\s*([^\s\n,]+)/) || text.match(/거래처\s+([^\s\n,]+)/);
+            if (vendorMatch) vendor = vendorMatch[1].trim();
+
+            const ceoMatch = text.match(/대표자\s*:\s*([^\s\n,]+)/) || text.match(/대표자\s+([^\s\n,]+)/) || text.match(/예금주\s+([^\s\n,]+)/);
+            if (ceoMatch) ceo = ceoMatch[1].trim();
+
+            const supplyMatch = text.match(/공급가액계\s*:\s*([\d,]+)/) || text.match(/공급가액\s*([\d,]+)/);
+            if (supplyMatch) {
+                supply = parseInt(supplyMatch[1].replace(/,/g, ''), 10);
+                tax = Math.floor(supply * 0.1);
+            }
+
+            const taxMatch = text.match(/부가가치세\s*:\s*([\d,]+)/) || text.match(/부가세\s*([\d,]+)/);
+            if (taxMatch) {
+                tax = parseInt(taxMatch[1].replace(/,/g, ''), 10);
+            }
+
+            const bankMatch = text.match(/(기업|농협|국민|신한|우리|하나|SC제일|카카오|토스|대구|부산|경남|광주|전북|제주|수협|신협|새마을|우체국|산업)\s*(은행)?/i);
+            if (bankMatch) bank = bankMatch[1].trim();
+
+            const accountMatch = text.match(/(\d[\d-]{8,20}\d)/);
+            if (accountMatch) account = accountMatch[1].trim();
+
+            const phoneMatch = text.match(/(01[016789]-\d{3,4}-\d{4})/);
+            if (phoneMatch) phone = phoneMatch[1].trim();
+
+            const bizMatch = text.match(/(\d{3}-\d{2}-\d{5})/);
+            if (bizMatch) biznum = bizMatch[1].trim();
+
+            const holderMatch = text.match(/예금주\s*([^\s\n,]+)/);
+            if (holderMatch) holder = holderMatch[1].trim();
+            else holder = ceo || vendor;
+
+            if (!vendor) vendor = "미지정 거래처";
+            if (!ceo) ceo = holder || "대표자";
+            if (!bank) bank = "은행";
+            if (!account) account = "계좌 확인 불가";
+
+            const newId = dataset.length > 0 ? Math.max(...dataset.map(item => item.id)) + 1 : 1;
+            const newRow = {
+                id: newId,
+                type: "자재비",
+                vendor: vendor,
+                ceo: ceo,
+                supply: supply,
+                tax: tax,
+                deduction: 0,
+                prepaid: 0,
+                bank: bank,
+                account: account,
+                holder: holder,
+                phone: phone,
+                biznum: biznum,
+                status: "대기",
+                note: "PDF 분석 자동등록"
+            };
+
+            dataset.push(newRow);
+
+            const cleanNewAccount = account.replace(/[^0-9]/g, '');
+            const isAlreadyInDb = accountDb.some(a => a.account.replace(/[^0-9]/g, '') === cleanNewAccount);
+            
+            if (!isAlreadyInDb && account !== "계좌 확인 불가" && account.trim() !== "") {
+                const dbId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+                accountDb.push({
+                    id: dbId,
+                    holder: holder,
+                    bank: bank,
+                    account: account,
+                    ceo: ceo,
+                    vendor: vendor,
+                    phone: phone,
+                    biznum: biznum
+                });
+            }
+
+            saveToLocalStorage();
+            renderStatementTable();
+            renderAccountDBList();
+            refreshRequestSelector();
+            showToast(`[${vendor}] PDF 청구 데이터 연동 등록 완료!`);
+        }
+
+        function toggleA4Guide(isActive) {
+            const box = document.getElementById('portrait-print-box');
+            if (isActive) {
+                box.classList.add('a4-guide-active');
+            } else {
+                box.classList.remove('a4-guide-active');
+            }
+        }
+
+        function formatPhoneNumberHelper(input) {
+            let num = input.value.replace(/[^0-9]/g, '');
+            if (num.length < 4) {
+                input.value = num;
+            } else if (num.length < 7) {
+                input.value = num.substring(0, 3) + "-" + num.substring(3);
+            } else if (num.length < 11) {
+                input.value = num.substring(0, 3) + "-" + num.substring(3, 6) + "-" + num.substring(6);
+            } else {
+                input.value = num.substring(0, 3) + "-" + num.substring(3, 7) + "-" + num.substring(7, 11);
+            }
+        }
+
+        function formatBusinessNumber(input) {
+            let num = input.value.replace(/[^0-9]/g, '');
+            if (num.length <= 3) {
+                input.value = num;
+            } else if (num.length <= 5) {
+                input.value = num.substring(0, 3) + "-" + num.substring(3, 5);
+            } else {
+                input.value = num.substring(0, 3) + "-" + num.substring(3, 5) + "-" + num.substring(5, 10);
+            }
+        }
+
+        
+        let duplicateItemIds = new Set();
+        function checkDuplicateContracts() {
+            duplicateItemIds.clear();
+            const seen = {};
+            const duplicateGroups = {};
+
+            dataset.forEach(row => {
+                if (!row.vendor || !row.supply) return;
+                const key = `${row.vendor.trim()}_${row.supply}`;
+                if (seen[key]) {
+                    seen[key].push(row.id);
+                    duplicateGroups[key] = seen[key];
+                } else {
+                    seen[key] = [row.id];
+                }
+            });
+
+            let totalDuplicatesCount = 0;
+            Object.keys(duplicateGroups).forEach(key => {
+                duplicateGroups[key].forEach(id => {
+                    duplicateItemIds.add(id);
+                    totalDuplicatesCount++;
+                });
+            });
+
+            const banner = document.getElementById('duplicate-alert-banner');
+            const bannerMsg = document.getElementById('duplicate-alert-msg');
+            if (totalDuplicatesCount > 0) {
+                banner.classList.remove('hidden');
+                bannerMsg.innerHTML = `현재 대장상에 <strong>상호 및 공급가액이 일치하는 이중 청구 의심 건이 총 ${totalDuplicatesCount}건</strong> 확인됩니다.`;
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function showDuplicateToast() {
+            showToast("⚠️ 주황색 배너 및 대장 음영 항목이 중복 의심 상태입니다.");
+        }
+
+        
+        function renderVendorStatistics() {
+            const board = document.getElementById('vendor-stats-board');
+            if (!board) return;
+            board.innerHTML = "";
+
+            const categories = ["외주비", "자재비", "장비비", "노무비", "관리비"];
+            const categoryColors = {
+                "외주비": { header: "bg-blue-600", badge: "bg-blue-100 text-blue-700 border-blue-300", accent: "text-blue-400", border: "border-blue-500/30" },
+                "자재비": { header: "bg-emerald-600", badge: "bg-emerald-100 text-emerald-700 border-emerald-300", accent: "text-emerald-400", border: "border-emerald-500/30" },
+                "장비비": { header: "bg-amber-600", badge: "bg-amber-100 text-amber-700 border-amber-300", accent: "text-amber-400", border: "border-amber-500/30" },
+                "노무비": { header: "bg-purple-600", badge: "bg-purple-100 text-purple-700 border-purple-300", accent: "text-purple-400", border: "border-purple-500/30" },
+                "관리비": { header: "bg-rose-600", badge: "bg-rose-100 text-rose-700 border-rose-300", accent: "text-rose-400", border: "border-rose-500/30" },
+            };
+
+            let totalVendorSet = new Set();
+            dataset.forEach(row => { if (row.vendor) totalVendorSet.add(row.vendor); });
+
+            const labelCount = document.getElementById('stats-total-vendor-count');
+            if (labelCount) {
+                labelCount.textContent = `총 ${totalVendorSet.size}개 거래처 집계 중`;
+            }
+
+            if (dataset.length === 0) {
+                board.innerHTML = `<div class="col-span-full text-center text-xs text-slate-400 py-12 bg-slate-800/30 rounded-xl">등록된 청구 항목이 없습니다.</div>`;
+                return;
+            }
+
+            categories.forEach(cat => {
+                const catRows = dataset.filter(r => r.type === cat);
+                if (catRows.length === 0) return;
+
+                const cc = categoryColors[cat];
+
+                const sectionHeader = document.createElement('div');
+                sectionHeader.className = "col-span-full mt-3 mb-1";
+                const catTotal = catRows.reduce((s, r) => s + (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0), 0);
+                sectionHeader.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block ${cc.header} text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded">${cat}</span>
+                        <span class="text-[11px] text-slate-400">${catRows.length}건 · 총액 <span class="font-bold text-slate-200">${formatNumber(catTotal)}원</span></span>
+                    </div>
+                `;
+                board.appendChild(sectionHeader);
+
+                const vendorStats = {};
+                catRows.forEach(row => {
+                    if (!row.vendor) return;
+                    if (!vendorStats[row.vendor]) vendorStats[row.vendor] = { count: 0, supply: 0, tax: 0, requestAmt: 0, ceo: row.ceo || '' };
+                    vendorStats[row.vendor].count++;
+                    vendorStats[row.vendor].supply += (row.supply || 0);
+                    vendorStats[row.vendor].tax += (row.tax || 0);
+                    vendorStats[row.vendor].requestAmt += (row.supply||0) + (row.tax||0) - (row.deduction||0) - (row.prepaid||0);
+                });
+
+                const vendors = Object.keys(vendorStats).sort((a,b) => a.localeCompare(b, 'ko-KR'));
+                vendors.forEach(vendor => {
+                    const data = vendorStats[vendor];
+                    const card = document.createElement('div');
+                    card.className = `bg-slate-900/60 border ${cc.border} rounded-xl p-4 text-xs hover:bg-slate-850 hover:border-slate-400 transition-all shadow-sm cursor-pointer transform hover:-translate-y-0.5`;
+                    card.setAttribute("onclick", `openStatsDetailModal('${vendor.replace(/'/g, "\\'")}', '${cat}')`);
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <div>
+                                <div class="font-extrabold text-slate-100 text-sm flex items-center gap-1">${vendor} <i data-lucide="zoom-in" class="w-3 h-3 text-slate-400"></i></div>
+                                ${data.ceo ? `<div class="text-[10px] text-slate-400 mt-0.5">대표: ${data.ceo}</div>` : ''}
+                            </div>
+                            <span class="text-[9px] ${cc.badge} px-2 py-0.5 rounded font-extrabold border shrink-0">건수: ${data.count}</span>
+                        </div>
+                        <div class="space-y-0.5 border-t border-slate-700/60 pt-2">
+                            <div class="flex justify-between text-[10px]"><span class="text-slate-400">공급액</span><span class="text-slate-200 font-semibold">${formatNumber(data.supply)}원</span></div>
+                            <div class="flex justify-between text-[10px] font-bold"><span class="${cc.accent}">청구합계</span><span class="text-slate-100">${formatNumber(data.requestAmt)}원</span></div>
+                        </div>
+                    `;
+                    board.appendChild(card);
+                });
+            });
+            lucide.createIcons();
+        }
+
+        function exportStatsToCSV() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const title = currentDoc ? `${currentDoc.company} ${currentDoc.month} 자금청구집계표` : "자금청구집계표";
+
+            let csvContent = "\uFEFF자금청구집계표\n";
+            csvContent += `회사,항목,대표자,공급가액,부가세,합계금액,공제금액,선지급,지급요청금액\n`;
+
+            const categories = ["외주비", "자재비", "장비비", "노무비", "관리비"];
+            categories.forEach(cat => {
+                const catRows = dataset.filter(r => r.type === cat);
+                if (catRows.length === 0) return;
+                const vendorStats = {};
+                catRows.forEach(row => {
+                    if (!row.vendor) return;
+                    if (!vendorStats[row.vendor]) vendorStats[row.vendor] = { supply: 0, tax: 0, deduction: 0, prepaid: 0, ceo: row.ceo || '' };
+                    vendorStats[row.vendor].supply += (row.supply || 0);
+                    vendorStats[row.vendor].tax += (row.tax || 0);
+                    vendorStats[row.vendor].deduction += (row.deduction || 0);
+                    vendorStats[row.vendor].prepaid += (row.prepaid || 0);
+                });
+                Object.keys(vendorStats).sort().forEach(vendor => {
+                    const d = vendorStats[vendor];
+                    const total = d.supply + d.tax;
+                    const reqAmt = total - d.deduction - d.prepaid;
+                    csvContent += `${vendor},${cat},${d.ceo},${d.supply},${d.tax},${total},${d.deduction},${d.prepaid},${reqAmt}\n`;
+                });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${title}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("자금청구집계표 CSV 내보내기 완료!");
+        }
+
+        
+        function openStatsDetailModal(vendor, category) {
+            const modal = document.getElementById('stats-detail-modal');
+            const title = document.getElementById('stats-detail-title');
+            const tbody = document.getElementById('stats-detail-tbody');
+
+            title.innerHTML = `<i data-lucide="list-collapse" class="text-emerald-500"></i> <strong class="text-emerald-700 px-1">${vendor}</strong> - ${category} 청구 상세 목록`;
+            tbody.innerHTML = "";
+
+            const filtered = dataset.filter(row => row.vendor === vendor && row.type === category);
+            
+            filtered.forEach((row, idx) => {
+                const total = (row.supply || 0) + (row.tax || 0);
+                const reqAmt = total - (row.deduction || 0) - (row.prepaid || 0);
+                const tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-200 hover:bg-slate-50 text-center";
+                tr.innerHTML = `
+                    <td class="py-2 px-1 font-bold text-slate-500">${idx + 1}</td>
+                    <td class="py-2 px-2 text-left font-semibold">${row.note || '일반 청구'}</td>
+                    <td class="py-2 px-2 text-right font-semibold text-slate-900">${formatNumber(row.supply)}원</td>
+                    <td class="py-2 px-2 text-right text-slate-600">${formatNumber(row.tax)}원</td>
+                    <td class="py-2 px-2 text-right text-rose-600">${formatNumber(row.deduction)}원</td>
+                    <td class="py-2 px-2 text-right text-amber-600">${formatNumber(row.prepaid)}원</td>
+                    <td class="py-2 px-2 text-right font-extrabold text-blue-600 bg-blue-50/50">${formatNumber(reqAmt)}원</td>
+                    <td class="py-2 px-1 font-bold text-slate-600">${row.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function updateSupplyAndAutoVat(id, supplyValue) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1) {
+                dataset[index].supply = supplyValue;
+                if (dataset[index].tax > 0) {
+                    dataset[index].tax = Math.floor(supplyValue * 0.1);
+                }
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        function toggleVatCalc(id, type) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1) {
+                const supplyVal = dataset[index].supply || 0;
+                if (type === 'vat') {
+                    dataset[index].tax = Math.floor(supplyVal * 0.1);
+                } else {
+                    dataset[index].tax = 0;
+                }
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        function handleVendorNameChange(id, name) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1) {
+                dataset[index].vendor = name;
+                const matchedAcc = accountDb.find(acc => acc.vendor === name || acc.holder === name);
+                if (matchedAcc) {
+                    dataset[index].holder = matchedAcc.holder;
+                    dataset[index].bank = matchedAcc.bank;
+                    dataset[index].account = matchedAcc.account;
+                    dataset[index].ceo = matchedAcc.ceo;
+                    dataset[index].phone = matchedAcc.phone || "";
+                }
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        function handleCeoNameChange(id, name) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1) {
+                dataset[index].ceo = name;
+                if (!dataset[index].account || dataset[index].account === "") {
+                    const matchedAcc = accountDb.find(acc => acc.ceo === name || acc.holder === name);
+                    if (matchedAcc) {
+                        dataset[index].holder = matchedAcc.holder;
+                        dataset[index].bank = matchedAcc.bank;
+                        dataset[index].account = matchedAcc.account;
+                        if (!dataset[index].vendor) dataset[index].vendor = matchedAcc.vendor;
+                        dataset[index].phone = matchedAcc.phone || "";
+                    }
+                }
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        
+        function syncRequestFormToDbAndDataset() {
+            const vendorName = document.getElementById('req-field-vendor').value.trim();
+            const ceoName = document.getElementById('req-field-ceo').value.trim();
+            const bizNumVal = document.getElementById('req-vendor-num').value.trim();
+            const bankVal = document.getElementById('req-vendor-bank').value.trim().replace(/은행$/, '');
+            const accountVal = document.getElementById('req-vendor-account').value.trim();
+            const phoneVal = document.getElementById('req-vendor-phone').value.trim();
+
+            if (!vendorName) return;
+
+            let matchedAcc = accountDb.find(acc => acc.vendor === vendorName || acc.holder === vendorName);
+            if (matchedAcc) {
+                matchedAcc.ceo = ceoName;
+                matchedAcc.biznum = bizNumVal;
+                matchedAcc.bank = bankVal;
+                matchedAcc.account = accountVal;
+                matchedAcc.phone = phoneVal;
+            } else {
+                const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+                accountDb.push({
+                    id: newId,
+                    holder: ceoName || vendorName,
+                    bank: bankVal,
+                    account: accountVal,
+                    ceo: ceoName,
+                    vendor: vendorName,
+                    biznum: bizNumVal,
+                    phone: phoneVal
+                });
+            }
+
+            dataset.forEach(row => {
+                if (row.vendor === vendorName) {
+                    row.ceo = ceoName;
+                    row.bank = bankVal;
+                    row.account = accountVal;
+                    row.phone = phoneVal;
+                    row.biznum = bizNumVal;
+                }
+            });
+
+            saveToLocalStorage();
+            renderStatementTable();
+            renderAccountDBList();
+            showToast("수정 정보가 전체 대장에 영구 저장되었습니다.");
+        }
+
+        function changeMoneyUnit(unit) {
+            currentMoneyUnit = unit;
+            
+            const btnWon = document.getElementById('unit-btn-won');
+            const btnThousand = document.getElementById('unit-btn-thousand');
+            
+            if (unit === 'won') {
+                btnWon.className = "text-xs font-bold px-2.5 py-1 rounded bg-blue-600 text-white transition-all";
+                btnThousand.className = "text-xs font-bold px-2.5 py-1 rounded text-slate-600 transition-all";
+                
+                document.getElementById('th-supply').textContent = "공급가액(원)";
+                document.getElementById('th-tax').textContent = "부가세(원)";
+                document.getElementById('th-total').textContent = "결제금액(원)";
+                document.getElementById('th-deduction').textContent = "공제금액(원)";
+                document.getElementById('th-prepaid').textContent = "선지급(원)";
+                document.getElementById('th-request').textContent = "지급요청금액(원)";
+
+                if (document.getElementById('th-req-supply')) document.getElementById('th-req-supply').textContent = "공급가액";
+                if (document.getElementById('th-req-tax')) document.getElementById('th-req-tax').textContent = "부가세";
+                if (document.getElementById('th-req-sum')) document.getElementById('th-req-sum').textContent = "합계금액";
+                if (document.getElementById('lbl-req-supply')) document.getElementById('lbl-req-supply').textContent = "공급가액계 :";
+                if (document.getElementById('lbl-req-tax')) document.getElementById('lbl-req-tax').textContent = "부가가치세 :";
+                if (document.getElementById('lbl-req-total')) document.getElementById('lbl-req-total').textContent = "청구 금액 계 :";
+            } else {
+                btnWon.className = "text-xs font-bold px-2.5 py-1 rounded text-slate-600 transition-all";
+                btnThousand.className = "text-xs font-bold px-2.5 py-1 rounded bg-blue-600 text-white transition-all";
+                
+                document.getElementById('th-supply').textContent = "공급가액(천원)";
+                document.getElementById('th-tax').textContent = "부가세(천원)";
+                document.getElementById('th-total').textContent = "결제금액(천원)";
+                document.getElementById('th-deduction').textContent = "공제금액(천원)";
+                document.getElementById('th-prepaid').textContent = "선지급(천원)";
+                document.getElementById('th-request').textContent = "지급요청금액(천원)";
+
+                if (document.getElementById('th-req-supply')) document.getElementById('th-req-supply').textContent = "공급가액(천원)";
+                if (document.getElementById('th-req-tax')) document.getElementById('th-req-tax').textContent = "부가세(천원)";
+                if (document.getElementById('th-req-sum')) document.getElementById('th-req-sum').textContent = "합계금액(천원)";
+                if (document.getElementById('lbl-req-supply')) document.getElementById('lbl-req-supply').textContent = "공급가액계(천원) :";
+                if (document.getElementById('lbl-req-tax')) document.getElementById('lbl-req-tax').textContent = "부가가치세(천원) :";
+                if (document.getElementById('lbl-req-total')) document.getElementById('lbl-req-total').textContent = "청구 금액 계(천원) :";
+            }
+            
+            renderStatementTable();
+            refreshRequestSelector();
+        }
+
+        function formatMoneyByUnit(amount) {
+            if (currentMoneyUnit === 'thousand') {
+                const val = amount / 1000;
+                return val.toLocaleString('ko-KR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + "천";
+            } else {
+                return Number(amount || 0).toLocaleString('ko-KR');
+            }
+        }
+
+        function renderStatementTable() {
+            checkDuplicateContracts();
+
+            const tbody = document.getElementById('statement-tbody');
+            tbody.innerHTML = "";
+
+            let totalSupply = 0;
+            let totalTax = 0;
+            let totalCalc = 0;
+            let totalDeduction = 0;
+            let totalPrepaid = 0;
+            let totalRequestAmt = 0;
+
+            dataset.forEach((row, index) => {
+                const totalRowAmt = (row.supply || 0) + (row.tax || 0);
+                const requestAmt = totalRowAmt - (row.deduction || 0) - (row.prepaid || 0);
+
+                totalSupply += (row.supply || 0);
+                totalTax += (row.tax || 0);
+                totalCalc += totalRowAmt;
+                totalDeduction += (row.deduction || 0);
+                totalPrepaid += (row.prepaid || 0);
+                totalRequestAmt += requestAmt;
+
+                let statusBg = "bg-slate-100 text-slate-800";
+                if (row.status === "완료") statusBg = "bg-emerald-100 text-emerald-800 font-semibold";
+                if (row.status === "보류") statusBg = "bg-rose-100 text-rose-800 font-semibold";
+
+                const isDup = duplicateItemIds.has(row.id);
+                const rowStyleClass = isDup 
+                    ? "divide-x divide-slate-200 bg-amber-50/70 hover:bg-amber-100 transition-all text-center border-y-2 border-amber-300"
+                    : "divide-x divide-slate-200 hover:bg-slate-50 transition-all text-center";
+
+                const dupIndicator = isDup 
+                    ? `<span class="inline-block text-amber-600 font-bold shrink-0 cursor-help" title="거래처와 공급액이 완벽히 동일한 이중 청구 의심 건">⚠️</span>`
+                    : "";
+
+                const tr = document.createElement('tr');
+                tr.className = rowStyleClass;
+                tr.innerHTML = `
+                    <td class="py-2 px-1 font-bold text-slate-500 flex items-center justify-center gap-1">${dupIndicator} <span>${index + 1}</span></td>
+                    <td class="py-1 px-1">
+                        <select onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'type', this.value)" class="text-center w-full bg-transparent focus:ring-1 focus:ring-blue-500 rounded p-1 font-medium text-slate-700 outline-none">
+                            <option value="외주비" ${row.type === '외주비' ? 'selected' : ''}>외주비</option>
+                            <option value="자재비" ${row.type === '자재비' ? 'selected' : ''}>자재비</option>
+                            <option value="장비비" ${row.type === '장비비' ? 'selected' : ''}>장비비</option>
+                            <option value="노무비" ${row.type === '노무비' ? 'selected' : ''}>노무비</option>
+                            <option value="관리비" ${row.type === '관리비' ? 'selected' : ''}>관리비</option>
+                        </select>
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${row.vendor || ''}" placeholder="기입" onblur="completeEditing(${row.id})" onchange="handleVendorNameChange(${row.id}, this.value)" class="w-full bg-transparent text-left font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${row.ceo || ''}" placeholder="기입" onblur="completeEditing(${row.id})" onchange="handleCeoNameChange(${row.id}, this.value)" class="w-full bg-transparent text-center focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateSupplyAndAutoVat(${row.id}, Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-semibold text-slate-900 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1">
+                        <div class="flex items-center gap-1">
+                            <input type="text" value="${Number(row.tax || 0).toLocaleString('ko-KR')}" onblur="completeEditing(${row.id})" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'tax', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-semibold text-slate-600 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                            <div class="flex flex-col no-print gap-0.5 shrink-0">
+                                <button onclick="toggleVatCalc(${row.id}, 'vat')" class="bg-blue-50 text-[9px] hover:bg-blue-100 px-1 py-0.5 text-blue-700 rounded scale-90 border border-blue-200 font-semibold">10%</button>
+                                <button onclick="toggleVatCalc(${row.id}, 'free')" class="bg-gray-100 text-[9px] hover:bg-gray-200 px-1 py-0.5 text-slate-600 rounded scale-90 border border-slate-300 font-semibold">면세</button>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-2 px-2 text-right font-bold text-slate-900 bg-slate-50">
+                        ${formatMoneyByUnit(totalRowAmt)}
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="number" value="${row.deduction}" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'deduction', Number(this.value) || 0)" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="number" value="${row.prepaid}" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'prepaid', Number(this.value) || 0)" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                    </td>
+                    <td class="py-2 px-2 text-right font-extrabold text-blue-700 bg-blue-50">
+                        ${formatMoneyByUnit(requestAmt)}
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${row.bank || ''}" placeholder="자동" readonly class="w-full bg-slate-50 text-center border-none font-medium text-slate-600 cursor-not-allowed rounded p-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${row.account || ''}" placeholder="자동" readonly class="w-full bg-slate-50 text-left text-[11px] border-none text-slate-600 cursor-not-allowed rounded px-1.5 py-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1">
+                        <select onchange="handleHolderChange(${row.id}, this.value)" class="text-center w-full bg-transparent focus:ring-1 focus:ring-blue-500 border border-slate-200 rounded p-1 font-semibold text-slate-800 outline-none">
+                            ${getHolderOptionsHtml(row.holder)}
+                        </select>
+                    </td>
+                    <td class="py-1 px-1 no-print">
+                        <select onchange="updateCell(${row.id}, 'status', this.value)" class="text-center w-full rounded p-1 text-[11px] font-bold ${statusBg} outline-none">
+                            <option value="대기" ${row.status === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="완료" ${row.status === '완료' ? 'selected' : ''}>완료</option>
+                            <option value="보류" ${row.status === '보류' ? 'selected' : ''}>보류</option>
+                        </select>
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${row.note || ''}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
+                    </td>
+                    <td class="py-1 px-1 no-print">
+                        <button onclick="deleteRow(${row.id})" class="text-rose-600 hover:text-rose-800 p-1 mx-auto block">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('foot-supply').textContent = formatMoneyByUnit(totalSupply);
+            document.getElementById('foot-tax').textContent = formatMoneyByUnit(totalTax);
+            document.getElementById('foot-total-calc').textContent = formatMoneyByUnit(totalCalc);
+            document.getElementById('foot-deduction').textContent = formatMoneyByUnit(totalDeduction);
+            document.getElementById('foot-prepaid').textContent = formatMoneyByUnit(totalPrepaid);
+            document.getElementById('foot-request-amt').textContent = formatMoneyByUnit(totalRequestAmt);
+
+            document.getElementById('summary-count').textContent = `${dataset.length}건`;
+            document.getElementById('summary-supply').textContent = `${formatNumber(totalSupply)}원`;
+            document.getElementById('summary-tax').textContent = `${formatNumber(totalTax)}원`;
+            document.getElementById('summary-total').textContent = `${formatNumber(totalRequestAmt)}원`;
+
+            const selectFont = document.getElementById('state-font-size-select').value;
+            adjustStatementFont(selectFont);
+            const selectPadding = document.getElementById('state-padding-select').value;
+            adjustStatementPadding(selectPadding);
+
+            lucide.createIcons();
+        }
+
+        function completeEditing(id) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1 && dataset[index].isNew) {
+                delete dataset[index].isNew;
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        function updateCell(id, field, value) {
+            const index = dataset.findIndex(item => item.id === id);
+            if (index !== -1) {
+                dataset[index][field] = value;
+                delete dataset[index].isNew;
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        function deleteRow(id) {
+            dataset = dataset.filter(item => item.id !== id);
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+        }
+
+        function openAddRowModal() {
+            const datalist = document.getElementById('modal-vendor-list');
+            datalist.innerHTML = "";
+            accountDb.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc.vendor || acc.holder;
+                opt.dataset.ceo = acc.ceo || '';
+                datalist.appendChild(opt);
+            });
+            document.getElementById('modal-type').value = "자재비";
+            document.getElementById('modal-vendor').value = "";
+            document.getElementById('modal-ceo').value = "";
+            document.getElementById('modal-supply').value = "";
+            document.getElementById('modal-tax').value = "";
+            document.getElementById('modal-deduction').value = "";
+            document.getElementById('modal-prepaid').value = "";
+            document.getElementById('modal-note').value = "";
+            document.getElementById('modal-account-preview').classList.add('hidden');
+            document.getElementById('add-row-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeAddRowModal() {
+            document.getElementById('add-row-modal').classList.add('hidden');
+        }
+
+        
+        function handleModalVendorInput() {
+            const vendorVal = document.getElementById('modal-vendor').value.trim();
+            const matched = accountDb.find(acc => acc.vendor === vendorVal || acc.holder === vendorVal);
+            if (matched) {
+                document.getElementById('modal-preview-bank').textContent = (matched.bank || '') + '은행';
+                document.getElementById('modal-preview-account').textContent = matched.account || '';
+                document.getElementById('modal-preview-holder').textContent = matched.holder || '';
+                document.getElementById('modal-account-preview').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-account-preview').classList.add('hidden');
+            }
+        }
+
+        
+        function handleModalCeoInput() {
+            const ceoVal = document.getElementById('modal-ceo').value.trim();
+            const matched = accountDb.find(acc => acc.ceo === ceoVal || acc.holder === ceoVal);
+            if (matched) {
+                document.getElementById('modal-preview-bank').textContent = (matched.bank || '') + '은행';
+                document.getElementById('modal-preview-account').textContent = matched.account || '';
+                document.getElementById('modal-preview-holder').textContent = matched.holder || '';
+                document.getElementById('modal-account-preview').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-account-preview').classList.add('hidden');
+            }
+        }
+
+        
+        function calcModalVatOnInput() {
+            const supplyVal = Number(document.getElementById('modal-supply').value) || 0;
+            document.getElementById('modal-tax').value = Math.floor(supplyVal * 0.1);
+        }
+
+        function calcModalVat() {
+            const supply = Number(document.getElementById('modal-supply').value) || 0;
+            document.getElementById('modal-tax').value = Math.floor(supply * 0.1);
+        }
+
+        function clearModalVat() {
+            document.getElementById('modal-tax').value = 0;
+        }
+
+        
+        function confirmAddRow() {
+            const type = document.getElementById('modal-type').value;
+            const vendor = document.getElementById('modal-vendor').value.trim();
+            const ceo = document.getElementById('modal-ceo').value.trim();
+            const supply = Number(document.getElementById('modal-supply').value) || 0;
+            const tax = Number(document.getElementById('modal-tax').value) || 0;
+            const deduction = Number(document.getElementById('modal-deduction').value) || 0;
+            const prepaid = Number(document.getElementById('modal-prepaid').value) || 0;
+            const note = document.getElementById('modal-note').value.trim();
+
+            if (!vendor) {
+                showToast("거래처명을 기입해 주세요.");
+                return;
+            }
+
+            const matchedAcc = accountDb.find(acc => acc.ceo === ceo || acc.holder === ceo || acc.vendor === vendor);
+            const bank = matchedAcc ? matchedAcc.bank : "";
+            const account = matchedAcc ? matchedAcc.account : "";
+            const holder = matchedAcc ? matchedAcc.holder : "";
+            const phone = matchedAcc ? (matchedAcc.phone || "") : "";
+            const biznum = matchedAcc ? (matchedAcc.biznum || "") : "";
+
+            const newId = dataset.length > 0 ? Math.max(...dataset.map(item => item.id)) + 1 : 1;
+            dataset.push({
+                id: newId,
+                type,
+                vendor,
+                ceo,
+                supply,
+                tax,
+                deduction,
+                prepaid,
+                bank,
+                account,
+                holder,
+                phone,
+                biznum,
+                status: "대기",
+                note
+            });
+
+            closeAddRowModal();
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+            showToast(`[${vendor}] 등록 및 우선순위 자동정렬 완료!`);
+        }
+
+        function addNewRow() {
+            openAddRowModal();
+        }
+
+        function changePrintScale(value) {
+            const percent = Math.round(value * 100);
+            document.getElementById('print-scale-label').textContent = `${percent}%`;
+            
+            const printBox = document.getElementById('portrait-print-box');
+            if (printBox) {
+                printBox.style.setProperty('--print-scale', value);
+                printBox.style.transform = `scale(${value})`;
+                printBox.style.transformOrigin = `center center`;
+            }
+        }
+
+        function applyCategoryColor(categoryName) {
+            const cleanCategory = categoryName.trim();
+            const elem = document.getElementById('req-title-category');
+            if (!elem) return;
+
+            const colorMap = {
+                "외주비": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-300" },
+                "자재비": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300" },
+                "장비비": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-300" },
+                "노무비": { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-300" },
+                "관리비": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-300" }
+            };
+
+            const colors = colorMap[cleanCategory] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-300" };
+            elem.className = `font-extrabold focus:outline-none min-w-[60px] px-2 py-0.5 rounded-md border text-center inline-block transition-all duration-300 ${colors.bg} ${colors.text} ${colors.border}`;
+        }
+
+        function printAllRequests() {
+            const vendors = [...new Set(dataset.map(item => item.vendor))].filter(Boolean).sort((a,b)=>a.localeCompare(b, 'ko-KR'));
+            if (vendors.length === 0) {
+                showToast("인쇄할 거래처 청구 데이터가 없습니다.");
+                return;
+            }
+
+            const chkBiz = document.getElementById('chk-biz').checked;
+            const chkBank = document.getElementById('chk-bank').checked;
+            const chkTax = document.getElementById('chk-tax').checked;
+            const chkTrans = document.getElementById('chk-trans').checked;
+            const chkLease = document.getElementById('chk-lease').checked;
+            const chkEquip = document.getElementById('chk-equip').checked;
+
+            const periodText = document.getElementById('req-meta-period').value;
+
+            let tempArea = document.getElementById('temp-batch-print-area');
+            if (tempArea) tempArea.remove();
+
+            tempArea = document.createElement('div');
+            tempArea.id = "temp-batch-print-area";
+
+            const scaleVal = document.getElementById('print-scale-slider').value;
+
+            vendors.forEach((vendorName) => {
+                const matchedRows = dataset.filter(item => item.vendor === vendorName);
+                if (matchedRows.length === 0) return;
+
+                const firstItem = matchedRows[0];
+                const totalCombinedAmt = matchedRows.reduce((sum, item) => sum + (item.supply || 0) + (item.tax || 0), 0);
+
+                let itemsHtml = "";
+                let totalRequestSupply = 0;
+                let totalRequestTax = 0;
+
+                matchedRows.forEach(row => {
+                    const itemAmt = (row.supply || 0) + (row.tax || 0);
+                    totalRequestSupply += (row.supply || 0);
+                    totalRequestTax += (row.tax || 0);
+
+                    itemsHtml += `
+                        <tr class="divide-x divide-slate-300">
+                            <td class="py-2.5 px-2 text-center border border-slate-300">${row.type} - ${row.note || '품목 청구'}</td>
+                            <td class="py-2.5 px-2 text-center border border-slate-300">1.0</td>
+                            <td class="py-2.5 px-2 text-right border border-slate-300">${formatMoneyByUnit(row.supply)}</td>
+                            <td class="py-2.5 px-2 text-right border border-slate-300">${formatMoneyByUnit(row.tax)}</td>
+                            <td class="py-2.5 px-2 text-right font-semibold text-blue-600 bg-slate-50 border border-slate-300">${formatMoneyByUnit(itemAmt)}</td>
+                        </tr>
+                    `;
+                });
+
+                const matchedAcc = accountDb.find(acc => acc.vendor === vendorName || acc.holder === vendorName) || {};
+                const bankLabel = matchedAcc.bank ? `${matchedAcc.bank}은행` : (firstItem.bank ? `${firstItem.bank}은행` : "");
+                const accountNum = matchedAcc.account || firstItem.account || "";
+                const phoneNum = matchedAcc.phone || firstItem.phone || "";
+                const ceoName = firstItem.ceo || matchedAcc.ceo || "";
+                const biznumLabel = matchedAcc.biznum || "";
+
+                const page = document.createElement('div');
+                page.className = "print-page bg-white p-8 border border-slate-300 max-w-[760px] mx-auto mb-10 shadow-sm relative";
+                page.style.setProperty('page-break-after', 'always');
+                page.style.setProperty('page-break-inside', 'avoid');
+                page.style.setProperty('--print-scale', scaleVal);
+                page.style.transform = `scale(${scaleVal})`;
+                page.style.transformOrigin = `center center`;
+
+                const colorMap = {
+                    "외주비": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-300" },
+                    "자재비": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300" },
+                    "장비비": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-300" },
+                    "노무비": { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-300" },
+                    "관리비": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-300" }
+                };
+                const colors = colorMap[firstItem.type] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-300" };
+
+                page.innerHTML = `
+                    <div class="flex justify-between items-start border-b border-slate-300 pb-2 mb-4">
+                        <div class="w-full">
+                            <h2 class="text-xl md:text-2xl font-black tracking-tight text-gray-900 pb-1 flex items-center">
+                                (<span class="font-extrabold px-2 py-0.5 rounded-md border text-center inline-block ${colors.bg} ${colors.text} ${colors.border}">${firstItem.type}</span>) 
+                                <span class="ml-1.5">지불의뢰서</span>
+                            </h2>
+                            <div class="text-[11px] text-slate-500 mt-2 flex flex-col gap-0.5">
+                                <div class="flex items-center"><span class="w-14 font-semibold text-slate-400">현 장 명:</span> <span class="border-b border-slate-200 w-full font-semibold text-slate-700 py-0.5">${document.getElementById('meta-site').value}</span></div>
+                                <div class="flex items-center"><span class="w-14 font-semibold text-slate-400">청구기간:</span> <span class="border-b border-slate-200 w-full font-semibold text-slate-700 py-0.5">${periodText}</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 border border-slate-300 text-[10px] mb-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300">
+                        <div class="divide-y divide-slate-300">
+                            <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">공종명</span><span class="px-3 py-1.5 w-full font-medium text-slate-700">${firstItem.type}</span></div>
+                            <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">청구금액</span><span class="px-3 py-1.5 w-full font-medium text-slate-600">일금 ${getKoreanNumber(totalCombinedAmt)} 원정 (￦${formatNumber(totalCombinedAmt)})</span></div>
+                        </div>
+                        <div class="divide-y divide-slate-300">
+                            <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">거래처</span><span class="px-3 py-1.5 w-full font-bold text-blue-700">${vendorName}</span></div>
+                            <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-semibold shrink-0 border-r border-slate-200">대표자</span><span class="px-3 py-1.5 w-full font-medium text-slate-700">${ceoName}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-[10px] font-bold text-slate-800 mb-1">● 청구 및 의뢰 품목 내역</p>
+                        <table class="w-full border-collapse border border-slate-300 text-[10px] text-center">
+                            <thead>
+                                <tr class="bg-slate-50 divide-x divide-slate-300 border-b border-slate-300 font-semibold text-slate-600">
+                                    <th class="py-1.5 w-1/3 border border-slate-300">품목명 / 비고</th>
+                                    <th class="py-1.5 w-12 border border-slate-300">수량</th>
+                                    <th class="py-1.5 border border-slate-300">${currentMoneyUnit === 'thousand' ? '공급가액(천원)' : '공급가액'}</th>
+                                    <th class="py-1.5 border border-slate-300">${currentMoneyUnit === 'thousand' ? '부가세(천원)' : '부가세'}</th>
+                                    <th class="py-1.5 border border-slate-300">${currentMoneyUnit === 'thousand' ? '합계금액(천원)' : '합계금액'}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 bg-white">
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex flex-col gap-3 text-[10px] mb-4">
+                        <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 w-full">
+                            <p class="font-bold text-slate-800 mb-1 flex items-center">
+                                <span class="print-bullet text-blue-600 font-black mr-1">●</span> 청구 산출 근거
+                            </p>
+                            <div class="space-y-0.5">
+                                <div class="flex justify-between border-b border-slate-200 py-0.5">
+                                    <span>${currentMoneyUnit === 'thousand' ? '공급가액계(천원) :' : '공급가액계 :'}</span>
+                                    <span class="font-semibold text-slate-800 text-right">${formatMoneyByUnit(totalRequestSupply)}</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-200 py-0.5">
+                                    <span>${currentMoneyUnit === 'thousand' ? '부가가치세(천원) :' : '부가가치세 :'}</span>
+                                    <span class="font-semibold text-slate-800 text-right">${formatMoneyByUnit(totalRequestTax)}</span>
+                                </div>
+                                <div class="flex justify-between py-0.5 text-indigo-600 font-bold">
+                                    <span>${currentMoneyUnit === 'thousand' ? '청구 금액 계(천원) :' : '청구 금액 계 :'}</span>
+                                    <span class="font-bold text-indigo-600 text-right">${formatMoneyByUnit(totalCombinedAmt)}${currentMoneyUnit === 'thousand' ? ' 천원' : ' 원'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 w-full">
+                            <p class="font-bold text-slate-800 mb-1.5 flex items-center">
+                                <span class="print-bullet text-emerald-600 font-black mr-1">●</span> 거래처 및 입금 계좌 정보
+                            </p>
+                            <div class="flex flex-col md:flex-row items-center gap-4 text-[10px] divide-y md:divide-y-0 md:divide-x divide-slate-300">
+                                <div class="flex items-center w-full md:w-1/4 pb-1 md:pb-0">
+                                    <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">사업자번호:</span>
+                                    <span class="w-full text-slate-800 font-bold">${biznumLabel}</span>
+                                </div>
+                                <div class="flex items-center w-full md:w-1/5 pt-1 md:pt-0 md:pl-3">
+                                    <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">은행:</span>
+                                    <span class="w-full text-slate-800 font-bold">${bankLabel}</span>
+                                </div>
+                                <div class="flex items-center w-full md:w-1/3 pt-1 md:pt-0 md:pl-3">
+                                    <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">계좌번호:</span>
+                                    <span class="w-full text-slate-800 font-bold">${accountNum}</span>
+                                </div>
+                                <div class="flex items-center w-full md:w-1/4 pt-1 md:pt-0 md:pl-3">
+                                    <span class="text-slate-500 font-medium shrink-0 whitespace-nowrap mr-1">연락처:</span>
+                                    <span class="w-full text-slate-800 font-bold">${phoneNum}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-slate-300 rounded-lg p-2.5 text-[10px] mb-3">
+                        <p class="font-bold text-slate-800 mb-1">● 구비 서류 체크리스트</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-medium">
+                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkBiz ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
+                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkBank ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 통장사본</label>
+                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkTax ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 세금계산서</label>
+                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkTrans ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 거래명세표</label>
+                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkLease ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 장비임대차계약서</label>
+                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkEquip ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 건설기계등록증</label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end items-center border-t border-slate-300 pt-2 mt-3">
+                        <div class="text-right">
+                            <span class="text-[11px] text-slate-700 font-bold block">위의 청구내역이 틀림없음을 확인합니다.</span>
+                        </div>
+                    </div>
+                `;
+
+                tempArea.appendChild(page);
+            });
+
+            document.body.appendChild(tempArea);
+            document.body.classList.add('batch-printing');
+
+            window.print();
+
+            setTimeout(() => {
+                document.body.classList.remove('batch-printing');
+                tempArea.remove();
+            }, 600);
+        }
+
+        function refreshRequestSelector() {
+            const selector = document.getElementById('request-selector');
+            if (!selector) return;
+            
+            const currentSelectedValue = selector.value;
+            selector.innerHTML = "";
+
+            const customOpt = document.createElement('option');
+            customOpt.value = "custom";
+            customOpt.textContent = "✏️ [직접 수동 입력 - 신규 의뢰서]";
+            selector.appendChild(customOpt);
+
+            const vendorGroups = {};
+            dataset.forEach(item => {
+                if (!item.vendor) return; 
+                if (!vendorGroups[item.vendor]) {
+                    vendorGroups[item.vendor] = [];
+                }
+                vendorGroups[item.vendor].push(item);
+            });
+
+            const sortedVendorNames = Object.keys(vendorGroups).sort((a,b)=>a.localeCompare(b, 'ko-KR'));
+
+            const sortedDataset = [...dataset].filter(item => item.vendor).sort((a,b) => {
+                const nameA = a.ceo || a.vendor || "";
+                const nameB = b.ceo || b.vendor || "";
+                return nameA.localeCompare(nameB, 'ko-KR');
+            });
+
+            sortedDataset.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = `row-${item.id}`;
+                const ceoLabel = item.ceo ? ` / ${item.ceo}` : '';
+                opt.textContent = `[단일] [${item.type}] ${item.vendor}${ceoLabel} - ${formatNumber(item.supply + item.tax)}원`;
+                selector.appendChild(opt);
+            });
+
+            sortedVendorNames.forEach(vendor => {
+                const list = vendorGroups[vendor];
+                if (list.length > 1) {
+                    const totalCombinedAmt = list.reduce((sum, item) => sum + item.supply + item.tax, 0);
+                    const opt = document.createElement('option');
+                    opt.value = `combine-${vendor}`;
+                    const ceoLabel = list[0].ceo ? ` / ${list[0].ceo}` : '';
+                    opt.textContent = `🌟 [합산] ${vendor}${ceoLabel} (총 ${list.length}건 합산) - ${formatNumber(totalCombinedAmt)}원`;
+                    selector.appendChild(opt);
+                }
+            });
+
+            if (currentSelectedValue && [...selector.options].some(o => o.value === currentSelectedValue)) {
+                selector.value = currentSelectedValue;
+                loadRequestData(currentSelectedValue);
+            } else if (selector.options.length > 1) {
+                const firstVal = selector.options[1].value;
+                selector.value = firstVal;
+                loadRequestData(firstVal);
+            } else {
+                selector.value = "custom";
+                loadRequestData("custom");
+            }
+        }
+
+        function calculateMonthPeriod(monthStr) {
+            if (!monthStr) return "기간 정보 없음";
+            
+            const match = monthStr.match(/(\d{4})\s*년?\s*(\d{1,2})\s*월?/);
+            if (match) {
+                const year = parseInt(match[1], 10);
+                const month = parseInt(match[2], 10);
+                
+                const lastDate = new Date(year, month, 0).getDate();
+                const padMonth = month.toString().padStart(2, '0');
+                const padLastDate = lastDate.toString().padStart(2, '0');
+                
+                return `${year}년 ${padMonth}월 01일 ~ ${year}년 ${padMonth}월 ${padLastDate}일`;
+            }
+            return monthStr;
+        }
+
+        function syncPeriodValue(value) {
+            const currentDoc = savedDocuments.find(doc => doc.id === currentDocId);
+            if (currentDoc) {
+                currentDoc.period = value;
+            }
+            saveToLocalStorage();
+        }
+
+        function saveChecklist(vendorKey) {
+            if (!vendorKey || vendorKey === 'custom') return;
+            const chks = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const state = {};
+            chks.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) state[id] = el.checked;
+            });
+            localStorage.setItem('checklist_' + vendorKey, JSON.stringify(state));
+        }
+
+        function loadChecklist(vendorKey) {
+            const chks = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            chks.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = false;
+            });
+            if (!vendorKey || vendorKey === 'custom') return;
+            const saved = localStorage.getItem('checklist_' + vendorKey);
+            if (saved) {
+                const state = JSON.parse(saved);
+                chks.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && state[id] !== undefined) el.checked = state[id];
+                });
+            }
+        }
+
+        function loadRequestData(valueKey) {
+            requestItems = [];
+            
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            if (currentDoc) {
+                if (!currentDoc.period) {
+                    currentDoc.period = calculateMonthPeriod(currentDoc.month);
+                }
+                document.getElementById('req-meta-period').value = currentDoc.period;
+            }
+
+            if (valueKey === "custom") {
+                document.getElementById('req-title-category').textContent = "자재비";
+                applyCategoryColor("자재비");
+                document.getElementById('req-field-type').value = "";
+                document.getElementById('req-field-vendor').value = "";
+                document.getElementById('req-field-ceo').value = "";
+                document.getElementById('req-vendor-num').value = "";
+                document.getElementById('req-vendor-bank').value = "";
+                document.getElementById('req-vendor-account').value = "";
+                document.getElementById('req-vendor-phone').value = "";
+                if (document.getElementById('quick-vendor-name')) {
+                    document.getElementById('quick-vendor-name').textContent = "미지정";
+                }
+                
+                requestItems.push({ item: "", qty: "1.0", supply: 0, tax: 0 });
+                renderRequestItemsTable();
+                return;
+            }
+
+            if (valueKey.startsWith("row-")) {
+                const targetId = valueKey.replace("row-", "");
+                const target = dataset.find(item => item.id == targetId);
+                if (!target) return;
+
+                document.getElementById('req-title-category').textContent = target.type;
+                applyCategoryColor(target.type);
+                document.getElementById('req-field-type').value = `${target.type}`;
+                document.getElementById('req-field-vendor').value = target.vendor || "";
+                document.getElementById('req-field-ceo').value = target.ceo || "";
+
+                document.getElementById('req-vendor-bank').value = target.bank ? `${target.bank}은행` : "";
+                document.getElementById('req-vendor-account').value = target.account || "";
+                document.getElementById('req-vendor-phone').value = target.phone || "";
+                
+                const matchedAccRow = accountDb.find(acc => acc.vendor === target.vendor || acc.ceo === target.ceo || acc.holder === target.holder);
+                if (matchedAccRow && matchedAccRow.biznum) {
+                    document.getElementById('req-vendor-num').value = matchedAccRow.biznum;
+                } else {
+                    document.getElementById('req-vendor-num').value = "";
+                }
+                if (document.getElementById('quick-vendor-name')) {
+                    document.getElementById('quick-vendor-name').textContent = target.vendor || "미지정";
+                }
+
+                requestItems.push({
+                    item: `${target.type} - ${target.note || '품목 청구'}`,
+                    qty: "1.0",
+                    supply: target.supply,
+                    tax: target.tax
+                });
+
+            } else if (valueKey.startsWith("combine-")) {
+                const targetVendor = valueKey.replace("combine-", "");
+                const matchedRows = dataset.filter(item => item.vendor === targetVendor);
+                if (matchedRows.length === 0) return;
+
+                const firstItem = matchedRows[0];
+                document.getElementById('req-title-category').textContent = firstItem.type;
+                applyCategoryColor(firstItem.type);
+                document.getElementById('req-field-type').value = `${firstItem.type}`;
+                document.getElementById('req-field-vendor').value = targetVendor;
+                document.getElementById('req-field-ceo').value = firstItem.ceo || "";
+                document.getElementById('req-vendor-bank').value = firstItem.bank ? `${firstItem.bank}은행` : "";
+                document.getElementById('req-vendor-account').value = firstItem.account || "";
+                document.getElementById('req-vendor-phone').value = firstItem.phone || "";
+                
+                const matchedAccCombine = accountDb.find(acc => acc.vendor === targetVendor || acc.ceo === firstItem.ceo || acc.holder === firstItem.holder);
+                if (matchedAccCombine && matchedAccCombine.biznum) {
+                    document.getElementById('req-vendor-num').value = matchedAccCombine.biznum;
+                } else {
+                    document.getElementById('req-vendor-num').value = "";
+                }
+                if (document.getElementById('quick-vendor-name')) {
+                    document.getElementById('quick-vendor-name').textContent = targetVendor;
+                }
+
+                matchedRows.forEach(row => {
+                    requestItems.push({
+                        item: `${row.type} - ${row.note || '품목 청구'}`,
+                        qty: "1.0",
+                        supply: row.supply,
+                        tax: row.tax
+                    });
+                });
+            }
+
+            renderRequestItemsTable();
+            loadChecklist(valueKey);
+        }
+
+        
+        function renderRequestItemsTable() {
+            const tbody = document.getElementById('req-items-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            let totalRequestSupply = 0;
+            let totalRequestTax = 0;
+
+            requestItems.forEach((item, index) => {
+                const totalItemAmt = (item.supply || 0) + (item.tax || 0);
+                totalRequestSupply += (item.supply || 0);
+                totalRequestTax += (item.tax || 0);
+
+                const tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-300";
+                tr.innerHTML = `
+                    <td class="py-2 px-1">
+                        <input type="text" value="${item.item}" onchange="updateRequestItem(${index}, 'item', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-800 outline-none">
+                    </td>
+                    <td class="py-2 px-1">
+                        <input type="text" value="${item.qty}" onchange="updateRequestItem(${index}, 'qty', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-medium outline-none">
+                    </td>
+                    <td class="py-2 px-1">
+                        <input type="text" value="${Number(item.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'supply', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-900 px-1.5 outline-none">
+                    </td>
+                    <td class="py-2 px-1">
+                        <input type="text" value="${Number(item.tax || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'tax', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-600 px-1.5 outline-none">
+                    </td>
+                    <td class="py-2 px-1 text-right font-extrabold text-blue-600 px-2 bg-slate-50 border border-slate-200">
+                        ${formatMoneyByUnit(totalItemAmt)}
+                    </td>
+                    <td class="py-2 px-1 no-print text-center">
+                        <button onclick="deleteRequestItemRow(${index})" class="text-rose-500 hover:text-rose-700 font-bold text-xs">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const finalTotal = totalRequestSupply + totalRequestTax;
+
+            document.getElementById('req-field-contract').value = `일금 ${getKoreanNumber(finalTotal)} 원정 (￦${formatNumber(finalTotal)})`;
+            document.getElementById('req-calc-supply').value = formatMoneyByUnit(totalRequestSupply);
+            document.getElementById('req-calc-tax').value = formatMoneyByUnit(totalRequestTax);
+            document.getElementById('req-calc-total').value = formatMoneyByUnit(finalTotal) + (currentMoneyUnit === 'thousand' ? " 천원" : " 원");
+        }
+
+        function updateRequestItem(index, field, value) {
+            if (requestItems[index]) {
+                requestItems[index][field] = value;
+                renderRequestItemsTable();
+            }
+        }
+
+        function updateRequestItemFormatted(index, field, value) {
+            let intValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+            updateRequestItem(index, field, intValue);
+        }
+
+        function addRequestItemRow() {
+            requestItems.push({ item: "새 품목명", qty: "1.0", supply: 0, tax: 0 });
+            renderRequestItemsTable();
+        }
+
+        function deleteRequestItemRow(index) {
+            requestItems = requestItems.filter((_, i) => i !== index);
+            renderRequestItemsTable();
+        }
+
+        function buildFilterOptions() {
+            const filterCompany = document.getElementById('filter-company');
+            const filterMonth = document.getElementById('filter-month');
+            const selectedCompanyVal = filterCompany.value || "ALL";
+            const selectedMonthVal = filterMonth.value || "ALL";
+
+            const companies = [...new Set(savedDocuments.map(doc => doc.company))].filter(Boolean);
+            const months = [...new Set(savedDocuments.map(doc => doc.month))].filter(Boolean);
+
+            filterCompany.innerHTML = `<option value="ALL">전체 회사</option>`;
+            companies.forEach(comp => {
+                filterCompany.innerHTML += `<option value="${comp}">${comp}</option>`;
+            });
+
+            filterMonth.innerHTML = `<option value="ALL">전체 월</option>`;
+            months.forEach(m => {
+                filterMonth.innerHTML += `<option value="${m}">${m}</option>`;
+            });
+
+            filterCompany.value = companies.includes(selectedCompanyVal) ? selectedCompanyVal : "ALL";
+            filterMonth.value = months.includes(selectedMonthVal) ? selectedMonthVal : "ALL";
+        }
+
+        function applyDocumentFilters() {
+            updateSavedSheetsSelector();
+        }
+
+        function updateSavedSheetsSelector() {
+            const selector = document.getElementById('saved-sheets-selector');
+            const companyFilter = document.getElementById('filter-company').value;
+            const monthFilter = document.getElementById('filter-month').value;
+
+            selector.innerHTML = "";
+
+            let filteredDocs = savedDocuments;
+            if (companyFilter !== "ALL") {
+                filteredDocs = filteredDocs.filter(doc => doc.company === companyFilter);
+            }
+            if (monthFilter !== "ALL") {
+                filteredDocs = filteredDocs.filter(doc => doc.month === monthFilter);
+            }
+
+            if (filteredDocs.length === 0) {
+                selector.innerHTML = `<option value="">(해당 조건 문서 없음)</option>`;
+                return;
+            }
+
+            filteredDocs.forEach(doc => {
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = `[${doc.company}] [${doc.month}] ${doc.site}`;
+                if (doc.id === currentDocId) {
+                    opt.selected = true;
+                }
+                selector.appendChild(opt);
+            });
+        }
+
+        function loadSavedDocument(id) {
+            if (!id) return;
+            saveToLocalStorage();
+
+            currentDocId = id;
+            const currentDoc = savedDocuments.find(doc => doc.id === id);
+            if (currentDoc) {
+                dataset = currentDoc.dataset;
+                sortDatasetByPriority();
+                document.getElementById('doc-title').value = `(${currentDoc.month}) 자금청구명세서`;
+                document.getElementById('meta-site').value = currentDoc.site;
+                document.getElementById('meta-month').value = currentDoc.month;
+                document.getElementById('meta-company').value = currentDoc.company;
+                
+                if (!currentDoc.period) {
+                    currentDoc.period = calculateMonthPeriod(currentDoc.month);
+                }
+                document.getElementById('req-meta-period').value = currentDoc.period;
+            }
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+            showToast("자금청구명세서 대장이 업데이트되었습니다.");
+        }
+
+        function toggleNewDocModal() {
+            document.getElementById('new-doc-modal').classList.toggle('hidden');
+        }
+
+        function deleteCurrentDocument() {
+            if (savedDocuments.length <= 1) {
+                showToast("마지막 문서는 삭제할 수 없습니다. 최소 1개의 문서가 필요합니다.");
+                return;
+            }
+            const curDoc = savedDocuments.find(d => d.id === currentDocId);
+            const label = curDoc ? `[${curDoc.company}] ${curDoc.month}` : "선택된 문서";
+            showConfirmModal(
+                "월별 청구 대장 삭제",
+                `"${label}" 문서와 포함된 모든 청구 항목을 삭제합니다. 되돌릴 수 없습니다.`,
+                function() {
+                    savedDocuments = savedDocuments.filter(d => d.id !== currentDocId);
+                    currentDocId = savedDocuments[0].id;
+                    dataset = savedDocuments[0].dataset || [];
+                    saveToLocalStorage();
+                    buildFilterOptions();
+                    updateSavedSheetsSelector();
+                    renderStatementTable();
+                    refreshRequestSelector();
+                    showToast(`${label} 문서가 삭제되었습니다.`);
+                }
+            );
+        }
+
+        function createNewDocument() {
+            const company = document.getElementById('new-doc-company').value;
+            const year = document.getElementById('new-doc-year').value;
+            const monthVal = document.getElementById('new-doc-month').value;
+            const site = document.getElementById('new-doc-site').value.trim();
+
+            const formattedMonth = `${year}년 ${monthVal}월`;
+
+            if (!site) {
+                showToast("현장명은 필수 입력 항목입니다.");
+                return;
+            }
+
+            const newId = "doc-" + Date.now();
+            const autoPeriod = calculateMonthPeriod(formattedMonth);
+            const newDoc = {
+                id: newId,
+                company: company,
+                month: formattedMonth,
+                site: site,
+                dataset: [],
+                period: autoPeriod
+            };
+
+            savedDocuments.push(newDoc);
+            currentDocId = newId;
+            dataset = [];
+
+            document.getElementById('doc-title').value = `(${formattedMonth}) 자금청구명세서`;
+            document.getElementById('meta-site').value = site;
+            document.getElementById('meta-month').value = formattedMonth;
+            document.getElementById('meta-company').value = company;
+            document.getElementById('req-meta-period').value = autoPeriod;
+
+            saveToLocalStorage();
+            buildFilterOptions();
+            updateSavedSheetsSelector();
+            renderStatementTable();
+            refreshRequestSelector();
+            toggleNewDocModal();
+            showToast(`[${company}] 신규 월별 청구서가 등록되었습니다.`);
+        }
+
+        function syncMetaValues(fieldId, value) {
+            const currentDoc = savedDocuments.find(doc => doc.id === currentDocId);
+            if (currentDoc) {
+                if (fieldId === 'meta-site') currentDoc.site = value;
+                if (fieldId === 'meta-month') {
+                    currentDoc.month = value;
+                    document.getElementById('doc-title').value = `(${value}) 자금청구명세서`;
+                    const autoPeriod = calculateMonthPeriod(value);
+                    currentDoc.period = autoPeriod;
+                    document.getElementById('req-meta-period').value = autoPeriod;
+                }
+                if (fieldId === 'meta-company') currentDoc.company = value;
+            }
+            saveToLocalStorage();
+            buildFilterOptions();
+            updateSavedSheetsSelector();
+        }
+
+        function renderAccountDBList() {
+            const container = document.getElementById('account-db-list');
+            container.innerHTML = "";
+            
+            accountDb.forEach(acc => {
+                const tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-200 hover:bg-slate-50 transition-all text-center";
+                tr.innerHTML = `
+                    <td class="py-1 px-2 font-bold text-slate-800 text-left">${acc.holder}</td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${acc.bank || ''}" onchange="updateAccountDB(${acc.id}, 'bank', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${acc.account || ''}" onchange="updateAccountDB(${acc.id}, 'account', this.value)" class="w-full text-left bg-transparent outline-none font-semibold text-slate-700 text-xs">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${acc.ceo || ''}" onchange="updateAccountDB(${acc.id}, 'ceo', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${acc.vendor || ''}" onchange="updateAccountDB(${acc.id}, 'vendor', this.value)" class="w-full text-left bg-transparent outline-none font-semibold text-slate-700">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${acc.biznum || ''}" oninput="formatBusinessNumber(this)" onchange="updateAccountDB(${acc.id}, 'biznum', this.value)" placeholder="000-00-00000" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 text-xs">
+                    </td>
+                    <td class="py-1 px-1">
+                        <input type="text" value="${acc.phone || ''}" oninput="formatPhoneNumberHelper(this)" onchange="updateAccountDB(${acc.id}, 'phone', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 text-xs">
+                    </td>
+                    <td class="py-1 px-1">
+                        <button onclick="deleteAccountFromDb(${acc.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs shrink-0">삭제</button>
+                    </td>
+                `;
+                container.appendChild(tr);
+            });
+        }
+
+        function addAccountToDb() {
+            const holder = document.getElementById('new-db-holder').value.trim();
+            const bank = document.getElementById('new-db-bank').value.trim();
+            const account = document.getElementById('new-db-account').value.trim();
+            const ceo = document.getElementById('new-db-ceo').value.trim();
+            const vendor = document.getElementById('new-db-vendor').value.trim();
+            const biznum = document.getElementById('new-db-biznum').value.trim();
+            const phone = document.getElementById('new-db-phone').value.trim();
+
+            if (!holder) {
+                showToast("예금주 이름은 필수 항목입니다.");
+                return;
+            }
+            if (!account) {
+                showToast("계좌번호는 필수 항목입니다.");
+                return;
+            }
+
+            const cleanNewAccount = account.replace(/[^0-9]/g, '');
+            const isDuplicate = accountDb.some(acc => acc.account.replace(/[^0-9]/g, '') === cleanNewAccount);
+            
+            if (isDuplicate) {
+                showToast("❌ 동일 계좌번호 정보가 존재하여 추가되지 않았습니다.");
+                return;
+            }
+
+            const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+            accountDb.push({ id: newId, holder, bank, account, ceo, vendor: vendor || holder, biznum: biznum || "", phone: phone || "" });
+            
+            saveToLocalStorage();
+            renderAccountDBList();
+            renderStatementTable();
+            showToast(`${holder} 계좌 마스터 등록 완료`);
+
+            document.getElementById('new-db-holder').value = "";
+            document.getElementById('new-db-bank').value = "";
+            document.getElementById('new-db-account').value = "";
+            document.getElementById('new-db-ceo').value = "";
+            document.getElementById('new-db-vendor').value = "";
+            document.getElementById('new-db-biznum').value = "";
+            document.getElementById('new-db-phone').value = "";
+        }
+
+        function deleteAccountFromDb(id) {
+            accountDb = accountDb.filter(a => a.id !== id);
+            saveToLocalStorage();
+            renderAccountDBList();
+            renderStatementTable();
+            showToast("계좌 정보가 삭제되었습니다.");
+        }
+
+        function updateAccountDB(id, field, value) {
+            const index = accountDb.findIndex(a => a.id === id);
+            if (index !== -1) {
+                if (field === 'account') {
+                    const cleanVal = value.replace(/[^0-9]/g, '');
+                    const duplicateExists = accountDb.some(a => a.id !== id && a.account.replace(/[^0-9]/g, '') === cleanVal);
+                    if (duplicateExists) {
+                        showToast("⚠️ 중복 계좌번호 적용이 반려되었습니다.");
+                        renderAccountDBList();
+                        return;
+                    }
+                }
+
+                accountDb[index][field] = value;
+                saveToLocalStorage();
+                const targetHolder = accountDb[index].holder;
+                const targetVendor = accountDb[index].vendor;
+                dataset.forEach(row => {
+                    if (row.holder === targetHolder || row.vendor === targetVendor) {
+                        if (field === 'bank') row.bank = value;
+                        if (field === 'account') row.account = value;
+                        if (field === 'ceo') row.ceo = value;
+                        if (field === 'phone') row.phone = value;
+                        if (field === 'biznum') row.biznum = value;
+                        if (field === 'vendor') row.vendor = value;
+                    }
+                });
+                renderStatementTable();
+                renderAccountDBList();
+                showToast("계좌 DB 수정 내용이 청구 대장에 반영되었습니다.");
+            }
+        }
+
+        function handleHolderChange(rowId, selectedHolder) {
+            const rowIndex = dataset.findIndex(item => item.id === rowId);
+            if (rowIndex !== -1) {
+                if (selectedHolder === "") {
+                    dataset[rowIndex].holder = "";
+                    dataset[rowIndex].bank = "";
+                    dataset[rowIndex].account = "";
+                    dataset[rowIndex].phone = "";
+                } else {
+                    const matchedAcc = accountDb.find(acc => acc.holder === selectedHolder);
+                    if (matchedAcc) {
+                        dataset[rowIndex].holder = matchedAcc.holder;
+                        dataset[rowIndex].bank = matchedAcc.bank;
+                        dataset[rowIndex].account = matchedAcc.account;
+                        dataset[rowIndex].phone = matchedAcc.phone || "";
+                        if (matchedAcc.vendor && !dataset[rowIndex].vendor) {
+                            dataset[rowIndex].vendor = matchedAcc.vendor;
+                        }
+                        if (matchedAcc.ceo && !dataset[rowIndex].ceo) {
+                            dataset[rowIndex].ceo = matchedAcc.ceo;
+                        }
+                    }
+                }
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            }
+        }
+
+        function getHolderOptionsHtml(selectedHolder) {
+            let options = `<option value="">-- 예금주 선택 --</option>`;
+            accountDb.forEach(acc => {
+                const isSelected = acc.holder === selectedHolder ? 'selected' : '';
+                options += `<option value="${acc.holder}" ${isSelected}>${acc.holder} (${acc.bank || '미기입'})</option>`;
+            });
+            return options;
+        }
+
+        function triggerCsvImport() {
+            document.getElementById('csv-account-file-input').click();
+        }
+
+        function exportAccountDbToCSV() {
+            let csvContent = "\uFEFF예금주,은행,계좌번호,대표자,거래처,사업자등록번호,연락처\n";
+            accountDb.forEach(acc => {
+                csvContent += `${acc.holder || ''},${acc.bank || ''},${acc.account || ''},${acc.ceo || ''},${acc.vendor || ''},${acc.biznum || ''},${acc.phone || ''}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `계좌DB_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("계좌 DB가 CSV로 내보내기되었습니다.");
+        }
+
+        function downloadCsvTemplate() {
+            const csvContent = "\uFEFF예금주,은행,계좌번호,대표자,거래처,사업자등록번호,연락처\n홍길동,국민,123-456-7890,홍길동,길동상사,000-00-00000,010-1234-5678\n김철수,신한,987-654-3210,김철수,철수건업,,010-5678-1234\n";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `마스터_계좌대장_가져오기_템플릿.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("CSV 대장 양식 파일이 다운로드되었습니다.");
+        }
+
+        function importAccountsFromCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file, 'EUC-KR');
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            let importedCount = 0;
+            let duplicateSkipCount = 0;
+            
+            const firstLine = lines[0] || "";
+            const startIndex = (firstLine.includes("예금주") || firstLine.includes("holder") || firstLine.includes("은행")) ? 1 : 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const cols = line.split(',').map(item => item.replace(/^["']|["']$/g, '').trim());
+                if (cols.length < 3) continue;
+                
+                const holder = cols[0];
+                const bank = cols[1];
+                const account = cols[2];
+                const ceo = cols[3] || holder;
+                const vendor = cols[4] || holder;
+                const biznum = cols[5] || "";
+                const phone = cols[6] || "";
+                
+                if (!holder || !account) continue;
+                
+                const cleanAccount = account.replace(/[^0-9]/g, '');
+                const isDuplicate = accountDb.some(a => a.account.replace(/[^0-9]/g, '') === cleanAccount);
+                
+                if (isDuplicate) {
+                    duplicateSkipCount++;
+                    continue;
+                }
+                
+                const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+                accountDb.push({
+                    id: newId,
+                    holder,
+                    bank,
+                    account,
+                    ceo,
+                    vendor,
+                    biznum,
+                    phone
+                });
+                importedCount++;
+            }
+            
+            if (importedCount > 0) {
+                saveToLocalStorage();
+                renderAccountDBList();
+                renderStatementTable();
+                
+                let toastMsg = `${importedCount}건의 계좌 정보가 마스터 DB에 추가 등록되었습니다.`;
+                if (duplicateSkipCount > 0) {
+                    toastMsg += ` (중복 계좌 ${duplicateSkipCount}건 제외)`;
+                }
+                showToast(toastMsg);
+            } else {
+                if (duplicateSkipCount > 0) {
+                    showToast(`가져오기 실패: 중복 계좌번호입니다.`);
+                } else {
+                    showToast("불러올 수 있는 유효한 행을 찾을 수 없었습니다.");
+                }
+            }
+            input.value = "";
+        }
+
+        function openBackupModal() {
+            document.getElementById('backup-modal').classList.remove('hidden');
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        function downloadBackupJSON() {
+            const dataToBackup = { savedDocuments, accountDb, currentDocId };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToBackup));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `자금관리_백업_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("백업 데이터 파일 다운로드 완료!");
+        }
+
+        function importBackupJSON() {
+            const fileInput = document.getElementById('backup-file-input');
+            if (fileInput.files.length === 0) {
+                showToast("불러올 JSON 파일을 선택해 주세요.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed.savedDocuments && parsed.accountDb) {
+                        savedDocuments = parsed.savedDocuments;
+                        accountDb = parsed.accountDb;
+                        currentDocId = parsed.currentDocId || savedDocuments[0].id;
+                        
+                        const curDoc = savedDocuments.find(d => d.id === currentDocId);
+                        dataset = curDoc ? curDoc.dataset : [];
+
+                        saveToLocalStorage();
+                        buildFilterOptions();
+                        updateSavedSheetsSelector();
+                        renderStatementTable();
+                        renderAccountDBList();
+                        refreshRequestSelector();
+                        closeBackupModal();
+                        showToast("데이터 복원이 안전하게 완료되었습니다!");
+                    } else {
+                        showToast("유효하지 않은 백업 규격 파일입니다.");
+                    }
+                } catch (e) {
+                    showToast("파일을 읽는 도중 오류가 발생했습니다.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportToCSV() {
+            let csvContent = "\uFEFF";
+            csvContent += "번호,구분,거래처,대표자,공급가액,부가세,결제금액,공제금액,선지급,지급요청금액,은행,입금계좌,예금주,비고\n";
+
+            dataset.forEach((row, index) => {
+                const total = (row.supply || 0) + (row.tax || 0);
+                const reqAmt = total - (row.deduction || 0) - (row.prepaid || 0);
+                csvContent += `${index + 1},${row.type},${row.vendor || ''},${row.ceo || ''},${row.supply},${row.tax},${total},${row.deduction},${row.prepaid},${reqAmt},${row.bank},${row.account},${row.holder},${row.note || ''}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const filename = currentDoc ? `${currentDoc.company}_${currentDoc.month}` : "자금청구명세서";
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${filename}_자금청구명세서.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("엑셀 호환 CSV 파일 저장 완료!");
+        }
+
+        function getKoreanNumber(num) {
+            if (num === 0) return '영';
+            const hanA = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
+            const danA = ["", "십", "백", "천"];
+            const tmA = ["", "만", "억", "조"];
+            let result = "";
+            let str = num.toString();
+            let len = str.length;
+
+            for (let i = 0; i < len; i++) {
+                let val = str.charAt(i) - '0';
+                let position = len - 1 - i;
+                let danPosition = position % 4;
+                let tmPosition = Math.floor(position / 4);
+
+                if (val > 0) {
+                    result += hanA[val] + danA[danPosition];
+                }
+                if (danPosition === 0 && result.length > 0 && tmPosition > 0) {
+                    result += tmA[tmPosition];
+                }
+            }
+            return result;
+        }
+
+        function formatNumber(num) {
+            return Number(num || 0).toLocaleString('ko-KR');
+        }
+
+        function toggleAccountModal() {
+            const panel = document.getElementById('account-manager-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function showConfirmModal(title, msg, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = msg;
+            pendingConfirmAction = onConfirm;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal(isOk) {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            if (isOk && pendingConfirmAction) {
+                pendingConfirmAction();
+            }
+            pendingConfirmAction = null;
+        }
+
+        function showResetConfirm() {
+            showConfirmModal(
+                "모든 자료 초기화",
+                "저장된 모든 청구 대장, 계좌 DB, 문서 데이터가 영구 삭제됩니다. 되돌릴 수 없습니다. 계속하시겠습니까?",
+                function() {
+                    savedDocuments = [
+                        {
+                            id: "doc-new-1",
+                            company: "경산개발(주)",
+                            month: new Date().getFullYear() + "년 " + String(new Date().getMonth()+1).padStart(2,'0') + "월",
+                            site: "",
+                            dataset: [],
+                            period: calculateMonthPeriod(new Date().getFullYear() + "년 " + String(new Date().getMonth()+1).padStart(2,'0') + "월")
+                        }
+                    ];
+                    accountDb = [];
+                    currentDocId = "doc-new-1";
+                    dataset = [];
+
+                    localStorage.removeItem('cons_accounts_v3');
+                    localStorage.removeItem('cons_saved_docs_v3');
+                    localStorage.removeItem('cons_current_doc_id_v3');
+
+                    saveToLocalStorage();
+                    buildFilterOptions();
+                    updateSavedSheetsSelector();
+                    renderStatementTable();
+                    renderAccountDBList();
+                    refreshRequestSelector();
+                    showToast("모든 자료가 초기화되었습니다.");
+                }
+            );
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        window.onload = function() {
+            loadFromLocalStorage();
+            renderStatementTable();
+            renderAccountDBList();
+            refreshRequestSelector();
+            
+            changePrintScale(1.00);
+            document.getElementById('print-scale-slider').value = "1.00";
+            applyCategoryColor("자재비");
+            
+            const checklistContainer = document.getElementById('req-checklist-container');
+            if (checklistContainer) {
+                const checkboxes = checklistContainer.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(chk => {
+                    chk.checked = false;
+                });
+            }
+
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
