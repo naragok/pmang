@@ -15,90 +15,6 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- ===== 개선된 계좌 매칭 함수 (Pro V10 버그픽스) ===== -->
-    <script>
-    
-    // ===== 1. 안전한 계좌 매칭 함수 (NEW) =====
-    // 우선순위: vendor > ceo > holder > 없음
-    function findAccountByPriority(vendor, ceo, holder) {
-        if (!vendor && !ceo && !holder) return null;
-        
-        // 1차: vendor 필드로 검색 (가장 우선순위 높음)
-        if (vendor) {
-            const byVendor = accountDb.find(acc => acc.vendor === vendor);
-            if (byVendor) return byVendor;
-        }
-        
-        // 2차: ceo 필드로 검색
-        if (ceo) {
-            const byCeo = accountDb.find(acc => acc.ceo === ceo);
-            if (byCeo) return byCeo;
-        }
-        
-        // 3차: holder 필드로 검색 (가장 낮은 우선순위)
-        if (holder) {
-            const byHolder = accountDb.find(acc => acc.holder === holder);
-            if (byHolder) return byHolder;
-        }
-        
-        return null;
-    }
-    
-    // ===== 2. 안전한 행 계좌정보 업데이트 함수 (NEW) =====
-    function updateRowAccountInfo(rowIndex, matchedAcc) {
-        if (!matchedAcc || rowIndex < 0 || rowIndex >= dataset.length) {
-            return false;
-        }
-        
-        try {
-            dataset[rowIndex].holder = matchedAcc.holder || "";
-            dataset[rowIndex].bank = matchedAcc.bank || "";
-            dataset[rowIndex].account = matchedAcc.account || "";
-            dataset[rowIndex].phone = matchedAcc.phone || "";
-            dataset[rowIndex].biznum = matchedAcc.biznum || "";
-            return true;
-        } catch (e) {
-            console.error("행 정보 업데이트 실패:", e);
-            return false;
-        }
-    }
-    
-    // ===== 3. 안전한 LocalStorage 저장 함수 (IMPROVED) =====
-    function saveToLocalStorageSafe() {
-        try {
-            if (!currentDocId) {
-                console.warn("현재 문서 ID가 없습니다.");
-                return false;
-            }
-            
-            const doc = savedDocuments.find(d => d.id === currentDocId);
-            if (!doc) {
-                console.warn(`문서 ${currentDocId}를 찾을 수 없습니다.`);
-                return false;
-            }
-            
-            const jsonStr = JSON.stringify({
-                dataset: dataset,
-                accountDb: accountDb,
-                metadata: doc
-            });
-            
-            // 약 5MB 용량 체크
-            if (jsonStr.length > 5000000) {
-                showToast("⚠️ 데이터가 너무 커졌습니다. 오래된 항목을 정리해주세요.");
-                return false;
-            }
-            
-            localStorage.setItem(`doc_${currentDocId}`, jsonStr);
-            return true;
-        } catch (e) {
-            console.error("LocalStorage 저장 실패:", e);
-            showToast("⚠️ 데이터 저장 실패. 브라우저 용량을 확인하세요.");
-            return false;
-        }
-    }
-    
-    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
         body {
@@ -903,23 +819,23 @@
                                 <div class="flex flex-col md:flex-row items-center gap-4 text-[10px] divide-y md:divide-y-0 md:divide-x divide-slate-300 dark:divide-slate-700">
                                     <div class="flex items-center w-full md:w-1/5 pb-1 md:pb-0">
                                         <span class="text-slate-500 dark:text-slate-450 font-semibold shrink-0 whitespace-nowrap mr-1">사업자번호:</span>
-                                        <input type="text" id="req-vendor-num" onchange="syncRequestFormToDbAndDataset()" oninput="formatBusinessNumber(this)" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
+                                        <input type="text" id="req-vendor-num" onchange="syncRequestFormToDbAndDataset(); onPaymentAccountFieldChange();" oninput="formatBusinessNumber(this)" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
                                     </div>
                                     <div class="flex items-center w-full md:w-1/6 pt-1 md:pt-0 md:pl-3">
                                         <span class="text-slate-500 dark:text-slate-450 font-semibold shrink-0 whitespace-nowrap mr-1">은행:</span>
-                                        <input type="text" id="req-vendor-bank" onchange="syncRequestFormToDbAndDataset()" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
+                                        <input type="text" id="req-vendor-bank" onchange="syncRequestFormToDbAndDataset(); onPaymentAccountFieldChange();" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
                                     </div>
                                     <div class="flex items-center w-full md:w-1/4 pt-1 md:pt-0 md:pl-3">
                                         <span class="text-slate-500 dark:text-slate-450 font-semibold shrink-0 whitespace-nowrap mr-1">계좌번호:</span>
-                                        <input type="text" id="req-vendor-account" onchange="syncRequestFormToDbAndDataset()" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
+                                        <input type="text" id="req-vendor-account" onchange="syncRequestFormToDbAndDataset(); onPaymentAccountFieldChange();" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
                                     </div>
                                     <div class="flex items-center w-full md:w-1/6 pt-1 md:pt-0 md:pl-3">
                                         <span class="text-slate-500 dark:text-slate-450 font-semibold shrink-0 whitespace-nowrap mr-1">예금주:</span>
-                                        <input type="text" id="req-vendor-holder" onchange="syncRequestFormToDbAndDataset()" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
+                                        <input type="text" id="req-vendor-holder" onchange="syncRequestFormToDbAndDataset(); onPaymentAccountFieldChange();" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
                                     </div>
                                     <div class="flex items-center w-full md:w-1/6 pt-1 md:pt-0 md:pl-3">
                                         <span class="text-slate-500 dark:text-slate-450 font-semibold shrink-0 whitespace-nowrap mr-1">연락처:</span>
-                                        <input type="text" id="req-vendor-phone" onchange="syncRequestFormToDbAndDataset()" oninput="formatPhoneNumberHelper(this)" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
+                                        <input type="text" id="req-vendor-phone" onchange="syncRequestFormToDbAndDataset(); onPaymentAccountFieldChange();" oninput="formatPhoneNumberHelper(this)" class="bg-transparent border-b border-transparent hover:border-slate-300 w-full text-slate-800 dark:text-slate-100 font-bold focus:outline-none" value="">
                                     </div>
                                 </div>
                             </div>
@@ -1345,15 +1261,49 @@
             saveToLocalStorage();
         }
 
+        // 지불의뢰서 계좌 입력 필드 실시간 변경 시 DB와 dataset을 즉시 갱신
+        function onPaymentAccountFieldChange() {
+            const vendorName = document.getElementById('req-field-vendor').value.trim();
+            if (!vendorName) return;
+
+            const bankVal    = document.getElementById('req-vendor-bank').value.trim().replace(/은행$/, '');
+            const accountVal = document.getElementById('req-vendor-account').value.trim();
+            const holderVal  = document.getElementById('req-vendor-holder').value.trim();
+            const phoneVal   = document.getElementById('req-vendor-phone').value.trim();
+            const biznumVal  = document.getElementById('req-vendor-num').value.trim();
+
+            const dbEntry = accountDb.find(acc => acc.vendor === vendorName);
+            if (dbEntry) {
+                if (bankVal)    dbEntry.bank    = bankVal;
+                if (accountVal) dbEntry.account = accountVal;
+                if (holderVal)  dbEntry.holder  = holderVal;
+                if (phoneVal)   dbEntry.phone   = phoneVal;
+                if (biznumVal)  dbEntry.biznum  = biznumVal;
+
+                dataset.forEach(row => {
+                    if (row.vendor === vendorName) {
+                        if (bankVal)    row.bank    = bankVal;
+                        if (accountVal) row.account = accountVal;
+                        if (holderVal)  row.holder  = holderVal;
+                        if (phoneVal)   row.phone   = phoneVal;
+                        if (biznumVal)  row.biznum  = biznumVal;
+                    }
+                });
+                saveToLocalStorage();
+                renderAccountDBList();
+            }
+        }
+
         // 지불의뢰서 상단 정보에 기입된 정보를 계좌 DB 대장에 다이렉트 신속 추가해주는 기능
         function quickRegisterCurrentVendorToDb() {
-            const vendor = document.getElementById('req-field-vendor').value.trim();
-            const ceo = document.getElementById('req-field-ceo').value.trim();
+            const vendor  = document.getElementById('req-field-vendor').value.trim();
+            const ceo     = document.getElementById('req-field-ceo').value.trim();
             const rawBank = document.getElementById('req-vendor-bank').value.trim();
-            const bank = rawBank.replace(/은행$/, '');
+            const bank    = rawBank.replace(/은행$/, '');
             const account = document.getElementById('req-vendor-account').value.trim();
-            const phone = document.getElementById('req-vendor-phone').value.trim();
-            const biznum = document.getElementById('req-vendor-num').value.trim();
+            const holder  = document.getElementById('req-vendor-holder').value.trim();
+            const phone   = document.getElementById('req-vendor-phone').value.trim();
+            const biznum  = document.getElementById('req-vendor-num').value.trim();
 
             if (!vendor) {
                 showToast("의뢰서에 거래처 상호가 기재되어 있어야 등록할 수 있습니다.");
@@ -1365,6 +1315,35 @@
             }
 
             const cleanNewAccount = account.replace(/[^0-9]/g, '');
+
+            // 이미 같은 vendor로 등록된 경우 → 업데이트
+            const existingByVendor = accountDb.find(acc => acc.vendor === vendor);
+            if (existingByVendor) {
+                if (bank)    existingByVendor.bank    = bank;
+                if (account) existingByVendor.account = account;
+                if (holder)  existingByVendor.holder  = holder;
+                if (ceo)     existingByVendor.ceo     = ceo;
+                if (phone)   existingByVendor.phone   = phone;
+                if (biznum)  existingByVendor.biznum  = biznum;
+                // dataset 전파
+                dataset.forEach(row => {
+                    if (row.vendor === vendor) {
+                        row.bank    = existingByVendor.bank;
+                        row.account = existingByVendor.account;
+                        row.holder  = existingByVendor.holder;
+                        row.phone   = existingByVendor.phone   || "";
+                        row.biznum  = existingByVendor.biznum  || "";
+                        row.ceo     = existingByVendor.ceo     || row.ceo;
+                    }
+                });
+                saveToLocalStorage();
+                renderAccountDBList();
+                renderStatementTable();
+                showToast(`[${vendor}] DB 정보가 업데이트되었습니다.`);
+                return;
+            }
+
+            // 계좌번호 중복 체크 (다른 vendor)
             const isDuplicate = accountDb.some(acc => acc.account.replace(/[^0-9]/g, '') === cleanNewAccount);
             if (isDuplicate) {
                 showToast("⚠️ 이미 계좌 마스터 DB 대장에 동일한 계좌번호가 등록되어 있습니다.");
@@ -1373,21 +1352,33 @@
 
             const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
             accountDb.push({
-                id: newId,
-                holder: ceo || vendor,
-                bank: bank || "은행",
+                id:      newId,
+                holder:  holder || ceo || vendor,
+                bank:    bank || "",
                 account: account,
-                ceo: ceo,
-                vendor: vendor,
-                biznum: biznum,
-                phone: phone
+                ceo:     ceo,
+                vendor:  vendor,
+                biznum:  biznum,
+                phone:   phone
+            });
+
+            // dataset 전파
+            dataset.forEach(row => {
+                if (row.vendor === vendor) {
+                    const newAcc = accountDb[accountDb.length - 1];
+                    row.holder  = newAcc.holder;
+                    row.bank    = newAcc.bank;
+                    row.account = newAcc.account;
+                    row.phone   = newAcc.phone   || "";
+                    row.biznum  = newAcc.biznum  || "";
+                }
             });
 
             saveToLocalStorage();
             renderAccountDBList();
             renderStatementTable();
             refreshRequestSelector();
-            showToast(`[${vendor} / ${ceo || '대표자'}] 마스터 DB 대장 즉시 연동 완료!`);
+            showToast(`[${vendor} / ${holder || ceo || '대표자'}] 마스터 DB 대장 즉시 연동 완료!`);
         }
 
         function loadFromLocalStorage() {
@@ -2027,17 +2018,34 @@
 
         function handleVendorNameChange(id, name) {
             const index = dataset.findIndex(item => item.id === id);
-            if (index === -1) return;
-        
-            dataset[index].vendor = name;
-        
-            // ✅ 개선: 해당 행만 업데이트 (모든 행이 아님)
-            const matchedAcc = findAccountByPriority(name, dataset[index].ceo, "");
-            if (matchedAcc) {
-                updateRowAccountInfo(index, matchedAcc);
-            }
-        
-            if (saveToLocalStorageSafe()) {
+            if (index !== -1) {
+                dataset[index].vendor = name;
+
+                // vendor 필드로만 1순위 매칭. holder명 우연 일치에 의한 오염 방지
+                let matchedAcc = accountDb.find(acc => acc.vendor === name);
+                // vendor 매칭 없으면 ceo가 이미 기입된 경우에만 ceo로 시도
+                if (!matchedAcc && dataset[index].ceo) {
+                    matchedAcc = accountDb.find(acc => acc.ceo === dataset[index].ceo && acc.vendor === name);
+                }
+
+                if (matchedAcc) {
+                    // DB에 등록된 정보를 1순위로 덮어씀 (예금주 오염 핵심 수정)
+                    dataset[index].holder  = matchedAcc.holder;
+                    dataset[index].bank    = matchedAcc.bank;
+                    dataset[index].account = matchedAcc.account;
+                    dataset[index].ceo     = matchedAcc.ceo || dataset[index].ceo;
+                    dataset[index].phone   = matchedAcc.phone  || "";
+                    dataset[index].biznum  = matchedAcc.biznum || "";
+                } else {
+                    // DB 미등록 거래처 → 계좌정보 초기화 (이전 거래처 계좌 잔류 방지)
+                    dataset[index].holder  = "";
+                    dataset[index].bank    = "";
+                    dataset[index].account = "";
+                    dataset[index].phone   = "";
+                    dataset[index].biznum  = "";
+                }
+
+                saveToLocalStorage();
                 renderStatementTable();
                 refreshRequestSelector();
             }
@@ -2045,22 +2053,31 @@
 
         function handleCeoNameChange(id, name) {
             const index = dataset.findIndex(item => item.id === id);
-            if (index === -1) return;
-        
-            dataset[index].ceo = name;
-        
-            // ✅ 개선: vendor 기준으로 먼저 찾기
-            const matchedAcc = findAccountByPriority(
-                dataset[index].vendor,
-                name,
-                ""
-            );
-        
-            if (matchedAcc) {
-                updateRowAccountInfo(index, matchedAcc);
-            }
-        
-            if (saveToLocalStorageSafe()) {
+            if (index !== -1) {
+                dataset[index].ceo = name;
+
+                // 계좌 정보가 아직 없을 때만 자동 채우기 (기존 정보 덮어쓰기 방지)
+                const hasAccount = dataset[index].account && dataset[index].account !== "";
+                if (!hasAccount) {
+                    // vendor 기준 우선, 없으면 ceo 이름으로
+                    let matchedAcc = null;
+                    if (dataset[index].vendor) {
+                        matchedAcc = accountDb.find(acc => acc.vendor === dataset[index].vendor);
+                    }
+                    if (!matchedAcc) {
+                        matchedAcc = accountDb.find(acc => acc.ceo === name);
+                    }
+                    if (matchedAcc) {
+                        dataset[index].holder  = matchedAcc.holder;
+                        dataset[index].bank    = matchedAcc.bank;
+                        dataset[index].account = matchedAcc.account;
+                        if (!dataset[index].vendor) dataset[index].vendor = matchedAcc.vendor;
+                        dataset[index].phone   = matchedAcc.phone  || "";
+                        dataset[index].biznum  = matchedAcc.biznum || "";
+                    }
+                }
+
+                saveToLocalStorage();
                 renderStatementTable();
                 refreshRequestSelector();
             }
@@ -2068,62 +2085,68 @@
 
         function syncRequestFormToDbAndDataset() {
             const vendorName = document.getElementById('req-field-vendor').value.trim();
-            const ceoName = document.getElementById('req-field-ceo').value.trim();
-            const bizNumVal = document.getElementById('req-vendor-num').value.trim();
-            const bankVal = document.getElementById('req-vendor-bank').value.trim().replace(/은행$/, '');
+            const ceoName    = document.getElementById('req-field-ceo').value.trim();
+            const bizNumVal  = document.getElementById('req-vendor-num').value.trim();
+            const bankVal    = document.getElementById('req-vendor-bank').value.trim().replace(/은행$/, '');
             const accountVal = document.getElementById('req-vendor-account').value.trim();
-            const holderVal = document.getElementById('req-vendor-holder').value.trim();
-            const phoneVal = document.getElementById('req-vendor-phone').value.trim();
+            const holderVal  = document.getElementById('req-vendor-holder').value.trim();
+            const phoneVal   = document.getElementById('req-vendor-phone').value.trim();
 
             if (!vendorName) return;
 
-            // 계좌번호 중복 검사: 다른 예금주(거래처)의 계좌번호와 같으면 경고
+            // 계좌번호 중복 검사: 다른 거래처에 이미 등록된 번호와 일치하면 경고 후 차단
             if (accountVal) {
                 const cleanNew = accountVal.replace(/[^0-9]/g, '');
                 const conflictAcc = accountDb.find(acc =>
                     acc.account.replace(/[^0-9]/g, '') === cleanNew &&
-                    acc.vendor !== vendorName &&
-                    acc.holder !== (ceoName || vendorName)
+                    acc.vendor !== vendorName
                 );
                 if (conflictAcc) {
-                    showToast(`⚠️ 주의: 입력한 계좌번호가 이미 [${conflictAcc.holder} / ${conflictAcc.vendor}]에 등록된 번호와 일치합니다. 계좌번호를 다시 확인해 주세요.`);
-                    return; // 저장 차단
+                    showToast(`⚠️ 입력한 계좌번호가 이미 [${conflictAcc.holder} / ${conflictAcc.vendor}]에 등록된 번호와 일치합니다. 계좌번호를 다시 확인해 주세요.`);
+                    return;
                 }
             }
 
-            // vendor를 우선으로 매칭, 없으면 ceo/holder로 시도
+            // vendor 1순위 매칭 (holder 우연 일치로 인한 오염 방지)
             let matchedAcc = accountDb.find(acc => acc.vendor === vendorName);
-            if (!matchedAcc) matchedAcc = accountDb.find(acc => acc.holder === (ceoName || vendorName));
 
             if (matchedAcc) {
-                matchedAcc.ceo = ceoName;
-                matchedAcc.biznum = bizNumVal;
-                matchedAcc.bank = bankVal;
-                matchedAcc.account = accountVal;
-                matchedAcc.phone = phoneVal;
-                matchedAcc.holder = holderVal || ceoName || matchedAcc.holder;
+                // 빈 값으로 DB를 덮어쓰지 않음 — 입력된 값이 있을 때만 업데이트
+                if (ceoName)    matchedAcc.ceo    = ceoName;
+                if (bizNumVal)  matchedAcc.biznum = bizNumVal;
+                if (bankVal)    matchedAcc.bank   = bankVal;
+                if (accountVal) matchedAcc.account = accountVal;
+                if (phoneVal)   matchedAcc.phone  = phoneVal;
+                if (holderVal)  matchedAcc.holder = holderVal;
             } else {
+                // 신규 등록 — account 없으면 등록 자체를 건너뜀
+                if (!accountVal) {
+                    showToast("계좌번호가 없으면 DB 등록이 불가합니다. 계좌번호를 입력하세요.");
+                    return;
+                }
                 const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
-                accountDb.push({
-                    id: newId,
-                    holder: holderVal || ceoName || vendorName,
-                    bank: bankVal,
+                matchedAcc = {
+                    id:      newId,
+                    holder:  holderVal || ceoName || vendorName,
+                    bank:    bankVal,
                     account: accountVal,
-                    ceo: ceoName,
-                    vendor: vendorName,
-                    biznum: bizNumVal,
-                    phone: phoneVal
-                });
+                    ceo:     ceoName,
+                    vendor:  vendorName,
+                    biznum:  bizNumVal,
+                    phone:   phoneVal
+                };
+                accountDb.push(matchedAcc);
             }
 
+            // dataset 전파 — 같은 vendor 행 전체를 DB 기준값으로 일괄 갱신
             dataset.forEach(row => {
                 if (row.vendor === vendorName) {
-                    row.ceo = ceoName;
-                    row.holder = holderVal || ceoName || row.holder;
-                    row.bank = bankVal;
-                    row.account = accountVal;
-                    row.phone = phoneVal;
-                    row.biznum = bizNumVal;
+                    row.holder  = matchedAcc.holder;
+                    row.bank    = matchedAcc.bank;
+                    row.account = matchedAcc.account;
+                    row.ceo     = matchedAcc.ceo    || row.ceo;
+                    row.phone   = matchedAcc.phone  || "";
+                    row.biznum  = matchedAcc.biznum || "";
                 }
             });
 
@@ -2593,21 +2616,15 @@
         }
 
         function handleModalCeoInput() {
-            const ceoVal = document.getElementById('modal-ceo').value.trim();
+            const ceoVal    = document.getElementById('modal-ceo').value.trim();
             const vendorVal = document.getElementById('modal-vendor').value.trim();
-            
-            if (!ceoVal) {
-                document.getElementById('modal-account-preview').classList.add('hidden');
-                return;
-            }
-        
-            // ✅ 개선: vendor 있으면 vendor + ceo, 없으면 ceo만
-            const matched = findAccountByPriority(vendorVal, ceoVal, "");
-        
+            // vendor가 이미 입력돼 있으면 vendor 기준 우선, 아니면 ceo 기준
+            const matched = (vendorVal ? accountDb.find(acc => acc.vendor === vendorVal) : null)
+                || accountDb.find(acc => acc.ceo === ceoVal);
             if (matched) {
-                document.getElementById('modal-preview-bank').textContent = (matched.bank || '') + '은행';
+                document.getElementById('modal-preview-bank').textContent    = (matched.bank || '') + '은행';
                 document.getElementById('modal-preview-account').textContent = matched.account || '';
-                document.getElementById('modal-preview-holder').textContent = matched.holder || '';
+                document.getElementById('modal-preview-holder').textContent  = matched.holder  || '';
                 document.getElementById('modal-account-preview').classList.remove('hidden');
             } else {
                 document.getElementById('modal-account-preview').classList.add('hidden');
@@ -2629,54 +2646,38 @@
         }
 
         function confirmAddRow() {
-            const type = document.getElementById('modal-type').value;
-            const vendor = document.getElementById('modal-vendor').value.trim();
-            const ceo = document.getElementById('modal-ceo').value.trim();
-            const supply = Number(document.getElementById('modal-supply').value) || 0;
-            const tax = Number(document.getElementById('modal-tax').value) || 0;
+            const type      = document.getElementById('modal-type').value;
+            const vendor    = document.getElementById('modal-vendor').value.trim();
+            const ceo       = document.getElementById('modal-ceo').value.trim();
+            const supply    = Number(document.getElementById('modal-supply').value) || 0;
+            const tax       = Number(document.getElementById('modal-tax').value)    || 0;
             const deduction = Number(document.getElementById('modal-deduction').value) || 0;
-            const prepaid = Number(document.getElementById('modal-prepaid').value) || 0;
-            const note = document.getElementById('modal-note').value.trim();
+            const prepaid   = Number(document.getElementById('modal-prepaid').value)   || 0;
+            const note      = document.getElementById('modal-note').value.trim();
 
             if (!vendor) {
                 showToast("거래처명을 기입해 주세요.");
                 return;
             }
 
-            // ✅ 개선된 매칭 로직: vendor 우선 → ceo + holder 조합 → holder만
+            // ★ vendor 1순위 엄격 매칭 — holder명 충돌 방지
             let matchedAcc = accountDb.find(acc => acc.vendor === vendor);
             if (!matchedAcc && ceo) {
+                // vendor 미등록이고 ceo 입력된 경우에만 ceo로 시도
                 matchedAcc = accountDb.find(acc => acc.ceo === ceo && acc.vendor);
             }
-            if (!matchedAcc && ceo) {
-                matchedAcc = accountDb.find(acc => acc.holder === ceo);
-            }
-            
-            const bank = matchedAcc ? matchedAcc.bank : "";
+
+            const bank    = matchedAcc ? matchedAcc.bank    : "";
             const account = matchedAcc ? matchedAcc.account : "";
-            const holder = matchedAcc ? matchedAcc.holder : "";
-            const phone = matchedAcc ? matchedAcc.phone : "";
-            const biznum = matchedAcc ? matchedAcc.biznum : "";
-        
-            // 나머지 코드는 동일...
+            const holder  = matchedAcc ? matchedAcc.holder  : "";
+            const phone   = matchedAcc ? matchedAcc.phone   : "";
+            const biznum  = matchedAcc ? matchedAcc.biznum  : "";
 
             const newId = dataset.length > 0 ? Math.max(...dataset.map(item => item.id)) + 1 : 1;
             dataset.push({
-                id: newId,
-                type,
-                vendor,
-                ceo,
-                supply,
-                tax,
-                deduction,
-                prepaid,
-                bank,
-                account,
-                holder,
-                phone,
-                biznum,
-                status: "대기",
-                note
+                id: newId, type, vendor, ceo, supply, tax, deduction, prepaid,
+                bank, account, holder, phone, biznum,
+                status: "대기", note
             });
 
             closeAddRowModal();
@@ -2770,12 +2771,17 @@
                     `;
                 });
 
-                const matchedAcc = accountDb.find(acc => acc.vendor === vendorName || acc.holder === vendorName) || {};
-                const bankLabel = matchedAcc.bank ? `${matchedAcc.bank}은행` : (firstItem.bank ? `${firstItem.bank}은행` : "");
-                const accountNum = matchedAcc.account || firstItem.account || "";
-                const phoneNum = matchedAcc.phone || firstItem.phone || "";
-                const ceoName = firstItem.ceo || matchedAcc.ceo || "";
-                const biznumLabel = matchedAcc.biznum || "";
+                // vendor 1순위 → ceo+holder 조합 → holder 단독 순으로 엄격 매칭
+                const matchedAcc = accountDb.find(acc => acc.vendor === vendorName)
+                    || accountDb.find(acc => acc.ceo === (firstItem.ceo || "") && acc.holder === (firstItem.holder || ""))
+                    || accountDb.find(acc => acc.holder === (firstItem.holder || ""))
+                    || {};
+                const bankLabel   = matchedAcc.bank    ? `${matchedAcc.bank}은행`  : (firstItem.bank    ? `${firstItem.bank}은행`  : "");
+                const accountNum  = matchedAcc.account || firstItem.account || "";
+                const phoneNum    = matchedAcc.phone   || firstItem.phone   || "";
+                const ceoName     = matchedAcc.ceo     || firstItem.ceo     || "";
+                const biznumLabel = matchedAcc.biznum  || firstItem.biznum  || "";
+                const holderName  = matchedAcc.holder  || firstItem.holder  || ceoName || "";
 
                 const page = document.createElement('div');
                 page.className = "print-page bg-white p-8 border border-slate-300 max-w-[760px] mx-auto mb-10 shadow-sm relative text-slate-900";
@@ -2877,7 +2883,7 @@
                                 </div>
                                 <div class="flex items-center w-full md:w-1/6 pt-1 md:pt-0 md:pl-3">
                                     <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">예금주:</span>
-                                    <span class="w-full text-slate-850 font-bold">${matchedAcc.holder || ceoName || ''}</span>
+                                    <span class="w-full text-slate-850 font-bold">${holderName}</span>
                                 </div>
                                 <div class="flex items-center w-full md:w-1/4 pt-1 md:pt-0 md:pl-3">
                                     <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">연락처:</span>
@@ -3124,28 +3130,26 @@
 
                 document.getElementById('req-title-category').textContent = target.type;
                 applyCategoryColor(target.type);
-                document.getElementById('req-field-type').value = `${target.type}`;
+                document.getElementById('req-field-type').value   = `${target.type}`;
                 document.getElementById('req-field-vendor').value = target.vendor || "";
-                document.getElementById('req-field-ceo').value = target.ceo || "";
+                document.getElementById('req-field-ceo').value    = target.ceo    || "";
 
-                document.getElementById('req-vendor-bank').value = target.bank ? `${target.bank}은행` : "";
-                document.getElementById('req-vendor-account').value = target.account || "";
-                document.getElementById('req-vendor-holder').value = target.holder || target.ceo || "";
-                document.getElementById('req-vendor-phone').value = target.phone || "";
-                
-                // vendor 우선 매칭, 없으면 holder/ceo 순으로 — 계좌번호 오매칭 방지
-                const matchedAccRow = accountDb.find(acc => acc.vendor === target.vendor)
+                // ★ DB 1순위: vendor로 찾은 DB 레코드 우선, 없으면 dataset 값 사용
+                const dbRow = accountDb.find(acc => acc.vendor === target.vendor)
                     || accountDb.find(acc => acc.ceo === target.ceo && acc.holder === target.holder)
                     || accountDb.find(acc => acc.holder === target.holder);
-                if (matchedAccRow) {
-                    if (matchedAccRow.biznum) document.getElementById('req-vendor-num').value = matchedAccRow.biznum;
-                    // 계좌 정보도 DB 기준으로 보정 (dataset에 오염된 경우 대비)
-                    if (matchedAccRow.account) document.getElementById('req-vendor-account').value = matchedAccRow.account;
-                    if (matchedAccRow.bank) document.getElementById('req-vendor-bank').value = `${matchedAccRow.bank}은행`;
-                    if (matchedAccRow.holder) document.getElementById('req-vendor-holder').value = matchedAccRow.holder;
-                } else {
-                    document.getElementById('req-vendor-num').value = target.biznum || "";
-                }
+
+                const resolvedBank    = dbRow ? dbRow.bank    : target.bank;
+                const resolvedAccount = dbRow ? dbRow.account : target.account;
+                const resolvedHolder  = dbRow ? dbRow.holder  : (target.holder || target.ceo || "");
+                const resolvedPhone   = dbRow ? dbRow.phone   : target.phone;
+                const resolvedBiznum  = dbRow ? dbRow.biznum  : target.biznum;
+
+                document.getElementById('req-vendor-bank').value    = resolvedBank    ? `${resolvedBank}은행` : "";
+                document.getElementById('req-vendor-account').value = resolvedAccount || "";
+                document.getElementById('req-vendor-holder').value  = resolvedHolder  || "";
+                document.getElementById('req-vendor-phone').value   = resolvedPhone   || "";
+                document.getElementById('req-vendor-num').value     = resolvedBiznum  || "";
                 if (document.getElementById('quick-vendor-name')) {
                     document.getElementById('quick-vendor-name').textContent = target.vendor || "미지정";
                 }
@@ -3165,26 +3169,26 @@
                 const firstItem = matchedRows[0];
                 document.getElementById('req-title-category').textContent = firstItem.type;
                 applyCategoryColor(firstItem.type);
-                document.getElementById('req-field-type').value = `${firstItem.type}`;
+                document.getElementById('req-field-type').value   = `${firstItem.type}`;
                 document.getElementById('req-field-vendor').value = targetVendor;
-                document.getElementById('req-field-ceo').value = firstItem.ceo || "";
-                document.getElementById('req-vendor-bank').value = firstItem.bank ? `${firstItem.bank}은행` : "";
-                document.getElementById('req-vendor-account').value = firstItem.account || "";
-                document.getElementById('req-vendor-holder').value = firstItem.holder || firstItem.ceo || "";
-                document.getElementById('req-vendor-phone').value = firstItem.phone || "";
-                
-                // vendor 우선 매칭으로 계좌 오주입 방지
-                const matchedAccCombine = accountDb.find(acc => acc.vendor === targetVendor)
+                document.getElementById('req-field-ceo').value    = firstItem.ceo || "";
+
+                // ★ DB 1순위
+                const dbRowC = accountDb.find(acc => acc.vendor === targetVendor)
                     || accountDb.find(acc => acc.ceo === firstItem.ceo && acc.holder === firstItem.holder)
                     || accountDb.find(acc => acc.holder === firstItem.holder);
-                if (matchedAccCombine) {
-                    if (matchedAccCombine.biznum) document.getElementById('req-vendor-num').value = matchedAccCombine.biznum;
-                    if (matchedAccCombine.account) document.getElementById('req-vendor-account').value = matchedAccCombine.account;
-                    if (matchedAccCombine.bank) document.getElementById('req-vendor-bank').value = `${matchedAccCombine.bank}은행`;
-                    if (matchedAccCombine.holder) document.getElementById('req-vendor-holder').value = matchedAccCombine.holder;
-                } else {
-                    document.getElementById('req-vendor-num').value = firstItem.biznum || "";
-                }
+
+                const rBank    = dbRowC ? dbRowC.bank    : firstItem.bank;
+                const rAccount = dbRowC ? dbRowC.account : firstItem.account;
+                const rHolder  = dbRowC ? dbRowC.holder  : (firstItem.holder || firstItem.ceo || "");
+                const rPhone   = dbRowC ? dbRowC.phone   : firstItem.phone;
+                const rBiznum  = dbRowC ? dbRowC.biznum  : firstItem.biznum;
+
+                document.getElementById('req-vendor-bank').value    = rBank    ? `${rBank}은행` : "";
+                document.getElementById('req-vendor-account').value = rAccount || "";
+                document.getElementById('req-vendor-holder').value  = rHolder  || "";
+                document.getElementById('req-vendor-phone').value   = rPhone   || "";
+                document.getElementById('req-vendor-num').value     = rBiznum  || "";
                 if (document.getElementById('quick-vendor-name')) {
                     document.getElementById('quick-vendor-name').textContent = targetVendor;
                 }
@@ -3554,82 +3558,72 @@
 
         function updateAccountDB(id, field, value) {
             const index = accountDb.findIndex(a => a.id === id);
-            if (index === -1) return;
-        
-            try {
+            if (index !== -1) {
                 if (field === 'account') {
                     const cleanVal = value.replace(/[^0-9]/g, '');
-                    const conflictAcc = accountDb.find(a => 
-                        a.id !== id && a.account.replace(/[^0-9]/g, '') === cleanVal
-                    );
+                    const conflictAcc = accountDb.find(a => a.id !== id && a.account.replace(/[^0-9]/g, '') === cleanVal);
                     if (conflictAcc) {
-                        showToast(`⚠️ 계좌번호 중복: 이미 [${conflictAcc.holder} / ${conflictAcc.vendor}]에 등록된 번호입니다.`);
+                        showToast(`⚠️ 계좌번호 중복: 이미 [${conflictAcc.holder} / ${conflictAcc.vendor}]에 등록된 번호입니다. 저장 반려됨.`);
                         renderAccountDBList();
                         return;
                     }
                 }
-        
-                accountDb[index][field] = value || "";
-                
-                if (!saveToLocalStorageSafe()) {
-                    return;
+                accountDb[index][field] = value;
+
+                // DB 수정 내용을 dataset의 동일 vendor 행에 실시간 전파
+                const vendorKey = accountDb[index].vendor;
+                if (vendorKey) {
+                    dataset.forEach(row => {
+                        if (row.vendor === vendorKey) {
+                            row[field] = value;
+                            // bank/account/holder 변경 시 연관 필드도 함께 동기화
+                            if (['bank','account','holder','phone','biznum','ceo'].includes(field)) {
+                                row.bank    = accountDb[index].bank    || row.bank;
+                                row.account = accountDb[index].account || row.account;
+                                row.holder  = accountDb[index].holder  || row.holder;
+                                row.phone   = accountDb[index].phone   || row.phone;
+                                row.biznum  = accountDb[index].biznum  || row.biznum;
+                                row.ceo     = accountDb[index].ceo     || row.ceo;
+                            }
+                        }
+                    });
                 }
-        
-                const targetVendor = accountDb[index].vendor;
-        
-                // ✅ 개선: vendor 우선 매칭으로 동기화
-                dataset.forEach(row => {
-                    if (row.vendor === targetVendor) {
-                        if (field === 'bank') row.bank = value || "";
-                        if (field === 'account') row.account = value || "";
-                        if (field === 'ceo') row.ceo = value || "";
-                        if (field === 'phone') row.phone = value || "";
-                        if (field === 'biznum') row.biznum = value || "";
-                        if (field === 'holder') row.holder = value || "";
-                    }
-                });
-        
-                renderStatementTable();
+
+                saveToLocalStorage();
                 renderAccountDBList();
-                showToast("계좌 DB 수정 내용이 청구 대장에 반영되었습니다.");
-            } catch (e) {
-                console.error("계좌 DB 업데이트 실패:", e);
-                showToast("⚠️ 계좌 정보 업데이트 실패");
+                renderStatementTable();
             }
         }
 
         function handleHolderChange(rowId, selectedHolder) {
             const rowIndex = dataset.findIndex(item => item.id === rowId);
-            if (rowIndex === -1) return;
-        
-            try {
+            if (rowIndex !== -1) {
                 if (selectedHolder === "") {
-                    dataset[rowIndex].holder = "";
-                    dataset[rowIndex].bank = "";
+                    dataset[rowIndex].holder  = "";
+                    dataset[rowIndex].bank    = "";
                     dataset[rowIndex].account = "";
-                    dataset[rowIndex].phone = "";
+                    dataset[rowIndex].phone   = "";
                 } else {
+                    // 선택된 예금주의 DB 레코드를 찾아 거래처 기반으로 검증
                     const matchedAcc = accountDb.find(acc => acc.holder === selectedHolder);
                     if (matchedAcc) {
-                        updateRowAccountInfo(rowIndex, matchedAcc);
-                        // vendor가 비어있으면 설정
+                        dataset[rowIndex].holder  = matchedAcc.holder;
+                        dataset[rowIndex].bank    = matchedAcc.bank;
+                        dataset[rowIndex].account = matchedAcc.account;
+                        dataset[rowIndex].phone   = matchedAcc.phone  || "";
+                        dataset[rowIndex].biznum  = matchedAcc.biznum || "";
+                        // vendor/ceo는 이미 입력된 값이 있을 때는 덮어쓰지 않음
                         if (!dataset[rowIndex].vendor && matchedAcc.vendor) {
                             dataset[rowIndex].vendor = matchedAcc.vendor;
                         }
-                        // ceo가 비어있으면 설정
                         if (!dataset[rowIndex].ceo && matchedAcc.ceo) {
                             dataset[rowIndex].ceo = matchedAcc.ceo;
                         }
                     }
                 }
-        
-                if (saveToLocalStorageSafe()) {
-                    renderStatementTable();
-                    refreshRequestSelector();
-                }
-            } catch (e) {
-                console.error("예금주 변경 실패:", e);
-                showToast("⚠️ 예금주 변경 실패");
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
             }
         }
 
