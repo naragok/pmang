@@ -2487,7 +2487,15 @@
 
         function handleModalVendorInput() {
             const vendorVal = document.getElementById('modal-vendor').value.trim();
-            const matched = accountDb.find(acc => acc.vendor === vendorVal || acc.holder === vendorVal);
+            if (!vendorVal) {
+                document.getElementById('modal-account-preview').classList.add('hidden');
+                return;
+            }
+            
+            // ✅ 우선순위: vendor 먼저 매칭 → holder 매칭
+            const matched = accountDb.find(acc => acc.vendor === vendorVal) 
+                         || accountDb.find(acc => acc.holder === vendorVal);
+            
             if (matched) {
                 document.getElementById('modal-ceo').value = matched.ceo || "";
                 document.getElementById('modal-preview-bank').textContent = (matched.bank || '') + '은행';
@@ -2541,12 +2549,22 @@
                 return;
             }
 
-            const matchedAcc = accountDb.find(acc => acc.ceo === ceo || acc.holder === ceo || acc.vendor === vendor);
+            // ✅ 개선된 매칭 로직: vendor 우선 → ceo + holder 조합 → holder만
+            let matchedAcc = accountDb.find(acc => acc.vendor === vendor);
+            if (!matchedAcc && ceo) {
+                matchedAcc = accountDb.find(acc => acc.ceo === ceo && acc.vendor);
+            }
+            if (!matchedAcc && ceo) {
+                matchedAcc = accountDb.find(acc => acc.holder === ceo);
+            }
+            
             const bank = matchedAcc ? matchedAcc.bank : "";
             const account = matchedAcc ? matchedAcc.account : "";
             const holder = matchedAcc ? matchedAcc.holder : "";
-            const phone = matchedAcc ? (matchedAcc.phone || "") : "";
-            const biznum = matchedAcc ? (matchedAcc.biznum || "") : "";
+            const phone = matchedAcc ? matchedAcc.phone : "";
+            const biznum = matchedAcc ? matchedAcc.biznum : "";
+        
+            // 나머지 코드는 동일...
 
             const newId = dataset.length > 0 ? Math.max(...dataset.map(item => item.id)) + 1 : 1;
             dataset.push({
