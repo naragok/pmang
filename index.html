@@ -15,6 +15,90 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- ===== 개선된 계좌 매칭 함수 (Pro V10 버그픽스) ===== -->
+    <script>
+    
+    // ===== 1. 안전한 계좌 매칭 함수 (NEW) =====
+    // 우선순위: vendor > ceo > holder > 없음
+    function findAccountByPriority(vendor, ceo, holder) {
+        if (!vendor && !ceo && !holder) return null;
+        
+        // 1차: vendor 필드로 검색 (가장 우선순위 높음)
+        if (vendor) {
+            const byVendor = accountDb.find(acc => acc.vendor === vendor);
+            if (byVendor) return byVendor;
+        }
+        
+        // 2차: ceo 필드로 검색
+        if (ceo) {
+            const byCeo = accountDb.find(acc => acc.ceo === ceo);
+            if (byCeo) return byCeo;
+        }
+        
+        // 3차: holder 필드로 검색 (가장 낮은 우선순위)
+        if (holder) {
+            const byHolder = accountDb.find(acc => acc.holder === holder);
+            if (byHolder) return byHolder;
+        }
+        
+        return null;
+    }
+    
+    // ===== 2. 안전한 행 계좌정보 업데이트 함수 (NEW) =====
+    function updateRowAccountInfo(rowIndex, matchedAcc) {
+        if (!matchedAcc || rowIndex < 0 || rowIndex >= dataset.length) {
+            return false;
+        }
+        
+        try {
+            dataset[rowIndex].holder = matchedAcc.holder || "";
+            dataset[rowIndex].bank = matchedAcc.bank || "";
+            dataset[rowIndex].account = matchedAcc.account || "";
+            dataset[rowIndex].phone = matchedAcc.phone || "";
+            dataset[rowIndex].biznum = matchedAcc.biznum || "";
+            return true;
+        } catch (e) {
+            console.error("행 정보 업데이트 실패:", e);
+            return false;
+        }
+    }
+    
+    // ===== 3. 안전한 LocalStorage 저장 함수 (IMPROVED) =====
+    function saveToLocalStorageSafe() {
+        try {
+            if (!currentDocId) {
+                console.warn("현재 문서 ID가 없습니다.");
+                return false;
+            }
+            
+            const doc = savedDocuments.find(d => d.id === currentDocId);
+            if (!doc) {
+                console.warn(`문서 ${currentDocId}를 찾을 수 없습니다.`);
+                return false;
+            }
+            
+            const jsonStr = JSON.stringify({
+                dataset: dataset,
+                accountDb: accountDb,
+                metadata: doc
+            });
+            
+            // 약 5MB 용량 체크
+            if (jsonStr.length > 5000000) {
+                showToast("⚠️ 데이터가 너무 커졌습니다. 오래된 항목을 정리해주세요.");
+                return false;
+            }
+            
+            localStorage.setItem(`doc_${currentDocId}`, jsonStr);
+            return true;
+        } catch (e) {
+            console.error("LocalStorage 저장 실패:", e);
+            showToast("⚠️ 데이터 저장 실패. 브라우저 용량을 확인하세요.");
+            return false;
+        }
+    }
+    
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
         body {
@@ -1943,18 +2027,17 @@
 
         function handleVendorNameChange(id, name) {
             const index = dataset.findIndex(item => item.id === id);
-            if (index !== -1) {
-                dataset[index].vendor = name;
-                const matchedAcc = accountDb.find(acc => acc.vendor === name || acc.holder === name);
-                if (matchedAcc) {
-                    dataset[index].holder = matchedAcc.holder;
-                    dataset[index].bank = matchedAcc.bank;
-                    dataset[index].account = matchedAcc.account;
-                    dataset[index].ceo = matchedAcc.ceo;
-                    dataset[index].phone = matchedAcc.phone || "";
-                    dataset[index].biznum = matchedAcc.biznum || "";
-                }
-                saveToLocalStorage();
+            if (index === -1) return;
+        
+            dataset[index].vendor = name;
+        
+            // ✅ 개선: 해당 행만 업데이트 (모든 행이 아님)
+            const matchedAcc = findAccountByPriority(name, dataset[index].ceo, "");
+            if (matchedAcc) {
+                updateRowAccountInfo(index, matchedAcc);
+            }
+        
+            if (saveToLocalStorageSafe()) {
                 renderStatementTable();
                 refreshRequestSelector();
             }
@@ -1962,20 +2045,22 @@
 
         function handleCeoNameChange(id, name) {
             const index = dataset.findIndex(item => item.id === id);
-            if (index !== -1) {
-                dataset[index].ceo = name;
-                if (!dataset[index].account || dataset[index].account === "") {
-                    const matchedAcc = accountDb.find(acc => acc.ceo === name || acc.holder === name);
-                    if (matchedAcc) {
-                        dataset[index].holder = matchedAcc.holder;
-                        dataset[index].bank = matchedAcc.bank;
-                        dataset[index].account = matchedAcc.account;
-                        if (!dataset[index].vendor) dataset[index].vendor = matchedAcc.vendor;
-                        dataset[index].phone = matchedAcc.phone || "";
-                        dataset[index].biznum = matchedAcc.biznum || "";
-                    }
-                }
-                saveToLocalStorage();
+            if (index === -1) return;
+        
+            dataset[index].ceo = name;
+        
+            // ✅ 개선: vendor 기준으로 먼저 찾기
+            const matchedAcc = findAccountByPriority(
+                dataset[index].vendor,
+                name,
+                ""
+            );
+        
+            if (matchedAcc) {
+                updateRowAccountInfo(index, matchedAcc);
+            }
+        
+            if (saveToLocalStorageSafe()) {
                 renderStatementTable();
                 refreshRequestSelector();
             }
@@ -2509,7 +2594,16 @@
 
         function handleModalCeoInput() {
             const ceoVal = document.getElementById('modal-ceo').value.trim();
-            const matched = accountDb.find(acc => acc.ceo === ceoVal || acc.holder === ceoVal);
+            const vendorVal = document.getElementById('modal-vendor').value.trim();
+            
+            if (!ceoVal) {
+                document.getElementById('modal-account-preview').classList.add('hidden');
+                return;
+            }
+        
+            // ✅ 개선: vendor 있으면 vendor + ceo, 없으면 ceo만
+            const matched = findAccountByPriority(vendorVal, ceoVal, "");
+        
             if (matched) {
                 document.getElementById('modal-preview-bank').textContent = (matched.bank || '') + '은행';
                 document.getElementById('modal-preview-account').textContent = matched.account || '';
@@ -3460,40 +3554,55 @@
 
         function updateAccountDB(id, field, value) {
             const index = accountDb.findIndex(a => a.id === id);
-            if (index !== -1) {
+            if (index === -1) return;
+        
+            try {
                 if (field === 'account') {
                     const cleanVal = value.replace(/[^0-9]/g, '');
-                    const conflictAcc = accountDb.find(a => a.id !== id && a.account.replace(/[^0-9]/g, '') === cleanVal);
+                    const conflictAcc = accountDb.find(a => 
+                        a.id !== id && a.account.replace(/[^0-9]/g, '') === cleanVal
+                    );
                     if (conflictAcc) {
-                        showToast(`⚠️ 계좌번호 중복: 이미 [${conflictAcc.holder} / ${conflictAcc.vendor}]에 등록된 번호입니다. 저장 반려됨.`);
+                        showToast(`⚠️ 계좌번호 중복: 이미 [${conflictAcc.holder} / ${conflictAcc.vendor}]에 등록된 번호입니다.`);
                         renderAccountDBList();
                         return;
                     }
                 }
-
-                accountDb[index][field] = value;
-                saveToLocalStorage();
-                const targetHolder = accountDb[index].holder;
+        
+                accountDb[index][field] = value || "";
+                
+                if (!saveToLocalStorageSafe()) {
+                    return;
+                }
+        
                 const targetVendor = accountDb[index].vendor;
+        
+                // ✅ 개선: vendor 우선 매칭으로 동기화
                 dataset.forEach(row => {
-                    if (row.holder === targetHolder || row.vendor === targetVendor) {
-                        if (field === 'bank') row.bank = value;
-                        if (field === 'account') row.account = value;
-                        if (field === 'ceo') row.ceo = value;
-                        if (field === 'phone') row.phone = value;
-                        if (field === 'biznum') row.biznum = value;
-                        if (field === 'vendor') row.vendor = value;
+                    if (row.vendor === targetVendor) {
+                        if (field === 'bank') row.bank = value || "";
+                        if (field === 'account') row.account = value || "";
+                        if (field === 'ceo') row.ceo = value || "";
+                        if (field === 'phone') row.phone = value || "";
+                        if (field === 'biznum') row.biznum = value || "";
+                        if (field === 'holder') row.holder = value || "";
                     }
                 });
+        
                 renderStatementTable();
                 renderAccountDBList();
                 showToast("계좌 DB 수정 내용이 청구 대장에 반영되었습니다.");
+            } catch (e) {
+                console.error("계좌 DB 업데이트 실패:", e);
+                showToast("⚠️ 계좌 정보 업데이트 실패");
             }
         }
 
         function handleHolderChange(rowId, selectedHolder) {
             const rowIndex = dataset.findIndex(item => item.id === rowId);
-            if (rowIndex !== -1) {
+            if (rowIndex === -1) return;
+        
+            try {
                 if (selectedHolder === "") {
                     dataset[rowIndex].holder = "";
                     dataset[rowIndex].bank = "";
@@ -3502,21 +3611,25 @@
                 } else {
                     const matchedAcc = accountDb.find(acc => acc.holder === selectedHolder);
                     if (matchedAcc) {
-                        dataset[rowIndex].holder = matchedAcc.holder;
-                        dataset[rowIndex].bank = matchedAcc.bank;
-                        dataset[rowIndex].account = matchedAcc.account;
-                        dataset[rowIndex].phone = matchedAcc.phone || "";
-                        if (matchedAcc.vendor && !dataset[rowIndex].vendor) {
+                        updateRowAccountInfo(rowIndex, matchedAcc);
+                        // vendor가 비어있으면 설정
+                        if (!dataset[rowIndex].vendor && matchedAcc.vendor) {
                             dataset[rowIndex].vendor = matchedAcc.vendor;
                         }
-                        if (matchedAcc.ceo && !dataset[rowIndex].ceo) {
+                        // ceo가 비어있으면 설정
+                        if (!dataset[rowIndex].ceo && matchedAcc.ceo) {
                             dataset[rowIndex].ceo = matchedAcc.ceo;
                         }
                     }
                 }
-                saveToLocalStorage();
-                renderStatementTable();
-                refreshRequestSelector();
+        
+                if (saveToLocalStorageSafe()) {
+                    renderStatementTable();
+                    refreshRequestSelector();
+                }
+            } catch (e) {
+                console.error("예금주 변경 실패:", e);
+                showToast("⚠️ 예금주 변경 실패");
             }
         }
 
