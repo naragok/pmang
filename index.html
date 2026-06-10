@@ -67,11 +67,13 @@
         }
 
         @media print {
+            /* ── A4 세로, 브라우저 기본 여백(10mm) 유지 ── */
             @page {
                 size: A4 portrait;
-                margin: 0; /* 중앙 정렬을 위해 마진 제거 */
+                margin: 10mm;
             }
-            /* 프린트 상황에서는 무조건 흰색 배경과 검은색 글자로 고정하여 다크모드 인쇄 참사 방지 */
+
+            /* 다크모드 인쇄 참사 방지 — 흰 배경 · 검정 글자 강제 */
             html, body, .print-page, table, th, td, div, span, h2, h1, input, p {
                 background-color: #ffffff !important;
                 background: #ffffff !important;
@@ -82,14 +84,15 @@
             }
             body {
                 font-size: 11px !important;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-                min-height: 100vh !important;
+                display: block !important;   /* flex 해제 — 콘텐츠가 페이지 상단에서 시작 */
+                margin: 0 !important;
+                padding: 0 !important;
             }
             .no-print {
                 display: none !important;
             }
+
+            /* 지불의뢰서 · 일괄출력 공통 — A4 인쇄 영역을 꽉 채움 */
             .print-page {
                 margin: 0 !important;
                 padding: 0 !important;
@@ -97,23 +100,49 @@
                 box-shadow: none !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                box-sizing: border-box !important;
             }
-            
+
+            /* 자금청구명세서(가로) */
             .print-landscape {
                 width: 100% !important;
                 max-width: 100% !important;
                 page-break-after: always;
             }
-            
+
+            /* 지불의뢰서(세로) — A4 한 페이지를 정확히 꽉 채움 */
             .print-portrait {
-                width: 100% !important;
+                width: 210mm !important;
+                height: 277mm !important;
                 max-width: 100% !important;
-                margin: auto !important; /* 세로 및 가로 중앙 정렬 */
-                padding: 12mm !important;
+                margin: 0 !important;
+                padding: 6mm 8mm !important;
                 box-sizing: border-box !important;
                 page-break-inside: avoid !important;
-                transform: scale(var(--print-scale, 1.00)) !important;
-                transform-origin: center center !important;
+                transform: none !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+
+            /* 품목 내역 섹션이 남은 세로 공간을 모두 차지 */
+            .print-portrait .req-items-section {
+                flex: 1 1 auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 0 !important;
+            }
+            .print-portrait .req-items-section table {
+                flex: 1 1 auto !important;
+            }
+            /* 나머지 섹션은 내용만큼만 */
+            .print-portrait .req-header-section,
+            .print-portrait .req-vendor-section,
+            .print-portrait .req-calc-section,
+            .print-portrait .req-account-section,
+            .print-portrait .req-checklist-section,
+            .print-portrait .req-sign-section {
+                flex: 0 0 auto !important;
             }
 
             .a4-guide-active, .statement-guide-active {
@@ -222,18 +251,16 @@
                 display: none !important;
             }
             body.batch-printing #temp-batch-print-area {
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
+                display: block !important;
                 width: 100% !important;
-                min-height: 100vh !important;
             }
             body.batch-printing .print-page {
-                margin: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
                 page-break-after: always !important;
-                transform: scale(var(--print-scale, 1.00)) !important;
-                transform-origin: center center !important;
+                transform: none !important;
             }
         }
         
@@ -740,7 +767,7 @@
                     <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 10px;">
                         
                         <!-- 상단 타이틀 -->
-                        <div class="flex justify-between items-start border-b border-slate-300 dark:border-slate-700 pb-2 mb-4">
+                        <div class="req-header-section flex justify-between items-start border-b border-slate-300 dark:border-slate-700 pb-2 mb-3">
                             <div class="w-full">
                                 <h2 class="text-xl md:text-2xl font-black tracking-tight text-gray-950 dark:text-slate-100 pb-1 flex items-center">
                                     (<span id="req-title-category" contenteditable="true" onblur="applyCategoryColor(this.textContent)" class="font-extrabold focus:outline-none min-w-[60px] px-2 py-0.5 rounded-md border text-center inline-block transition-all duration-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 print-badge-emerald">자재비</span>) 
@@ -754,7 +781,7 @@
                         </div>
 
                         <!-- 거래처 상세 및 계약 내용 -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 border border-slate-300 dark:border-slate-700 text-[10px] mb-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 dark:divide-slate-700 bg-white dark:bg-slate-900">
+                        <div class="req-vendor-section grid grid-cols-1 sm:grid-cols-2 border border-slate-300 dark:border-slate-700 text-[10px] mb-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 dark:divide-slate-700 bg-white dark:bg-slate-900">
                             <div class="divide-y divide-slate-300 dark:divide-slate-700">
                                 <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">공종명</span><input type="text" id="req-field-type" value="도소매업" class="px-3 py-1.5 w-full font-semibold text-slate-750 dark:text-slate-200 bg-transparent outline-none"></div>
                                 <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">청구금액</span><input type="text" id="req-field-contract" value="일금 영원정" class="px-3 py-1.5 w-full font-bold text-slate-700 dark:text-slate-300 bg-transparent outline-none"></div>
@@ -766,12 +793,12 @@
                         </div>
 
                         <!-- 청구 품목 정보 -->
-                        <div class="mb-4">
+                        <div class="req-items-section mb-3">
                             <div class="flex justify-between items-center mb-1">
                                 <p class="text-[10px] font-bold text-slate-800 dark:text-slate-250">● 청구 및 의뢰 품목 내역</p>
                                 <button onclick="addRequestItemRow()" class="no-print bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[9px] px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 font-semibold">품목 행 추가</button>
                             </div>
-                            <table class="w-full border-collapse border border-slate-300 dark:border-slate-700 text-[10px] text-center">
+                            <table class="w-full h-full border-collapse border border-slate-300 dark:border-slate-700 text-[10px] text-center">
                                 <thead>
                                     <tr class="bg-slate-50 dark:bg-slate-800 divide-x divide-slate-300 dark:divide-slate-700 border-b border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200">
                                         <th class="py-1.5 w-1/3 border border-slate-300 dark:border-slate-750">품목명 / 비고</th>
@@ -788,7 +815,7 @@
                         </div>
 
                         <!-- 산출근거 및 하단 계좌정보 -->
-                        <div class="flex flex-col gap-3 text-[10px] mb-4">
+                        <div class="req-calc-section flex flex-col gap-2 text-[10px] mb-3">
                             
                             <!-- 청구 산출 근거 -->
                             <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-850 w-full">
@@ -842,7 +869,7 @@
                         </div>
 
                         <!-- 첨부 구비서류 체크리스트 -->
-                        <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-[10px] mb-3">
+                        <div class="req-checklist-section border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-[10px] mb-2">
                             <p class="font-bold text-slate-800 dark:text-slate-200 mb-1">● 구비 서류 체크리스트</p>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-semibold text-slate-750 dark:text-slate-250" id="req-checklist-container">
                                 <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-biz" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
@@ -855,7 +882,7 @@
                         </div>
 
                         <!-- 서명란 -->
-                        <div class="flex justify-end items-center border-t border-slate-300 dark:border-slate-700 pt-2 mt-3">
+                        <div class="req-sign-section flex justify-end items-center border-t border-slate-300 dark:border-slate-700 pt-2 mt-auto">
                             <div class="text-right font-semibold">
                                 <span class="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">위의 청구내역이 틀림없음을 확인합니다.</span>
                             </div>
@@ -963,10 +990,11 @@
             <div class="space-y-3.5 text-xs">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">회사명 (선택)</label>
-                    <select id="new-doc-company" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
-                        <option value="경산개발(주)">경산개발(주)</option>
-                        <option value="(합)유일건설">(합)유일건설</option>
-                    </select>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-doc-company" list="company-datalist" placeholder="회사명 직접 입력 또는 선택"
+                            class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
+                        <datalist id="company-datalist"></datalist>
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -1023,10 +1051,8 @@
             <div class="space-y-3.5 text-xs">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">복사 대상 회사명</label>
-                    <select id="dup-doc-company" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
-                        <option value="경산개발(주)">경산개발(주)</option>
-                        <option value="(합)유일건설">(합)유일건설</option>
-                    </select>
+                    <input type="text" id="dup-doc-company" list="company-datalist" placeholder="회사명 직접 입력 또는 선택"
+                        class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -1194,6 +1220,22 @@
     <script>
         const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
 
+        // ★ 안전한 ID 생성기 — 삭제 후 재추가 시 충돌 방지 (전체 이력 최댓값 + 1)
+        let _datasetIdCounter  = 0;
+        let _accountDbIdCounter = 0;
+
+        function genDatasetId() {
+            const maxExisting = dataset.length > 0 ? Math.max(...dataset.map(r => r.id || 0)) : 0;
+            _datasetIdCounter = Math.max(_datasetIdCounter, maxExisting) + 1;
+            return _datasetIdCounter;
+        }
+
+        function genAccountDbId() {
+            const maxExisting = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id || 0)) : 0;
+            _accountDbIdCounter = Math.max(_accountDbIdCounter, maxExisting) + 1;
+            return _accountDbIdCounter;
+        }
+
         let dataset = [];
         let accountDb = [];
         let savedDocuments = [];
@@ -1350,7 +1392,7 @@
                 return;
             }
 
-            const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+            const newId = genAccountDbId();
             accountDb.push({
                 id:      newId,
                 holder:  holder || ceo || vendor,
@@ -1667,7 +1709,7 @@
             if (!bank) bank = "은행";
             if (!account) account = "계좌 확인 불가";
 
-            const newId = dataset.length > 0 ? Math.max(...dataset.map(item => item.id)) + 1 : 1;
+            const newId = genDatasetId();
             const newRow = {
                 id: newId,
                 type: "자재비",
@@ -1692,7 +1734,7 @@
             const isAlreadyInDb = accountDb.some(a => a.account.replace(/[^0-9]/g, '') === cleanNewAccount);
             
             if (!isAlreadyInDb && account !== "계좌 확인 불가" && account.trim() !== "") {
-                const dbId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+                const dbId = genAccountDbId();
                 accountDb.push({
                     id: dbId,
                     holder: holder,
@@ -1983,7 +2025,7 @@
                 return;
             }
 
-            const dbId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+            const dbId = genAccountDbId();
             accountDb.push({
                 id: dbId,
                 holder: row.holder,
@@ -2021,15 +2063,20 @@
             if (index !== -1) {
                 dataset[index].vendor = name;
 
-                // vendor 필드로만 1순위 매칭. holder명 우연 일치에 의한 오염 방지
-                let matchedAcc = accountDb.find(acc => acc.vendor === name);
-                // vendor 매칭 없으면 ceo가 이미 기입된 경우에만 ceo로 시도
-                if (!matchedAcc && dataset[index].ceo) {
-                    matchedAcc = accountDb.find(acc => acc.ceo === dataset[index].ceo && acc.vendor === name);
+                // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위 → holder 3순위
+                const currentCeo = dataset[index].ceo || "";
+                let matchedAcc = null;
+                if (currentCeo) {
+                    matchedAcc = accountDb.find(acc => acc.ceo === currentCeo);
+                }
+                if (!matchedAcc) {
+                    matchedAcc = accountDb.find(acc => acc.vendor === name);
+                }
+                if (!matchedAcc) {
+                    matchedAcc = accountDb.find(acc => acc.holder === name);
                 }
 
                 if (matchedAcc) {
-                    // DB에 등록된 정보를 1순위로 덮어씀 (예금주 오염 핵심 수정)
                     dataset[index].holder  = matchedAcc.holder;
                     dataset[index].bank    = matchedAcc.bank;
                     dataset[index].account = matchedAcc.account;
@@ -2059,13 +2106,10 @@
                 // 계좌 정보가 아직 없을 때만 자동 채우기 (기존 정보 덮어쓰기 방지)
                 const hasAccount = dataset[index].account && dataset[index].account !== "";
                 if (!hasAccount) {
-                    // vendor 기준 우선, 없으면 ceo 이름으로
-                    let matchedAcc = null;
-                    if (dataset[index].vendor) {
+                    // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위
+                    let matchedAcc = accountDb.find(acc => acc.ceo === name);
+                    if (!matchedAcc && dataset[index].vendor) {
                         matchedAcc = accountDb.find(acc => acc.vendor === dataset[index].vendor);
-                    }
-                    if (!matchedAcc) {
-                        matchedAcc = accountDb.find(acc => acc.ceo === name);
                     }
                     if (matchedAcc) {
                         dataset[index].holder  = matchedAcc.holder;
@@ -2124,7 +2168,7 @@
                     showToast("계좌번호가 없으면 DB 등록이 불가합니다. 계좌번호를 입력하세요.");
                     return;
                 }
-                const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+                const newId = genAccountDbId();
                 matchedAcc = {
                     id:      newId,
                     holder:  holderVal || ceoName || vendorName,
@@ -2519,7 +2563,8 @@
                 showToast("복사할 대상 청구서가 선택되어 있지 않습니다.");
                 return;
             }
-            document.getElementById('dup-doc-company').value = currentDoc.company || "경산개발(주)";
+            updateCompanyDatalist();
+            document.getElementById('dup-doc-company').value = currentDoc.company || "";
             document.getElementById('dup-doc-site').value = currentDoc.site || "";
             document.getElementById('duplicate-doc-modal').classList.remove('hidden');
             lucide.createIcons();
@@ -2600,9 +2645,18 @@
                 return;
             }
             
-            // ✅ 우선순위: vendor 먼저 매칭 → holder 매칭
-            const matched = accountDb.find(acc => acc.vendor === vendorVal) 
-                         || accountDb.find(acc => acc.holder === vendorVal);
+            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위
+            const ceoVal = document.getElementById('modal-ceo').value.trim();
+            let matched = null;
+            if (ceoVal) {
+                matched = accountDb.find(acc => acc.ceo === ceoVal);
+            }
+            if (!matched) {
+                matched = accountDb.find(acc => acc.vendor === vendorVal);
+            }
+            if (!matched) {
+                matched = accountDb.find(acc => acc.holder === vendorVal);
+            }
             
             if (matched) {
                 document.getElementById('modal-ceo').value = matched.ceo || "";
@@ -2618,9 +2672,9 @@
         function handleModalCeoInput() {
             const ceoVal    = document.getElementById('modal-ceo').value.trim();
             const vendorVal = document.getElementById('modal-vendor').value.trim();
-            // vendor가 이미 입력돼 있으면 vendor 기준 우선, 아니면 ceo 기준
-            const matched = (vendorVal ? accountDb.find(acc => acc.vendor === vendorVal) : null)
-                || accountDb.find(acc => acc.ceo === ceoVal);
+            // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위
+            const matched = accountDb.find(acc => acc.ceo === ceoVal)
+                || (vendorVal ? accountDb.find(acc => acc.vendor === vendorVal) : null);
             if (matched) {
                 document.getElementById('modal-preview-bank').textContent    = (matched.bank || '') + '은행';
                 document.getElementById('modal-preview-account').textContent = matched.account || '';
@@ -2660,11 +2714,16 @@
                 return;
             }
 
-            // ★ vendor 1순위 엄격 매칭 — holder명 충돌 방지
-            let matchedAcc = accountDb.find(acc => acc.vendor === vendor);
-            if (!matchedAcc && ceo) {
-                // vendor 미등록이고 ceo 입력된 경우에만 ceo로 시도
-                matchedAcc = accountDb.find(acc => acc.ceo === ceo && acc.vendor);
+            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위
+            let matchedAcc = null;
+            if (ceo) {
+                matchedAcc = accountDb.find(acc => acc.ceo === ceo);
+            }
+            if (!matchedAcc) {
+                matchedAcc = accountDb.find(acc => acc.vendor === vendor);
+            }
+            if (!matchedAcc) {
+                matchedAcc = accountDb.find(acc => acc.holder === vendor);
             }
 
             const bank    = matchedAcc ? matchedAcc.bank    : "";
@@ -2673,7 +2732,7 @@
             const phone   = matchedAcc ? matchedAcc.phone   : "";
             const biznum  = matchedAcc ? matchedAcc.biznum  : "";
 
-            const newId = dataset.length > 0 ? Math.max(...dataset.map(item => item.id)) + 1 : 1;
+            const newId = genDatasetId();
             dataset.push({
                 id: newId, type, vendor, ceo, supply, tax, deduction, prepaid,
                 bank, account, holder, phone, biznum,
@@ -2702,6 +2761,24 @@
                 printBox.style.transformOrigin = `center center`;
             }
         }
+
+        // 인쇄 직전 portrait-print-box의 인라인 transform을 제거하여
+        // @media print CSS가 깨끗하게 적용되도록 함
+        window.addEventListener('beforeprint', function() {
+            const printBox = document.getElementById('portrait-print-box');
+            if (printBox) {
+                printBox.dataset.savedTransform = printBox.style.transform || '';
+                printBox.style.transform = 'none';
+                printBox.style.transformOrigin = '';
+            }
+        });
+        window.addEventListener('afterprint', function() {
+            const printBox = document.getElementById('portrait-print-box');
+            if (printBox && printBox.dataset.savedTransform !== undefined) {
+                printBox.style.transform = printBox.dataset.savedTransform;
+                printBox.style.transformOrigin = 'center center';
+            }
+        });
 
         function applyCategoryColor(categoryName) {
             const cleanCategory = categoryName.trim();
@@ -2784,12 +2861,18 @@
                 const holderName  = matchedAcc.holder  || firstItem.holder  || ceoName || "";
 
                 const page = document.createElement('div');
-                page.className = "print-page bg-white p-8 border border-slate-300 max-w-[760px] mx-auto mb-10 shadow-sm relative text-slate-900";
-                page.style.setProperty('page-break-after', 'always');
-                page.style.setProperty('page-break-inside', 'avoid');
-                page.style.setProperty('--print-scale', scaleVal);
-                page.style.transform = `scale(${scaleVal})`;
-                page.style.transformOrigin = `center center`;
+                page.className = "print-page bg-white relative text-slate-900";
+                page.style.cssText = `
+                    width: 210mm;
+                    height: 277mm;
+                    padding: 6mm 8mm;
+                    box-sizing: border-box;
+                    page-break-after: always;
+                    page-break-inside: avoid;
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                `;
 
                 const colorMap = {
                     "외주비": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-300", printClass: "print-badge-blue" },
@@ -2800,21 +2883,21 @@
                 };
                 const colors = colorMap[firstItem.type] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-300", printClass: "print-badge-slate" };
 
-                page.innerHTML = `
-                    <div class="flex justify-between items-start border-b border-slate-300 pb-2 mb-4">
-                        <div class="w-full text-slate-900">
-                            <h2 class="text-xl md:text-2xl font-black tracking-tight text-gray-900 pb-1 flex items-center">
-                                (<span class="font-extrabold px-2 py-0.5 rounded-md border text-center inline-block ${colors.bg} ${colors.text} ${colors.border} ${colors.printClass}">${firstItem.type}</span>) 
-                                <span class="ml-1.5 text-slate-900">지불의뢰서</span>
-                            </h2>
-                            <div class="text-[11px] text-slate-600 mt-2 flex flex-col gap-0.5">
-                                <div class="flex items-center"><span class="w-14 font-semibold text-slate-500">현 장 명:</span> <span class="border-b border-slate-200 w-full font-bold text-slate-800 py-0.5">${document.getElementById('meta-site').value}</span></div>
-                                <div class="flex items-center"><span class="w-14 font-semibold text-slate-500">청구기간:</span> <span class="border-b border-slate-200 w-full font-bold text-slate-800 py-0.5">${periodText}</span></div>
-                            </div>
+                page.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; gap:0;">
+                    <!-- 헤더 -->
+                    <div style="flex:0 0 auto;" class="border-b border-slate-300 pb-2 mb-2">
+                        <h2 class="text-xl font-black tracking-tight text-gray-900 pb-1 flex items-center">
+                            (<span class="font-extrabold px-2 py-0.5 rounded-md border text-center inline-block ${colors.bg} ${colors.text} ${colors.border} ${colors.printClass}">${firstItem.type}</span>)
+                            <span class="ml-1.5 text-slate-900">지불의뢰서</span>
+                        </h2>
+                        <div class="text-[11px] text-slate-600 mt-1 flex flex-col gap-0.5">
+                            <div class="flex items-center"><span class="w-14 font-semibold text-slate-500">현 장 명:</span><span class="border-b border-slate-200 w-full font-bold text-slate-800 py-0.5">${document.getElementById('meta-site').value}</span></div>
+                            <div class="flex items-center"><span class="w-14 font-semibold text-slate-500">청구기간:</span><span class="border-b border-slate-200 w-full font-bold text-slate-800 py-0.5">${periodText}</span></div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 border border-slate-300 text-[10px] mb-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 bg-white">
+                    <!-- 거래처 정보 -->
+                    <div style="flex:0 0 auto;" class="grid grid-cols-2 border border-slate-300 text-[10px] mb-2 divide-x divide-slate-300 bg-white">
                         <div class="divide-y divide-slate-300">
                             <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200">공종명</span><span class="px-3 py-1.5 w-full font-medium text-slate-800">${firstItem.type}</span></div>
                             <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200">청구금액</span><span class="px-3 py-1.5 w-full font-bold text-slate-800">일금 ${getKoreanNumber(totalCombinedAmt)} 원정 (￦${formatNumber(totalCombinedAmt)})</span></div>
@@ -2825,92 +2908,74 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
+                    <!-- 품목 테이블 — 남은 공간 꽉 채움 -->
+                    <div style="flex:1 1 auto; display:flex; flex-direction:column; min-height:0; margin-bottom:8px;">
                         <p class="text-[10px] font-bold text-slate-800 mb-1">● 청구 및 의뢰 품목 내역</p>
-                        <table class="w-full border-collapse border border-slate-300 text-[10px] text-center">
+                        <table style="width:100%; height:100%; border-collapse:collapse; border:1px solid #94a3b8; font-size:10px; text-align:center;">
                             <thead>
-                                <tr class="bg-slate-50 divide-x divide-slate-300 border-b border-slate-300 font-bold text-slate-750">
-                                    <th class="py-1.5 w-1/3 border border-slate-300">품목명 / 비고</th>
-                                    <th class="py-1.5 w-12 border border-slate-300">수량</th>
-                                    <th class="py-1.5 border border-slate-300">${currentMoneyUnit === 'thousand' ? '공급가액(천원)' : '공급가액'}</th>
-                                    <th class="py-1.5 border border-slate-300">${currentMoneyUnit === 'thousand' ? '부가세(천원)' : '부가세'}</th>
-                                    <th class="py-1.5 border border-slate-300">${currentMoneyUnit === 'thousand' ? '합계금액(천원)' : '합계금액'}</th>
+                                <tr class="bg-slate-50 font-bold text-slate-700" style="border-bottom:1px solid #94a3b8;">
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8; width:40%;">품목명 / 비고</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8; width:8%;">수량</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">${currentMoneyUnit === 'thousand' ? '공급가액(천원)' : '공급가액'}</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">${currentMoneyUnit === 'thousand' ? '부가세(천원)' : '부가세'}</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">${currentMoneyUnit === 'thousand' ? '합계금액(천원)' : '합계금액'}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-200 bg-white">
+                            <tbody style="background:#fff;">
                                 ${itemsHtml}
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="flex flex-col gap-3 text-[10px] mb-4">
-                        <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 w-full">
-                            <p class="font-bold text-slate-800 mb-1 flex items-center">
-                                <span class="print-bullet text-blue-600 font-black mr-1">●</span> 청구 산출 근거
-                            </p>
+                    <!-- 산출근거 + 계좌정보 -->
+                    <div style="flex:0 0 auto;" class="flex flex-col gap-2 text-[10px] mb-2">
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50 w-full">
+                            <p class="font-bold text-slate-800 mb-1">● 청구 산출 근거</p>
                             <div class="space-y-0.5">
                                 <div class="flex justify-between border-b border-slate-200 py-0.5">
                                     <span>${currentMoneyUnit === 'thousand' ? '공급가액계(천원) :' : '공급가액계 :'}</span>
-                                    <span class="font-bold text-slate-800 text-right">${formatMoneyByUnit(totalRequestSupply)}</span>
+                                    <span class="font-bold">${formatMoneyByUnit(totalRequestSupply)}</span>
                                 </div>
                                 <div class="flex justify-between border-b border-slate-200 py-0.5">
                                     <span>${currentMoneyUnit === 'thousand' ? '부가가치세(천원) :' : '부가가치세 :'}</span>
-                                    <span class="font-bold text-slate-800 text-right">${formatMoneyByUnit(totalRequestTax)}</span>
+                                    <span class="font-bold">${formatMoneyByUnit(totalRequestTax)}</span>
                                 </div>
-                                <div class="flex justify-between py-0.5 text-indigo-600 font-bold">
+                                <div class="flex justify-between py-0.5 font-bold" style="color:#4338ca;">
                                     <span>${currentMoneyUnit === 'thousand' ? '청구 금액 계(천원) :' : '청구 금액 계 :'}</span>
-                                    <span class="font-black text-indigo-600 text-right">${formatMoneyByUnit(totalCombinedAmt)}${currentMoneyUnit === 'thousand' ? ' 천원' : ' 원'}</span>
+                                    <span>${formatMoneyByUnit(totalCombinedAmt)}${currentMoneyUnit === 'thousand' ? ' 천원' : ' 원'}</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 w-full">
-                            <p class="font-bold text-slate-800 mb-1.5 flex items-center">
-                                <span class="print-bullet text-emerald-600 font-black mr-1">●</span> 거래처 및 입금 계좌 정보
-                            </p>
-                            <div class="flex flex-col md:flex-row items-center gap-4 text-[10px] divide-y md:divide-y-0 md:divide-x divide-slate-300">
-                                <div class="flex items-center w-full md:w-1/4 pb-1 md:pb-0">
-                                    <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">사업자번호:</span>
-                                    <span class="w-full text-slate-850 font-bold">${biznumLabel}</span>
-                                </div>
-                                <div class="flex items-center w-full md:w-1/5 pt-1 md:pt-0 md:pl-3">
-                                    <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">은행:</span>
-                                    <span class="w-full text-slate-850 font-bold">${bankLabel}</span>
-                                </div>
-                                <div class="flex items-center w-full md:w-1/4 pt-1 md:pt-0 md:pl-3">
-                                    <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">계좌번호:</span>
-                                    <span class="w-full text-slate-850 font-bold">${accountNum}</span>
-                                </div>
-                                <div class="flex items-center w-full md:w-1/6 pt-1 md:pt-0 md:pl-3">
-                                    <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">예금주:</span>
-                                    <span class="w-full text-slate-850 font-bold">${holderName}</span>
-                                </div>
-                                <div class="flex items-center w-full md:w-1/4 pt-1 md:pt-0 md:pl-3">
-                                    <span class="text-slate-500 font-bold shrink-0 whitespace-nowrap mr-1">연락처:</span>
-                                    <span class="w-full text-slate-850 font-bold">${phoneNum}</span>
-                                </div>
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50 w-full">
+                            <p class="font-bold text-slate-800 mb-1">● 거래처 및 입금 계좌 정보</p>
+                            <div class="flex flex-row flex-wrap gap-x-4 gap-y-1 text-[10px]">
+                                <span><span class="font-bold text-slate-500">사업자번호:</span> <span class="font-bold">${biznumLabel}</span></span>
+                                <span><span class="font-bold text-slate-500">은행:</span> <span class="font-bold">${bankLabel}</span></span>
+                                <span><span class="font-bold text-slate-500">계좌번호:</span> <span class="font-bold">${accountNum}</span></span>
+                                <span><span class="font-bold text-slate-500">예금주:</span> <span class="font-bold">${holderName}</span></span>
+                                <span><span class="font-bold text-slate-500">연락처:</span> <span class="font-bold">${phoneNum}</span></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="border border-slate-300 rounded-lg p-2.5 text-[10px] mb-3">
+                    <!-- 체크리스트 -->
+                    <div style="flex:0 0 auto;" class="border border-slate-300 rounded p-2 text-[10px] mb-2">
                         <p class="font-bold text-slate-800 mb-1">● 구비 서류 체크리스트</p>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-bold text-slate-800">
-                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkBiz ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
-                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkBank ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 통장사본</label>
-                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkTax ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 세금계산서</label>
-                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkTrans ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 거래명세표</label>
-                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkLease ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 장비임대차계약서</label>
-                            <label class="flex items-center gap-1.5"><input type="checkbox" ${chkEquip ? 'checked' : ''} onclick="return false;" class="w-3.5 h-3.5 rounded text-blue-600"> 건설기계등록증</label>
+                        <div class="grid grid-cols-3 gap-1 font-bold text-slate-800">
+                            <label class="flex items-center gap-1"><input type="checkbox" ${chkBiz ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 사업자등록증 사본</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" ${chkBank ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 통장사본</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" ${chkTax ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 세금계산서</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" ${chkTrans ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 거래명세표</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" ${chkLease ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 장비임대차계약서</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" ${chkEquip ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 건설기계등록증</label>
                         </div>
                     </div>
 
-                    <div class="flex justify-end items-center border-t border-slate-300 pt-2 mt-3">
-                        <div class="text-right">
-                            <span class="text-[11px] text-slate-700 font-black block">위의 청구내역이 틀림없음을 확인합니다.</span>
-                        </div>
+                    <!-- 서명란 -->
+                    <div style="flex:0 0 auto; margin-top:auto;" class="flex justify-end items-center border-t border-slate-300 pt-2">
+                        <span class="text-[11px] text-slate-700 font-black">위의 청구내역이 틀림없음을 확인합니다.</span>
                     </div>
-                `;
+                </div>`;
 
                 tempArea.appendChild(page);
             });
@@ -3361,7 +3426,19 @@
             showToast("자금청구명세서 대장이 업데이트되었습니다.");
         }
 
+        // ★ 회사명 datalist 동적 갱신 — 기존 문서 회사명을 자동 수집
+        function updateCompanyDatalist() {
+            const dl = document.getElementById('company-datalist');
+            if (!dl) return;
+            const companies = [...new Set(savedDocuments.map(d => d.company).filter(Boolean))];
+            // 기본값이 없으면 초기 옵션 제공
+            const defaults = ["경산개발(주)", "(합)유일건설"];
+            const merged = [...new Set([...companies, ...defaults])].sort((a, b) => a.localeCompare(b, 'ko-KR'));
+            dl.innerHTML = merged.map(c => `<option value="${c}">`).join('');
+        }
+
         function toggleNewDocModal() {
+            updateCompanyDatalist();
             document.getElementById('new-doc-modal').classList.toggle('hidden');
         }
 
@@ -3391,13 +3468,17 @@
         }
 
         function createNewDocument() {
-            const company = document.getElementById('new-doc-company').value;
+            const company = document.getElementById('new-doc-company').value.trim();
             const year = document.getElementById('new-doc-year').value;
             const monthVal = document.getElementById('new-doc-month').value;
             const site = document.getElementById('new-doc-site').value.trim();
 
             const formattedMonth = `${year}년 ${monthVal}월`;
 
+            if (!company) {
+                showToast("회사명을 입력해 주세요.");
+                return;
+            }
             if (!site) {
                 showToast("현장명은 필수 입력 항목입니다.");
                 return;
@@ -3531,7 +3612,7 @@
                 return;
             }
 
-            const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+            const newId = genAccountDbId();
             accountDb.push({ id: newId, holder, bank, account, ceo, vendor: vendor || holder, biznum: biznum || "", phone: phone || "" });
             
             saveToLocalStorage();
@@ -3715,7 +3796,7 @@
                     continue;
                 }
                 
-                const newId = accountDb.length > 0 ? Math.max(...accountDb.map(a => a.id)) + 1 : 1;
+                const newId = genAccountDbId();
                 accountDb.push({
                     id: newId,
                     holder,
@@ -3834,22 +3915,29 @@
             if (num === 0) return '영';
             const hanA = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
             const danA = ["", "십", "백", "천"];
-            const tmA = ["", "만", "억", "조"];
+            const tmA  = ["", "만", "억", "조"];
             let result = "";
             let str = num.toString();
             let len = str.length;
 
             for (let i = 0; i < len; i++) {
                 let val = str.charAt(i) - '0';
-                let position = len - 1 - i;
+                let position   = len - 1 - i;
                 let danPosition = position % 4;
-                let tmPosition = Math.floor(position / 4);
+                let tmPosition  = Math.floor(position / 4);
 
                 if (val > 0) {
-                    result += hanA[val] + danA[danPosition];
+                    // 십·백·천 자리에서 val===1 이면 "일" 생략 (일십→십, 일백→백, 일천→천)
+                    // 만·억·조 단위(danPosition===0)에서는 val===1도 "일" 표기 (일만, 일억...)
+                    const prefix = (val === 1 && danPosition !== 0) ? "" : hanA[val];
+                    result += prefix + danA[danPosition];
                 }
-                if (danPosition === 0 && result.length > 0 && tmPosition > 0) {
-                    result += tmA[tmPosition];
+                if (danPosition === 0 && tmPosition > 0) {
+                    // 해당 4자리 그룹에 숫자가 있을 때만 단위 추가
+                    const groupStr = str.slice(Math.max(0, len - (tmPosition + 1) * 4), len - tmPosition * 4);
+                    if (parseInt(groupStr, 10) > 0) {
+                        result += tmA[tmPosition];
+                    }
                 }
             }
             return result;
