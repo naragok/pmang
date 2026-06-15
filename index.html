@@ -145,6 +145,18 @@
                 flex: 0 0 auto !important;
             }
 
+            /* 특고 대장 독립 인쇄 — 가로 A4 최적화 */
+            #special-print-box {
+                margin: 0 !important;
+                padding: 8mm 10mm !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                font-size: 9px !important;
+            }
+
             .a4-guide-active, .statement-guide-active {
                 border-color: #cbd5e1 !important;
             }
@@ -409,8 +421,11 @@
             <button id="tab-btn-request" onclick="switchTab('request')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2">
                 <i data-lucide="file-check" class="w-4 h-4"></i> 2. 지불의뢰서 (A4 단면 밀착 세로 양식)
             </button>
+            <button id="tab-btn-request-special" onclick="switchTab('request-special')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2">
+                <i data-lucide="hard-hat" class="w-4 h-4"></i> 3. 특고(일용) 인적용역 신고 내역
+            </button>
             <button id="tab-btn-stats" onclick="switchTab('stats')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2">
-                <i data-lucide="pie-chart" class="w-4 h-4"></i> 3. 구분별 집계표 (통계 분석)
+                <i data-lucide="pie-chart" class="w-4 h-4"></i> 4. 구분별 집계표 (통계 분석)
             </button>
         </div>
         <button onclick="toggleAccountModal()" class="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 transition-all mb-2 sm:mb-0">
@@ -911,10 +926,156 @@
                         <button onclick="quickRegisterCurrentVendorToDb()" class="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 py-2.5 px-4 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all" title="현재 지불의뢰서 기재 거래처를 마스터 DB에 추가">
                             <i data-lucide="database-backup" class="w-3.5 h-3.5 text-emerald-400"></i> 현 거래처 계좌 마스터 DB 등록
                         </button>
+                        <button onclick="switchTab('request-special')" class="w-full bg-amber-600 hover:bg-amber-700 text-white border border-amber-500 py-2.5 px-4 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all" title="특고(일용) 인적용역 신고 내역 탭으로 이동">
+                            <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i> 특고(일용) 신고 내역 바로가기
+                        </button>
                     </div>
                 </div>
 
             </div>
+        </div>
+
+        <!-- 특고(일용) 인적용역 신고 내역 — 독립 섹션 (장비비 거래처 선택 시 자동 연동) -->
+        <div id="tab-request-special" class="hidden">
+
+            <!-- 특고 제어 헤더 -->
+            <div class="no-print bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-amber-200 dark:border-amber-900 p-5 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="hard-hat" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">특고(일용) 인적용역 신고 내역</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                장비비 거래처의 특고(일용직) 운전원별 보수총액·고용보험료·산재보험료·실지급액을 관리합니다. 지불의뢰서에서 장비비 거래처를 선택하면 자동으로 연동됩니다.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 shrink-0">
+                        <button onclick="addSpecialItemRow()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 행 추가
+                        </button>
+                        <button onclick="printSpecialSection()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 특고 대장 인쇄
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 특고 대장 실물 인쇄 영역 -->
+            <div id="special-print-box" class="print-page bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[1000px] mx-auto text-slate-900 dark:text-slate-100" style="font-size: 10px;">
+
+                <!-- 헤더 -->
+                <div class="flex justify-between items-start border-b-2 border-slate-800 dark:border-slate-300 pb-3 mb-4">
+                    <div>
+                        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+                            특고(일용) 인적용역 신고 내역
+                        </h2>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex flex-col gap-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold">현 장 명:</span>
+                                <span id="special-meta-site" class="font-bold text-slate-800 dark:text-slate-100"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold">청구기간:</span>
+                                <span id="special-meta-period" class="font-bold text-slate-800 dark:text-slate-100"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold">거 래 처:</span>
+                                <span id="special-meta-vendor" class="font-bold text-amber-700 dark:text-amber-400"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right text-xs text-slate-500 dark:text-slate-400">
+                        <span class="font-semibold">구 분:</span>
+                        <span id="special-meta-type" class="ml-1 font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-700">장비비</span>
+                    </div>
+                </div>
+
+                <!-- 특고 내역 테이블 -->
+                <div class="mb-4">
+                    <table class="w-full border-collapse text-[10px] text-center" id="special-main-table">
+                        <thead>
+                            <tr class="bg-amber-600 text-white font-bold">
+                                <th class="py-2 px-2 border border-amber-700 w-8">No.</th>
+                                <th class="py-2 px-2 border border-amber-700">운전원명</th>
+                                <th class="py-2 px-2 border border-amber-700 w-36">주민등록번호</th>
+                                <th class="py-2 px-2 border border-amber-700 w-14">가동<br>일수</th>
+                                <th class="py-2 px-2 border border-amber-700">장비대금<br>(공급가액)</th>
+                                <th class="py-2 px-2 border border-amber-700">보수총액<br>(고용보험 기준)</th>
+                                <th class="py-2 px-2 border border-amber-700">고용<br>보험료</th>
+                                <th class="py-2 px-2 border border-amber-700">산재<br>보험료</th>
+                                <th class="py-2 px-2 border border-amber-700">기타<br>공제</th>
+                                <th class="py-2 px-2 border border-amber-700">실지급액</th>
+                                <th class="py-2 px-2 border border-amber-700 no-print w-14">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="req-special-tbody" class="divide-y divide-amber-200 dark:divide-amber-900 bg-white dark:bg-slate-900">
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-amber-50 dark:bg-amber-950/30 font-extrabold border-t-2 border-amber-600">
+                                <td colspan="4" class="py-2 px-3 text-left border border-amber-300 dark:border-amber-800 text-slate-800 dark:text-slate-200">합 계</td>
+                                <td id="req-special-total-supply" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
+                                <td id="req-special-total-remun" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
+                                <td id="req-special-total-empinsur" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
+                                <td id="req-special-total-accinsur" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
+                                <td id="req-special-total-extra" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
+                                <td id="req-special-total-net" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 font-black text-indigo-700 dark:text-indigo-400">0</td>
+                                <td class="no-print border border-amber-300 dark:border-amber-800"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- 하단 산출 근거 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[10px] mb-4">
+                    <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-3 bg-slate-50 dark:bg-slate-850">
+                        <p class="font-bold text-slate-800 dark:text-slate-200 mb-2">● 보험료 산출 근거</p>
+                        <div class="space-y-1 text-slate-700 dark:text-slate-300">
+                            <div class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1">
+                                <span>장비대금(공급가액) 합계</span>
+                                <span id="special-calc-supply" class="font-bold">0 원</span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1">
+                                <span>고용보험료 합계</span>
+                                <span id="special-calc-empinsur" class="font-bold">0 원</span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1">
+                                <span>산재보험료 합계</span>
+                                <span id="special-calc-accinsur" class="font-bold">0 원</span>
+                            </div>
+                            <div class="flex justify-between pt-0.5 font-extrabold text-indigo-700 dark:text-indigo-400">
+                                <span>실지급액 합계</span>
+                                <span id="special-calc-net">0 원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-3 bg-slate-50 dark:bg-slate-850">
+                        <p class="font-bold text-slate-800 dark:text-slate-200 mb-2">● 구비 서류 체크리스트</p>
+                        <div class="grid grid-cols-2 gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="sp-chk-rrn" class="w-3 h-3 rounded"> 주민등록증 사본</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="sp-chk-bank" class="w-3 h-3 rounded"> 통장 사본</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="sp-chk-insur" class="w-3 h-3 rounded"> 고용·산재보험 확인서</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="sp-chk-equip" class="w-3 h-3 rounded"> 건설기계등록증</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="sp-chk-lease" class="w-3 h-3 rounded"> 장비임대차계약서</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="sp-chk-daily" class="w-3 h-3 rounded"> 기계장비투입대장</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서명란 -->
+                <div class="flex justify-end items-center border-t border-slate-300 dark:border-slate-700 pt-3">
+                    <span class="text-[11px] text-slate-700 dark:text-slate-300 font-bold">위의 인적용역 신고 내역이 틀림없음을 확인합니다.</span>
+                </div>
+
+            </div>
+
+            <!-- 빈 상태 안내 -->
+            <div id="special-empty-guide" class="hidden mt-4 text-center py-12 text-slate-400 dark:text-slate-600">
+                <i data-lucide="hard-hat" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                <p class="font-bold text-sm">지불의뢰서 탭에서 <span class="text-amber-600">장비비 거래처</span>를 선택하면 자동으로 특고 내역이 연동됩니다.</p>
+                <p class="text-xs mt-1">또는 위의 「운전원 행 추가」 버튼으로 직접 입력하세요.</p>
+            </div>
+
         </div>
 
         <!-- 3. 거래처별 청구 통계 집계표 영역 -->
@@ -1210,6 +1371,58 @@
         </div>
     </div>
 
+    <!-- 특고(일용) 인적용역 정보 입력 모달 -->
+    <div id="special-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-1.5">
+                    <i data-lucide="hard-hat" class="w-5 h-5 text-amber-600"></i> 특고(일용) 인적용역 정보
+                </h3>
+                <button onclick="closeSpecialModal()" class="text-slate-400 hover:text-slate-655"><i data-lucide="x"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                장비비 - 특고(일용) 운전원의 인적사항 및 4대보험료를 입력하면 지불의뢰서의 <strong>특고(일용) 인적용역 신고 내역</strong>에 자동 연동됩니다.
+            </p>
+            <div class="grid grid-cols-2 gap-3 text-xs mb-3">
+                <div class="col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">운전원명</label>
+                    <input type="text" id="special-emp-name" placeholder="예: 홍길동" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">주민등록번호</label>
+                    <input type="text" id="special-emp-rrn" placeholder="000000-0000000" oninput="formatSpecialRrn(this)" maxlength="14" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">가동일수</label>
+                    <input type="number" id="special-work-days" placeholder="0" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 text-right font-semibold text-slate-800 dark:text-slate-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">장비대금(공급가액)</label>
+                    <input type="text" id="special-supply-preview" readonly class="w-full border border-slate-200 dark:border-slate-700 rounded px-3 py-2 bg-slate-50 dark:bg-slate-850 text-right font-bold text-slate-600 dark:text-slate-300 outline-none cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        고용보험료
+                        <button type="button" onclick="calcSpecialInsurAuto()" class="ml-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 border border-amber-300 text-[9px] px-1.5 py-0.5 rounded font-bold">자동계산</button>
+                    </label>
+                    <input type="number" id="special-emp-insur" placeholder="0" oninput="previewSpecialNetPay()" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 text-right font-semibold text-slate-800 dark:text-slate-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">산재보험료</label>
+                    <input type="number" id="special-acc-insur" placeholder="0" oninput="previewSpecialNetPay()" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 text-right font-semibold text-slate-800 dark:text-slate-100 outline-none">
+                </div>
+                <div class="col-span-2 border-t border-slate-200 dark:border-slate-700 pt-2 mt-1 flex justify-between items-center">
+                    <span class="font-bold text-slate-700 dark:text-slate-300">실지급액 (예상)</span>
+                    <span id="special-net-pay-preview" class="font-black text-indigo-600 dark:text-indigo-400 text-sm">0원</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 text-xs mt-2">
+                <button onclick="closeSpecialModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
+                <button onclick="confirmSpecialModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded font-bold transition-all">저장 및 의뢰서 연동</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 토스트 메시지 안내창 -->
     <div id="toast" class="opacity-0 pointer-events-none fixed bottom-5 right-5 bg-slate-950 text-white text-xs py-2.5 px-4 rounded-lg shadow-lg z-50 flex items-center gap-2 transition-all duration-300">
         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
@@ -1242,6 +1455,7 @@
         let currentDocId = "";
         let pendingConfirmAction = null;
         let requestItems = [];
+        let requestSpecialItems = [];
         let currentMoneyUnit = 'won';
         
         let selectedRowIds = new Set();
@@ -1583,19 +1797,24 @@
         function switchTab(tabId) {
             const tabStatement = document.getElementById('tab-statement');
             const tabRequest = document.getElementById('tab-request');
+            const tabRequestSpecial = document.getElementById('tab-request-special');
             const tabStats = document.getElementById('tab-stats');
 
             const btnStatement = document.getElementById('tab-btn-statement');
             const btnRequest = document.getElementById('tab-btn-request');
+            const btnRequestSpecial = document.getElementById('tab-btn-request-special');
             const btnStats = document.getElementById('tab-btn-stats');
 
             tabStatement.classList.add('hidden');
             tabRequest.classList.add('hidden');
+            tabRequestSpecial.classList.add('hidden');
             tabStats.classList.add('hidden');
 
-            btnStatement.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2";
-            btnRequest.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2";
-            btnStats.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2";
+            const inactiveClass = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2";
+            btnStatement.className = inactiveClass;
+            btnRequest.className = inactiveClass;
+            btnRequestSpecial.className = inactiveClass;
+            btnStats.className = inactiveClass;
 
             if (tabId === 'statement') {
                 tabStatement.classList.remove('hidden');
@@ -1604,12 +1823,43 @@
                 tabRequest.classList.remove('hidden');
                 btnRequest.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-indigo-600 text-indigo-600 text-xs sm:text-sm flex items-center gap-2";
                 refreshRequestSelector();
+            } else if (tabId === 'request-special') {
+                tabRequestSpecial.classList.remove('hidden');
+                btnRequestSpecial.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-amber-600 text-amber-600 text-xs sm:text-sm flex items-center gap-2";
+                syncSpecialMetaFromRequest();
+                renderRequestSpecialTable();
+                lucide.createIcons();
             } else if (tabId === 'stats') {
                 tabStats.classList.remove('hidden');
                 btnStats.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-emerald-600 text-emerald-600 text-xs sm:text-sm flex items-center gap-2";
                 renderVendorStatistics();
             }
         }
+
+        // 지불의뢰서의 현장명·청구기간·거래처를 특고 탭 헤더에 동기화
+        function syncSpecialMetaFromRequest() {
+            const site   = document.getElementById('req-meta-site')   ? document.getElementById('req-meta-site').value   : '';
+            const period = document.getElementById('req-meta-period') ? document.getElementById('req-meta-period').value : '';
+            const vendor = document.getElementById('req-field-vendor') ? document.getElementById('req-field-vendor').value : '';
+            const type   = document.getElementById('req-title-category') ? document.getElementById('req-title-category').textContent.trim() : '장비비';
+
+            const elSite   = document.getElementById('special-meta-site');
+            const elPeriod = document.getElementById('special-meta-period');
+            const elVendor = document.getElementById('special-meta-vendor');
+            const elType   = document.getElementById('special-meta-type');
+
+            if (elSite)   elSite.textContent   = site;
+            if (elPeriod) elPeriod.textContent = period;
+            if (elVendor) elVendor.textContent = vendor || '(거래처 미선택)';
+            if (elType)   elType.textContent   = type;
+        }
+
+        // 특고 대장 별도 인쇄
+        function printSpecialSection() {
+            syncSpecialMetaFromRequest();
+            window.print();
+        }
+
 
         function triggerPdfImport() {
             document.getElementById('pdf-import-input').click();
@@ -2011,6 +2261,94 @@
             }
         }
 
+        // ===== 특고(일용) 인적용역 정보 모달 =====
+        let specialModalTargetId = null;
+
+        function openSpecialModal(id) {
+            const row = dataset.find(item => item.id === id);
+            if (!row) return;
+
+            specialModalTargetId = id;
+
+            document.getElementById('special-emp-name').value = row.empName || row.ceo || "";
+            document.getElementById('special-emp-rrn').value  = row.empRrn || "";
+            document.getElementById('special-work-days').value = row.workDays || "";
+            document.getElementById('special-supply-preview').value = formatNumber(row.supply || 0) + " 원";
+            document.getElementById('special-emp-insur').value = row.empInsur || 0;
+            document.getElementById('special-acc-insur').value = row.accInsur || 0;
+
+            previewSpecialNetPay();
+
+            document.getElementById('special-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // 특고 주민번호 자동 포맷 (입력 시 000000-0000000 형식)
+        function formatSpecialRrn(input) {
+            let val = input.value.replace(/[^0-9]/g, '').slice(0, 13);
+            if (val.length > 6) val = val.slice(0, 6) + '-' + val.slice(6);
+            input.value = val;
+        }
+
+        // 특고 보험료 자동계산 (공급가액 기준 고용 0.09% / 산재 0.2% 참고값 — 수정 가능)
+        function calcSpecialInsurAuto() {
+            if (specialModalTargetId === null) return;
+            const row = dataset.find(item => item.id === specialModalTargetId);
+            if (!row) return;
+            const supply = row.supply || 0;
+            // 고용보험료: 보수총액의 0.9% (특고/일용 기준 참고값)
+            const empInsur = Math.floor(supply * 0.009);
+            // 산재보험료: 보수총액의 1.8% (건설기계 운전원 참고값)
+            const accInsur = Math.floor(supply * 0.018);
+            document.getElementById('special-emp-insur').value = empInsur;
+            document.getElementById('special-acc-insur').value = accInsur;
+            previewSpecialNetPay();
+            showToast('고용보험 0.9%, 산재보험 1.8% 기준으로 자동계산되었습니다. 실제 요율에 맞게 수정해 주세요.');
+        }
+
+        function closeSpecialModal() {
+            document.getElementById('special-modal').classList.add('hidden');
+            specialModalTargetId = null;
+        }
+
+        function previewSpecialNetPay() {
+            if (specialModalTargetId === null) return;
+            const row = dataset.find(item => item.id === specialModalTargetId);
+            if (!row) return;
+
+            const supplyVal = row.supply || 0;
+            const empInsur  = Number(document.getElementById('special-emp-insur').value) || 0;
+            const accInsur  = Number(document.getElementById('special-acc-insur').value) || 0;
+            const netPay = supplyVal - empInsur - accInsur;
+
+            document.getElementById('special-net-pay-preview').textContent = `${formatNumber(netPay)}원`;
+        }
+
+        function confirmSpecialModal() {
+            if (specialModalTargetId === null) return;
+            const index = dataset.findIndex(item => item.id === specialModalTargetId);
+            if (index === -1) return;
+
+            dataset[index].empName  = document.getElementById('special-emp-name').value.trim();
+            dataset[index].empRrn   = document.getElementById('special-emp-rrn').value.trim();
+            dataset[index].workDays = Number(document.getElementById('special-work-days').value) || 0;
+            dataset[index].empInsur = Number(document.getElementById('special-emp-insur').value) || 0;
+            dataset[index].accInsur = Number(document.getElementById('special-acc-insur').value) || 0;
+
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+
+            // 현재 지불의뢰서가 이 거래처를 표시 중이면 즉시 재연동
+            const selector = document.getElementById('request-selector');
+            if (selector && selector.value) {
+                loadRequestData(selector.value);
+            }
+
+            closeSpecialModal();
+            showToast(`[${dataset[index].vendor}] 특고(일용) 인적용역 정보를 저장하고 지불의뢰서에 연동했습니다.`);
+        }
+
         function registerNewAccountFromTable(id) {
             const row = dataset.find(item => item.id === id);
             if (!row || !row.holder || !row.account) {
@@ -2394,7 +2732,10 @@
                         </select>
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${row.note || ''}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                        <div class="flex items-center gap-1">
+                            <input type="text" value="${row.note || ''}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                            ${row.type === '장비비' ? `<button onclick="openSpecialModal(${row.id})" class="no-print shrink-0 ${row.empName ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700'} text-[9px] hover:bg-amber-100 dark:hover:bg-amber-900 border font-extrabold px-1.5 py-0.5 rounded transition-all shadow-sm whitespace-nowrap" title="특고(일용) 운전원 정보 및 4대보험료 입력">특고${row.empName ? '✓' : ''}</button>` : ''}
+                        </div>
                     </td>
                     <td class="py-1 px-1 no-print">
                         <button onclick="deleteRow(${row.id})" class="text-rose-600 hover:text-rose-800 p-1 mx-auto block">
@@ -2848,6 +3189,65 @@
                     `;
                 });
 
+                // 특고(일용) 인적용역 신고 내역 — 장비비 행 기준
+                let specialHtml = "";
+                let totalSpSupply = 0, totalSpEmpInsur = 0, totalSpAccInsur = 0, totalSpNet = 0;
+                matchedRows.filter(row => row.type === '장비비').forEach(row => {
+                    const supplyVal = row.supply || 0;
+                    const empInsurVal = row.empInsur || 0;
+                    const accInsurVal = row.accInsur || 0;
+                    const netPay = supplyVal - empInsurVal - accInsurVal;
+                    totalSpSupply += supplyVal;
+                    totalSpEmpInsur += empInsurVal;
+                    totalSpAccInsur += accInsurVal;
+                    totalSpNet += netPay;
+
+                    specialHtml += `
+                        <tr class="divide-x divide-amber-200">
+                            <td class="py-2 px-2 text-center border border-amber-300">${row.empName || row.ceo || ''}</td>
+                            <td class="py-2 px-2 text-center border border-amber-300">${row.empRrn || ''}</td>
+                            <td class="py-2 px-2 text-center border border-amber-300">${row.workDays || 0}</td>
+                            <td class="py-2 px-2 text-right border border-amber-300">${formatNumber(supplyVal)}</td>
+                            <td class="py-2 px-2 text-right border border-amber-300">${formatNumber(empInsurVal)}</td>
+                            <td class="py-2 px-2 text-right border border-amber-300">${formatNumber(accInsurVal)}</td>
+                            <td class="py-2 px-2 text-right font-bold border border-amber-300" style="color:#4338ca;">${formatNumber(netPay)}</td>
+                        </tr>
+                    `;
+                });
+
+                let specialSectionHtml = "";
+                if (specialHtml) {
+                    specialSectionHtml = `
+                    <div style="flex:0 0 auto;" class="border border-amber-300 rounded p-2 text-[10px] mb-2 bg-amber-50/40">
+                        <p class="font-bold text-slate-800 mb-1">● 특고(일용) 인적용역 신고 내역</p>
+                        <table style="width:100%; border-collapse:collapse; border:1px solid #fcd34d; font-size:10px; text-align:center;">
+                            <thead>
+                                <tr class="font-bold text-slate-700" style="background:#fef3c7; border-bottom:1px solid #fcd34d;">
+                                    <th style="padding:4px; border:1px solid #fcd34d;">운전원명</th>
+                                    <th style="padding:4px; border:1px solid #fcd34d;">주민등록번호</th>
+                                    <th style="padding:4px; border:1px solid #fcd34d; width:8%;">가동일수</th>
+                                    <th style="padding:4px; border:1px solid #fcd34d;">장비대금(공급가액)</th>
+                                    <th style="padding:4px; border:1px solid #fcd34d;">고용보험료</th>
+                                    <th style="padding:4px; border:1px solid #fcd34d;">산재보험료</th>
+                                    <th style="padding:4px; border:1px solid #fcd34d;">실지급액</th>
+                                </tr>
+                            </thead>
+                            <tbody style="background:#fff;">
+                                ${specialHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr class="font-extrabold" style="background:#fffbeb; border-top:1px solid #fcd34d;">
+                                    <td colspan="3" style="padding:4px; border:1px solid #fcd34d;">합 계</td>
+                                    <td style="padding:4px; border:1px solid #fcd34d; text-align:right;">${formatNumber(totalSpSupply)}</td>
+                                    <td style="padding:4px; border:1px solid #fcd34d; text-align:right;">${formatNumber(totalSpEmpInsur)}</td>
+                                    <td style="padding:4px; border:1px solid #fcd34d; text-align:right;">${formatNumber(totalSpAccInsur)}</td>
+                                    <td style="padding:4px; border:1px solid #fcd34d; text-align:right; color:#4338ca;">${formatNumber(totalSpNet)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>`;
+                }
+
                 // vendor 1순위 → ceo+holder 조합 → holder 단독 순으로 엄격 매칭
                 const matchedAcc = accountDb.find(acc => acc.vendor === vendorName)
                     || accountDb.find(acc => acc.ceo === (firstItem.ceo || "") && acc.holder === (firstItem.holder || ""))
@@ -2957,6 +3357,8 @@
                             </div>
                         </div>
                     </div>
+
+                    ${specialSectionHtml}
 
                     <!-- 체크리스트 -->
                     <div style="flex:0 0 auto;" class="border border-slate-300 rounded p-2 text-[10px] mb-2">
@@ -3157,6 +3559,7 @@
 
         function loadRequestData(valueKey) {
             requestItems = [];
+            requestSpecialItems = [];
             
             const currentDoc = savedDocuments.find(d => d.id === currentDocId);
             if (currentDoc) {
@@ -3185,6 +3588,7 @@
                 
                 requestItems.push({ item: "", qty: "1.0", supply: 0, tax: 0 });
                 renderRequestItemsTable();
+                renderRequestSpecialTable();
                 return;
             }
 
@@ -3226,6 +3630,8 @@
                     tax: target.tax
                 });
 
+                buildSpecialItemsFromRows([target]);
+
             } else if (valueKey.startsWith("combine-")) {
                 const targetVendor = valueKey.replace("combine-", "");
                 const matchedRows = dataset.filter(item => item.vendor === targetVendor);
@@ -3266,11 +3672,33 @@
                         tax: row.tax
                     });
                 });
+
+                buildSpecialItemsFromRows(matchedRows.filter(row => row.type === '장비비'));
             }
 
             renderRequestItemsTable();
+            renderRequestSpecialTable();
             loadChecklist(valueKey);
         }
+
+        // 장비비 dataset 행들로부터 특고(일용) 인적용역 신고 항목을 구성
+        function buildSpecialItemsFromRows(rows) {
+            requestSpecialItems = [];
+            rows.filter(row => row.type === '장비비').forEach(row => {
+                requestSpecialItems.push({
+                    datasetId: row.id,
+                    empName:  row.empName  || row.ceo || "",
+                    empRrn:   row.empRrn   || "",
+                    workDays: row.workDays || 0,
+                    supply:   row.supply   || 0,
+                    remun:    row.remun    || (row.supply || 0),
+                    empInsur: row.empInsur || 0,
+                    accInsur: row.accInsur || 0,
+                    extra:    row.extra    || 0
+                });
+            });
+        }
+
 
         function renderRequestItemsTable() {
             const tbody = document.getElementById('req-items-tbody');
@@ -3338,6 +3766,163 @@
         function deleteRequestItemRow(index) {
             requestItems = requestItems.filter((_, i) => i !== index);
             renderRequestItemsTable();
+        }
+
+        // ===== 특고(일용) 인적용역 신고 내역 — 지불의뢰서 연동 =====
+        function renderRequestSpecialTable() {
+            const tbody = document.getElementById('req-special-tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = "";
+
+            // 빈 상태 안내 표시 제어
+            const emptyGuide = document.getElementById('special-empty-guide');
+            const printBox   = document.getElementById('special-print-box');
+            if (requestSpecialItems.length === 0) {
+                if (emptyGuide) emptyGuide.classList.remove('hidden');
+                if (printBox)   printBox.classList.add('hidden');
+                clearSpecialTotals();
+                return;
+            }
+            if (emptyGuide) emptyGuide.classList.add('hidden');
+            if (printBox)   printBox.classList.remove('hidden');
+
+            let totalSupply = 0, totalRemun = 0, totalEmpInsur = 0, totalAccInsur = 0, totalExtra = 0, totalNet = 0;
+
+            requestSpecialItems.forEach((item, index) => {
+                const supply   = item.supply   || 0;
+                const remun    = item.remun    || supply;   // 보수총액 (미입력 시 공급가액과 동일)
+                const empInsur = item.empInsur || 0;
+                const accInsur = item.accInsur || 0;
+                const extra    = item.extra    || 0;
+                const netPay   = supply - empInsur - accInsur - extra;
+
+                totalSupply   += supply;
+                totalRemun    += remun;
+                totalEmpInsur += empInsur;
+                totalAccInsur += accInsur;
+                totalExtra    += extra;
+                totalNet      += netPay;
+
+                const tr = document.createElement('tr');
+                tr.className = "divide-x divide-amber-200 dark:divide-amber-800 hover:bg-amber-50/30 dark:hover:bg-amber-950/10 transition-all";
+                tr.innerHTML = `
+                    <td class="py-2 px-2 text-center border border-amber-200 dark:border-amber-800 text-slate-500 dark:text-slate-400 font-bold text-[10px]">${index + 1}</td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${item.empName || ''}" placeholder="운전원명" onchange="updateSpecialItem(${index}, 'empName', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-800 dark:text-slate-100 outline-none text-[10px] min-w-[60px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${item.empRrn || ''}" placeholder="000000-0000000" oninput="formatSpecialRrn(this)" maxlength="14" onchange="updateSpecialItem(${index}, 'empRrn', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 outline-none text-[10px] min-w-[90px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="number" value="${item.workDays || ''}" placeholder="0" onchange="updateSpecialItem(${index}, 'workDays', Number(this.value)||0)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-700 dark:text-slate-200 outline-none text-[10px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${Number(supply).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR')" onchange="updateSpecialItemFormatted(${index}, 'supply', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-900 dark:text-slate-100 px-1 outline-none text-[10px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${Number(remun).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR')" onchange="updateSpecialItemFormatted(${index}, 'remun', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 px-1 outline-none text-[10px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${Number(empInsur).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR')" onchange="updateSpecialItemFormatted(${index}, 'empInsur', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 px-1 outline-none text-[10px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${Number(accInsur).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR')" onchange="updateSpecialItemFormatted(${index}, 'accInsur', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 px-1 outline-none text-[10px]">
+                    </td>
+                    <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
+                        <input type="text" value="${Number(extra).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR')" onchange="updateSpecialItemFormatted(${index}, 'extra', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-500 dark:text-slate-400 px-1 outline-none text-[10px]">
+                    </td>
+                    <td class="py-2 px-2 text-right font-extrabold border border-amber-200 dark:border-amber-800 text-indigo-700 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-950/20">
+                        ${formatNumber(netPay)}
+                    </td>
+                    <td class="py-1.5 px-1 no-print text-center border border-amber-200 dark:border-amber-800">
+                        <div class="flex flex-col gap-1">
+                            <button onclick="calcSpecialInsurAutoByIndex(${index})" class="bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold" title="보험료 자동계산">자동</button>
+                            <button onclick="deleteSpecialItemRow(${index})" class="text-rose-500 hover:text-rose-700 font-bold text-[9px]">삭제</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 합계 업데이트
+            const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = formatNumber(val); };
+            setTxt('req-special-total-supply',   totalSupply);
+            setTxt('req-special-total-remun',    totalRemun);
+            setTxt('req-special-total-empinsur', totalEmpInsur);
+            setTxt('req-special-total-accinsur', totalAccInsur);
+            setTxt('req-special-total-extra',    totalExtra);
+            setTxt('req-special-total-net',      totalNet);
+
+            // 하단 산출 근거 패널 업데이트
+            const setCalc = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = formatNumber(val) + ' 원'; };
+            setCalc('special-calc-supply',   totalSupply);
+            setCalc('special-calc-empinsur', totalEmpInsur);
+            setCalc('special-calc-accinsur', totalAccInsur);
+            setCalc('special-calc-net',      totalNet);
+        }
+
+        function clearSpecialTotals() {
+            ['req-special-total-supply','req-special-total-remun','req-special-total-empinsur',
+             'req-special-total-accinsur','req-special-total-extra','req-special-total-net'].forEach(id => {
+                const el = document.getElementById(id); if(el) el.textContent = '0';
+            });
+            ['special-calc-supply','special-calc-empinsur','special-calc-accinsur','special-calc-net'].forEach(id => {
+                const el = document.getElementById(id); if(el) el.textContent = '0 원';
+            });
+        }
+
+        // 행별 보험료 자동계산 버튼
+        function calcSpecialInsurAutoByIndex(index) {
+            if (!requestSpecialItems[index]) return;
+            const supply = requestSpecialItems[index].supply || 0;
+            requestSpecialItems[index].empInsur = Math.floor(supply * 0.009);
+            requestSpecialItems[index].accInsur = Math.floor(supply * 0.018);
+            renderRequestSpecialTable();
+            syncSpecialItemToDataset(index);
+            showToast(`[${requestSpecialItems[index].empName || (index+1)+'번'}] 고용 0.9% / 산재 1.8% 자동계산 완료 — 실제 요율로 수정해 주세요.`);
+        }
+
+        function updateSpecialItem(index, field, value) {
+            if (!requestSpecialItems[index]) return;
+            requestSpecialItems[index][field] = (field === 'workDays') ? (Number(value) || 0) : value;
+            renderRequestSpecialTable();
+            syncSpecialItemToDataset(index);
+        }
+
+        function updateSpecialItemFormatted(index, field, value) {
+            const intValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+            updateSpecialItem(index, field, intValue);
+        }
+
+        // 특고 신고 내역 변경분을 자금청구명세서(dataset)에 즉시 반영
+        function syncSpecialItemToDataset(index) {
+            const item = requestSpecialItems[index];
+            if (!item || !item.datasetId) return;
+
+            const row = dataset.find(r => r.id === item.datasetId);
+            if (!row) return;
+
+            row.empName  = item.empName;
+            row.empRrn   = item.empRrn;
+            row.workDays = item.workDays;
+            row.remun    = item.remun;
+            row.empInsur = item.empInsur;
+            row.accInsur = item.accInsur;
+            row.extra    = item.extra;
+
+            saveToLocalStorage();
+            renderStatementTable();
+        }
+
+        function addSpecialItemRow() {
+            requestSpecialItems.push({ datasetId: null, empName: "", empRrn: "", workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0 });
+            renderRequestSpecialTable();
+        }
+
+        function deleteSpecialItemRow(index) {
+            requestSpecialItems = requestSpecialItems.filter((_, i) => i !== index);
+            renderRequestSpecialTable();
         }
 
         function buildFilterOptions() {
