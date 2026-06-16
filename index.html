@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V10</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V12</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -294,169 +294,162 @@
 </head>
 <body class="text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col font-sans dark:bg-slate-950 transition-colors duration-200">
 
-    <!-- 상단 네비게이션 바 (no-print) -->
-    <header class="no-print bg-slate-900 dark:bg-slate-950 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row justify-between items-center gap-3">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2 rounded-lg">
-                    <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+    <!-- ══════════════════════════════════════════════════════════
+         상단 고정 컨트롤 존 (헤더 + 대시보드 + 탭 전부 압축)
+         no-print / 전체 화면 높이 채우지 않고 컴팩트하게
+    ══════════════════════════════════════════════════════════ -->
+    <header class="no-print bg-slate-900 dark:bg-slate-950 text-white shadow-md sticky top-0 z-40">
+
+        <!-- ─── 1행: 로고 + 액션 버튼 (한 줄로 압축) ─── -->
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-2 border-b border-slate-800">
+            <!-- 로고 -->
+            <div class="flex items-center gap-2 shrink-0">
+                <div class="bg-blue-600 p-1.5 rounded-lg">
+                    <i data-lucide="building-2" class="w-4 h-4 text-white"></i>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold tracking-tight flex items-center gap-1.5">
-                        현장 자금관리 마스터 <span class="bg-blue-500 text-[10px] px-1.5 py-0.5 rounded text-white font-black">PRO V11</span>
+                <div class="leading-tight">
+                    <h1 class="text-sm font-extrabold tracking-tight flex items-center gap-1">
+                        현장 자금관리 마스터
+                        <span class="bg-blue-500 text-[9px] px-1 py-0.5 rounded text-white font-black">PRO V13</span>
                     </h1>
-                    <p class="text-xs text-slate-400">계좌번호 오매칭 방지 강화 • 예금주 중복 경고 • 정렬 최적화 • 예금주 필드 추가 • <span class="text-emerald-400 font-bold">인쇄 미리보기 팝업 추가</span></p>
+                    <p class="text-[9px] text-slate-500 hidden sm:block">백업강화 • 현장별 관리 • 인쇄 미리보기</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap justify-center lg:justify-end">
-                <!-- 다크모드 선택형 테마 스위치 토글 버튼 -->
-                <button onclick="toggleDarkMode()" class="bg-slate-800 dark:bg-slate-800 hover:bg-slate-700 dark:hover:bg-slate-700 text-white p-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all" title="화면 테마 변경">
-                    <span id="dark-theme-icon-container">
-                        <i data-lucide="moon" class="w-4 h-4 text-amber-300"></i>
-                    </span>
-                    <span id="dark-theme-label" class="text-xs">다크모드</span>
+
+            <!-- 액션 버튼 그룹 -->
+            <div class="flex items-center gap-1 flex-wrap justify-end">
+                <button onclick="toggleDarkMode()" class="bg-slate-800 hover:bg-slate-700 text-white p-1.5 rounded-lg flex items-center gap-1 text-[10px] transition-all" title="테마 변경">
+                    <span id="dark-theme-icon-container"><i data-lucide="moon" class="w-3.5 h-3.5 text-amber-300"></i></span>
+                    <span id="dark-theme-label" class="hidden sm:inline">다크모드</span>
                 </button>
-
-                <div class="w-px h-6 bg-slate-700 mx-1"></div>
-
-                <!-- PDF 로드 및 파싱 버튼 -->
-                <button onclick="triggerPdfImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> PDF 파싱 가져오기
+                <div class="w-px h-5 bg-slate-700"></div>
+                <button onclick="triggerPdfImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="file-text" class="w-3 h-3"></i><span class="hidden md:inline">PDF 파싱</span>
                 </button>
                 <input type="file" id="pdf-import-input" accept=".pdf" class="hidden" onchange="importPdfBill(this)">
-                
-                <button onclick="exportToCSV()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 엑셀(CSV) 다운
+                <button onclick="exportToCSV()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="file-down" class="w-3 h-3"></i><span class="hidden md:inline">CSV</span>
                 </button>
-                <button onclick="openBackupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="database" class="w-3.5 h-3.5"></i> 백업/복원
+                <button onclick="openBackupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="database" class="w-3 h-3"></i><span class="hidden md:inline">백업/복원</span>
                 </button>
-                <button onclick="showResetConfirm()" class="bg-rose-700 hover:bg-rose-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 모든 자료 초기화
+                <button onclick="showResetConfirm()" class="bg-rose-700 hover:bg-rose-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i><span class="hidden lg:inline">초기화</span>
                 </button>
-                <button onclick="openPrintPreviewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-sm transition-all">
-                    <i data-lucide="eye" class="w-4 h-4"></i> 인쇄 미리보기
+                <div class="w-px h-5 bg-slate-700"></div>
+                <button onclick="openPrintPreviewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="eye" class="w-3 h-3"></i><span class="hidden sm:inline">미리보기</span>
                 </button>
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-sm transition-all">
-                    <i data-lucide="printer" class="w-4 h-4"></i> 화면 인쇄/PDF
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="printer" class="w-3 h-3"></i><span class="hidden sm:inline">인쇄/PDF</span>
                 </button>
             </div>
         </div>
-    </header>
 
-    <!-- 대시보드 & 문서 저장 보관함 (no-print) -->
-    <section class="no-print max-w-7xl mx-auto w-full px-4 mt-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <!-- 구분별 금액 도넛 차트 -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800">
-            <div class="flex items-center justify-between mb-3">
-                <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i> 구분별 지급요청금액 현황
-                </h4>
-                <span id="donut-total-label" class="text-xs font-bold text-slate-500 dark:text-slate-400"></span>
+        <!-- ─── 2행: 대시보드 컨트롤 존 (한 행으로 압축) ─── -->
+        <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center gap-3 flex-wrap">
+
+            <!-- 현장 선택 드롭다운 + 현장 관리 버튼 -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <i data-lucide="map-pin" class="w-3 h-3 text-rose-400 shrink-0"></i>
+                <select id="site-quick-selector" onchange="onSiteQuickSelect(this.value)"
+                    class="bg-slate-800 border border-slate-700 text-[10px] rounded px-2 py-1 font-bold text-slate-100 outline-none max-w-[140px]">
+                </select>
+                <button onclick="openSiteManagerModal()" class="text-[10px] text-slate-400 hover:text-blue-400 bg-slate-800 px-1.5 py-1 rounded border border-slate-700 transition-all" title="현장 관리">
+                    <i data-lucide="settings-2" class="w-3 h-3"></i>
+                </button>
             </div>
-            <div class="flex flex-col sm:flex-row items-center gap-6">
-                <div class="relative shrink-0" style="width:130px;height:130px;">
-                    <svg id="donut-svg" viewBox="0 0 36 36" width="130" height="130">
-                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" stroke-width="3.5"/>
+
+            <div class="w-px h-4 bg-slate-700 shrink-0"></div>
+
+            <!-- 대장 선택 (회사 필터 + 월 필터 + 대장 드롭다운 인라인) -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-[9px] text-slate-500 font-bold shrink-0">대장:</span>
+                <select id="filter-company" onchange="applyDocumentFilters()"
+                    class="bg-slate-800 border border-slate-700 text-[10px] rounded px-1.5 py-1 font-medium text-slate-200 outline-none">
+                    <option value="ALL">전체 회사</option>
+                </select>
+                <select id="filter-month" onchange="applyDocumentFilters()"
+                    class="bg-slate-800 border border-slate-700 text-[10px] rounded px-1.5 py-1 font-medium text-slate-200 outline-none">
+                    <option value="ALL">전체 월</option>
+                </select>
+                <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)"
+                    class="bg-slate-800 border border-slate-600 text-[10px] rounded px-1.5 py-1 font-bold text-slate-100 outline-none max-w-[200px]">
+                </select>
+                <button onclick="toggleNewDocModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
+                    <i data-lucide="file-plus-2" class="w-2.5 h-2.5"></i> 등록
+                </button>
+                <button onclick="openDuplicateDocModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
+                    <i data-lucide="copy" class="w-2.5 h-2.5"></i> 이월
+                </button>
+                <button onclick="deleteCurrentDocument()" class="bg-rose-700 hover:bg-rose-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
+                    <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> 삭제
+                </button>
+                <button onclick="toggleAccountModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
+                    <i data-lucide="folder-key" class="w-2.5 h-2.5"></i> 계좌DB
+                </button>
+            </div>
+
+            <!-- 우측: 요약 숫자 칩 (클릭 필터) -->
+            <div class="ml-auto flex items-center gap-1.5 flex-wrap">
+                <button onclick="setDashboardFilter('all')"
+                    class="summary-chip bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/40 text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="전체 보기">
+                    <i data-lucide="layers" class="w-2.5 h-2.5"></i>
+                    전체 <span id="summary-count" class="font-black">0건</span>
+                </button>
+                <button onclick="setDashboardFilter('완료')"
+                    class="summary-chip bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-700/40 text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="완료 필터">
+                    <i data-lucide="check-circle" class="w-2.5 h-2.5"></i>
+                    완료 <span id="summary-supply" class="font-black">0원</span>
+                </button>
+                <button onclick="setDashboardFilter('대기')"
+                    class="summary-chip bg-indigo-900/40 hover:bg-indigo-800/60 border border-indigo-700/40 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="대기 필터">
+                    <i data-lucide="clock" class="w-2.5 h-2.5"></i>
+                    대기 <span id="summary-tax" class="font-black">0원</span>
+                </button>
+                <button onclick="setDashboardFilter('보류')"
+                    class="summary-chip bg-rose-900/40 hover:bg-rose-800/60 border border-rose-700/40 text-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="보류 필터">
+                    <i data-lucide="pause-circle" class="w-2.5 h-2.5"></i>
+                    보류 <span id="summary-total" class="font-black">0원</span>
+                </button>
+                <!-- 도넛 미니 인라인 -->
+                <div class="relative shrink-0" style="width:36px;height:36px;" title="구분별 비율">
+                    <svg id="donut-svg" viewBox="0 0 36 36" width="36" height="36">
+                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1e293b" stroke-width="4"/>
                         <g id="donut-segments"></g>
-                        <text x="18" y="17" text-anchor="middle" font-size="3.2" font-weight="bold" fill="#64748b" id="donut-center-label">-</text>
-                        <text x="18" y="21" text-anchor="middle" font-size="2.6" fill="#94a3b8" id="donut-center-sub"></text>
                     </svg>
-                    <div id="donut-empty-msg" class="hidden absolute inset-0 flex items-center justify-center text-[11px] text-slate-400 font-semibold text-center leading-tight">데이터<br>없음</div>
-                </div>
-                <div id="donut-legend" class="flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex-1"></div>
-            </div>
-        </div>
-
-        <!-- 대시보드 종합 요약 카드 (스마트 인터랙션 필터 기능 포함) -->
-        <div class="lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div onclick="setDashboardFilter('all')" class="bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900/40 flex flex-col justify-between cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition-all">
-                <div>
-                    <p class="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase">총 청구건수 (전체보기)</p>
-                    <p class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1" id="summary-count">0건</p>
-                </div>
-            </div>
-            <div onclick="setDashboardFilter('완료')" class="bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/40 flex flex-col justify-between cursor-pointer hover:bg-emerald-100/50 dark:hover:bg-emerald-900/30 transition-all">
-                <div>
-                    <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase">정산완료 건 필터</p>
-                    <p class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1" id="summary-supply">0원</p>
-                </div>
-            </div>
-            <div onclick="setDashboardFilter('대기')" class="bg-indigo-50/50 dark:bg-indigo-950/20 p-3 rounded-lg border border-indigo-100 dark:border-indigo-900/40 flex flex-col justify-between cursor-pointer hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition-all">
-                <div>
-                    <p class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase">정산대기 건 필터</p>
-                    <p class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1" id="summary-tax">0원</p>
-                </div>
-            </div>
-            <div onclick="setDashboardFilter('보류')" class="bg-rose-50/50 dark:bg-rose-950/20 p-3 rounded-lg border border-rose-100 dark:border-rose-900/40 flex flex-col justify-between cursor-pointer hover:bg-rose-100/50 dark:hover:bg-rose-900/30 transition-all">
-                <div>
-                    <p class="text-[11px] font-semibold text-rose-600 dark:text-rose-400 uppercase">보류중인 건 필터</p>
-                    <p class="text-xl font-bold text-slate-950 dark:text-slate-100 mt-1" id="summary-total">0원</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 멀티 문서/회사/월별 청구 보관함 매니저 -->
-        <div class="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-            <div>
-                <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
-                    <i data-lucide="archive" class="w-4 h-4 text-blue-600"></i> 회사별 • 월별 청구 대장
-                </h4>
-                <div class="grid grid-cols-2 gap-1 mb-2">
-                    <div>
-                        <label class="block text-[9px] text-slate-400 font-bold">회사 필터</label>
-                        <select id="filter-company" onchange="applyDocumentFilters()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] rounded p-1 w-full font-medium text-slate-700 dark:text-slate-200 outline-none">
-                            <option value="ALL">전체 회사</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[9px] text-slate-400 font-bold">월 필터</label>
-                        <select id="filter-month" onchange="applyDocumentFilters()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] rounded p-1 w-full font-medium text-slate-700 dark:text-slate-200 outline-none">
-                            <option value="ALL">전체 월</option>
-                        </select>
+                    <div id="donut-empty-msg" class="hidden absolute inset-0 flex items-center justify-center">
+                        <span class="text-[7px] text-slate-600">-</span>
                     </div>
                 </div>
-                <div class="flex gap-1.5 mb-2">
-                    <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs rounded p-1.5 w-full font-bold text-slate-750 dark:text-slate-100 outline-none">
-                    </select>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-3 gap-1">
-                <button onclick="toggleNewDocModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] py-1.5 rounded font-bold flex items-center justify-center gap-1 transition-all" title="새로운 월 청구서 생성">
-                    <i data-lucide="file-plus-2" class="w-3 h-3"></i> 등록
-                </button>
-                <!-- 현재 청구 대장 복사(이월) 버튼 배치 -->
-                <button onclick="openDuplicateDocModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] py-1.5 rounded font-bold flex items-center justify-center gap-1 transition-all" title="현재 대장 목록을 새 월 대장으로 통째로 복제">
-                    <i data-lucide="copy" class="w-3 h-3"></i> 복사/이월
-                </button>
-                <button onclick="deleteCurrentDocument()" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] py-1.5 rounded font-bold flex items-center justify-center gap-1 transition-all" title="현재 대장 삭제">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i> 삭제
-                </button>
+                <div id="donut-legend" class="hidden"></div>
+                <span id="donut-total-label" class="hidden"></span>
+                <span id="donut-center-label" class="hidden"></span>
+                <span id="donut-center-sub" class="hidden"></span>
             </div>
         </div>
-    </section>
 
-    <!-- 메인 탭 전환 영역 (no-print) -->
-    <div class="no-print max-w-7xl mx-auto w-full px-4 mt-6 flex justify-between items-center border-b border-gray-200 dark:border-slate-800 flex-wrap gap-2">
-        <div class="flex flex-wrap">
-            <button id="tab-btn-statement" onclick="switchTab('statement')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-blue-600 text-blue-600 text-xs sm:text-sm flex items-center gap-2">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 1. 자금청구명세서 (가로 양식)
+        <!-- ─── 3행: 탭 바 ─── -->
+        <div class="max-w-7xl mx-auto px-4 flex items-center border-t border-slate-800">
+            <button id="tab-btn-statement" onclick="switchTab('statement')"
+                class="py-2 px-4 font-semibold border-b-2 border-blue-500 text-blue-400 text-[11px] flex items-center gap-1.5 transition-all">
+                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 1. 자금청구명세서
             </button>
-            <button id="tab-btn-request" onclick="switchTab('request')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2">
-                <i data-lucide="file-check" class="w-4 h-4"></i> 2. 지불의뢰서 (A4 단면 밀착 세로 양식)
+            <button id="tab-btn-request" onclick="switchTab('request')"
+                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
+                <i data-lucide="file-check" class="w-3.5 h-3.5"></i> 2. 지불의뢰서
             </button>
-            <button id="tab-btn-request-special" onclick="switchTab('request-special')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2">
-                <i data-lucide="hard-hat" class="w-4 h-4"></i> 3. 특고(일용) 인적용역 신고 내역
+            <button id="tab-btn-request-special" onclick="switchTab('request-special')"
+                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
+                <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i> 3. 특고 신고
             </button>
-            <button id="tab-btn-stats" onclick="switchTab('stats')" class="py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2">
-                <i data-lucide="pie-chart" class="w-4 h-4"></i> 4. 구분별 집계표 (통계 분석)
+            <button id="tab-btn-stats" onclick="switchTab('stats')"
+                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
+                <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> 4. 집계표
             </button>
         </div>
-        <button onclick="toggleAccountModal()" class="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 transition-all mb-2 sm:mb-0">
-            <i data-lucide="folder-key" class="w-3.5 h-3.5"></i> 계좌 마스터 DB 대장 관리
-        </button>
-    </div>
+
+    </header>
 
     <!-- 메인 콘텐츠 영역 -->
     <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
@@ -1285,7 +1278,7 @@
         <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
             <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
             <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
-            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V11</span>
+            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V12</span>
         </div>
     </div>
 
@@ -1480,29 +1473,159 @@
     </div>
 
     <!-- 백업/복원 모달 -->
-    <div id="backup-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
-        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6">
-            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-1.5">
-                    <i data-lucide="database" class="w-5 h-5 text-blue-600"></i> 데이터 백업 / 복원
+    <!-- ===== 현장 관리 모달 (V12) ===== -->
+    <div id="site-manager-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4 shrink-0">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+                    <i data-lucide="construction" class="w-5 h-5 text-rose-500"></i> 공사 현장 관리
                 </h3>
-                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-655"><i data-lucide="x"></i></button>
+                <button onclick="closeSiteManagerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
-            <div class="space-y-4 text-xs">
-                <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-lg p-4">
-                    <p class="font-bold text-blue-800 dark:text-blue-400 mb-1 flex items-center gap-1"><i data-lucide="download" class="w-3.5 h-3.5"></i> 데이터 백업</p>
-                    <p class="text-slate-500 dark:text-slate-400 mb-3">현재 저장된 모든 청구 대장과 계좌 DB를 JSON 파일로 다운로드합니다.</p>
-                    <button onclick="downloadBackupJSON()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold w-full transition-all">JSON 백업 파일 다운로드</button>
+
+            <div class="flex-1 overflow-auto p-6 space-y-5 text-xs">
+
+                <!-- 현장별 요약 테이블 -->
+                <div>
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i> 현장별 자금 집행 비교표
+                    </h4>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                        <table class="w-full border-collapse text-[11px]">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-center font-bold text-slate-700 dark:text-slate-200">
+                                    <th class="py-2.5 px-3 text-left">현장명</th>
+                                    <th class="py-2.5 px-3">회사</th>
+                                    <th class="py-2.5 px-3">대장 수</th>
+                                    <th class="py-2.5 px-3">총 청구건</th>
+                                    <th class="py-2.5 px-3">공급가액 합계</th>
+                                    <th class="py-2.5 px-3">지급요청 합계</th>
+                                    <th class="py-2.5 px-3">집행률</th>
+                                    <th class="py-2.5 px-3">바로가기</th>
+                                </tr>
+                            </thead>
+                            <tbody id="site-comparison-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-lg p-4">
-                    <p class="font-bold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center gap-1"><i data-lucide="upload" class="w-3.5 h-3.5"></i> 데이터 복원</p>
-                    <p class="text-slate-500 dark:text-slate-400 mb-3">이전에 백업한 JSON 파일을 불러와 모든 데이터를 복원합니다. 현재 데이터는 덮어씌워집니다.</p>
-                    <input type="file" id="backup-file-input" accept=".json" class="w-full border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 mb-2 outline-none text-slate-850 dark:text-slate-100">
-                    <button onclick="importBackupJSON()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-semibold w-full transition-all">선택한 파일로 복원</button>
+
+                <!-- 현장별 월 현황 타임라인 -->
+                <div>
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-indigo-500"></i> 현장별 월별 집행 타임라인
+                    </h4>
+                    <div id="site-timeline" class="space-y-3"></div>
+                </div>
+
+                <!-- 현장 예산 등록 -->
+                <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-800 rounded-xl p-4">
+                    <h4 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-3">
+                        <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> 현장 예산 등록 (집행률 계산용)
+                    </h4>
+                    <div id="site-budget-list" class="space-y-2"></div>
+                    <p class="text-[10px] text-amber-700 dark:text-amber-500 mt-2">※ 예산을 등록하면 현장 카드에 예산 대비 집행률 진행바가 표시됩니다.</p>
                 </div>
             </div>
-            <div class="flex justify-end mt-4">
-                <button onclick="closeBackupModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold text-xs">닫기</button>
+
+            <div class="shrink-0 flex justify-end px-6 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <button onclick="closeSiteManagerModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 강화된 백업/복원 모달 (V12) ===== -->
+    <div id="backup-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl">
+
+            <!-- 헤더 -->
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i> 데이터 백업 / 복원 센터
+                </h3>
+                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+
+                <!-- 현재 데이터 현황 요약 -->
+                <div id="backup-stats-bar" class="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700">
+                    <div class="text-center">
+                        <div class="text-lg font-black text-blue-600 dark:text-blue-400" id="backup-stat-docs">-</div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">청구 대장 수</div>
+                    </div>
+                    <div class="text-center border-x border-slate-200 dark:border-slate-700">
+                        <div class="text-lg font-black text-emerald-600 dark:text-emerald-400" id="backup-stat-rows">-</div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">총 청구 항목</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-black text-indigo-600 dark:text-indigo-400" id="backup-stat-accounts">-</div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">계좌 마스터 수</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- 백업 섹션 -->
+                    <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/60 rounded-xl p-4 flex flex-col gap-3">
+                        <div>
+                            <p class="font-extrabold text-blue-800 dark:text-blue-400 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> 백업 (내보내기)
+                            </p>
+                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">모든 청구 대장·현장 정보·계좌 DB를 JSON 파일로 저장합니다. 기기 교체·브라우저 초기화 전 반드시 백업하세요.</p>
+                        </div>
+                        <div class="mt-auto space-y-2">
+                            <button onclick="downloadBackupJSON()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 shadow-sm">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i> 전체 데이터 JSON 백업
+                            </button>
+                            <button onclick="downloadAccountDbCSV()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 계좌 DB만 CSV 백업
+                            </button>
+                        </div>
+                        <div id="backup-last-time" class="text-[10px] text-blue-700 dark:text-blue-500 font-semibold text-center pt-1 border-t border-blue-100 dark:border-blue-900"></div>
+                    </div>
+
+                    <!-- 복원 섹션 -->
+                    <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/60 rounded-xl p-4 flex flex-col gap-3">
+                        <div>
+                            <p class="font-extrabold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> 복원 (가져오기)
+                            </p>
+                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">이전 백업 JSON 파일을 선택해 복원합니다. 복원 전 현재 데이터는 자동으로 임시 백업됩니다.</p>
+                        </div>
+                        <div class="mt-auto space-y-2">
+                            <label class="block w-full border-2 border-dashed border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-3 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all">
+                                <i data-lucide="file-up" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 mx-auto mb-1"></i>
+                                <span id="backup-file-label" class="text-emerald-700 dark:text-emerald-400 font-semibold block">파일을 클릭해 선택하세요</span>
+                                <input type="file" id="backup-file-input" accept=".json" class="hidden" onchange="onBackupFileSelected(this)">
+                            </label>
+                            <button onclick="importBackupJSON()" id="restore-btn" class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 shadow-sm" disabled>
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> 선택한 파일로 복원
+                            </button>
+                        </div>
+                        <!-- 복원 미리보기 정보 -->
+                        <div id="restore-preview" class="hidden text-[10px] bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 space-y-0.5">
+                            <p class="font-bold text-emerald-700 dark:text-emerald-400 mb-1">📋 파일 내 데이터 미리보기</p>
+                            <div id="restore-preview-content" class="text-slate-600 dark:text-slate-300 space-y-0.5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 자동 백업 현황 -->
+                <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-xl p-3">
+                    <p class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-2">
+                        <i data-lucide="history" class="w-3.5 h-3.5"></i> 자동 스냅샷 (최근 3회 자동 저장)
+                        <span class="ml-auto font-normal text-[10px] text-amber-600 dark:text-amber-500">복원 시 현재 데이터를 자동 스냅샷으로 보관</span>
+                    </p>
+                    <div id="snapshot-list" class="space-y-1"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end px-6 pb-5">
+                <button onclick="closeBackupModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
             </div>
         </div>
     </div>
@@ -1871,6 +1994,7 @@
             localStorage.setItem('cons_current_doc_id_v3', currentDocId);
             
             renderVendorStatistics();
+            renderSiteDashboard();
         }
 
         function sortAccountDbByName() {
@@ -4723,32 +4847,114 @@
             input.value = "";
         }
 
+        /* ============================================================
+           백업 / 복원 강화 (V12)
+        ============================================================ */
+        const SNAPSHOT_KEY = 'cons_snapshots_v3';
+        const BACKUP_LAST_KEY = 'cons_backup_last_v3';
+        const SITE_BUDGET_KEY = 'cons_site_budgets_v3';
+
         function openBackupModal() {
+            refreshBackupStats();
+            refreshSnapshotList();
+            updateLastBackupLabel();
             document.getElementById('backup-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function closeBackupModal() {
             document.getElementById('backup-modal').classList.add('hidden');
         }
 
+        function refreshBackupStats() {
+            const totalRows = savedDocuments.reduce((s, d) => s + (d.dataset ? d.dataset.length : 0), 0);
+            document.getElementById('backup-stat-docs').textContent     = savedDocuments.length + '개';
+            document.getElementById('backup-stat-rows').textContent     = totalRows + '건';
+            document.getElementById('backup-stat-accounts').textContent = accountDb.length + '개';
+        }
+
+        function updateLastBackupLabel() {
+            const el = document.getElementById('backup-last-time');
+            const last = localStorage.getItem(BACKUP_LAST_KEY);
+            el.textContent = last ? '최근 백업: ' + last : '아직 백업한 기록이 없습니다';
+        }
+
         function downloadBackupJSON() {
-            const dataToBackup = { savedDocuments, accountDb, currentDocId };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToBackup));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `자금관리_백업_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast("백업 데이터 파일 다운로드 완료!");
+            const dataToBackup = {
+                version: 'v12',
+                exportedAt: new Date().toLocaleString('ko-KR'),
+                savedDocuments,
+                accountDb,
+                currentDocId
+            };
+            const blob = new Blob([JSON.stringify(dataToBackup, null, 2)], { type: 'application/json' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            const ts   = new Date().toISOString().slice(0, 10);
+            a.href     = url;
+            a.download = `자금관리_전체백업_${ts}.json`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            // 최근 백업 시각 기록
+            const now = new Date().toLocaleString('ko-KR');
+            localStorage.setItem(BACKUP_LAST_KEY, now);
+            updateLastBackupLabel();
+            showToast('JSON 백업 파일 다운로드 완료!');
+        }
+
+        function downloadAccountDbCSV() {
+            let csv = '\uFEFF예금주,은행,계좌번호,대표자,거래처,사업자등록번호,연락처\n';
+            accountDb.forEach(a => {
+                csv += `${a.holder||''},${a.bank||''},${a.account||''},${a.ceo||''},${a.vendor||''},${a.biznum||''},${a.phone||''}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url  = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url; link.download = `계좌DB_백업_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link); link.click(); link.remove();
+            showToast('계좌 DB CSV 백업 완료!');
+        }
+
+        function onBackupFileSelected(input) {
+            const file = input.files[0];
+            if (!file) return;
+            document.getElementById('backup-file-label').textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.savedDocuments && parsed.accountDb) {
+                        const totalRows = parsed.savedDocuments.reduce((s, d) => s + (d.dataset ? d.dataset.length : 0), 0);
+                        const sites = [...new Set(parsed.savedDocuments.map(d => d.site).filter(Boolean))];
+                        const el = document.getElementById('restore-preview-content');
+                        el.innerHTML = `
+                            <div>📁 대장 수: <strong>${parsed.savedDocuments.length}개</strong></div>
+                            <div>📋 총 청구 항목: <strong>${totalRows}건</strong></div>
+                            <div>🏦 계좌 DB: <strong>${parsed.accountDb.length}개</strong></div>
+                            <div>🏗️ 현장: <strong>${sites.join(' / ') || '-'}</strong></div>
+                            ${parsed.exportedAt ? `<div>📅 백업 일시: <strong>${parsed.exportedAt}</strong></div>` : ''}
+                        `;
+                        document.getElementById('restore-preview').classList.remove('hidden');
+                        const btn = document.getElementById('restore-btn');
+                        btn.removeAttribute('disabled');
+                        btn.classList.remove('disabled:bg-slate-300', 'dark:disabled:bg-slate-700');
+                    } else {
+                        showToast('유효하지 않은 백업 파일입니다.');
+                    }
+                } catch(err) {
+                    showToast('파일 읽기 오류: 올바른 JSON 파일인지 확인하세요.');
+                }
+            };
+            reader.readAsText(file);
         }
 
         function importBackupJSON() {
             const fileInput = document.getElementById('backup-file-input');
-            if (fileInput.files.length === 0) {
-                showToast("불러올 JSON 파일을 선택해 주세요.");
-                return;
-            }
+            if (fileInput.files.length === 0) { showToast('불러올 JSON 파일을 선택해 주세요.'); return; }
+
+            // 복원 전 현재 데이터를 스냅샷으로 자동 저장
+            saveSnapshot('복원 전 자동 스냅샷');
 
             const file = fileInput.files[0];
             const reader = new FileReader();
@@ -4757,28 +4963,310 @@
                     const parsed = JSON.parse(event.target.result);
                     if (parsed.savedDocuments && parsed.accountDb) {
                         savedDocuments = parsed.savedDocuments;
-                        accountDb = parsed.accountDb;
-                        currentDocId = parsed.currentDocId || savedDocuments[0].id;
-                        
-                        const curDoc = savedDocuments.find(d => d.id === currentDocId);
-                        dataset = curDoc ? curDoc.dataset : [];
-
+                        accountDb      = parsed.accountDb;
+                        currentDocId   = parsed.currentDocId || savedDocuments[0].id;
+                        const curDoc   = savedDocuments.find(d => d.id === currentDocId);
+                        dataset        = curDoc ? curDoc.dataset : [];
                         saveToLocalStorage();
                         buildFilterOptions();
                         updateSavedSheetsSelector();
                         renderStatementTable();
                         renderAccountDBList();
                         refreshRequestSelector();
+                        renderSiteDashboard();
                         closeBackupModal();
-                        showToast("데이터 복원이 안전하게 완료되었습니다!");
+                        showToast('데이터 복원 완료! (이전 데이터는 스냅샷에 보관됨)');
                     } else {
-                        showToast("유효하지 않은 백업 규격 파일입니다.");
+                        showToast('유효하지 않은 백업 규격 파일입니다.');
                     }
-                } catch (e) {
-                    showToast("파일을 읽는 도중 오류가 발생했습니다.");
+                } catch(e) {
+                    showToast('파일을 읽는 도중 오류가 발생했습니다.');
                 }
             };
             reader.readAsText(file);
+        }
+
+        /* ── 스냅샷 (자동 3회 보관) ── */
+        function saveSnapshot(label) {
+            let snaps = [];
+            try { snaps = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || '[]'); } catch(e) {}
+            snaps.unshift({
+                label: label || '스냅샷',
+                time: new Date().toLocaleString('ko-KR'),
+                savedDocuments: JSON.parse(JSON.stringify(savedDocuments)),
+                accountDb: JSON.parse(JSON.stringify(accountDb)),
+                currentDocId
+            });
+            if (snaps.length > 3) snaps = snaps.slice(0, 3);
+            localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snaps));
+        }
+
+        function refreshSnapshotList() {
+            let snaps = [];
+            try { snaps = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || '[]'); } catch(e) {}
+            const el = document.getElementById('snapshot-list');
+            if (!snaps.length) {
+                el.innerHTML = `<p class="text-[10px] text-amber-600 dark:text-amber-500 italic">저장된 스냅샷이 없습니다. 복원 작업 시 자동 생성됩니다.</p>`;
+                return;
+            }
+            el.innerHTML = snaps.map((s, i) => `
+                <div class="flex items-center justify-between bg-white dark:bg-slate-800 border border-amber-100 dark:border-amber-900/40 rounded-lg px-3 py-2 text-[10px]">
+                    <div>
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${s.label}</span>
+                        <span class="text-slate-400 dark:text-slate-500 ml-2">${s.time}</span>
+                        <span class="ml-2 text-amber-700 dark:text-amber-400">(대장 ${s.savedDocuments.length}개 · 계좌 ${s.accountDb.length}개)</span>
+                    </div>
+                    <button onclick="restoreFromSnapshot(${i})" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded font-bold transition-all">복원</button>
+                </div>
+            `).join('');
+        }
+
+        function restoreFromSnapshot(idx) {
+            let snaps = [];
+            try { snaps = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || '[]'); } catch(e) {}
+            const snap = snaps[idx];
+            if (!snap) return;
+            showConfirmModal(
+                '스냅샷 복원',
+                `"${snap.label} (${snap.time})" 시점으로 복원합니다. 현재 데이터는 새 스냅샷으로 보관됩니다.`,
+                function() {
+                    saveSnapshot('스냅샷 복원 전 자동 저장');
+                    savedDocuments = snap.savedDocuments;
+                    accountDb      = snap.accountDb;
+                    currentDocId   = snap.currentDocId || savedDocuments[0].id;
+                    const curDoc   = savedDocuments.find(d => d.id === currentDocId);
+                    dataset        = curDoc ? curDoc.dataset : [];
+                    saveToLocalStorage();
+                    buildFilterOptions();
+                    updateSavedSheetsSelector();
+                    renderStatementTable();
+                    renderAccountDBList();
+                    refreshRequestSelector();
+                    renderSiteDashboard();
+                    closeBackupModal();
+                    showToast('스냅샷 복원 완료!');
+                }
+            );
+        }
+
+        /* ============================================================
+           현장별 분리 관리 (V12)
+        ============================================================ */
+        function getSiteBudgets() {
+            try { return JSON.parse(localStorage.getItem(SITE_BUDGET_KEY) || '{}'); } catch(e) { return {}; }
+        }
+        function setSiteBudgets(obj) {
+            localStorage.setItem(SITE_BUDGET_KEY, JSON.stringify(obj));
+        }
+
+        /* 현장별 집계 계산 */
+        function getSiteStats() {
+            const stats = {};
+            savedDocuments.forEach(doc => {
+                const site = (doc.site || '현장 미지정').trim();
+                if (!stats[site]) {
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, months: [] };
+                }
+                stats[site].companies.add(doc.company || '');
+                stats[site].docCount++;
+                stats[site].months.push(doc.month || '');
+                (doc.dataset || []).forEach(row => {
+                    stats[site].rowCount++;
+                    stats[site].supply     += (row.supply || 0) + (row.tax || 0);
+                    stats[site].requestAmt += (row.supply || 0) + (row.tax || 0) - (row.deduction || 0) - (row.prepaid || 0);
+                });
+            });
+            // Set → Array
+            Object.values(stats).forEach(s => { s.companies = [...s.companies].filter(Boolean); });
+            return stats;
+        }
+
+        /* 현장 카드 렌더 (대시보드 상단) */
+        function renderSiteDashboard() {
+            const container = document.getElementById('site-dashboard-cards');
+            if (!container) return;
+            const stats   = getSiteStats();
+            const budgets = getSiteBudgets();
+            const sites   = Object.keys(stats);
+            const emptyMsg = document.getElementById('site-empty-msg');
+
+            if (!sites.length) {
+                if (emptyMsg) emptyMsg.classList.remove('hidden');
+                container.querySelectorAll('.site-card').forEach(c => c.remove());
+                return;
+            }
+            if (emptyMsg) emptyMsg.classList.add('hidden');
+            container.querySelectorAll('.site-card').forEach(c => c.remove());
+
+            const COLORS = ['blue','emerald','indigo','amber','rose','purple','teal','orange'];
+            sites.forEach((site, i) => {
+                const s      = stats[site];
+                const budget = budgets[site] || 0;
+                const color  = COLORS[i % COLORS.length];
+                const pct    = budget > 0 ? Math.min(100, Math.round(s.requestAmt / budget * 100)) : -1;
+                const pctBar = pct >= 0 ? `
+                    <div class="mt-2">
+                        <div class="flex justify-between text-[9px] mb-0.5">
+                            <span class="text-${color}-600 dark:text-${color}-400 font-semibold">집행률</span>
+                            <span class="font-bold text-${color}-700 dark:text-${color}-300">${pct}%</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-${color}-100 dark:bg-${color}-950">
+                            <div class="h-1.5 rounded-full bg-${color}-500" style="width:${pct}%"></div>
+                        </div>
+                    </div>` : '';
+
+                // 해당 현장 첫 번째 문서 ID 찾기
+                const firstDocId = (savedDocuments.find(d => (d.site||'현장 미지정').trim() === site) || {}).id || '';
+
+                const card = document.createElement('div');
+                card.className = `site-card cursor-pointer bg-${color}-50 dark:bg-${color}-950/20 border border-${color}-100 dark:border-${color}-900/50 rounded-xl px-4 py-3 hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-700 transition-all min-w-[180px] max-w-[240px] flex-1`;
+                card.onclick = () => { if (firstDocId) { loadSavedDocument(firstDocId); showToast(`[${site}] 현장 문서로 이동했습니다.`); } };
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <p class="text-[11px] font-extrabold text-${color}-800 dark:text-${color}-300 leading-tight truncate">${site}</p>
+                        <span class="shrink-0 text-[9px] bg-${color}-100 dark:bg-${color}-900/60 text-${color}-700 dark:text-${color}-300 px-1.5 py-0.5 rounded font-bold">${s.docCount}개 대장</span>
+                    </div>
+                    <p class="text-[10px] text-${color}-600 dark:text-${color}-400 font-semibold mb-0.5">${s.companies.join(' · ') || '-'}</p>
+                    <div class="text-[10px] text-slate-500 dark:text-slate-400">
+                        청구 ${s.rowCount}건
+                        <span class="mx-1">·</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${formatNumber(s.requestAmt)}원</span>
+                    </div>
+                    ${pctBar}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /* 현장 관리 모달 */
+        function openSiteManagerModal() {
+            renderSiteComparisonTable();
+            renderSiteTimeline();
+            renderSiteBudgetForm();
+            document.getElementById('site-manager-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeSiteManagerModal() {
+            document.getElementById('site-manager-modal').classList.add('hidden');
+        }
+
+        function renderSiteComparisonTable() {
+            const stats   = getSiteStats();
+            const budgets = getSiteBudgets();
+            const tbody   = document.getElementById('site-comparison-tbody');
+            tbody.innerHTML = '';
+            const sites = Object.keys(stats);
+            if (!sites.length) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
+                return;
+            }
+            const totalAmt = sites.reduce((s, k) => s + stats[k].requestAmt, 0);
+            sites.sort((a, b) => stats[b].requestAmt - stats[a].requestAmt).forEach(site => {
+                const s      = stats[site];
+                const budget = budgets[site] || 0;
+                const pct    = budget > 0 ? Math.min(100, Math.round(s.requestAmt / budget * 100)) : '-';
+                const pctBadge = pct !== '-'
+                    ? `<span class="font-bold ${pct >= 90 ? 'text-rose-600' : pct >= 70 ? 'text-amber-600' : 'text-emerald-600'}">${pct}%</span>`
+                    : `<span class="text-slate-400 text-[10px]">예산 미설정</span>`;
+                const sharePct = totalAmt > 0 ? Math.round(s.requestAmt / totalAmt * 100) : 0;
+                const firstDocId = (savedDocuments.find(d => (d.site||'현장 미지정').trim() === site) || {}).id || '';
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-all';
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100">${site}</td>
+                    <td class="py-2.5 px-3 text-center text-slate-600 dark:text-slate-300">${s.companies.join(', ')}</td>
+                    <td class="py-2.5 px-3 text-center text-blue-600 dark:text-blue-400 font-bold">${s.docCount}</td>
+                    <td class="py-2.5 px-3 text-center font-semibold">${s.rowCount}</td>
+                    <td class="py-2.5 px-3 text-right font-semibold text-slate-700 dark:text-slate-200">${formatNumber(s.supply)}원</td>
+                    <td class="py-2.5 px-3 text-right font-extrabold text-indigo-700 dark:text-indigo-400">${formatNumber(s.requestAmt)}원
+                        <span class="ml-1 text-[9px] text-slate-400">(${sharePct}%)</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-center">${pctBadge}</td>
+                    <td class="py-2.5 px-3 text-center">
+                        ${firstDocId ? `<button onclick="loadSavedDocument('${firstDocId}'); closeSiteManagerModal();" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition-all">이동</button>` : '-'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderSiteTimeline() {
+            const el     = document.getElementById('site-timeline');
+            const stats  = getSiteStats();
+            const sites  = Object.keys(stats);
+            el.innerHTML = '';
+            if (!sites.length) {
+                el.innerHTML = `<p class="text-[11px] text-slate-400 italic">데이터가 없습니다.</p>`;
+                return;
+            }
+            sites.forEach(site => {
+                const s = stats[site];
+                // 월별 집계
+                const monthMap = {};
+                savedDocuments.filter(d => (d.site||'현장 미지정').trim() === site).forEach(doc => {
+                    const m = doc.month || '미지정';
+                    if (!monthMap[m]) monthMap[m] = 0;
+                    (doc.dataset || []).forEach(row => {
+                        monthMap[m] += (row.supply||0) + (row.tax||0) - (row.deduction||0) - (row.prepaid||0);
+                    });
+                });
+                const months = Object.keys(monthMap).sort();
+                const maxAmt = Math.max(...Object.values(monthMap), 1);
+                const monthBars = months.map(m => {
+                    const w = Math.round(monthMap[m] / maxAmt * 100);
+                    return `<div class="flex items-center gap-2 text-[10px]">
+                        <span class="w-24 shrink-0 text-slate-500 dark:text-slate-400 text-right">${m}</span>
+                        <div class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-4 relative overflow-hidden">
+                            <div class="h-4 bg-indigo-400 dark:bg-indigo-600 rounded-full" style="width:${w}%"></div>
+                            <span class="absolute right-2 top-0 h-4 flex items-center font-bold text-[9px] text-slate-700 dark:text-slate-200">${formatNumber(monthMap[m])}원</span>
+                        </div>
+                    </div>`;
+                }).join('');
+                el.innerHTML += `
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+                        <p class="font-extrabold text-slate-800 dark:text-slate-100 text-[11px] mb-2 flex items-center gap-1.5">
+                            <i data-lucide="map-pin" class="w-3 h-3 text-rose-500"></i> ${site}
+                        </p>
+                        <div class="space-y-1">${monthBars || '<p class="text-[10px] text-slate-400">청구 항목 없음</p>'}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderSiteBudgetForm() {
+            const el      = document.getElementById('site-budget-list');
+            const stats   = getSiteStats();
+            const budgets = getSiteBudgets();
+            const sites   = Object.keys(stats);
+            el.innerHTML  = '';
+            if (!sites.length) {
+                el.innerHTML = `<p class="text-[10px] text-amber-600 dark:text-amber-500 italic">등록된 현장이 없습니다.</p>`;
+                return;
+            }
+            sites.forEach(site => {
+                const budget = budgets[site] || '';
+                el.innerHTML += `
+                    <div class="flex items-center gap-3">
+                        <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200 w-40 truncate shrink-0">${site}</span>
+                        <input type="number" id="budget-input-${CSS.escape(site)}" value="${budget}" placeholder="예산 (원)" min="0"
+                            class="flex-1 border border-amber-200 dark:border-amber-800 rounded px-2 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-amber-400">
+                        <button onclick="saveSiteBudget('${site.replace(/'/g, "\\'")}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-[10px] font-bold shrink-0 transition-all">저장</button>
+                    </div>
+                `;
+            });
+        }
+
+        function saveSiteBudget(site) {
+            const safeId  = CSS.escape(site);
+            const input   = document.getElementById('budget-input-' + safeId);
+            if (!input) return;
+            const val     = parseInt(input.value) || 0;
+            const budgets = getSiteBudgets();
+            budgets[site] = val;
+            setSiteBudgets(budgets);
+            renderSiteDashboard();
+            renderSiteComparisonTable();
+            showToast(`[${site}] 예산 ${formatNumber(val)}원 저장!`);
         }
 
         function exportToCSV() {
@@ -5078,6 +5566,7 @@
             renderStatementTable();
             renderAccountDBList();
             refreshRequestSelector();
+            renderSiteDashboard();
             
             changePrintScale(1.00);
             document.getElementById('print-scale-slider').value = "1.00";
