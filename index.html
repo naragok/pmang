@@ -303,9 +303,9 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight flex items-center gap-1.5">
-                        현장 자금관리 마스터 <span class="bg-blue-500 text-[10px] px-1.5 py-0.5 rounded text-white font-black">PRO V10</span>
+                        현장 자금관리 마스터 <span class="bg-blue-500 text-[10px] px-1.5 py-0.5 rounded text-white font-black">PRO V11</span>
                     </h1>
-                    <p class="text-xs text-slate-400">계좌번호 오매칭 방지 강화 • 예금주 중복 경고 • 정렬 최적화 • 예금주 필드 추가</p>
+                    <p class="text-xs text-slate-400">계좌번호 오매칭 방지 강화 • 예금주 중복 경고 • 정렬 최적화 • 예금주 필드 추가 • <span class="text-emerald-400 font-bold">인쇄 미리보기 팝업 추가</span></p>
                 </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap justify-center lg:justify-end">
@@ -333,6 +333,9 @@
                 </button>
                 <button onclick="showResetConfirm()" class="bg-rose-700 hover:bg-rose-600 text-white px-3 py-2 rounded-lg font-medium text-xs flex items-center gap-1 transition-all">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 모든 자료 초기화
+                </button>
+                <button onclick="openPrintPreviewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-sm transition-all">
+                    <i data-lucide="eye" class="w-4 h-4"></i> 인쇄 미리보기
                 </button>
                 <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-sm transition-all">
                     <i data-lucide="printer" class="w-4 h-4"></i> 화면 인쇄/PDF
@@ -991,6 +994,9 @@
                         현재 선택한 <span id="quick-vendor-name" class="font-bold text-indigo-300">거래처</span>의 지불의뢰서를 A4 1장에 가로/세로 정밀 중앙 맞춤 인쇄합니다.
                     </p>
                     <div class="space-y-2">
+                        <button onclick="openPrintPreviewModal('request')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
+                            <i data-lucide="eye" class="w-4 h-4"></i> 인쇄 미리보기
+                        </button>
                         <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
                             <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력 (중앙 배치)
                         </button>
@@ -1213,6 +1219,73 @@
             <div class="flex justify-end mt-4">
                 <button onclick="document.getElementById('stats-detail-modal').classList.add('hidden')" class="bg-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 text-white px-5 py-2 rounded-lg font-bold text-xs transition-all">확인 완료</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== 인쇄 미리보기 모달 ===== -->
+    <div id="print-preview-modal" class="no-print hidden fixed inset-0 z-[9999] flex flex-col" style="background:rgba(15,23,42,0.92);">
+
+        <!-- 상단 툴바 -->
+        <div class="flex items-center justify-between gap-4 px-5 py-3 bg-slate-900 border-b border-slate-700 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-600 p-1.5 rounded-lg">
+                    <i data-lucide="eye" class="w-4 h-4 text-white"></i>
+                </div>
+                <div>
+                    <h2 id="print-preview-title" class="text-sm font-extrabold text-white">인쇄 미리보기</h2>
+                    <p class="text-[10px] text-slate-400">실제 인쇄/PDF 출력 결과를 미리 확인합니다</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 flex-wrap">
+                <!-- 탭 전환 버튼 -->
+                <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-1 border border-slate-700">
+                    <button onclick="openPrintPreviewModal('statement')" class="preview-tab-btn text-[11px] font-bold px-3 py-1.5 rounded text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1">
+                        <i data-lucide="file-spreadsheet" class="w-3 h-3"></i> 명세서
+                    </button>
+                    <button onclick="openPrintPreviewModal('request')" class="preview-tab-btn text-[11px] font-bold px-3 py-1.5 rounded text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1">
+                        <i data-lucide="file-check" class="w-3 h-3"></i> 의뢰서
+                    </button>
+                    <button onclick="openPrintPreviewModal('special')" class="preview-tab-btn text-[11px] font-bold px-3 py-1.5 rounded text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1">
+                        <i data-lucide="hard-hat" class="w-3 h-3"></i> 특고대장
+                    </button>
+                </div>
+
+                <!-- 배율 슬라이더 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-slate-400 font-bold">배율:</span>
+                    <input type="range" id="preview-scale-slider" min="0.4" max="1.2" step="0.05" value="1"
+                        oninput="onPreviewScaleChange(this.value)"
+                        class="w-28 accent-emerald-400 cursor-pointer">
+                    <span id="preview-scale-label" class="text-[11px] font-bold text-emerald-400 w-10">100%</span>
+                </div>
+
+                <div class="w-px h-6 bg-slate-700"></div>
+
+                <!-- 인쇄 버튼 -->
+                <button id="preview-print-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow transition-all">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> 이대로 인쇄/PDF
+                </button>
+
+                <!-- 닫기 -->
+                <button onclick="closePrintPreviewModal()" class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-700" title="닫기 (ESC)">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 미리보기 스크롤 영역 -->
+        <div class="flex-1 overflow-auto py-8 px-4" style="background:repeating-linear-gradient(45deg,#0f172a 0px,#0f172a 10px,#131f35 10px,#131f35 20px);">
+            <div id="print-preview-inner-wrap" style="transform-origin:top center; transition: transform 0.2s ease;">
+                <div id="print-preview-container" class="mx-auto"></div>
+            </div>
+        </div>
+
+        <!-- 하단 정보 바 -->
+        <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
+            <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
+            <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
+            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V11</span>
         </div>
     </div>
 
@@ -4835,7 +4908,172 @@
             }, 3000);
         }
 
+        /* ============================================================
+           인쇄 미리보기 모달 기능
+           openPrintPreviewModal(mode)
+             mode = 'statement'  → 자금청구명세서 미리보기
+             mode = 'request'    → 현재 지불의뢰서 미리보기
+             mode = undefined    → 현재 탭에 맞게 자동 판단
+        ============================================================ */
+
+        function openPrintPreviewModal(mode) {
+            // 모드 자동 판단
+            if (!mode) {
+                const activeStatement = document.getElementById('tab-statement');
+                const activeRequest   = document.getElementById('tab-request');
+                const activeSpecial   = document.getElementById('tab-request-special');
+                if (activeRequest && !activeRequest.classList.contains('hidden')) {
+                    mode = 'request';
+                } else if (activeSpecial && !activeSpecial.classList.contains('hidden')) {
+                    mode = 'special';
+                } else {
+                    mode = 'statement';
+                }
+            }
+
+            const modal      = document.getElementById('print-preview-modal');
+            const container  = document.getElementById('print-preview-container');
+            const title      = document.getElementById('print-preview-title');
+            const printBtn   = document.getElementById('preview-print-btn');
+            const scaleLabel = document.getElementById('preview-scale-label');
+            const scaleSlider= document.getElementById('preview-scale-slider');
+
+            container.innerHTML = '';
+
+            if (mode === 'request') {
+                title.textContent = '지불의뢰서 인쇄 미리보기';
+                const src = document.getElementById('portrait-print-box');
+                if (!src) { showToast('지불의뢰서 내용이 없습니다.'); return; }
+                const clone = buildPortraitClone();
+                clone.style.cssText = `
+                    width:210mm; min-height:277mm; padding:8mm 10mm;
+                    background:#fff; color:#000;
+                    font-family:'Noto Sans KR',sans-serif; font-size:10px;
+                    box-sizing:border-box; border:1px solid #cbd5e1;
+                    box-shadow:0 4px 24px rgba(0,0,0,0.18);
+                    margin:0 auto; display:flex; flex-direction:column;
+                `;
+                container.appendChild(clone);
+                printBtn.onclick = () => { closePrintPreviewModal(); setTimeout(() => window.print(), 120); };
+
+            } else if (mode === 'special') {
+                title.textContent = '특고 대장 인쇄 미리보기';
+                const src = document.getElementById('special-print-box');
+                if (!src) { showToast('특고 대장 내용이 없습니다.'); return; }
+                const clone = src.cloneNode(true);
+                stripNoPrint(clone);
+                applyPrintStyles(clone);
+                clone.style.cssText += `
+                    width:100%; max-width:960px; margin:0 auto; padding:10mm 12mm;
+                    box-sizing:border-box; border:1px solid #cbd5e1;
+                    box-shadow:0 4px 24px rgba(0,0,0,0.18); font-size:9px;
+                `;
+                container.appendChild(clone);
+                printBtn.onclick = () => { closePrintPreviewModal(); setTimeout(() => printSpecialSection(), 120); };
+
+            } else {
+                // statement
+                title.textContent = '자금청구명세서 인쇄 미리보기';
+                const src = document.getElementById('statement-print-box');
+                if (!src) { showToast('명세서 내용이 없습니다.'); return; }
+                const clone = src.cloneNode(true);
+                stripNoPrint(clone);
+                applyPrintStyles(clone);
+                // 테이블 가로 스크롤 해제
+                clone.querySelectorAll('.table-scroll-container').forEach(el => {
+                    el.style.maxHeight = 'none';
+                    el.style.overflow  = 'visible';
+                });
+                clone.style.cssText += `
+                    width:100%; min-width:900px; padding:12mm 14mm;
+                    box-sizing:border-box; border:1px solid #cbd5e1;
+                    box-shadow:0 4px 24px rgba(0,0,0,0.18);
+                `;
+                container.appendChild(clone);
+                printBtn.onclick = () => { closePrintPreviewModal(); setTimeout(() => window.print(), 120); };
+            }
+
+            // 초기 배율
+            scaleSlider.value = '1';
+            scaleLabel.textContent = '100%';
+            applyPreviewScale(1);
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            // 모달 내 Lucide 아이콘 재생성
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 지불의뢰서 clone: portrait-print-box + 현재 품목 테이블 HTML을 결합 */
+        function buildPortraitClone() {
+            const src = document.getElementById('portrait-print-box');
+            const clone = src.cloneNode(true);
+            stripNoPrint(clone);
+            applyPrintStyles(clone);
+
+            // transform 제거 (배율 슬라이더 적용 중일 수 있으므로)
+            clone.style.transform = 'none';
+            clone.style.transformOrigin = '';
+
+            // req-items-section 내 테이블 스크롤 해제
+            clone.querySelectorAll('.table-scroll-container').forEach(el => {
+                el.style.maxHeight = 'none';
+                el.style.overflow  = 'visible';
+            });
+
+            return clone;
+        }
+
+        /* no-print 클래스 요소 제거 */
+        function stripNoPrint(el) {
+            el.querySelectorAll('.no-print').forEach(n => n.remove());
+        }
+
+        /* 인쇄 CSS와 동등한 스타일 강제 적용 */
+        function applyPrintStyles(el) {
+            // 배경/글자색 강제
+            el.querySelectorAll('*').forEach(node => {
+                if (node.nodeType !== 1) return;
+                node.style.backgroundColor = '';
+                node.style.color = '';
+                node.style.boxShadow = 'none';
+                node.style.textShadow = 'none';
+            });
+            el.style.background    = '#fff';
+            el.style.color         = '#000';
+            el.style.borderRadius  = '0';
+        }
+
+        function applyPreviewScale(val) {
+            const wrap = document.getElementById('print-preview-inner-wrap');
+            if (!wrap) return;
+            wrap.style.transform       = `scale(${val})`;
+            wrap.style.transformOrigin = 'top center';
+            // 스케일 줄면 컨테이너 높이도 줄어드므로 outer height 보정
+            wrap.parentElement.style.minHeight = (wrap.scrollHeight * val) + 'px';
+        }
+
+        function onPreviewScaleChange(val) {
+            const pct = Math.round(val * 100);
+            document.getElementById('preview-scale-label').textContent = pct + '%';
+            applyPreviewScale(parseFloat(val));
+        }
+
+        function closePrintPreviewModal() {
+            document.getElementById('print-preview-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
         window.onload = function() {
+            // ESC로 인쇄 미리보기 닫기
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('print-preview-modal');
+                    if (modal && !modal.classList.contains('hidden')) {
+                        closePrintPreviewModal();
+                    }
+                }
+            });
             loadFromLocalStorage();
             renderStatementTable();
             renderAccountDBList();
