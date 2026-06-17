@@ -14,6 +14,7 @@
     </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
@@ -67,6 +68,12 @@
         }
 
         @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
             /* ── A4 세로, 브라우저 기본 여백(10mm) 유지 ── */
             @page {
                 size: A4 portrait;
@@ -213,6 +220,22 @@
                 print-color-adjust: exact !important;
             }
 
+            /* 지불의뢰서 품목 테이블 헤더 색상 복구 */
+            .print-req-thead th {
+                background-color: #f8fafc !important;
+                color: #334155 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* 지불의뢰서 품목 합계금액 셀 색상 복구 */
+            .print-req-sum {
+                background-color: #f8fafc !important;
+                color: #2563eb !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
             table, th, td, div, hr {
                 border-color: #94a3b8 !important;
             }
@@ -340,6 +363,9 @@
                 <input type="file" id="pdf-import-input" accept=".pdf" class="hidden" onchange="importPdfBill(this)">
                 <button onclick="exportToCSV()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
                     <i data-lucide="file-down" class="w-3 h-3"></i><span class="hidden md:inline">CSV</span>
+                </button>
+                <button onclick="exportToXLSX()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="hidden md:inline">XLSX</span>
                 </button>
                 <button onclick="openBackupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
                     <i data-lucide="database" class="w-3 h-3"></i><span class="hidden md:inline">백업/복원</span>
@@ -763,20 +789,20 @@
                                 <th class="py-2.5 px-1 w-8 bg-slate-100 dark:bg-slate-850 no-print">
                                     <input type="checkbox" id="header-select-all" onchange="toggleAllRowsSelection(this.checked)" class="w-3.5 h-3.5 rounded cursor-pointer">
                                 </th>
-                                <th class="py-2.5 px-1 w-10 bg-slate-100 dark:bg-slate-850">번호</th>
-                                <th class="py-2.5 px-1 w-20 bg-slate-100 dark:bg-slate-850">구분(분류)</th>
-                                <th class="py-2.5 px-2 w-32 bg-slate-100 dark:bg-slate-850">거래처</th>
+                                <th class="py-2.5 px-1 w-10 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('num')" id="th-col-num"><span class="flex items-center justify-center gap-0.5">번호<span id="si-num" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-1 w-20 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('type')" id="th-col-type"><span class="flex items-center justify-center gap-0.5">구분(분류)<span id="si-type" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('vendor')" id="th-col-vendor"><span class="flex items-center justify-center gap-0.5">거래처<span id="si-vendor" class="sort-icon text-[9px]"></span></span></th>
                                 <th class="py-2.5 px-2 w-16 bg-slate-100 dark:bg-slate-850">대표자</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850" id="th-supply">공급가액(원)</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850" id="th-tax">부가세(원)</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850" id="th-total">결제금액(원)</th>
-                                <th class="py-2.5 px-1 w-24 bg-slate-100 dark:bg-slate-850" id="th-deduction">공제금액(원)</th>
-                                <th class="py-2.5 px-1 w-18 bg-slate-100 dark:bg-slate-850" id="th-prepaid">선지급(원)</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850" id="th-request">지급요청금액(원)</th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('supply')" id="th-supply th-col-supply"><span class="flex items-center justify-center gap-0.5">공급가액(원)<span id="si-supply" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('tax')" id="th-tax th-col-tax"><span class="flex items-center justify-center gap-0.5">부가세(원)<span id="si-tax" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('total')" id="th-total th-col-total"><span class="flex items-center justify-center gap-0.5">결제금액(원)<span id="si-total" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-1 w-24 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('deduction')" id="th-deduction th-col-deduction"><span class="flex items-center justify-center gap-0.5">공제금액(원)<span id="si-deduction" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-1 w-18 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('prepaid')" id="th-prepaid th-col-prepaid"><span class="flex items-center justify-center gap-0.5">선지급(원)<span id="si-prepaid" class="sort-icon text-[9px]"></span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('request')" id="th-request th-col-request"><span class="flex items-center justify-center gap-0.5">지급요청금액(원)<span id="si-request" class="sort-icon text-[9px]"></span></span></th>
                                 <th class="py-2.5 px-1 w-16 bg-slate-100 dark:bg-slate-850">은행</th>
                                 <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850">입금계좌</th>
                                 <th class="py-2.5 px-2 w-24 bg-slate-100 dark:bg-slate-850">예금주(선택)</th>
-                                <th class="py-2.5 px-1 w-20 no-print bg-slate-100 dark:bg-slate-850">상태</th>
+                                <th class="py-2.5 px-1 w-20 no-print bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('status')" id="th-col-status"><span class="flex items-center justify-center gap-0.5">상태<span id="si-status" class="sort-icon text-[9px]"></span></span></th>
                                 <th class="py-2.5 px-2 w-20 bg-slate-100 dark:bg-slate-850">비고</th>
                                 <th class="py-2.5 px-1 w-8 no-print bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" title="행 단위 내부 메모">📝</th>
                                 <th class="py-2.5 px-1 w-10 no-print bg-slate-100 dark:bg-slate-850">태그</th>
@@ -910,7 +936,7 @@
                             </div>
                             <table class="w-full h-full border-collapse border border-slate-300 dark:border-slate-700 text-[10px] text-center">
                                 <thead>
-                                    <tr class="bg-slate-50 dark:bg-slate-800 divide-x divide-slate-300 dark:divide-slate-700 border-b border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200">
+                                    <tr class="bg-slate-50 dark:bg-slate-800 divide-x divide-slate-300 dark:divide-slate-700 border-b border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 print-req-thead">
                                         <th class="py-1.5 w-1/3 border border-slate-300 dark:border-slate-750">품목명 / 비고</th>
                                         <th class="py-1.5 w-12 border border-slate-300 dark:border-slate-750">수량</th>
                                         <th class="py-1.5 border border-slate-300 dark:border-slate-750" id="th-req-supply">공급가액</th>
@@ -997,7 +1023,7 @@
                                 <p class="font-bold text-slate-800 dark:text-slate-200">● 담당자 메모 / 특이사항</p>
                                 <span class="no-print text-[9px] text-slate-400 dark:text-slate-500">(인쇄 시 포함됩니다)</span>
                             </div>
-                            <textarea id="req-manager-memo" rows="3" onchange="saveRequestMemo()" oninput="autoResizeMemo(this)" placeholder="협의내용, 특이사항, 담당자 전달사항 등을 입력하세요..." class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
+                            <textarea id="req-manager-memo" rows="3" oninput="saveRequestMemo(); autoResizeMemo(this)" placeholder="협의내용, 특이사항, 담당자 전달사항 등을 입력하세요..." class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
                         </div>
 
                         <!-- 서명란 -->
@@ -1024,7 +1050,7 @@
                             <i data-lucide="eye" class="w-4 h-4"></i> 인쇄 미리보기
                         </button>
                         <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
-                            <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력 (중앙 배치)
+                            <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력
                         </button>
                         <button onclick="printAllRequests()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
                             <i data-lucide="layers" class="w-4 h-4"></i> 전체 거래처 일괄 출력
@@ -2237,7 +2263,7 @@
 
     <!-- 로직 자바스크립트 -->
     <script>
-        const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
+        const categoryPriority = { "외주비": 1, "장비비": 2, "자재비": 3, "노무비": 4, "관리비": 5 };
 
         // ★ 안전한 ID 생성기 — 삭제 후 재추가 시 충돌 방지 (전체 이력 최댓값 + 1)
         let _datasetIdCounter  = 0;
@@ -2852,6 +2878,35 @@
             } else {
                 input.value = num.substring(0, 3) + "-" + num.substring(3, 5) + "-" + num.substring(5, 10);
             }
+        }
+
+        // 컬럼 정렬 상태
+        let _sortCol = null;
+        let _sortDir = 1; // 1 = 오름차순, -1 = 내림차순
+
+        function setSortCol(col) {
+            if (_sortCol === col) {
+                _sortDir *= -1;
+            } else {
+                _sortCol = col;
+                _sortDir = 1;
+            }
+            renderStatementTable();
+        }
+
+        function updateSortIcons() {
+            const cols = ['num','type','vendor','supply','tax','total','deduction','prepaid','request','status'];
+            cols.forEach(c => {
+                const el = document.getElementById('si-' + c);
+                if (!el) return;
+                if (_sortCol === c) {
+                    el.textContent = _sortDir === 1 ? '▲' : '▼';
+                    el.style.color = '#3b82f6';
+                } else {
+                    el.textContent = '⇅';
+                    el.style.color = '#94a3b8';
+                }
+            });
         }
 
         let duplicateItemIds = new Set();
@@ -3509,7 +3564,24 @@
                 if (filterStatus !== "ALL" && row.status !== filterStatus) return false;
                 return true;
             }).sort((a, b) => {
-                // 필터링된 결과도 항상 구분별 우선순위 → 거래처명 순으로 정렬 유지
+                // 컬럼 정렬이 활성화된 경우 해당 기준으로 정렬
+                if (_sortCol) {
+                    let vA, vB;
+                    const numCols = ['supply','tax','total','deduction','prepaid','request'];
+                    if (_sortCol === 'num') { vA = dataset.indexOf(a); vB = dataset.indexOf(b); }
+                    else if (_sortCol === 'type') { vA = a.type||''; vB = b.type||''; }
+                    else if (_sortCol === 'vendor') { vA = a.vendor||''; vB = b.vendor||''; }
+                    else if (_sortCol === 'supply') { vA = a.supply||0; vB = b.supply||0; }
+                    else if (_sortCol === 'tax') { vA = a.tax||0; vB = b.tax||0; }
+                    else if (_sortCol === 'total') { vA = (a.supply||0)+(a.tax||0); vB = (b.supply||0)+(b.tax||0); }
+                    else if (_sortCol === 'deduction') { vA = a.deduction||0; vB = b.deduction||0; }
+                    else if (_sortCol === 'prepaid') { vA = a.prepaid||0; vB = b.prepaid||0; }
+                    else if (_sortCol === 'request') { vA = (a.supply||0)+(a.tax||0)-(a.deduction||0)-(a.prepaid||0); vB = (b.supply||0)+(b.tax||0)-(b.deduction||0)-(b.prepaid||0); }
+                    else if (_sortCol === 'status') { vA = a.status||''; vB = b.status||''; }
+                    if (typeof vA === 'string') return vA.localeCompare(vB, 'ko-KR') * _sortDir;
+                    return (vA - vB) * _sortDir;
+                }
+                // 기본: 구분별 우선순위 → 거래처명 순
                 if (a.isNew && !b.isNew) return -1;
                 if (!a.isNew && b.isNew) return 1;
                 const pA = categoryPriority[a.type] || 99;
@@ -3696,6 +3768,7 @@
                 countEl.classList.add('hidden');
             }
 
+            updateSortIcons();
             lucide.createIcons();
         }
 
@@ -4673,13 +4746,15 @@
 
         // 담당자 메모 저장/불러오기
         function saveRequestMemo() {
-            const key = document.getElementById('req-vendor-select') ? document.getElementById('req-vendor-select').value : '';
-            if (!key) return;
+            const sel = document.getElementById('request-selector');
+            const key = (sel ? sel.value : '') || '__custom__';
+            const docKey = 'req-memo:' + currentDocId + ':' + key;
             const memo = document.getElementById('req-manager-memo').value;
-            try { localStorage.setItem('req-memo:' + key, memo); } catch(e) {}
+            try { localStorage.setItem(docKey, memo); } catch(e) {}
         }
         function loadMemoForKey(key) {
-            try { return localStorage.getItem('req-memo:' + key) || ''; } catch(e) { return ''; }
+            const docKey = 'req-memo:' + currentDocId + ':' + key;
+            try { return localStorage.getItem(docKey) || localStorage.getItem('req-memo:' + key) || ''; } catch(e) { return ''; }
         }
         function autoResizeMemo(el) {
             el.style.height = 'auto';
@@ -4733,7 +4808,7 @@
                     <td class="py-2 px-1">
                         <input type="text" value="${Number(item.tax || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'tax', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-600 dark:text-slate-400 px-1.5 outline-none">
                     </td>
-                    <td class="py-2 px-1 text-right font-extrabold text-blue-600 dark:text-blue-400 px-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <td class="py-2 px-1 text-right font-extrabold text-blue-600 dark:text-blue-400 px-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 print-req-sum">
                         ${formatMoneyByUnit(totalItemAmt)}
                     </td>
                     <td class="py-2 px-1 no-print text-center">
@@ -6669,6 +6744,130 @@
             link.click();
             document.body.removeChild(link);
             showToast("엑셀 호환 CSV 파일 저장 완료!");
+        }
+
+        function exportToXLSX() {
+            if (typeof XLSX === 'undefined') {
+                showToast("XLSX 라이브러리 로딩 중입니다. 잠시 후 다시 시도해주세요.");
+                return;
+            }
+
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const company  = currentDoc ? currentDoc.company  : '';
+            const month    = currentDoc ? currentDoc.month    : '';
+            const site     = currentDoc ? currentDoc.site     : '';
+            const filename = (company || '자금청구명세서') + (month ? '_' + month : '') + '_명세서.xlsx';
+
+            // ── 헤더 ──
+            const headers = ['번호','구분','거래처','대표자','공급가액','부가세','결제금액','공제금액','선지급','지급요청금액','은행','입금계좌','예금주','상태','비고'];
+
+            // ── 데이터 행 ──
+            const rows = dataset.map((row, i) => {
+                const total  = (row.supply  || 0) + (row.tax || 0);
+                const reqAmt = total - (row.deduction || 0) - (row.prepaid || 0);
+                return [
+                    i + 1,
+                    row.type     || '',
+                    row.vendor   || '',
+                    row.ceo      || '',
+                    row.supply   || 0,
+                    row.tax      || 0,
+                    total,
+                    row.deduction || 0,
+                    row.prepaid   || 0,
+                    reqAmt,
+                    row.bank     || '',
+                    row.account  || '',
+                    row.holder   || '',
+                    row.status   || '',
+                    row.note     || ''
+                ];
+            });
+
+            // ── 합계 행 ──
+            const sumSupply   = dataset.reduce((s, r) => s + (r.supply    || 0), 0);
+            const sumTax      = dataset.reduce((s, r) => s + (r.tax       || 0), 0);
+            const sumTotal    = sumSupply + sumTax;
+            const sumDeduct   = dataset.reduce((s, r) => s + (r.deduction || 0), 0);
+            const sumPrepaid  = dataset.reduce((s, r) => s + (r.prepaid   || 0), 0);
+            const sumRequest  = sumTotal - sumDeduct - sumPrepaid;
+            const sumRow = ['합계', '', '', '', sumSupply, sumTax, sumTotal, sumDeduct, sumPrepaid, sumRequest, '', '', '', '', ''];
+
+            // ── 워크시트 생성 ──
+            const wsData = [headers, ...rows, sumRow];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // ── 열 너비 설정 ──
+            ws['!cols'] = [
+                {wch:6},{wch:8},{wch:16},{wch:10},
+                {wch:14},{wch:12},{wch:14},{wch:12},{wch:10},{wch:16},
+                {wch:8},{wch:18},{wch:10},{wch:8},{wch:20}
+            ];
+
+            // ── 숫자 컬럼 서식 (공급가액~지급요청금액) ──
+            const numCols = [4,5,6,7,8,9]; // 0-index: E~J
+            const totalRows = wsData.length;
+            numCols.forEach(ci => {
+                for (let ri = 1; ri < totalRows; ri++) {
+                    const addr = XLSX.utils.encode_cell({r: ri, c: ci});
+                    if (ws[addr] && typeof ws[addr].v === 'number') {
+                        ws[addr].z = '#,##0';
+                    }
+                }
+            });
+
+            // ── 헤더 행 스타일 (배경색·굵게) ──
+            headers.forEach((_, ci) => {
+                const addr = XLSX.utils.encode_cell({r: 0, c: ci});
+                if (!ws[addr]) return;
+                ws[addr].s = {
+                    fill: { fgColor: { rgb: 'E2E8F0' } },
+                    font: { bold: true, sz: 10 },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: {
+                        top:    { style: 'thin', color: { rgb: '94A3B8' } },
+                        bottom: { style: 'thin', color: { rgb: '94A3B8' } },
+                        left:   { style: 'thin', color: { rgb: '94A3B8' } },
+                        right:  { style: 'thin', color: { rgb: '94A3B8' } }
+                    }
+                };
+            });
+
+            // ── 합계 행 스타일 ──
+            sumRow.forEach((_, ci) => {
+                const addr = XLSX.utils.encode_cell({r: totalRows - 1, c: ci});
+                if (!ws[addr]) return;
+                ws[addr].s = {
+                    fill: { fgColor: { rgb: 'DBEAFE' } },
+                    font: { bold: true, sz: 10 },
+                    alignment: { horizontal: ci >= 4 && ci <= 9 ? 'right' : 'center', vertical: 'center' },
+                    border: {
+                        top:    { style: 'medium', color: { rgb: '3B82F6' } },
+                        bottom: { style: 'thin',   color: { rgb: '94A3B8' } },
+                        left:   { style: 'thin',   color: { rgb: '94A3B8' } },
+                        right:  { style: 'thin',   color: { rgb: '94A3B8' } }
+                    }
+                };
+            });
+
+            // ── 메타 정보 시트 ──
+            const metaData = [
+                ['현장명', site],
+                ['회사명', company],
+                ['청구월', month],
+                ['출력일시', new Date().toLocaleString('ko-KR')],
+                ['총 거래처 수', dataset.length + '건'],
+                ['총 지급요청금액', sumRequest.toLocaleString('ko-KR') + '원']
+            ];
+            const wsMeta = XLSX.utils.aoa_to_sheet(metaData);
+            wsMeta['!cols'] = [{wch:14},{wch:30}];
+
+            // ── 워크북 조합 & 다운로드 ──
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '자금청구명세서');
+            XLSX.utils.book_append_sheet(wb, wsMeta, '문서정보');
+            XLSX.writeFile(wb, filename);
+            showToast(`📊 ${filename} 저장 완료!`);
         }
 
         function getKoreanNumber(num) {
