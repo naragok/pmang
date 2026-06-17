@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V12</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V14</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -310,7 +310,7 @@
                 <div class="leading-tight">
                     <h1 class="text-sm font-extrabold tracking-tight flex items-center gap-1">
                         현장 자금관리 마스터
-                        <span class="bg-blue-500 text-[9px] px-1 py-0.5 rounded text-white font-black">PRO V13</span>
+                        <span class="bg-blue-500 text-[9px] px-1 py-0.5 rounded text-white font-black">PRO V14</span>
                     </h1>
                     <p class="text-[9px] text-slate-500 hidden sm:block">백업강화 • 현장별 관리 • 인쇄 미리보기</p>
                 </div>
@@ -385,6 +385,9 @@
                 <button onclick="deleteCurrentDocument()" class="bg-rose-700 hover:bg-rose-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
                     <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> 삭제
                 </button>
+                <button onclick="openRepeatModal()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all" title="반복 항목 관리">
+                    <i data-lucide="repeat" class="w-2.5 h-2.5"></i> 반복
+                </button>
                 <button onclick="toggleAccountModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
                     <i data-lucide="folder-key" class="w-2.5 h-2.5"></i> 계좌DB
                 </button>
@@ -452,10 +455,10 @@
     </header>
 
     <!-- 메인 콘텐츠 영역 -->
-    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-3">
         
         <!-- 계좌 정보 모달/패널 (no-print) -->
-        <div id="account-manager-panel" class="hidden no-print bg-white dark:bg-slate-900 rounded-xl shadow-md border border-blue-200 dark:border-blue-900 p-5 mb-6">
+        <div id="account-manager-panel" class="hidden no-print bg-white dark:bg-slate-900 rounded-xl shadow-md border border-blue-200 dark:border-blue-900 p-5 mb-3">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                 <div class="flex items-center gap-2 text-blue-850 dark:text-blue-450">
                     <i data-lucide="database" class="w-5 h-5"></i>
@@ -760,6 +763,7 @@
                                 <th class="py-2.5 px-2 w-24 bg-slate-100 dark:bg-slate-850">예금주(선택)</th>
                                 <th class="py-2.5 px-1 w-20 no-print bg-slate-100 dark:bg-slate-850">상태</th>
                                 <th class="py-2.5 px-2 w-20 bg-slate-100 dark:bg-slate-850">비고</th>
+                                <th class="py-2.5 px-1 w-8 no-print bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" title="행 단위 내부 메모">📝</th>
                                 <th class="py-2.5 px-1 w-10 no-print bg-slate-100 dark:bg-slate-850">태그</th>
                                 <th class="py-2.5 px-1 w-12 no-print bg-slate-100 dark:bg-slate-850">작업</th>
                             </tr>
@@ -776,7 +780,7 @@
                                 <td class="py-3 px-2 bg-slate-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400" id="foot-deduction">0</td>
                                 <td class="py-3 px-2 bg-slate-50 dark:bg-slate-800 text-amber-600 dark:text-amber-400" id="foot-prepaid">0</td>
                                 <td class="py-3 px-2 text-red-600 dark:text-rose-450 text-sm font-extrabold bg-slate-50 dark:bg-slate-800" id="foot-request-amt">0</td>
-                                <td colspan="4" class="bg-slate-50 dark:bg-slate-800"></td>
+                                <td colspan="5" class="bg-slate-50 dark:bg-slate-800"></td>
                                 <td class="no-print bg-slate-50 dark:bg-slate-800"></td>
                             </tr>
                         </tfoot>
@@ -964,7 +968,7 @@
                                 <p class="font-bold text-slate-800 dark:text-slate-200">● 담당자 메모 / 특이사항</p>
                                 <span class="no-print text-[9px] text-slate-400 dark:text-slate-500">(인쇄 시 포함됩니다)</span>
                             </div>
-                            <textarea id="req-manager-memo" rows="3" onchange="saveRequestMemo()" oninput="autoResizeMemo(this)" placeholder=" " class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
+                            <textarea id="req-manager-memo" rows="3" onchange="saveRequestMemo()" oninput="autoResizeMemo(this)" placeholder="협의내용, 특이사항, 담당자 전달사항 등을 입력하세요..." class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
                         </div>
 
                         <!-- 서명란 -->
@@ -1278,7 +1282,7 @@
         <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
             <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
             <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
-            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V12</span>
+            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V14</span>
         </div>
     </div>
 
@@ -1532,6 +1536,123 @@
 
             <div class="shrink-0 flex justify-end px-6 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4">
                 <button onclick="closeSiteManagerModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 행 메모 모달 (V14) ===== -->
+    <div id="memo-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-amber-200 dark:border-amber-800 w-full max-w-md">
+            <div class="flex justify-between items-center px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <i data-lucide="message-square" class="w-4 h-4 text-amber-500"></i>
+                    <span id="memo-modal-title">내부 메모</span>
+                </h3>
+                <button onclick="closeMemoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3 text-xs">
+                <p class="text-slate-500 dark:text-slate-400">분쟁 이력, 협의 내용, 특이사항 등 내부 메모를 자유롭게 기록합니다.<br>메모는 화면에만 표시되며 인쇄 시 출력되지 않습니다.</p>
+                <textarea id="memo-textarea" rows="5" placeholder="메모 내용을 입력하세요..."
+                    class="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs bg-amber-50 dark:bg-amber-950/10 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-400 resize-none leading-relaxed"></textarea>
+                <!-- 타임스탬프 -->
+                <div id="memo-timestamp" class="text-[10px] text-slate-400 dark:text-slate-500 italic"></div>
+            </div>
+            <div class="flex justify-between items-center px-5 pb-5 gap-2">
+                <button onclick="clearMemo()" class="text-[11px] text-rose-500 hover:text-rose-700 font-bold flex items-center gap-1 transition-all">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> 메모 삭제
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeMemoModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-4 py-2 rounded-lg font-bold text-xs transition-all">취소</button>
+                    <button onclick="saveMemo()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5">
+                        <i data-lucide="save" class="w-3 h-3"></i> 저장
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 반복 항목 관리 모달 (V14) ===== -->
+    <div id="repeat-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <i data-lucide="repeat" class="w-4 h-4 text-indigo-500"></i> 반복 항목 관리
+                    <span class="text-[10px] font-normal text-slate-400 dark:text-slate-500">— 새 대장 생성 시 자동으로 채워지는 고정 항목</span>
+                </h3>
+                <button onclick="closeRepeatModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-6 space-y-5 text-xs">
+
+                <!-- 반복 항목 등록 폼 -->
+                <div class="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4">
+                    <p class="font-bold text-indigo-800 dark:text-indigo-400 flex items-center gap-1.5 mb-3">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 새 반복 항목 등록
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">구분</label>
+                            <select id="repeat-type" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none font-semibold text-[11px]">
+                                <option>외주비</option><option>자재비</option><option>장비비</option><option>노무비</option><option>관리비</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">거래처명 <span class="text-rose-500">*</span></label>
+                            <input type="text" id="repeat-vendor" placeholder="거래처명 입력" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">대표자명</label>
+                            <input type="text" id="repeat-ceo" placeholder="대표자명" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">공급가액</label>
+                            <input type="number" id="repeat-supply" placeholder="0" min="0" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">부가세</label>
+                            <input type="number" id="repeat-tax" placeholder="0" min="0" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">적요</label>
+                            <input type="text" id="repeat-note" placeholder="적요 (선택)" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addRepeatItem()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1">
+                                <i data-lucide="plus" class="w-3 h-3"></i> 추가
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 등록된 반복 항목 목록 -->
+                <div>
+                    <p class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i data-lucide="list" class="w-3.5 h-3.5 text-indigo-500"></i> 등록된 반복 항목
+                        <span id="repeat-count-badge" class="ml-1 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-400 px-1.5 py-0.5 rounded text-[10px] font-black">0개</span>
+                    </p>
+                    <div id="repeat-item-list" class="space-y-1.5"></div>
+                </div>
+
+                <!-- 현재 대장에 일괄 삽입 -->
+                <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-3 flex items-center justify-between gap-3">
+                    <div>
+                        <p class="font-bold text-emerald-800 dark:text-emerald-400 text-[11px] flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-3 h-3"></i> 현재 대장에 반복 항목 일괄 삽입
+                        </p>
+                        <p class="text-[10px] text-emerald-700 dark:text-emerald-500 mt-0.5">이미 동일 거래처가 있으면 건너뜁니다.</p>
+                    </div>
+                    <button onclick="insertRepeatItemsNow()" class="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1.5">
+                        <i data-lucide="plus-square" class="w-3 h-3"></i> 지금 삽입
+                    </button>
+                </div>
+            </div>
+
+            <div class="shrink-0 flex justify-end px-6 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <button onclick="closeRepeatModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
             </div>
         </div>
     </div>
@@ -2082,7 +2203,7 @@
             tabRequestSpecial.classList.add('hidden');
             tabStats.classList.add('hidden');
 
-            const inactiveClass = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs sm:text-sm flex items-center gap-2";
+            const inactiveClass = "py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all";
             btnStatement.className = inactiveClass;
             btnRequest.className = inactiveClass;
             btnRequestSpecial.className = inactiveClass;
@@ -2090,20 +2211,20 @@
 
             if (tabId === 'statement') {
                 tabStatement.classList.remove('hidden');
-                btnStatement.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-blue-600 text-blue-600 text-xs sm:text-sm flex items-center gap-2";
+                btnStatement.className = "py-2 px-4 font-semibold border-b-2 border-blue-500 text-blue-400 text-[11px] flex items-center gap-1.5 transition-all";
             } else if (tabId === 'request') {
                 tabRequest.classList.remove('hidden');
-                btnRequest.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-indigo-600 text-indigo-600 text-xs sm:text-sm flex items-center gap-2";
+                btnRequest.className = "py-2 px-4 font-semibold border-b-2 border-indigo-500 text-indigo-400 text-[11px] flex items-center gap-1.5 transition-all";
                 refreshRequestSelector();
             } else if (tabId === 'request-special') {
                 tabRequestSpecial.classList.remove('hidden');
-                btnRequestSpecial.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-amber-600 text-amber-600 text-xs sm:text-sm flex items-center gap-2";
+                btnRequestSpecial.className = "py-2 px-4 font-semibold border-b-2 border-amber-500 text-amber-400 text-[11px] flex items-center gap-1.5 transition-all";
                 syncSpecialMetaFromRequest();
                 renderRequestSpecialTable();
                 lucide.createIcons();
             } else if (tabId === 'stats') {
                 tabStats.classList.remove('hidden');
-                btnStats.className = "py-3 px-4 sm:px-6 font-semibold border-b-2 border-emerald-600 text-emerald-600 text-xs sm:text-sm flex items-center gap-2";
+                btnStats.className = "py-2 px-4 font-semibold border-b-2 border-emerald-500 text-emerald-400 text-[11px] flex items-center gap-1.5 transition-all";
                 renderVendorStatistics();
             }
         }
@@ -3089,6 +3210,13 @@
                         </div>
                     </td>
                     <td class="py-1 px-1 no-print">
+                        <button onclick="openMemoModal(${row.id})"
+                            class="w-full flex items-center justify-center rounded transition-all ${row.memo ? 'text-amber-500 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'}"
+                            title="${row.memo ? '메모 있음: ' + row.memo.substring(0, 30) + (row.memo.length > 30 ? '…' : '') : '메모 추가'}">
+                            <i data-lucide="${row.memo ? 'message-square' : 'message-square-plus'}" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </td>
+                    <td class="py-1 px-1 no-print">
                         <div class="flex items-center justify-center gap-0.5" id="color-tag-cell-${row.id}">
                             ${renderColorTagButtons(row.id, row.colorTag)}
                         </div>
@@ -3380,6 +3508,7 @@
             renderStatementTable();
             refreshRequestSelector();
             showToast(`[${company}] 대장이 기존 내역 기반으로 성공적으로 복사 이월되었습니다!`);
+            autoInsertRepeatItems();
         }
 
         function handleModalVendorInput() {
@@ -4531,6 +4660,7 @@
             refreshRequestSelector();
             toggleNewDocModal();
             showToast(`[${company}] 신규 월별 청구서가 등록되었습니다.`);
+            autoInsertRepeatItems();
         }
 
         function syncMetaValues(fieldId, value) {
@@ -5081,61 +5211,11 @@
             return stats;
         }
 
-        /* 현장 카드 렌더 (대시보드 상단) */
+        /* 현장 카드 렌더 (퀵 셀렉터 동기화) */
         function renderSiteDashboard() {
-            const container = document.getElementById('site-dashboard-cards');
-            if (!container) return;
-            const stats   = getSiteStats();
-            const budgets = getSiteBudgets();
-            const sites   = Object.keys(stats);
-            const emptyMsg = document.getElementById('site-empty-msg');
-
-            if (!sites.length) {
-                if (emptyMsg) emptyMsg.classList.remove('hidden');
-                container.querySelectorAll('.site-card').forEach(c => c.remove());
-                return;
-            }
-            if (emptyMsg) emptyMsg.classList.add('hidden');
-            container.querySelectorAll('.site-card').forEach(c => c.remove());
-
-            const COLORS = ['blue','emerald','indigo','amber','rose','purple','teal','orange'];
-            sites.forEach((site, i) => {
-                const s      = stats[site];
-                const budget = budgets[site] || 0;
-                const color  = COLORS[i % COLORS.length];
-                const pct    = budget > 0 ? Math.min(100, Math.round(s.requestAmt / budget * 100)) : -1;
-                const pctBar = pct >= 0 ? `
-                    <div class="mt-2">
-                        <div class="flex justify-between text-[9px] mb-0.5">
-                            <span class="text-${color}-600 dark:text-${color}-400 font-semibold">집행률</span>
-                            <span class="font-bold text-${color}-700 dark:text-${color}-300">${pct}%</span>
-                        </div>
-                        <div class="h-1.5 rounded-full bg-${color}-100 dark:bg-${color}-950">
-                            <div class="h-1.5 rounded-full bg-${color}-500" style="width:${pct}%"></div>
-                        </div>
-                    </div>` : '';
-
-                // 해당 현장 첫 번째 문서 ID 찾기
-                const firstDocId = (savedDocuments.find(d => (d.site||'현장 미지정').trim() === site) || {}).id || '';
-
-                const card = document.createElement('div');
-                card.className = `site-card cursor-pointer bg-${color}-50 dark:bg-${color}-950/20 border border-${color}-100 dark:border-${color}-900/50 rounded-xl px-4 py-3 hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-700 transition-all min-w-[180px] max-w-[240px] flex-1`;
-                card.onclick = () => { if (firstDocId) { loadSavedDocument(firstDocId); showToast(`[${site}] 현장 문서로 이동했습니다.`); } };
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-2 mb-1.5">
-                        <p class="text-[11px] font-extrabold text-${color}-800 dark:text-${color}-300 leading-tight truncate">${site}</p>
-                        <span class="shrink-0 text-[9px] bg-${color}-100 dark:bg-${color}-900/60 text-${color}-700 dark:text-${color}-300 px-1.5 py-0.5 rounded font-bold">${s.docCount}개 대장</span>
-                    </div>
-                    <p class="text-[10px] text-${color}-600 dark:text-${color}-400 font-semibold mb-0.5">${s.companies.join(' · ') || '-'}</p>
-                    <div class="text-[10px] text-slate-500 dark:text-slate-400">
-                        청구 ${s.rowCount}건
-                        <span class="mx-1">·</span>
-                        <span class="font-bold text-slate-700 dark:text-slate-200">${formatNumber(s.requestAmt)}원</span>
-                    </div>
-                    ${pctBar}
-                `;
-                container.appendChild(card);
-            });
+            const stats = getSiteStats();
+            const sites = Object.keys(stats);
+            updateSiteQuickSelector(sites);
         }
 
         /* 현장 관리 모달 */
@@ -5267,6 +5347,212 @@
             renderSiteDashboard();
             renderSiteComparisonTable();
             showToast(`[${site}] 예산 ${formatNumber(val)}원 저장!`);
+        }
+
+        function updateSiteQuickSelector(sites) {
+            const sel = document.getElementById('site-quick-selector');
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">전체 현장</option>';
+            (sites || Object.keys(getSiteStats())).forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s; opt.textContent = s;
+                if (s === cur) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        function onSiteQuickSelect(site) {
+            if (!site) return;
+            const doc = savedDocuments.find(d => (d.site || '현장 미지정').trim() === site);
+            if (doc) { loadSavedDocument(doc.id); showToast(`[${site}] 현장으로 이동`); }
+        }
+
+        /* ============================================================
+           3번: 행 단위 내부 메모 (V14)
+        ============================================================ */
+        let _memoTargetId = null;
+
+        function openMemoModal(rowId) {
+            const row = dataset.find(r => r.id === rowId);
+            if (!row) return;
+            _memoTargetId = rowId;
+            document.getElementById('memo-modal-title').textContent =
+                `내부 메모 — ${row.vendor || '(거래처명 없음)'}`;
+            document.getElementById('memo-textarea').value = row.memo || '';
+            const tsEl = document.getElementById('memo-timestamp');
+            tsEl.textContent = row.memoUpdatedAt
+                ? `마지막 수정: ${row.memoUpdatedAt}`
+                : '아직 메모가 없습니다.';
+            document.getElementById('memo-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('memo-textarea').focus(), 80);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeMemoModal() {
+            document.getElementById('memo-modal').classList.add('hidden');
+            _memoTargetId = null;
+        }
+
+        function saveMemo() {
+            if (_memoTargetId === null) return;
+            const row = dataset.find(r => r.id === _memoTargetId);
+            if (!row) return;
+            row.memo = document.getElementById('memo-textarea').value.trim();
+            row.memoUpdatedAt = new Date().toLocaleString('ko-KR');
+            saveToLocalStorage();
+            renderStatementTable();
+            closeMemoModal();
+            showToast(row.memo ? '메모가 저장되었습니다.' : '메모가 삭제되었습니다.');
+        }
+
+        function clearMemo() {
+            document.getElementById('memo-textarea').value = '';
+            document.getElementById('memo-timestamp').textContent = '';
+        }
+
+        /* ============================================================
+           4번: 반복 항목 관리 (V14)
+        ============================================================ */
+        const REPEAT_KEY = 'cons_repeat_items_v14';
+
+        function getRepeatItems() {
+            try { return JSON.parse(localStorage.getItem(REPEAT_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function setRepeatItems(arr) {
+            localStorage.setItem(REPEAT_KEY, JSON.stringify(arr));
+        }
+
+        function openRepeatModal() {
+            renderRepeatItemList();
+            document.getElementById('repeat-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeRepeatModal() {
+            document.getElementById('repeat-modal').classList.add('hidden');
+        }
+
+        function addRepeatItem() {
+            const vendor = document.getElementById('repeat-vendor').value.trim();
+            if (!vendor) { showToast('거래처명을 입력해 주세요.'); return; }
+            const items = getRepeatItems();
+            items.push({
+                id: Date.now(),
+                type:   document.getElementById('repeat-type').value,
+                vendor,
+                ceo:    document.getElementById('repeat-ceo').value.trim(),
+                supply: Number(document.getElementById('repeat-supply').value) || 0,
+                tax:    Number(document.getElementById('repeat-tax').value)    || 0,
+                note:   document.getElementById('repeat-note').value.trim(),
+            });
+            setRepeatItems(items);
+            // 입력 초기화
+            ['repeat-vendor','repeat-ceo','repeat-supply','repeat-tax','repeat-note'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            renderRepeatItemList();
+            showToast(`[${vendor}] 반복 항목 등록 완료!`);
+        }
+
+        function deleteRepeatItem(id) {
+            const items = getRepeatItems().filter(i => i.id !== id);
+            setRepeatItems(items);
+            renderRepeatItemList();
+        }
+
+        function renderRepeatItemList() {
+            const items = getRepeatItems();
+            const el    = document.getElementById('repeat-item-list');
+            const badge = document.getElementById('repeat-count-badge');
+            badge.textContent = items.length + '개';
+            if (!items.length) {
+                el.innerHTML = `<p class="text-[11px] text-slate-400 dark:text-slate-600 italic py-2">등록된 반복 항목이 없습니다. 위 폼으로 추가해 주세요.</p>`;
+                return;
+            }
+            const TYPE_COLOR = { 외주비:'blue', 자재비:'emerald', 장비비:'amber', 노무비:'purple', 관리비:'rose' };
+            el.innerHTML = items.map(it => {
+                const c = TYPE_COLOR[it.type] || 'slate';
+                const total = (it.supply||0) + (it.tax||0);
+                return `
+                <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-[11px]">
+                    <span class="shrink-0 bg-${c}-100 dark:bg-${c}-900/40 text-${c}-700 dark:text-${c}-400 px-1.5 py-0.5 rounded font-bold text-[10px]">${it.type}</span>
+                    <span class="font-extrabold text-slate-800 dark:text-slate-100 flex-1 truncate">${it.vendor}</span>
+                    ${it.ceo ? `<span class="text-slate-400 dark:text-slate-500 text-[10px]">${it.ceo}</span>` : ''}
+                    <span class="text-indigo-600 dark:text-indigo-400 font-bold shrink-0">${formatNumber(total)}원</span>
+                    ${it.note ? `<span class="text-slate-400 dark:text-slate-500 text-[10px] italic truncate max-w-[80px]">${it.note}</span>` : ''}
+                    <button onclick="deleteRepeatItem(${it.id})" class="shrink-0 text-rose-400 hover:text-rose-600 transition-all p-0.5 rounded hover:bg-rose-50 dark:hover:bg-rose-950/40">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                </div>`;
+            }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 현재 대장에 반복 항목 삽입 */
+        function insertRepeatItemsNow() {
+            const items = getRepeatItems();
+            if (!items.length) { showToast('등록된 반복 항목이 없습니다.'); return; }
+            let inserted = 0;
+            items.forEach(it => {
+                const alreadyExists = dataset.some(r =>
+                    r.vendor === it.vendor && r.type === it.type
+                );
+                if (alreadyExists) return;
+                const matched = accountDb.find(a =>
+                    a.vendor === it.vendor || a.ceo === it.ceo || a.holder === it.vendor
+                );
+                dataset.push({
+                    id: genDatasetId(),
+                    type: it.type, vendor: it.vendor, ceo: it.ceo,
+                    supply: it.supply, tax: it.tax, deduction: 0, prepaid: 0,
+                    bank:    matched ? matched.bank    : '',
+                    account: matched ? matched.account : '',
+                    holder:  matched ? matched.holder  : '',
+                    phone:   matched ? matched.phone   : '',
+                    biznum:  matched ? matched.biznum  : '',
+                    status: '대기', note: it.note, memo: '',
+                });
+                inserted++;
+            });
+            if (!inserted) {
+                showToast('모든 반복 항목이 이미 존재합니다.'); return;
+            }
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+            closeRepeatModal();
+            showToast(`반복 항목 ${inserted}건 삽입 완료!`);
+        }
+
+        /* 새 대장 생성 시 반복 항목 자동 채우기 — confirmDuplicateDocument 또는 toggleNewDocModal 완료 후 호출 */
+        function autoInsertRepeatItems() {
+            const items = getRepeatItems();
+            if (!items.length) return;
+            let inserted = 0;
+            items.forEach(it => {
+                const alreadyExists = dataset.some(r => r.vendor === it.vendor && r.type === it.type);
+                if (alreadyExists) return;
+                const matched = accountDb.find(a =>
+                    a.vendor === it.vendor || a.ceo === it.ceo || a.holder === it.vendor
+                );
+                dataset.push({
+                    id: genDatasetId(),
+                    type: it.type, vendor: it.vendor, ceo: it.ceo,
+                    supply: it.supply, tax: it.tax, deduction: 0, prepaid: 0,
+                    bank:    matched ? matched.bank    : '',
+                    account: matched ? matched.account : '',
+                    holder:  matched ? matched.holder  : '',
+                    phone:   matched ? matched.phone   : '',
+                    biznum:  matched ? matched.biznum  : '',
+                    status: '대기', note: it.note, memo: '',
+                });
+                inserted++;
+            });
+            if (inserted > 0) {
+                saveToLocalStorage();
+                renderStatementTable();
+                showToast(`반복 항목 ${inserted}건 자동 삽입!`);
+            }
         }
 
         function exportToCSV() {
