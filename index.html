@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V14</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V18</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -274,6 +274,17 @@
                 page-break-after: always !important;
                 transform: none !important;
             }
+
+            /* ── 계약서 인쇄: 헤더/탭 숨기고 계약서만 출력 ── */
+            body.contract-printing > *:not(#contract-print-box) {
+                display: none !important;
+            }
+            body.contract-printing #contract-print-box {
+                display: block !important;
+                width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
         }
         
         ::-webkit-scrollbar {
@@ -310,7 +321,7 @@
                 <div class="leading-tight">
                     <h1 class="text-sm font-extrabold tracking-tight flex items-center gap-1">
                         현장 자금관리 마스터
-                        <span class="bg-blue-500 text-[9px] px-1 py-0.5 rounded text-white font-black">PRO V14</span>
+                        <span class="bg-blue-500 text-[9px] px-1 py-0.5 rounded text-white font-black">PRO V18</span>
                     </h1>
                     <p class="text-[9px] text-slate-500 hidden sm:block">백업강화 • 현장별 관리 • 인쇄 미리보기</p>
                 </div>
@@ -449,6 +460,10 @@
             <button id="tab-btn-stats" onclick="switchTab('stats')"
                 class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
                 <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> 4. 집계표
+            </button>
+            <button id="tab-btn-contract" onclick="switchTab('contract')"
+                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
+                <i data-lucide="file-signature" class="w-3.5 h-3.5"></i> 5. 건설기계 임대차계약서
             </button>
         </div>
 
@@ -875,9 +890,23 @@
 
                         <!-- 청구 품목 정보 -->
                         <div class="req-items-section mb-3">
-                            <div class="flex justify-between items-center mb-1">
+                            <div class="flex justify-between items-center mb-1 gap-2 flex-wrap">
                                 <p class="text-[10px] font-bold text-slate-800 dark:text-slate-250">● 청구 및 의뢰 품목 내역</p>
-                                <button onclick="addRequestItemRow()" class="no-print bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[9px] px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 font-semibold">품목 행 추가</button>
+                                <div class="flex items-center gap-1.5 no-print ml-auto">
+                                    <button onclick="addRequestItemRow()" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[9px] px-2 py-1 rounded border border-slate-300 dark:border-slate-700 font-semibold flex items-center gap-0.5">
+                                        <i data-lucide="plus" class="w-2.5 h-2.5"></i> 품목 행 추가
+                                    </button>
+                                    <div class="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
+                                    <!-- 명세서 반영 확정 버튼 -->
+                                    <button onclick="applyItemsToStatement()"
+                                        id="apply-to-statement-btn"
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] px-2.5 py-1 rounded font-bold flex items-center gap-0.5 transition-all shadow-sm"
+                                        title="현재 품목 합계를 자금청구명세서의 해당 행 공급가액/부가세에 반영합니다">
+                                        <i data-lucide="arrow-left-right" class="w-2.5 h-2.5"></i> 명세서에 반영
+                                    </button>
+                                    <!-- 합계 일치 여부 상태 뱃지 -->
+                                    <span id="items-sync-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded hidden"></span>
+                                </div>
                             </div>
                             <table class="w-full h-full border-collapse border border-slate-300 dark:border-slate-700 text-[10px] text-center">
                                 <thead>
@@ -968,7 +997,7 @@
                                 <p class="font-bold text-slate-800 dark:text-slate-200">● 담당자 메모 / 특이사항</p>
                                 <span class="no-print text-[9px] text-slate-400 dark:text-slate-500">(인쇄 시 포함됩니다)</span>
                             </div>
-                            <textarea id="req-manager-memo" rows="3" onchange="saveRequestMemo()" oninput="autoResizeMemo(this)" placeholder="" class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
+                            <textarea id="req-manager-memo" rows="3" onchange="saveRequestMemo()" oninput="autoResizeMemo(this)" placeholder="협의내용, 특이사항, 담당자 전달사항 등을 입력하세요..." class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
                         </div>
 
                         <!-- 서명란 -->
@@ -995,7 +1024,7 @@
                             <i data-lucide="eye" class="w-4 h-4"></i> 인쇄 미리보기
                         </button>
                         <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
-                            <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력
+                            <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력 (중앙 배치)
                         </button>
                         <button onclick="printAllRequests()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
                             <i data-lucide="layers" class="w-4 h-4"></i> 전체 거래처 일괄 출력
@@ -1183,6 +1212,310 @@
             </div>
         </div>
 
+        <!-- ===== 5. 건설기계 임대차계약서 ===== -->
+        <div id="tab-contract" class="hidden">
+
+            <!-- 컨트롤 패널 (no-print) -->
+            <div class="no-print bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 mb-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-teal-600 p-1.5 rounded-lg"><i data-lucide="file-signature" class="w-4 h-4 text-white"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">건설기계 임대차계약서</h4>
+                            <p class="text-[10px] text-slate-400">직접 입력하거나, PDF를 파싱해 자동 채우기 — 완성 후 인쇄/PDF 저장</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- PDF 파싱 가져오기 -->
+                        <button onclick="triggerContractPdfImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="file-up" class="w-3.5 h-3.5"></i> PDF 파싱 가져오기
+                        </button>
+                        <input type="file" id="contract-pdf-input" accept=".pdf" class="hidden" onchange="importContractPdf(this)">
+                        <!-- 계약서 목록 -->
+                        <select id="contract-list-selector" onchange="loadContract(this.value)"
+                            class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs rounded px-2 py-1.5 font-bold text-slate-700 dark:text-slate-100 outline-none max-w-[220px]">
+                        </select>
+                        <button onclick="saveContract()" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="save" class="w-3.5 h-3.5"></i> 저장
+                        </button>
+                        <button onclick="newContract()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="file-plus" class="w-3.5 h-3.5"></i> 새 계약서
+                        </button>
+                        <button onclick="deleteContract()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
+                        </button>
+                        <div class="w-px h-5 bg-slate-200 dark:bg-slate-700"></div>
+                        <button onclick="printContract()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄/PDF저장
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 계약서 본문 (인쇄 영역) -->
+            <div id="contract-print-box" class="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
+                style="font-family:'Noto Sans KR', sans-serif;">
+                <div class="p-8 md:p-12 max-w-4xl mx-auto text-slate-900 dark:text-slate-100" style="font-size:13px; line-height:1.9;">
+
+                    <!-- 제목 -->
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl font-black tracking-widest border-b-2 border-slate-800 dark:border-slate-300 pb-3 inline-block px-8">건 설 기 계 임 대 차 계 약 서</h1>
+                    </div>
+
+                    <!-- 전문 -->
+                    <p class="mb-6 text-justify leading-relaxed text-slate-700 dark:text-slate-300 text-[13px]">
+                        임대인과 임차인은 아래의 건설기계 임대차에 관하여 다음과 같이 계약을 체결한다.
+                    </p>
+
+                    <!-- 계약 기본 정보 테이블 -->
+                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
+                        <colgroup><col style="width:16%"><col style="width:34%"><col style="width:16%"><col style="width:34%"></colgroup>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 font-bold px-3 py-2 text-center">현장명</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3">
+                                    <input type="text" id="ct-site" class="w-full bg-transparent outline-none font-semibold" placeholder="현장명 입력">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 font-bold px-3 py-2 text-center">계약 일자</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <input type="date" id="ct-date" class="w-full bg-transparent outline-none font-semibold">
+                                </td>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 font-bold px-3 py-2 text-center">계약 번호</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <input type="text" id="ct-number" class="w-full bg-transparent outline-none font-semibold" placeholder="예) 2026-001">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- 임대인 / 임차인 -->
+                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
+                        <colgroup><col style="width:8%"><col style="width:16%"><col style="width:26%"><col style="width:16%"><col style="width:34%"></colgroup>
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800">
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 text-center font-bold" rowspan="5">임<br>대<br>인</th>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">상호(법인명)</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-company" class="w-full bg-transparent outline-none" placeholder="임대인 상호"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">사업자등록번호</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-biznum" class="w-full bg-transparent outline-none" placeholder="000-00-00000" oninput="formatBusinessNumber(this)"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">대표자</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-ceo" class="w-full bg-transparent outline-none" placeholder="대표자 성명"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">전화번호</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">주소</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3"><input type="text" id="ct-lessor-addr" class="w-full bg-transparent outline-none" placeholder="사업장 주소"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">은행/계좌번호</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-bank" class="w-full bg-transparent outline-none" placeholder="은행명"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">예금주</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-account" class="w-full bg-transparent outline-none" placeholder="계좌번호 및 예금주"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">운전원 성명</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-driver" class="w-full bg-transparent outline-none" placeholder="운전원 성명 (해당 시)"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">운전원 연락처</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-driver-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-slate-100 dark:bg-slate-800">
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 text-center font-bold" rowspan="4">임<br>차<br>인</th>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">상호(법인명)</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-company" class="w-full bg-transparent outline-none" placeholder="임차인 상호"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">사업자등록번호</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-biznum" class="w-full bg-transparent outline-none" placeholder="000-00-00000" oninput="formatBusinessNumber(this)"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">대표자</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-ceo" class="w-full bg-transparent outline-none" placeholder="대표자 성명"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">전화번호</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">주소</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3"><input type="text" id="ct-lessee-addr" class="w-full bg-transparent outline-none" placeholder="사업장 주소"></td>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">담당자</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-manager" class="w-full bg-transparent outline-none" placeholder="담당자 성명"></td>
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">담당자 연락처</th>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-manager-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- 기계 정보 -->
+                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800">
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center" colspan="4">건설기계 명세</th>
+                            </tr>
+                            <tr class="bg-slate-50 dark:bg-slate-800/60 text-center text-[11px] font-bold">
+                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:22%">기계 종류</th>
+                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:22%">규격·형식</th>
+                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:22%">등록번호(차량번호)</th>
+                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:34%">제조사·연식</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ct-machine-tbody">
+                            <!-- 행은 JS로 렌더 -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="no-print">
+                                <td colspan="4" class="border border-slate-400 dark:border-slate-600 px-3 py-1.5 text-center">
+                                    <button onclick="addMachineRow()" class="text-[11px] text-teal-600 dark:text-teal-400 font-bold hover:underline flex items-center gap-1 mx-auto">
+                                        <i data-lucide="plus-circle" class="w-3 h-3"></i> 기계 행 추가
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- 계약 조건 -->
+                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800">
+                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center" colspan="4">계약 조건</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center" style="width:16%">임대 기간</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" style="width:34%">
+                                    <div class="flex items-center gap-1">
+                                        <input type="date" id="ct-period-from" class="bg-transparent outline-none font-semibold flex-1">
+                                        <span class="font-bold text-slate-400">~</span>
+                                        <input type="date" id="ct-period-to" class="bg-transparent outline-none font-semibold flex-1">
+                                    </div>
+                                </td>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center" style="width:16%">작업 현장</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" style="width:34%">
+                                    <input type="text" id="ct-work-site" class="w-full bg-transparent outline-none" placeholder="작업 현장 주소">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">임대료 단가</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <div class="flex items-center gap-1">
+                                        <input type="text" id="ct-unit-price" class="bg-transparent outline-none font-bold text-blue-700 dark:text-blue-400 flex-1"
+                                            placeholder="단가 입력" onfocus="this.value=this.value.replace(/,/g,'')"
+                                            onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); calcContractTotal()"
+                                            oninput="calcContractTotal()">
+                                        <select id="ct-unit-type" onchange="calcContractTotal()" class="bg-transparent outline-none text-[11px] font-bold text-slate-600 dark:text-slate-300 border-l border-slate-300 dark:border-slate-600 pl-1">
+                                            <option value="시간">원/시간</option>
+                                            <option value="일">원/일</option>
+                                            <option value="월">원/월</option>
+                                            <option value="식">원/식</option>
+                                            <option value="m3">원/m³</option>
+                                            <option value="ton">원/ton</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">작업 시간</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <div class="flex items-center gap-1">
+                                        <input type="text" id="ct-work-start" class="bg-transparent outline-none flex-1" placeholder="시작(예: 08:00)">
+                                        <span class="text-slate-400 font-bold">~</span>
+                                        <input type="text" id="ct-work-end" class="bg-transparent outline-none flex-1" placeholder="종료(예: 17:00)">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">수량(시간/일)</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <input type="number" id="ct-qty" class="w-full bg-transparent outline-none font-bold" placeholder="0" min="0" oninput="calcContractTotal()">
+                                </td>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">대기비</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <input type="text" id="ct-standby" class="w-full bg-transparent outline-none" placeholder="대기비 조건 기재 (예: 50% 적용)">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">공급가액</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <input type="text" id="ct-supply" class="w-full bg-transparent outline-none font-extrabold text-slate-800 dark:text-slate-100" readonly placeholder="자동 계산">
+                                </td>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">부가세(10%)</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <input type="text" id="ct-vat" class="w-full bg-transparent outline-none font-bold text-slate-700 dark:text-slate-200" readonly placeholder="자동 계산">
+                                </td>
+                            </tr>
+                            <tr class="bg-blue-50 dark:bg-blue-950/20">
+                                <td class="border border-slate-400 dark:border-slate-600 bg-blue-100 dark:bg-blue-900/40 font-extrabold px-3 py-2 text-center text-blue-800 dark:text-blue-300">계약 금액 합계</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-2 font-extrabold text-blue-700 dark:text-blue-400 text-base" colspan="3">
+                                    <span id="ct-total-display">금 0원정 (￦0)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">지급 조건</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3">
+                                    <input type="text" id="ct-payment-terms" class="w-full bg-transparent outline-none" placeholder="예) 작업 완료 후 30일 이내 세금계산서 발행 및 현금 지급">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">연료 부담</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <select id="ct-fuel" class="w-full bg-transparent outline-none font-semibold">
+                                        <option value="임대인 부담">임대인 부담</option>
+                                        <option value="임차인 부담">임차인 부담</option>
+                                        <option value="협의">협의</option>
+                                    </select>
+                                </td>
+                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">보험 부담</td>
+                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
+                                    <select id="ct-insurance" class="w-full bg-transparent outline-none font-semibold">
+                                        <option value="임대인 부담">임대인 부담</option>
+                                        <option value="임차인 부담">임차인 부담</option>
+                                        <option value="협의">협의</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- 특약 사항 -->
+                    <div class="border border-slate-400 dark:border-slate-600 rounded mb-6">
+                        <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-[12px] border-b border-slate-400 dark:border-slate-600">특약 사항</div>
+                        <textarea id="ct-special" rows="4" class="w-full px-4 py-3 bg-transparent outline-none text-[12px] resize-none dark:text-slate-100"
+                            placeholder="특약 사항을 입력하세요. (예: 우천 시 작업 중지, 안전사고 책임 소재, 기계 고장 시 처리 방법 등)"></textarea>
+                    </div>
+
+                    <!-- 서명란 -->
+                    <div class="mt-8 mb-4">
+                        <p class="text-center text-[13px] mb-6 text-slate-700 dark:text-slate-300">위 계약 내용을 확인하고 이에 동의하여 본 계약서 2부를 작성하고 각각 1부씩 보관한다.</p>
+                        <div class="flex justify-around gap-8 text-[12px]">
+                            <div class="flex-1 border border-slate-300 dark:border-slate-600 rounded-xl p-5">
+                                <p class="font-extrabold text-center text-slate-700 dark:text-slate-200 mb-4 text-[13px]">임 대 인</p>
+                                <div class="space-y-2">
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">상호 :</span><span id="ct-sig-lessor-company" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">대표자 :</span><span id="ct-sig-lessor-ceo" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span><span class="text-slate-400 dark:text-slate-500">(인)</span></div>
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">주소 :</span><span id="ct-sig-lessor-addr" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">연락처 :</span><span id="ct-sig-lessor-phone" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
+                                </div>
+                            </div>
+                            <div class="flex-1 border border-slate-300 dark:border-slate-600 rounded-xl p-5">
+                                <p class="font-extrabold text-center text-slate-700 dark:text-slate-200 mb-4 text-[13px]">임 차 인</p>
+                                <div class="space-y-2">
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">상호 :</span><span id="ct-sig-lessee-company" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">대표자 :</span><span id="ct-sig-lessee-ceo" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span><span class="text-slate-400 dark:text-slate-500">(인)</span></div>
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">주소 :</span><span id="ct-sig-lessee-addr" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
+                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">연락처 :</span><span id="ct-sig-lessee-phone" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /본문 내부 -->
+            </div><!-- /contract-print-box -->
+        </div><!-- /tab-contract -->
+
     </main>
 
     <!-- 통계 상세조회 모달 팝업 -->
@@ -1282,7 +1615,7 @@
         <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
             <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
             <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
-            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V14</span>
+            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 Pro V18</span>
         </div>
     </div>
 
@@ -1536,6 +1869,87 @@
 
             <div class="shrink-0 flex justify-end px-6 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4">
                 <button onclick="closeSiteManagerModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 거래처 이력 카드 모달 (V16) ===== -->
+    <div id="vendor-history-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[92vh] flex flex-col">
+
+            <!-- 헤더 -->
+            <div class="flex justify-between items-start px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 p-2 rounded-xl shrink-0">
+                        <i data-lucide="building" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 id="vh-vendor-name" class="font-extrabold text-slate-800 dark:text-slate-100 text-base"></h3>
+                        <p id="vh-vendor-meta" class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5"></p>
+                    </div>
+                </div>
+                <button onclick="closeVendorHistoryModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- KPI 카드 4종 -->
+            <div id="vh-kpi-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50 dark:bg-slate-900/60"></div>
+
+            <!-- 본문 스크롤 -->
+            <div class="flex-1 overflow-auto px-6 py-4 space-y-5 text-xs">
+
+                <!-- 월별 지급 추이 바 차트 -->
+                <div>
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-indigo-500"></i> 월별 지급요청액 추이
+                    </h4>
+                    <div id="vh-monthly-chart" class="space-y-1.5"></div>
+                </div>
+
+                <!-- 대장별 거래 내역 테이블 -->
+                <div>
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i data-lucide="scroll-text" class="w-3.5 h-3.5 text-blue-500"></i> 전체 대장 거래 내역
+                    </h4>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                        <table class="w-full border-collapse text-[11px]">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300 text-center">
+                                    <th class="py-2 px-3 text-left">대장(현장/회사/월)</th>
+                                    <th class="py-2 px-2">구분</th>
+                                    <th class="py-2 px-3 text-right">공급가액</th>
+                                    <th class="py-2 px-3 text-right">부가세</th>
+                                    <th class="py-2 px-3 text-right">지급요청액</th>
+                                    <th class="py-2 px-2">상태</th>
+                                    <th class="py-2 px-2">메모</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vh-history-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 계좌 정보 + 중복 경고 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4">
+                        <h4 class="font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5 mb-2 text-[11px]">
+                            <i data-lucide="credit-card" class="w-3 h-3"></i> 등록 계좌 정보
+                        </h4>
+                        <div id="vh-account-info" class="space-y-1 text-[11px] text-slate-700 dark:text-slate-300"></div>
+                    </div>
+                    <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-xl p-4">
+                        <h4 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-2 text-[11px]">
+                            <i data-lucide="alert-triangle" class="w-3 h-3"></i> 이상 탐지 결과
+                        </h4>
+                        <div id="vh-anomaly" class="space-y-1.5 text-[11px]"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="shrink-0 flex justify-end px-6 pb-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button onclick="closeVendorHistoryModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
             </div>
         </div>
     </div>
@@ -2192,22 +2606,26 @@
             const tabRequest = document.getElementById('tab-request');
             const tabRequestSpecial = document.getElementById('tab-request-special');
             const tabStats = document.getElementById('tab-stats');
+            const tabContract = document.getElementById('tab-contract');
 
             const btnStatement = document.getElementById('tab-btn-statement');
             const btnRequest = document.getElementById('tab-btn-request');
             const btnRequestSpecial = document.getElementById('tab-btn-request-special');
             const btnStats = document.getElementById('tab-btn-stats');
+            const btnContract = document.getElementById('tab-btn-contract');
 
             tabStatement.classList.add('hidden');
             tabRequest.classList.add('hidden');
             tabRequestSpecial.classList.add('hidden');
             tabStats.classList.add('hidden');
+            if (tabContract) tabContract.classList.add('hidden');
 
             const inactiveClass = "py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all";
             btnStatement.className = inactiveClass;
             btnRequest.className = inactiveClass;
             btnRequestSpecial.className = inactiveClass;
             btnStats.className = inactiveClass;
+            if (btnContract) btnContract.className = inactiveClass;
 
             if (tabId === 'statement') {
                 tabStatement.classList.remove('hidden');
@@ -2226,6 +2644,12 @@
                 tabStats.classList.remove('hidden');
                 btnStats.className = "py-2 px-4 font-semibold border-b-2 border-emerald-500 text-emerald-400 text-[11px] flex items-center gap-1.5 transition-all";
                 renderVendorStatistics();
+            } else if (tabId === 'contract') {
+                if (tabContract) tabContract.classList.remove('hidden');
+                if (btnContract) btnContract.className = "py-2 px-4 font-semibold border-b-2 border-teal-500 text-teal-400 text-[11px] flex items-center gap-1.5 transition-all";
+                renderContractMachineRows();
+                updateContractSignature();
+                lucide.createIcons();
             }
         }
 
@@ -2598,7 +3022,12 @@
                                 <div class="font-extrabold text-slate-100 text-sm flex items-center gap-1">${vendor} <i data-lucide="zoom-in" class="w-3 h-3 text-slate-400"></i></div>
                                 ${data.ceo ? `<div class="text-[10px] text-slate-400 dark:text-slate-300 mt-0.5">대표: ${data.ceo}</div>` : ''}
                             </div>
-                            <span class="text-[9px] ${cc.badge} px-2 py-0.5 rounded font-extrabold border shrink-0">건수: ${data.count}</span>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <span class="text-[9px] ${cc.badge} px-2 py-0.5 rounded font-extrabold border">건수: ${data.count}</span>
+                                <button onclick="event.stopPropagation(); openVendorHistoryModal('${vendor.replace(/'/g, "\\'")}')" class="text-blue-400 hover:text-blue-300 p-0.5 rounded hover:bg-slate-700 transition-all" title="거래 이력 카드">
+                                    <i data-lucide="clock-3" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="space-y-0.5 border-t border-slate-700/60 dark:border-slate-800 pt-2">
                             <div class="flex justify-between text-[10px]"><span class="text-slate-400">공급액</span><span class="text-slate-200 font-semibold">${formatNumber(data.supply)}원</span></div>
@@ -3150,7 +3579,10 @@
                         </select>
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${row.vendor || ''}" placeholder="기입" onblur="completeEditing(${row.id})" onchange="handleVendorNameChange(${row.id}, this.value)" class="w-full bg-transparent text-left font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
+                        <div class="flex items-center gap-0.5">
+                            <input type="text" value="${row.vendor || ''}" placeholder="기입" onblur="completeEditing(${row.id})" onchange="handleVendorNameChange(${row.id}, this.value)" class="flex-1 min-w-0 bg-transparent text-left font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
+                            ${row.vendor ? `<button onclick="openVendorHistoryModal('${row.vendor.replace(/'/g,"\\'")}')" class="no-print shrink-0 text-slate-300 dark:text-slate-600 hover:text-blue-500 dark:hover:text-blue-400 p-0.5 rounded transition-all" title="${row.vendor} 거래 이력 보기"><i data-lucide="clock-3" class="w-3 h-3"></i></button>` : ''}
+                        </div>
                     </td>
                     <td class="py-1 px-1">
                         <input type="text" value="${row.ceo || ''}" placeholder="기입" onblur="completeEditing(${row.id})" onchange="handleCeoNameChange(${row.id}, this.value)" class="w-full bg-transparent text-center focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
@@ -4090,8 +4522,16 @@
         }
 
         function loadRequestData(valueKey) {
-            requestItems = [];
+            // ★ 현재 표시 중인 거래처를 다시 선택하면 requestItems를 재초기화하지 않음
+            //    (품목 행을 추가·수정한 상태를 보존)
+            const _prevKey = loadRequestData._currentKey;
+            loadRequestData._currentKey = valueKey;
+            const isSameKey = (_prevKey && _prevKey === valueKey);
+
             requestSpecialItems = [];
+            if (!isSameKey) {
+                requestItems = [];
+            }
             
             const currentDoc = savedDocuments.find(d => d.id === currentDocId);
             if (currentDoc) {
@@ -4163,12 +4603,14 @@
                     autoResizeMemo(memoEl);
                 }
 
-                requestItems.push({
-                    item: `${target.type} - ${target.note || '품목 청구'}`,
-                    qty: "1.0",
-                    supply: target.supply,
-                    tax: target.tax
-                });
+                if (!isSameKey) {
+                    requestItems.push({
+                        item: `${target.type} - ${target.note || '품목 청구'}`,
+                        qty: "1.0",
+                        supply: target.supply,
+                        tax: target.tax
+                    });
+                }
 
                 buildSpecialItemsFromRows([target]);
 
@@ -4210,14 +4652,16 @@
                     autoResizeMemo(memoElC);
                 }
 
-                matchedRows.forEach(row => {
-                    requestItems.push({
-                        item: `${row.type} - ${row.note || '품목 청구'}`,
-                        qty: "1.0",
-                        supply: row.supply,
-                        tax: row.tax
+                if (!isSameKey) {
+                    matchedRows.forEach(row => {
+                        requestItems.push({
+                            item: `${row.type} - ${row.note || '품목 청구'}`,
+                            qty: "1.0",
+                            supply: row.supply,
+                            tax: row.tax
+                        });
                     });
-                });
+                }
 
                 buildSpecialItemsFromRows(matchedRows.filter(row => row.type === '장비비'));
             }
@@ -4305,27 +4749,129 @@
             document.getElementById('req-calc-supply').value = formatMoneyByUnit(totalRequestSupply);
             document.getElementById('req-calc-tax').value = formatMoneyByUnit(totalRequestTax);
             document.getElementById('req-calc-total').value = formatMoneyByUnit(finalTotal) + (currentMoneyUnit === 'thousand' ? " 천원" : " 원");
+
+            // ── 명세서 원본 금액과 비교해 동기화 상태 뱃지 갱신 ──
+            updateItemsSyncBadge(totalRequestSupply, totalRequestTax);
         }
 
         function updateRequestItem(index, field, value) {
             if (requestItems[index]) {
                 requestItems[index][field] = value;
+                // ★ requestItems 변경은 의뢰서 전용 — dataset(명세서)에는 절대 역전파하지 않음
                 renderRequestItemsTable();
             }
+        }
+
+        /* ── 품목 합계 ↔ 명세서 원본 동기화 상태 뱃지 ── */
+        function updateItemsSyncBadge(itemsSupply, itemsTax) {
+            const badge = document.getElementById('items-sync-badge');
+            if (!badge) return;
+
+            // 현재 선택된 dataset 행 찾기
+            const selector = document.getElementById('request-selector');
+            if (!selector) return;
+            const key = selector.value;
+            if (!key || key === 'custom') { badge.classList.add('hidden'); return; }
+
+            let origSupply = 0, origTax = 0;
+            if (key.startsWith('row-')) {
+                const rowId = key.replace('row-', '');
+                const row = dataset.find(r => r.id == rowId);
+                if (row) { origSupply = row.supply || 0; origTax = row.tax || 0; }
+            } else if (key.startsWith('combine-')) {
+                const vendor = key.replace('combine-', '');
+                dataset.filter(r => r.vendor === vendor).forEach(r => {
+                    origSupply += r.supply || 0; origTax += r.tax || 0;
+                });
+            } else { badge.classList.add('hidden'); return; }
+
+            badge.classList.remove('hidden');
+            if (itemsSupply === origSupply && itemsTax === origTax) {
+                badge.textContent = '✓ 명세서와 일치';
+                badge.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400';
+            } else {
+                const diff = (itemsSupply + itemsTax) - (origSupply + origTax);
+                const sign = diff > 0 ? '+' : '';
+                badge.textContent = `${sign}${formatNumber(diff)}원 차이 → 반영 가능`;
+                badge.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 cursor-pointer';
+            }
+        }
+
+        /* ── 명세서에 반영 (확정 버튼) ── */
+        function applyItemsToStatement() {
+            const selector = document.getElementById('request-selector');
+            if (!selector) return;
+            const key = selector.value;
+            if (!key || key === 'custom') {
+                showToast('명세서에 연결된 거래처를 먼저 선택해 주세요.');
+                return;
+            }
+
+            // 품목 합계 계산
+            const newSupply = requestItems.reduce((s, it) => s + (it.supply || 0), 0);
+            const newTax    = requestItems.reduce((s, it) => s + (it.tax    || 0), 0);
+
+            // 대상 dataset 행 찾기
+            let targetRows = [];
+            if (key.startsWith('row-')) {
+                const rowId = key.replace('row-', '');
+                const row = dataset.find(r => r.id == rowId);
+                if (row) targetRows = [row];
+            } else if (key.startsWith('combine-')) {
+                const vendor = key.replace('combine-', '');
+                targetRows = dataset.filter(r => r.vendor === vendor);
+            }
+
+            if (!targetRows.length) {
+                showToast('명세서에서 해당 거래처 행을 찾을 수 없습니다.');
+                return;
+            }
+
+            // 기존 합계 계산
+            const origSupply = targetRows.reduce((s, r) => s + (r.supply || 0), 0);
+            const origTax    = targetRows.reduce((s, r) => s + (r.tax    || 0), 0);
+
+            if (newSupply === origSupply && newTax === origTax) {
+                showToast('품목 합계가 명세서와 이미 일치합니다. 변경 없음.');
+                return;
+            }
+
+            // 단일 행이면 직접, 복수 행(combine)이면 첫 행에 차액 누적
+            if (targetRows.length === 1) {
+                targetRows[0].supply = newSupply;
+                targetRows[0].tax    = newTax;
+            } else {
+                // combine: 품목별로 매칭하거나 첫 행에 전체 반영
+                const diffSupply = newSupply - origSupply;
+                const diffTax    = newTax    - origTax;
+                targetRows[0].supply = Math.max(0, (targetRows[0].supply || 0) + diffSupply);
+                targetRows[0].tax    = Math.max(0, (targetRows[0].tax    || 0) + diffTax);
+            }
+
+            saveToLocalStorage();
+            renderStatementTable();
+            updateItemsSyncBadge(newSupply, newTax);
+
+            const diffTotal = (newSupply + newTax) - (origSupply + origTax);
+            const sign = diffTotal > 0 ? '+' : '';
+            showToast(`명세서 반영 완료! (${sign}${formatNumber(diffTotal)}원 적용)`);
         }
 
         function updateRequestItemFormatted(index, field, value) {
             let intValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
             updateRequestItem(index, field, intValue);
+            // ★ 명세서(dataset) supply는 건드리지 않음 — 의뢰서 품목 금액은 의뢰서 전용
         }
 
         function addRequestItemRow() {
             requestItems.push({ item: "새 품목명", qty: "1.0", supply: 0, tax: 0 });
+            // ★ dataset에 새 행 추가 없음 — 의뢰서 전용 품목만 추가
             renderRequestItemsTable();
         }
 
         function deleteRequestItemRow(index) {
             requestItems = requestItems.filter((_, i) => i !== index);
+            // ★ dataset 삭제 없음 — 의뢰서 전용 품목만 제거
             renderRequestItemsTable();
         }
 
@@ -5555,6 +6101,553 @@
             }
         }
 
+        /* ============================================================
+           건설기계 임대차계약서 (V15)
+        ============================================================ */
+        const CONTRACT_STORE_KEY = 'cons_contracts_v15';
+        let currentContractId = null;
+        let contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
+
+        function getContracts() {
+            try { return JSON.parse(localStorage.getItem(CONTRACT_STORE_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function setContracts(arr) { localStorage.setItem(CONTRACT_STORE_KEY, JSON.stringify(arr)); }
+
+        /* 셀렉터 갱신 */
+        function refreshContractSelector() {
+            const sel  = document.getElementById('contract-list-selector');
+            if (!sel) return;
+            const list = getContracts();
+            sel.innerHTML = list.length
+                ? list.map(c => `<option value="${c.id}" ${c.id===currentContractId?'selected':''}>${c.title||'무제'} (${c.date||'날짜 없음'})</option>`).join('')
+                : '<option value="">저장된 계약서 없음</option>';
+        }
+
+        /* 폼 → 객체 */
+        function readContractForm() {
+            return {
+                id:               currentContractId || ('ct-' + Date.now()),
+                title:            document.getElementById('ct-site').value.trim() || '무제',
+                date:             document.getElementById('ct-date').value,
+                number:           document.getElementById('ct-number').value.trim(),
+                site:             document.getElementById('ct-site').value.trim(),
+                workSite:         document.getElementById('ct-work-site').value.trim(),
+                periodFrom:       document.getElementById('ct-period-from').value,
+                periodTo:         document.getElementById('ct-period-to').value,
+                workStart:        document.getElementById('ct-work-start').value.trim(),
+                workEnd:          document.getElementById('ct-work-end').value.trim(),
+                unitPrice:        document.getElementById('ct-unit-price').value.replace(/,/g,''),
+                unitType:         document.getElementById('ct-unit-type').value,
+                qty:              document.getElementById('ct-qty').value,
+                standby:          document.getElementById('ct-standby').value.trim(),
+                supply:           document.getElementById('ct-supply').value.replace(/,/g,''),
+                vat:              document.getElementById('ct-vat').value.replace(/,/g,''),
+                paymentTerms:     document.getElementById('ct-payment-terms').value.trim(),
+                fuel:             document.getElementById('ct-fuel').value,
+                insurance:        document.getElementById('ct-insurance').value,
+                special:          document.getElementById('ct-special').value.trim(),
+                lessorCompany:    document.getElementById('ct-lessor-company').value.trim(),
+                lessorBiznum:     document.getElementById('ct-lessor-biznum').value.trim(),
+                lessorCeo:        document.getElementById('ct-lessor-ceo').value.trim(),
+                lessorPhone:      document.getElementById('ct-lessor-phone').value.trim(),
+                lessorAddr:       document.getElementById('ct-lessor-addr').value.trim(),
+                lessorBank:       document.getElementById('ct-lessor-bank').value.trim(),
+                lessorAccount:    document.getElementById('ct-lessor-account').value.trim(),
+                lessorDriver:     document.getElementById('ct-lessor-driver').value.trim(),
+                lessorDriverPhone:document.getElementById('ct-lessor-driver-phone').value.trim(),
+                lesseeCompany:    document.getElementById('ct-lessee-company').value.trim(),
+                lesseeBiznum:     document.getElementById('ct-lessee-biznum').value.trim(),
+                lesseeCeo:        document.getElementById('ct-lessee-ceo').value.trim(),
+                lesseePhone:      document.getElementById('ct-lessee-phone').value.trim(),
+                lesseeAddr:       document.getElementById('ct-lessee-addr').value.trim(),
+                lesseeManager:    document.getElementById('ct-lessee-manager').value.trim(),
+                lesseeManagerPhone:document.getElementById('ct-lessee-manager-phone').value.trim(),
+                machines: JSON.parse(JSON.stringify(contractMachines)),
+                savedAt: new Date().toLocaleString('ko-KR'),
+            };
+        }
+
+        /* 객체 → 폼 */
+        function writeContractForm(c) {
+            const set = (id, v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+            set('ct-site', c.site); set('ct-date', c.date); set('ct-number', c.number);
+            set('ct-work-site', c.workSite);
+            set('ct-period-from', c.periodFrom); set('ct-period-to', c.periodTo);
+            set('ct-work-start', c.workStart); set('ct-work-end', c.workEnd);
+            set('ct-unit-price', Number(c.unitPrice||0).toLocaleString('ko-KR'));
+            const ut=document.getElementById('ct-unit-type'); if(ut) ut.value=c.unitType||'시간';
+            set('ct-qty', c.qty); set('ct-standby', c.standby);
+            set('ct-supply', Number(c.supply||0).toLocaleString('ko-KR'));
+            set('ct-vat',    Number(c.vat||0).toLocaleString('ko-KR'));
+            set('ct-payment-terms', c.paymentTerms);
+            const fu=document.getElementById('ct-fuel'); if(fu) fu.value=c.fuel||'임대인 부담';
+            const ins=document.getElementById('ct-insurance'); if(ins) ins.value=c.insurance||'임대인 부담';
+            set('ct-special', c.special);
+            set('ct-lessor-company', c.lessorCompany); set('ct-lessor-biznum', c.lessorBiznum);
+            set('ct-lessor-ceo', c.lessorCeo); set('ct-lessor-phone', c.lessorPhone);
+            set('ct-lessor-addr', c.lessorAddr); set('ct-lessor-bank', c.lessorBank);
+            set('ct-lessor-account', c.lessorAccount);
+            set('ct-lessor-driver', c.lessorDriver); set('ct-lessor-driver-phone', c.lessorDriverPhone);
+            set('ct-lessee-company', c.lesseeCompany); set('ct-lessee-biznum', c.lesseeBiznum);
+            set('ct-lessee-ceo', c.lesseeCeo); set('ct-lessee-phone', c.lesseePhone);
+            set('ct-lessee-addr', c.lesseeAddr);
+            set('ct-lessee-manager', c.lesseeManager); set('ct-lessee-manager-phone', c.lesseeManagerPhone);
+            contractMachines = (c.machines && c.machines.length) ? c.machines : [{ kind:'', spec:'', regnum:'', maker:'' }];
+            renderContractMachineRows();
+            updateContractTotal(Number(c.supply||0), Number(c.vat||0));
+            updateContractSignature();
+        }
+
+        /* 저장 */
+        function saveContract() {
+            const obj  = readContractForm();
+            currentContractId = obj.id;
+            const list = getContracts();
+            const idx  = list.findIndex(c => c.id === obj.id);
+            if (idx >= 0) list[idx] = obj; else list.push(obj);
+            setContracts(list);
+            refreshContractSelector();
+            showToast(`[${obj.title}] 계약서 저장 완료!`);
+        }
+
+        /* 불러오기 */
+        function loadContract(id) {
+            if (!id) return;
+            const list = getContracts();
+            const c    = list.find(x => x.id === id);
+            if (!c) return;
+            currentContractId = c.id;
+            writeContractForm(c);
+            showToast(`[${c.title}] 계약서를 불러왔습니다.`);
+        }
+
+        /* 새 계약서 */
+        function newContract() {
+            currentContractId = null;
+            contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
+            ['ct-site','ct-date','ct-number','ct-work-site','ct-period-from','ct-period-to',
+             'ct-work-start','ct-work-end','ct-unit-price','ct-qty','ct-standby',
+             'ct-supply','ct-vat','ct-payment-terms','ct-special',
+             'ct-lessor-company','ct-lessor-biznum','ct-lessor-ceo','ct-lessor-phone',
+             'ct-lessor-addr','ct-lessor-bank','ct-lessor-account','ct-lessor-driver','ct-lessor-driver-phone',
+             'ct-lessee-company','ct-lessee-biznum','ct-lessee-ceo','ct-lessee-phone',
+             'ct-lessee-addr','ct-lessee-manager','ct-lessee-manager-phone'
+            ].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            document.getElementById('ct-total-display').textContent = '금 0원정 (￦0)';
+            renderContractMachineRows();
+            updateContractSignature();
+            showToast('새 계약서 양식이 초기화되었습니다.');
+        }
+
+        /* 삭제 */
+        function deleteContract() {
+            if (!currentContractId) { showToast('선택된 계약서가 없습니다.'); return; }
+            showConfirmModal('계약서 삭제', '현재 계약서를 삭제합니다. 복구할 수 없습니다.', function() {
+                const list = getContracts().filter(c => c.id !== currentContractId);
+                setContracts(list);
+                currentContractId = null;
+                newContract();
+                refreshContractSelector();
+                showToast('계약서가 삭제되었습니다.');
+            });
+        }
+
+        /* 인쇄 */
+        function printContract() {
+            saveContract();
+            updateContractSignature();
+            const box = document.getElementById('contract-print-box');
+            if (!box) return;
+            const clone = box.cloneNode(true);
+            clone.querySelectorAll('.no-print').forEach(n => n.remove());
+            // input → span 변환 (인쇄 시 값 표시)
+            clone.querySelectorAll('input, select, textarea').forEach(el => {
+                const span = document.createElement(el.tagName === 'TEXTAREA' ? 'div' : 'span');
+                span.textContent = el.value || el.textContent || '';
+                span.style.cssText = el.style.cssText;
+                span.className = el.className.replace('outline-none','');
+                el.parentNode.replaceChild(span, el);
+            });
+            const win = window.open('', '_blank', 'width=900,height=1200');
+            win.document.write(`<!DOCTYPE html><html><head>
+                <meta charset="utf-8">
+                <title>건설기계 임대차계약서</title>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+                <style>
+                    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+                    body{font-family:'Noto Sans KR',sans-serif;font-size:12px;line-height:1.8;color:#111;background:#fff;margin:0;padding:0;}
+                    @page{size:A4 portrait;margin:15mm 15mm 15mm 15mm;}
+                    table{border-collapse:collapse;width:100%;}
+                    td,th{border:1px solid #888;padding:4px 8px;vertical-align:middle;}
+                    input,select,textarea{border:none;outline:none;background:transparent;}
+                    .no-print{display:none!important;}
+                    @media print{.no-print{display:none!important;}}
+                </style>
+            </head><body>${clone.innerHTML}</body></html>`);
+            win.document.close();
+            setTimeout(() => { win.focus(); win.print(); }, 400);
+        }
+
+        /* 금액 자동 계산 */
+        function calcContractTotal() {
+            const price = Number(String(document.getElementById('ct-unit-price').value).replace(/,/g,'')) || 0;
+            const qty   = Number(document.getElementById('ct-qty').value) || 0;
+            const supply = price * qty;
+            const vat    = Math.round(supply * 0.1);
+            document.getElementById('ct-supply').value = supply.toLocaleString('ko-KR');
+            document.getElementById('ct-vat').value    = vat.toLocaleString('ko-KR');
+            updateContractTotal(supply, vat);
+        }
+
+        function updateContractTotal(supply, vat) {
+            const total = supply + vat;
+            const el = document.getElementById('ct-total-display');
+            if (el) el.textContent = `금 ${total.toLocaleString('ko-KR')}원정 (￦${total.toLocaleString('ko-KR')})`;
+        }
+
+        /* 서명란 실시간 동기화 */
+        function updateContractSignature() {
+            const sync = (fromId, toId) => {
+                const from = document.getElementById(fromId);
+                const to   = document.getElementById(toId);
+                if (from && to) to.textContent = from.value || '';
+            };
+            sync('ct-lessor-company','ct-sig-lessor-company');
+            sync('ct-lessor-ceo',    'ct-sig-lessor-ceo');
+            sync('ct-lessor-addr',   'ct-sig-lessor-addr');
+            sync('ct-lessor-phone',  'ct-sig-lessor-phone');
+            sync('ct-lessee-company','ct-sig-lessee-company');
+            sync('ct-lessee-ceo',    'ct-sig-lessee-ceo');
+            sync('ct-lessee-addr',   'ct-sig-lessee-addr');
+            sync('ct-lessee-phone',  'ct-sig-lessee-phone');
+        }
+        // 입력 시 실시간 서명란 업데이트
+        ['ct-lessor-company','ct-lessor-ceo','ct-lessor-addr','ct-lessor-phone',
+         'ct-lessee-company','ct-lessee-ceo','ct-lessee-addr','ct-lessee-phone'].forEach(id => {
+            document.addEventListener('input', e => { if(e.target.id===id) updateContractSignature(); });
+        });
+
+        /* 기계 행 렌더 */
+        function renderContractMachineRows() {
+            const tbody = document.getElementById('ct-machine-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = contractMachines.map((m, i) => `
+                <tr>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <input type="text" value="${m.kind||''}" placeholder="예) 굴착기, 지게차"
+                            oninput="contractMachines[${i}].kind=this.value"
+                            class="w-full bg-transparent outline-none text-[12px]">
+                    </td>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <input type="text" value="${m.spec||''}" placeholder="예) 0.4m³, 3ton"
+                            oninput="contractMachines[${i}].spec=this.value"
+                            class="w-full bg-transparent outline-none text-[12px]">
+                    </td>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <input type="text" value="${m.regnum||''}" placeholder="예) 강원 01 가 1234"
+                            oninput="contractMachines[${i}].regnum=this.value"
+                            class="w-full bg-transparent outline-none text-[12px]">
+                    </td>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <div class="flex items-center gap-1">
+                            <input type="text" value="${m.maker||''}" placeholder="예) 두산 / 2018년"
+                                oninput="contractMachines[${i}].maker=this.value"
+                                class="flex-1 bg-transparent outline-none text-[12px]">
+                            ${contractMachines.length > 1 ? `<button onclick="removeMachineRow(${i})" class="no-print text-rose-400 hover:text-rose-600 shrink-0 p-0.5"><i data-lucide="x" class="w-3 h-3"></i></button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function addMachineRow() {
+            contractMachines.push({ kind:'', spec:'', regnum:'', maker:'' });
+            renderContractMachineRows();
+        }
+        function removeMachineRow(idx) {
+            contractMachines.splice(idx, 1);
+            renderContractMachineRows();
+        }
+
+        /* PDF 파싱 가져오기 */
+        function triggerContractPdfImport() {
+            document.getElementById('contract-pdf-input').click();
+        }
+
+        async function importContractPdf(input) {
+            const file = input.files[0];
+            if (!file) return;
+            showToast('PDF 파싱 중…');
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    fullText += await getPageText(i, pdf) + '\n';
+                }
+                parseContractPdfText(fullText);
+                input.value = '';
+            } catch(e) {
+                showToast('PDF 파싱 오류: ' + e.message);
+            }
+        }
+
+        /* PDF 텍스트 → 계약서 필드 자동 채우기 */
+        function parseContractPdfText(text) {
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            const find  = (patterns) => {
+                for (const pat of patterns) {
+                    for (const line of lines) {
+                        const m = line.match(pat);
+                        if (m) return m[1] ? m[1].trim() : m[0].trim();
+                    }
+                }
+                return '';
+            };
+
+            // 현장명
+            const site = find([/현장명[:\s]+(.+)/, /공사현장[:\s]+(.+)/, /작업현장[:\s]+(.+)/]);
+            if (site) document.getElementById('ct-site').value = site;
+
+            // 날짜
+            const dateMatch = text.match(/(\d{4})[년.\-]\s*(\d{1,2})[월.\-]\s*(\d{1,2})/);
+            if (dateMatch) {
+                const y=dateMatch[1], m=dateMatch[2].padStart(2,'0'), d=dateMatch[3].padStart(2,'0');
+                document.getElementById('ct-date').value = `${y}-${m}-${d}`;
+            }
+
+            // 임대인 정보
+            const lessorCompany = find([/임대인.*상호[:\s]+(.+)/, /임대인[:\s]+(.+)/]);
+            const lessorCeo     = find([/임대인.*대표자[:\s]+(.+)/, /대표자.*임대[:\s]+(.+)/]);
+            const lessorPhone   = find([/임대인.*전화[:\s]+([\d\-]+)/, /임대인.*연락처[:\s]+([\d\-]+)/]);
+            const lessorBiznum  = find([/임대인.*사업자[:\s]*([\d\-]+)/, /사업자등록번호[:\s]*([\d\-]+)/]);
+            if (lessorCompany) document.getElementById('ct-lessor-company').value = lessorCompany;
+            if (lessorCeo)     document.getElementById('ct-lessor-ceo').value     = lessorCeo;
+            if (lessorPhone)   document.getElementById('ct-lessor-phone').value   = lessorPhone;
+            if (lessorBiznum)  document.getElementById('ct-lessor-biznum').value  = lessorBiznum;
+
+            // 임차인 정보
+            const lesseeCompany = find([/임차인.*상호[:\s]+(.+)/, /임차인[:\s]+(.+)/]);
+            const lesseeCeo     = find([/임차인.*대표자[:\s]+(.+)/]);
+            const lesseePhone   = find([/임차인.*전화[:\s]+([\d\-]+)/, /임차인.*연락처[:\s]+([\d\-]+)/]);
+            if (lesseeCompany) document.getElementById('ct-lessee-company').value = lesseeCompany;
+            if (lesseeCeo)     document.getElementById('ct-lessee-ceo').value     = lesseeCeo;
+            if (lesseePhone)   document.getElementById('ct-lessee-phone').value   = lesseePhone;
+
+            // 금액
+            const amtMatch = text.match(/계약금액[^\d]*([\d,]+)/);
+            if (amtMatch) {
+                const total  = Number(amtMatch[1].replace(/,/g,''));
+                const supply = Math.round(total / 1.1);
+                const vat    = total - supply;
+                document.getElementById('ct-supply').value = supply.toLocaleString('ko-KR');
+                document.getElementById('ct-vat').value    = vat.toLocaleString('ko-KR');
+                updateContractTotal(supply, vat);
+            }
+
+            // 기계 종류
+            const machineKind = find([/기계종류[:\s]+(.+)/, /건설기계[:\s]+(.+)/]);
+            if (machineKind) { contractMachines[0].kind = machineKind; renderContractMachineRows(); }
+
+            updateContractSignature();
+            showToast('PDF 파싱 완료! 내용을 확인 후 수정해 주세요.');
+        }
+
+        /* ============================================================
+           8번: 거래처 신뢰도 / 이력 카드 (V16)
+        ============================================================ */
+
+        function openVendorHistoryModal(vendorName) {
+            // ── 전체 대장에서 해당 거래처 행 수집 ──
+            const allRows = [];
+            savedDocuments.forEach(doc => {
+                (doc.dataset || []).forEach(row => {
+                    if ((row.vendor || '').trim() === vendorName.trim()) {
+                        allRows.push({ doc, row });
+                    }
+                });
+            });
+            // 현재 대장도 포함 (미저장 상태 반영)
+            dataset.forEach(row => {
+                if ((row.vendor || '').trim() === vendorName.trim()) {
+                    const curDoc = savedDocuments.find(d => d.id === currentDocId);
+                    const already = allRows.some(a => a.row.id === row.id && a.doc.id === currentDocId);
+                    if (!already) allRows.push({ doc: curDoc || { site:'', company:'', month:'' }, row });
+                }
+            });
+
+            if (!allRows.length) { showToast('해당 거래처의 거래 이력이 없습니다.'); return; }
+
+            // ── KPI 계산 ──
+            let totalSupply = 0, totalTax = 0, totalRequest = 0;
+            let statusMap = {};
+            allRows.forEach(({ row: r }) => {
+                totalSupply  += (r.supply  || 0);
+                totalTax     += (r.tax     || 0);
+                totalRequest += (r.supply  || 0) + (r.tax || 0) - (r.deduction || 0) - (r.prepaid || 0);
+                statusMap[r.status || '대기'] = (statusMap[r.status || '대기'] || 0) + 1;
+            });
+            const docCount = new Set(allRows.map(a => a.doc.id)).size;
+
+            // ── 헤더 ──
+            const accMatch = accountDb.find(a =>
+                a.vendor === vendorName || a.holder === vendorName
+            );
+            document.getElementById('vh-vendor-name').textContent = vendorName;
+            document.getElementById('vh-vendor-meta').textContent =
+                [accMatch?.ceo && `대표자: ${accMatch.ceo}`,
+                 accMatch?.biznum && `사업자: ${accMatch.biznum}`,
+                 accMatch?.phone && `연락처: ${accMatch.phone}`
+                ].filter(Boolean).join('  ·  ') || '계좌 DB 미등록 거래처';
+
+            // ── KPI 바 ──
+            const kpiData = [
+                { label:'총 거래 대장', value: docCount + '건', color:'blue' },
+                { label:'총 청구 항목', value: allRows.length + '건', color:'indigo' },
+                { label:'지급요청 합계', value: formatNumber(totalRequest) + '원', color:'emerald' },
+                { label:'완료/대기/보류', value: `${statusMap['완료']||0} / ${statusMap['대기']||0} / ${statusMap['보류']||0}`, color:'amber' },
+            ];
+            document.getElementById('vh-kpi-bar').innerHTML = kpiData.map(k => `
+                <div class="bg-${k.color}-50 dark:bg-${k.color}-950/20 border border-${k.color}-100 dark:border-${k.color}-900/40 rounded-xl p-3 text-center">
+                    <div class="text-base font-black text-${k.color}-700 dark:text-${k.color}-400">${k.value}</div>
+                    <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">${k.label}</div>
+                </div>
+            `).join('');
+
+            // ── 월별 바 차트 ──
+            const monthMap = {};
+            allRows.forEach(({ doc, row: r }) => {
+                const key = (doc.month || '미지정') + ' (' + (doc.site || '현장 미지정') + ')';
+                monthMap[key] = (monthMap[key] || 0) + ((r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0));
+            });
+            const months  = Object.keys(monthMap).sort();
+            const maxAmt  = Math.max(...Object.values(monthMap), 1);
+            const chartEl = document.getElementById('vh-monthly-chart');
+            if (!months.length) {
+                chartEl.innerHTML = '<p class="text-[11px] text-slate-400 italic">월별 데이터 없음</p>';
+            } else {
+                chartEl.innerHTML = months.map(m => {
+                    const amt = monthMap[m];
+                    const w   = Math.round(amt / maxAmt * 100);
+                    const color = amt === Math.max(...Object.values(monthMap)) ? 'indigo' : 'blue';
+                    return `
+                    <div class="flex items-center gap-2 text-[11px]">
+                        <span class="w-40 shrink-0 text-slate-500 dark:text-slate-400 text-right font-semibold">${m}</span>
+                        <div class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-5 relative overflow-hidden">
+                            <div class="h-5 bg-${color}-400 dark:bg-${color}-600 rounded-full transition-all" style="width:${w}%"></div>
+                            <span class="absolute right-2 top-0 h-5 flex items-center font-bold text-[10px] text-slate-700 dark:text-slate-200">${formatNumber(amt)}원</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // ── 대장별 내역 테이블 ──
+            const STATUS_COLOR = { 완료:'emerald', 대기:'indigo', 보류:'rose' };
+            const tbody = document.getElementById('vh-history-tbody');
+            tbody.innerHTML = allRows.map(({ doc, row: r }) => {
+                const reqAmt = (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
+                const sc     = STATUS_COLOR[r.status] || 'slate';
+                const docLabel = [doc.site, doc.company, doc.month].filter(Boolean).join(' / ') || '(현재 대장)';
+                return `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                    <td class="py-2 px-3 font-semibold text-slate-700 dark:text-slate-200">${docLabel}</td>
+                    <td class="py-2 px-2 text-center">
+                        <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-bold">${r.type||''}</span>
+                    </td>
+                    <td class="py-2 px-3 text-right font-semibold text-slate-700 dark:text-slate-200">${formatNumber(r.supply||0)}</td>
+                    <td class="py-2 px-3 text-right text-slate-500 dark:text-slate-400">${formatNumber(r.tax||0)}</td>
+                    <td class="py-2 px-3 text-right font-extrabold text-indigo-700 dark:text-indigo-400">${formatNumber(reqAmt)}</td>
+                    <td class="py-2 px-2 text-center">
+                        <span class="bg-${sc}-100 dark:bg-${sc}-900/40 text-${sc}-700 dark:text-${sc}-400 px-1.5 py-0.5 rounded text-[10px] font-bold">${r.status||'대기'}</span>
+                    </td>
+                    <td class="py-2 px-2 text-center">
+                        ${r.memo ? `<span class="text-amber-500 dark:text-amber-400" title="${r.memo.substring(0,60)}"><i data-lucide="message-square" style="width:12px;height:12px;display:inline;"></i></span>` : '<span class="text-slate-200 dark:text-slate-700">—</span>'}
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // ── 계좌 정보 ──
+            const accEl = document.getElementById('vh-account-info');
+            if (accMatch) {
+                accEl.innerHTML = `
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">은행</span><span class="font-semibold">${accMatch.bank||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">계좌</span><span class="font-semibold font-mono">${accMatch.account||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">예금주</span><span class="font-semibold">${accMatch.holder||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">연락처</span><span class="font-semibold">${accMatch.phone||'—'}</span></div>
+                `;
+            } else {
+                accEl.innerHTML = '<p class="text-slate-400 dark:text-slate-500 italic">계좌 DB에 등록되지 않은 거래처입니다.</p>';
+            }
+
+            // ── 이상 탐지 ──
+            const anomalies = detectVendorAnomalies(vendorName, allRows);
+            const anomalyEl = document.getElementById('vh-anomaly');
+            if (!anomalies.length) {
+                anomalyEl.innerHTML = '<p class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><i data-lucide="check-circle" style="width:12px;height:12px;display:inline;"></i> 이상 없음</p>';
+            } else {
+                anomalyEl.innerHTML = anomalies.map(a => `
+                    <div class="flex items-start gap-1.5 ${a.level==='high' ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'}">
+                        <i data-lucide="${a.level==='high' ? 'alert-circle' : 'alert-triangle'}" style="width:12px;height:12px;display:inline;flex-shrink:0;margin-top:1px;"></i>
+                        <span>${a.msg}</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('vendor-history-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeVendorHistoryModal() {
+            document.getElementById('vendor-history-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        /* 이상 탐지 로직 */
+        function detectVendorAnomalies(vendorName, allRows) {
+            const anomalies = [];
+
+            // 1) 단기 중복 청구: 동일 월에 2건 이상
+            const monthCount = {};
+            allRows.forEach(({ doc, row: r }) => {
+                const key = doc.month || '미지정';
+                monthCount[key] = (monthCount[key] || 0) + 1;
+            });
+            Object.entries(monthCount).forEach(([m, cnt]) => {
+                if (cnt >= 2) anomalies.push({ level:'high', msg: `[${m}] 동일 월 ${cnt}건 청구 — 중복 청구 여부 확인 필요` });
+            });
+
+            // 2) 단가 급등: 최근 공급가액이 평균 대비 150% 이상
+            const supplies = allRows.map(a => a.row.supply || 0).filter(v => v > 0);
+            if (supplies.length >= 2) {
+                const avg  = supplies.slice(0, -1).reduce((s, v) => s + v, 0) / (supplies.length - 1);
+                const last = supplies[supplies.length - 1];
+                if (avg > 0 && last > avg * 1.5) {
+                    anomalies.push({ level:'high', msg: `최근 공급가액(${formatNumber(last)}원)이 평균(${formatNumber(Math.round(avg))}원) 대비 ${Math.round(last/avg*100)}% — 단가 급등 확인` });
+                }
+            }
+
+            // 3) 보류 건 다수
+            const holdCnt = allRows.filter(a => (a.row.status||'') === '보류').length;
+            if (holdCnt >= 2) anomalies.push({ level:'warn', msg: `보류 상태 ${holdCnt}건 — 미결 사항 확인 필요` });
+
+            // 4) 계좌 DB 미등록
+            const accMatch = accountDb.find(a => a.vendor === vendorName || a.holder === vendorName);
+            if (!accMatch) anomalies.push({ level:'warn', msg: '계좌 마스터 DB에 미등록 거래처 — 오지급 위험' });
+
+            // 5) 공제/선급 비정상 (공급가의 50% 초과 공제)
+            allRows.forEach(({ doc, row: r }) => {
+                const sup = r.supply || 0;
+                const ded = (r.deduction || 0) + (r.prepaid || 0);
+                if (sup > 0 && ded > sup * 0.5) {
+                    anomalies.push({ level:'warn', msg: `[${doc.month||''}] 공제·선급(${formatNumber(ded)}원)이 공급가(${formatNumber(sup)}원)의 50% 초과` });
+                }
+            });
+
+            return anomalies;
+        }
+
         function exportToCSV() {
             let csvContent = "\uFEFF";
             csvContent += "번호,구분,거래처,대표자,공급가액,부가세,결제금액,공제금액,선지급,지급요청금액,은행,입금계좌,예금주,비고\n";
@@ -5853,6 +6946,8 @@
             renderAccountDBList();
             refreshRequestSelector();
             renderSiteDashboard();
+            refreshContractSelector();
+            renderContractMachineRows();
             
             changePrintScale(1.00);
             document.getElementById('print-scale-slider').value = "1.00";
