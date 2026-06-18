@@ -326,6 +326,391 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* ══════════════════════════════════════════════
+           UI 개선 v23 — 통합 디자인 시스템
+        ══════════════════════════════════════════════ */
+
+        /* 배경 그라데이션 */
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f0fdf4 100%);
+        }
+        .dark body, body.dark {
+            background: #0b1120;
+        }
+
+        /* ── 헤더 개선 ── */
+        header.app-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #1a2744 100%);
+            border-bottom: 1px solid rgba(59,130,246,0.2);
+            backdrop-filter: blur(12px);
+        }
+
+        /* 로고 글로우 */
+        .logo-badge {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            box-shadow: 0 0 12px rgba(99,102,241,0.5);
+        }
+
+        /* 버전 뱃지 */
+        .version-badge {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            font-size: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── 상단 액션 버튼 통일 ── */
+        .hdr-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 9px;
+            border-radius: 7px;
+            font-size: 10px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .hdr-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.3); }
+        .hdr-btn-ghost  { background: rgba(255,255,255,0.07); color: #94a3b8; border-color: rgba(255,255,255,0.1); }
+        .hdr-btn-ghost:hover  { background: rgba(255,255,255,0.13); color: #e2e8f0; }
+        .hdr-btn-indigo { background: #4f46e5; color: #fff; }
+        .hdr-btn-indigo:hover { background: #4338ca; }
+        .hdr-btn-emerald { background: #059669; color: #fff; }
+        .hdr-btn-emerald:hover { background: #047857; }
+        .hdr-btn-slate  { background: rgba(100,116,139,0.4); color: #cbd5e1; border-color: rgba(100,116,139,0.3); }
+        .hdr-btn-slate:hover  { background: rgba(100,116,139,0.6); color: #f1f5f9; }
+        .hdr-btn-rose   { background: #e11d48; color: #fff; }
+        .hdr-btn-rose:hover   { background: #be123c; }
+        .hdr-btn-blue   { background: #2563eb; color: #fff; box-shadow: 0 0 0 1px rgba(59,130,246,0.4); }
+        .hdr-btn-blue:hover   { background: #1d4ed8; box-shadow: 0 0 0 1px rgba(59,130,246,0.6), 0 4px 12px rgba(37,99,235,0.4); }
+        .hdr-btn-preview { background: linear-gradient(135deg,#059669,#0891b2); color:#fff; }
+        .hdr-btn-preview:hover { filter: brightness(1.1); }
+
+        /* ── 2행 대시보드 존 ── */
+        .dashboard-row {
+            background: rgba(255,255,255,0.04);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(0,0,0,0.2);
+        }
+
+        /* 셀렉트 개선 */
+        .hdr-select {
+            background: rgba(15,23,42,0.7);
+            border: 1px solid rgba(99,102,241,0.25);
+            color: #e2e8f0;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 4px 8px;
+            outline: none;
+            transition: border-color 0.15s;
+            backdrop-filter: blur(4px);
+        }
+        .hdr-select:focus { border-color: rgba(99,102,241,0.6); }
+        .hdr-select:hover { border-color: rgba(99,102,241,0.4); }
+
+        /* 섹션 구분선 */
+        .hdr-divider {
+            width: 1px;
+            height: 18px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+        }
+
+        /* 요약 칩 */
+        .summary-chip {
+            transition: all 0.15s ease;
+            border-radius: 20px;
+        }
+        .summary-chip:hover { transform: translateY(-1px); }
+
+        /* ── 탭바 개선 ── */
+        .tab-bar {
+            background: rgba(2,6,23,0.6);
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .tab-btn {
+            position: relative;
+            padding: 9px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: #94a3b8; background: rgba(255,255,255,0.04); }
+        .tab-btn.tab-active {
+            color: #60a5fa;
+            border-bottom-color: #3b82f6;
+            background: rgba(59,130,246,0.07);
+        }
+        .tab-btn.tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+            border-radius: 2px;
+        }
+        .tab-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: 800;
+            background: rgba(100,116,139,0.3);
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+        .tab-active .tab-num {
+            background: rgba(59,130,246,0.3);
+            color: #93c5fd;
+        }
+
+        /* ── 메인 콘텐츠 카드 ── */
+        .content-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+            border: 1px solid rgba(226,232,240,0.8);
+            transition: box-shadow 0.2s;
+        }
+        .dark .content-card {
+            background: #1e293b;
+            border-color: rgba(51,65,85,0.8);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        /* ── 테이블 행 hover 강화 ── */
+        #statement-master-table tbody tr {
+            transition: background-color 0.12s ease;
+        }
+        #statement-master-table tbody tr:hover td {
+            background-color: rgba(239,246,255,0.7) !important;
+        }
+        .dark #statement-master-table tbody tr:hover td {
+            background-color: rgba(30,58,138,0.15) !important;
+        }
+
+        /* ── 섹션 헤더 스타일 ── */
+        .section-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #64748b;
+            padding: 2px 8px;
+            background: #f1f5f9;
+            border-radius: 20px;
+        }
+        .dark .section-eyebrow {
+            background: rgba(51,65,85,0.6);
+            color: #94a3b8;
+        }
+
+        /* ── 제어바 개선 ── */
+        .ctrl-bar {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 12px;
+        }
+        .dark .ctrl-bar {
+            background: linear-gradient(135deg, #1e293b 0%, #162032 100%);
+            border-color: #334155;
+        }
+
+        /* ── 버튼 시스템 개선 ── */
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #fff;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 1px 3px rgba(37,99,235,0.3);
+        }
+        .btn-primary:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+        }
+
+        /* ── 뱃지 개선 ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid;
+        }
+        .badge-blue    { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+        .badge-emerald { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+        .badge-amber   { background:#fffbeb; color:#b45309; border-color:#fde68a; }
+        .badge-rose    { background:#fff1f2; color:#be123c; border-color:#fecdd3; }
+        .badge-purple  { background:#faf5ff; color:#6b21a8; border-color:#e9d5ff; }
+        .badge-slate   { background:#f8fafc; color:#334155; border-color:#e2e8f0; }
+        .dark .badge-blue    { background:rgba(30,58,138,0.3); color:#93c5fd; border-color:rgba(59,130,246,0.3); }
+        .dark .badge-emerald { background:rgba(6,78,59,0.3); color:#6ee7b7; border-color:rgba(16,185,129,0.3); }
+        .dark .badge-amber   { background:rgba(120,53,15,0.3); color:#fcd34d; border-color:rgba(245,158,11,0.3); }
+        .dark .badge-rose    { background:rgba(136,19,55,0.3); color:#fda4af; border-color:rgba(225,29,72,0.3); }
+        .dark .badge-purple  { background:rgba(88,28,135,0.3); color:#d8b4fe; border-color:rgba(139,92,246,0.3); }
+
+        /* ── 상태 칩 ── */
+        .status-chip {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .status-완료 { background:#dcfce7; color:#166534; }
+        .status-대기 { background:#e0e7ff; color:#3730a3; }
+        .status-보류 { background:#ffe4e6; color:#9f1239; }
+        .dark .status-완료 { background:rgba(22,101,52,0.3); color:#86efac; }
+        .dark .status-대기 { background:rgba(55,48,163,0.3); color:#a5b4fc; }
+        .dark .status-보류 { background:rgba(159,18,57,0.3); color:#fda4af; }
+
+        /* ── 입력 필드 ── */
+        .input-field {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+            padding: 6px 10px;
+            font-size: 12px;
+            color: #1e293b;
+            outline: none;
+            transition: all 0.15s;
+            width: 100%;
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        .dark .input-field {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        .dark .input-field:focus {
+            border-color: #3b82f6;
+            background: #1a2744;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        /* ── 검색바 개선 ── */
+        .search-bar-wrap {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+        }
+        .dark .search-bar-wrap {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        /* ── 일괄작업 바 ── */
+        #bulk-action-bar {
+            background: linear-gradient(135deg, #1e1b4b, #1e3a5f) !important;
+            border: 1px solid rgba(99,102,241,0.3) !important;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.2) !important;
+        }
+
+        /* ── 도넛 차트 컨테이너 ── */
+        .donut-wrap {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            filter: drop-shadow(0 0 4px rgba(99,102,241,0.3));
+        }
+
+        /* ── 토스트 개선 ── */
+        #toast-container > div {
+            background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+            border: 1px solid rgba(59,130,246,0.3) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+            border-radius: 10px !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        /* ── 모달 개선 ── */
+        .modal-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+            border: 1px solid rgba(226,232,240,0.8);
+        }
+        .dark .modal-card {
+            background: #1e293b;
+            border-color: rgba(51,65,85,0.8);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 18px 18px 0 0;
+            padding: 16px 20px;
+        }
+        .dark .modal-header {
+            background: linear-gradient(135deg, #162032, #1e293b);
+            border-bottom-color: #334155;
+        }
+
+        /* ── 중복 경고 배너 ── */
+        #duplicate-alert-banner {
+            border-radius: 12px !important;
+            overflow: hidden !important;
+        }
+
+        /* ── 명세서 테이블 헤더 개선 ── */
+        #statement-master-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 10px;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── 페이지 전환 애니메이션 ── */
+        .tab-content-fade {
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── 반응형 헤더 압축 ── */
+        @media (max-width: 768px) {
+            .hdr-btn .btn-label { display: none; }
+            .tab-btn { padding: 8px 10px; font-size: 10px; }
+        }
     </style>
 </head>
 <body class="text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col font-sans dark:bg-slate-950 transition-colors duration-200">
@@ -334,134 +719,145 @@
          상단 고정 컨트롤 존 (헤더 + 대시보드 + 탭 전부 압축)
          no-print / 전체 화면 높이 채우지 않고 컴팩트하게
     ══════════════════════════════════════════════════════════ -->
-    <header class="no-print bg-slate-900 dark:bg-slate-950 text-white shadow-md sticky top-0 z-40">
+    <header class="no-print app-header text-white sticky top-0 z-40" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#1a2744 100%);border-bottom:1px solid rgba(59,130,246,0.15);box-shadow:0 4px 24px rgba(0,0,0,0.4);">
 
-        <!-- ─── 1행: 로고 + 액션 버튼 (한 줄로 압축) ─── -->
-        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-2 border-b border-slate-800">
+        <!-- ─── 1행: 로고 + 액션 버튼 ─── -->
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-2" style="border-bottom:1px solid rgba(255,255,255,0.07);">
             <!-- 로고 -->
-            <div class="flex items-center gap-2 shrink-0">
-                <div class="bg-blue-600 p-1.5 rounded-lg">
+            <div class="flex items-center gap-2.5 shrink-0">
+                <div class="logo-badge p-1.5 rounded-lg" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 0 14px rgba(99,102,241,0.45);">
                     <i data-lucide="building-2" class="w-4 h-4 text-white"></i>
                 </div>
                 <div class="leading-tight">
-                    <h1 class="text-sm font-extrabold tracking-tight flex items-center gap-1">
+                    <h1 class="font-extrabold tracking-tight flex items-center gap-1.5" style="font-size:13px;letter-spacing:-0.01em;">
                         현장 자금관리 마스터
-                        <span class="bg-blue-500 text-[9px] px-1 py-0.5 rounded text-white font-black">PRO V23</span>
+                        <span class="text-white font-black px-1.5 py-0.5 rounded" style="font-size:8px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);letter-spacing:0.05em;">PRO V23</span>
                     </h1>
-                    <p class="text-[9px] text-slate-500 hidden sm:block">백업강화 • 현장별 관리 • 인쇄 미리보기</p>
+                    <p class="hidden sm:block" style="font-size:9px;color:#64748b;">백업강화 · 현장별 관리 · 인쇄 미리보기</p>
                 </div>
             </div>
 
             <!-- 액션 버튼 그룹 -->
             <div class="flex items-center gap-1 flex-wrap justify-end">
-                <button onclick="toggleDarkMode()" class="bg-slate-800 hover:bg-slate-700 text-white p-1.5 rounded-lg flex items-center gap-1 text-[10px] transition-all" title="테마 변경">
-                    <span id="dark-theme-icon-container"><i data-lucide="moon" class="w-3.5 h-3.5 text-amber-300"></i></span>
-                    <span id="dark-theme-label" class="hidden sm:inline">다크모드</span>
+                <!-- 테마 -->
+                <button onclick="toggleDarkMode()" class="hdr-btn hdr-btn-ghost" title="테마 변경">
+                    <span id="dark-theme-icon-container"><i data-lucide="moon" class="w-3.5 h-3.5" style="color:#fbbf24;"></i></span>
+                    <span id="dark-theme-label" class="hidden sm:inline btn-label">다크모드</span>
                 </button>
-                <div class="w-px h-5 bg-slate-700"></div>
-                <button onclick="triggerPdfImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="file-text" class="w-3 h-3"></i><span class="hidden md:inline">PDF 파싱</span>
+
+                <div class="hdr-divider shrink-0"></div>
+
+                <!-- 가져오기/내보내기 -->
+                <button onclick="triggerPdfImport()" class="hdr-btn hdr-btn-indigo" title="PDF 파싱 가져오기">
+                    <i data-lucide="file-text" class="w-3 h-3"></i><span class="hidden md:inline btn-label">PDF 파싱</span>
                 </button>
                 <input type="file" id="pdf-import-input" accept=".pdf" class="hidden" onchange="importPdfBill(this)">
-                <button onclick="exportToXLSX()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="hidden md:inline">Excel</span>
+                <button onclick="exportToXLSX()" class="hdr-btn hdr-btn-emerald" title="Excel 내보내기">
+                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="hidden md:inline btn-label">Excel</span>
                 </button>
-                <button onclick="exportToCSV()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="file-down" class="w-3 h-3"></i><span class="hidden md:inline">CSV</span>
+                <button onclick="exportToCSV()" class="hdr-btn hdr-btn-slate" title="CSV 내보내기">
+                    <i data-lucide="file-down" class="w-3 h-3"></i><span class="hidden md:inline btn-label">CSV</span>
                 </button>
-                <button onclick="openBackupModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="database" class="w-3 h-3"></i><span class="hidden md:inline">백업/복원</span>
+                <button onclick="openBackupModal()" class="hdr-btn hdr-btn-slate" title="백업 / 복원">
+                    <i data-lucide="database" class="w-3 h-3"></i><span class="hidden md:inline btn-label">백업/복원</span>
                 </button>
-                <button onclick="showResetConfirm()" class="bg-rose-700 hover:bg-rose-600 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i><span class="hidden lg:inline">초기화</span>
+                <button onclick="showResetConfirm()" class="hdr-btn hdr-btn-rose" title="전체 초기화">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i><span class="hidden lg:inline btn-label">초기화</span>
                 </button>
-                <div class="w-px h-5 bg-slate-700"></div>
-                <button onclick="openPrintPreviewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="eye" class="w-3 h-3"></i><span class="hidden sm:inline">미리보기</span>
+
+                <div class="hdr-divider shrink-0"></div>
+
+                <!-- 인쇄 -->
+                <button onclick="openPrintPreviewModal()" class="hdr-btn hdr-btn-preview" title="인쇄 미리보기">
+                    <i data-lucide="eye" class="w-3 h-3"></i><span class="hidden sm:inline btn-label">미리보기</span>
                 </button>
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i data-lucide="printer" class="w-3 h-3"></i><span class="hidden sm:inline">인쇄/PDF</span>
+                <button onclick="window.print()" class="hdr-btn hdr-btn-blue" title="인쇄 / PDF 저장">
+                    <i data-lucide="printer" class="w-3 h-3"></i><span class="hidden sm:inline btn-label">인쇄/PDF</span>
                 </button>
             </div>
         </div>
 
-        <!-- ─── 2행: 대시보드 컨트롤 존 (한 행으로 압축) ─── -->
-        <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center gap-3 flex-wrap">
+        <!-- ─── 2행: 대시보드 컨트롤 존 ─── -->
+        <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center gap-2.5 flex-wrap dashboard-row">
 
-            <!-- 현장 선택 드롭다운 + 현장 관리 버튼 -->
+            <!-- 현장 선택 -->
             <div class="flex items-center gap-1.5 shrink-0">
-                <i data-lucide="map-pin" class="w-3 h-3 text-rose-400 shrink-0"></i>
-                <select id="site-quick-selector" onchange="onSiteQuickSelect(this.value)"
-                    class="bg-slate-800 border border-slate-700 text-[10px] rounded px-2 py-1 font-bold text-slate-100 outline-none max-w-[140px]">
+                <i data-lucide="map-pin" class="w-3 h-3 shrink-0" style="color:#f87171;"></i>
+                <select id="site-quick-selector" onchange="onSiteQuickSelect(this.value)" class="hdr-select" style="max-width:150px;">
                 </select>
-                <button onclick="openSiteManagerModal()" class="text-[10px] text-slate-400 hover:text-blue-400 bg-slate-800 px-1.5 py-1 rounded border border-slate-700 transition-all" title="현장 관리">
+                <button onclick="openSiteManagerModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 6px;" title="현장 관리">
                     <i data-lucide="settings-2" class="w-3 h-3"></i>
                 </button>
             </div>
 
-            <div class="w-px h-4 bg-slate-700 shrink-0"></div>
+            <div class="hdr-divider shrink-0"></div>
 
-            <!-- 대장 선택 (회사 필터 + 월 필터 + 대장 드롭다운 인라인) -->
+            <!-- 대장 선택 영역 -->
             <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-[9px] text-slate-500 font-bold shrink-0">대장:</span>
-                <select id="filter-company" onchange="applyDocumentFilters()"
-                    class="bg-slate-800 border border-slate-700 text-[10px] rounded px-1.5 py-1 font-medium text-slate-200 outline-none">
+                <span style="font-size:9px;color:#475569;font-weight:700;letter-spacing:0.05em;">대장</span>
+                <select id="filter-company" onchange="applyDocumentFilters()" class="hdr-select">
                     <option value="ALL">전체 회사</option>
                 </select>
-                <select id="filter-month" onchange="applyDocumentFilters()"
-                    class="bg-slate-800 border border-slate-700 text-[10px] rounded px-1.5 py-1 font-medium text-slate-200 outline-none">
+                <select id="filter-month" onchange="applyDocumentFilters()" class="hdr-select">
                     <option value="ALL">전체 월</option>
                 </select>
-                <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)"
-                    class="bg-slate-800 border border-slate-600 text-[10px] rounded px-1.5 py-1 font-bold text-slate-100 outline-none max-w-[200px]">
+                <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)" class="hdr-select" style="max-width:210px;border-color:rgba(99,102,241,0.4);">
                 </select>
-                <button onclick="toggleNewDocModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
-                    <i data-lucide="file-plus-2" class="w-2.5 h-2.5"></i> 등록
+
+                <div class="hdr-divider shrink-0"></div>
+
+                <!-- 대장 조작 버튼 -->
+                <button onclick="toggleNewDocModal()" class="hdr-btn hdr-btn-blue" style="padding:4px 8px;">
+                    <i data-lucide="file-plus-2" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">등록</span>
                 </button>
-                <button onclick="openDuplicateDocModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
-                    <i data-lucide="copy" class="w-2.5 h-2.5"></i> 이월
+                <button onclick="openDuplicateDocModal()" class="hdr-btn hdr-btn-indigo" style="padding:4px 8px;">
+                    <i data-lucide="copy" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">이월</span>
                 </button>
-                <button onclick="deleteCurrentDocument()" class="bg-rose-700 hover:bg-rose-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
-                    <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> 삭제
+                <button onclick="deleteCurrentDocument()" class="hdr-btn hdr-btn-rose" style="padding:4px 8px;">
+                    <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">삭제</span>
                 </button>
-                <button onclick="openRepeatModal()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all" title="반복 항목 관리">
-                    <i data-lucide="repeat" class="w-2.5 h-2.5"></i> 반복
+                <button onclick="openRepeatModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;" title="반복 항목 관리">
+                    <i data-lucide="repeat" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">반복</span>
                 </button>
-                <button onclick="toggleAccountModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-[9px] px-2 py-1 rounded font-bold flex items-center gap-0.5 transition-all">
-                    <i data-lucide="folder-key" class="w-2.5 h-2.5"></i> 계좌DB
+                <button onclick="toggleAccountModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;">
+                    <i data-lucide="folder-key" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">계좌DB</span>
                 </button>
             </div>
 
-            <!-- 우측: 요약 숫자 칩 (클릭 필터) -->
+            <!-- 우측: 요약 칩 + 도넛 -->
             <div class="ml-auto flex items-center gap-1.5 flex-wrap">
                 <button onclick="setDashboardFilter('all')"
-                    class="summary-chip bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/40 text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="전체 보기">
+                    class="summary-chip border text-[10px] font-bold px-2.5 py-1 flex items-center gap-1"
+                    style="background:rgba(37,99,235,0.15);border-color:rgba(59,130,246,0.3);color:#93c5fd;border-radius:20px;" title="전체 보기">
                     <i data-lucide="layers" class="w-2.5 h-2.5"></i>
                     전체 <span id="summary-count" class="font-black">0건</span>
                 </button>
                 <button onclick="setDashboardFilter('완료')"
-                    class="summary-chip bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-700/40 text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="완료 필터">
+                    class="summary-chip border text-[10px] font-bold px-2.5 py-1 flex items-center gap-1"
+                    style="background:rgba(5,150,105,0.15);border-color:rgba(16,185,129,0.3);color:#6ee7b7;border-radius:20px;" title="완료 필터">
                     <i data-lucide="check-circle" class="w-2.5 h-2.5"></i>
                     완료 <span id="summary-supply" class="font-black">0원</span>
                 </button>
                 <button onclick="setDashboardFilter('대기')"
-                    class="summary-chip bg-indigo-900/40 hover:bg-indigo-800/60 border border-indigo-700/40 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="대기 필터">
+                    class="summary-chip border text-[10px] font-bold px-2.5 py-1 flex items-center gap-1"
+                    style="background:rgba(79,70,229,0.15);border-color:rgba(99,102,241,0.3);color:#a5b4fc;border-radius:20px;" title="대기 필터">
                     <i data-lucide="clock" class="w-2.5 h-2.5"></i>
                     대기 <span id="summary-tax" class="font-black">0원</span>
                 </button>
                 <button onclick="setDashboardFilter('보류')"
-                    class="summary-chip bg-rose-900/40 hover:bg-rose-800/60 border border-rose-700/40 text-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all" title="보류 필터">
+                    class="summary-chip border text-[10px] font-bold px-2.5 py-1 flex items-center gap-1"
+                    style="background:rgba(225,29,72,0.12);border-color:rgba(244,63,94,0.3);color:#fda4af;border-radius:20px;" title="보류 필터">
                     <i data-lucide="pause-circle" class="w-2.5 h-2.5"></i>
                     보류 <span id="summary-total" class="font-black">0원</span>
                 </button>
-                <!-- 도넛 미니 인라인 -->
-                <div class="relative shrink-0" style="width:36px;height:36px;" title="구분별 비율">
-                    <svg id="donut-svg" viewBox="0 0 36 36" width="36" height="36">
+                <!-- 도넛 차트 -->
+                <div class="relative shrink-0 donut-wrap" style="width:38px;height:38px;" title="구분별 비율">
+                    <svg id="donut-svg" viewBox="0 0 36 36" width="38" height="38">
                         <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1e293b" stroke-width="4"/>
                         <g id="donut-segments"></g>
                     </svg>
                     <div id="donut-empty-msg" class="hidden absolute inset-0 flex items-center justify-center">
-                        <span class="text-[7px] text-slate-600">-</span>
+                        <span style="font-size:7px;color:#475569;">-</span>
                     </div>
                 </div>
                 <div id="donut-legend" class="hidden"></div>
@@ -472,33 +868,38 @@
         </div>
 
         <!-- ─── 3행: 탭 바 ─── -->
-        <div class="max-w-7xl mx-auto px-4 flex items-center border-t border-slate-800">
-            <button id="tab-btn-statement" onclick="switchTab('statement')"
-                class="py-2 px-4 font-semibold border-b-2 border-blue-500 text-blue-400 text-[11px] flex items-center gap-1.5 transition-all">
-                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 1. 자금청구명세서
+        <div class="max-w-7xl mx-auto px-4 flex items-center overflow-x-auto tab-bar" style="scrollbar-width:none;">
+            <button id="tab-btn-statement" onclick="switchTab('statement')" class="tab-btn tab-active">
+                <span class="tab-num">1</span>
+                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                <span>자금청구명세서</span>
             </button>
-            <button id="tab-btn-request" onclick="switchTab('request')"
-                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
-                <i data-lucide="file-check" class="w-3.5 h-3.5"></i> 2. 지불의뢰서
+            <button id="tab-btn-request" onclick="switchTab('request')" class="tab-btn">
+                <span class="tab-num">2</span>
+                <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+                <span>지불의뢰서</span>
             </button>
-            <button id="tab-btn-request-special" onclick="switchTab('request-special')"
-                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
-                <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i> 3. 특고 신고
+            <button id="tab-btn-request-special" onclick="switchTab('request-special')" class="tab-btn">
+                <span class="tab-num">3</span>
+                <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i>
+                <span>특고 신고</span>
             </button>
-            <button id="tab-btn-stats" onclick="switchTab('stats')"
-                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
-                <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> 4. 집계표
+            <button id="tab-btn-stats" onclick="switchTab('stats')" class="tab-btn">
+                <span class="tab-num">4</span>
+                <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+                <span>집계표</span>
             </button>
-            <button id="tab-btn-contract" onclick="switchTab('contract')"
-                class="py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all">
-                <i data-lucide="file-signature" class="w-3.5 h-3.5"></i> 5. 건설기계 임대차계약서
+            <button id="tab-btn-contract" onclick="switchTab('contract')" class="tab-btn">
+                <span class="tab-num">5</span>
+                <i data-lucide="file-signature" class="w-3.5 h-3.5"></i>
+                <span>건설기계 임대차계약서</span>
             </button>
         </div>
 
     </header>
 
     <!-- 메인 콘텐츠 영역 -->
-    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-3">
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-3 tab-content-fade">
         
         <!-- 계좌 정보 모달/패널 (no-print) -->
         <div id="account-manager-panel" class="hidden no-print bg-white dark:bg-slate-900 rounded-xl shadow-md border border-blue-200 dark:border-blue-900 p-5 mb-3">
@@ -602,12 +1003,21 @@
                     </div>
                 </div>
                 <!-- 계좌 중복 섹션 -->
-                <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 p-3 flex items-start gap-3">
+                <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 flex items-start gap-3">
                     <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-extrabold text-rose-800 dark:text-rose-300">🔴 동일 계좌번호 다중 거래처 감지</p>
                         <p class="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5" id="dup-account-msg"></p>
                         <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+                <!-- 대표자 불일치 섹션 -->
+                <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 flex items-start gap-3">
+                    <i data-lucide="user-x" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5 animate-pulse"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-extrabold text-purple-800 dark:text-purple-300">🟣 대표자 중복 의심 감지</p>
+                        <p class="text-[11px] text-purple-700 dark:text-purple-400 mt-0.5" id="dup-ceo-msg"></p>
+                        <div id="dup-ceo-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
             </div>
@@ -633,29 +1043,36 @@
             </div>
 
             <!-- 통합 검색 및 필터링 시스템 바 -->
-            <div class="no-print mb-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-3">
+            <div class="no-print mb-3 rounded-xl border flex flex-col gap-2.5 p-3" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-color:#e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
                 <!-- 검색창 행 -->
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
-                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                        <input type="text" id="state-search-keyword" oninput="onUnifiedSearch()" placeholder="거래처명, 예금주, 계좌번호, 사업자번호, 적요 통합검색..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs rounded-lg pl-8 pr-8 py-2 text-slate-700 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-semibold">
-                        <button onclick="clearSearchFilters()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
+                        <input type="text" id="state-search-keyword" oninput="onUnifiedSearch()"
+                            placeholder="거래처명, 예금주, 계좌번호, 사업자번호, 적요 통합검색..."
+                            class="w-full border text-xs rounded-lg pl-8 pr-8 py-2 outline-none font-semibold transition-all"
+                            style="background:#fff;border-color:#e2e8f0;color:#1e293b;"
+                            onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        <button onclick="clearSearchFilters()" class="absolute right-2.5 top-1/2 -translate-y-1/2" style="color:#94a3b8;" onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'">
                             <i data-lucide="x" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
-                    <span id="search-result-count" class="text-[11px] font-bold text-blue-500 dark:text-blue-400 whitespace-nowrap hidden"></span>
+                    <span id="search-result-count" class="text-[11px] font-bold whitespace-nowrap hidden" style="color:#3b82f6;"></span>
                 </div>
-                <!-- 검색 필드 토글 칩 -->
+                <!-- 검색 필드 토글 칩 + 필터 -->
                 <div class="flex flex-wrap gap-1.5 items-center">
-                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mr-1">검색 범위:</span>
+                    <span class="text-[10px] font-bold mr-0.5" style="color:#94a3b8;letter-spacing:0.05em;">범위</span>
                     <button onclick="toggleSearchField('vendor')" id="sf-chip-vendor" class="sf-chip active text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">거래처명</button>
                     <button onclick="toggleSearchField('holder')" id="sf-chip-holder" class="sf-chip active text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">예금주</button>
                     <button onclick="toggleSearchField('account')" id="sf-chip-account" class="sf-chip text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">계좌번호</button>
                     <button onclick="toggleSearchField('biznum')" id="sf-chip-biznum" class="sf-chip text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">사업자번호</button>
                     <button onclick="toggleSearchField('note')" id="sf-chip-note" class="sf-chip active text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">적요</button>
-                    <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mr-1">구분:</span>
-                    <select id="state-filter-type-select" onchange="renderStatementTable()" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-100 outline-none">
+                    <div class="h-4 w-px mx-1" style="background:#e2e8f0;"></div>
+                    <span class="text-[10px] font-bold mr-0.5" style="color:#94a3b8;letter-spacing:0.05em;">구분</span>
+                    <select id="state-filter-type-select" onchange="renderStatementTable()"
+                        class="border rounded-full px-2.5 py-0.5 text-[10px] font-bold outline-none"
+                        style="background:#fff;border-color:#e2e8f0;color:#334155;">
                         <option value="ALL">전체</option>
                         <option value="외주비">외주비</option>
                         <option value="자재비">자재비</option>
@@ -663,8 +1080,10 @@
                         <option value="노무비">노무비</option>
                         <option value="관리비">관리비</option>
                     </select>
-                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-1 mr-1">상태:</span>
-                    <select id="state-filter-status-select" onchange="renderStatementTable()" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-100 outline-none">
+                    <span class="text-[10px] font-bold mx-0.5" style="color:#94a3b8;letter-spacing:0.05em;">상태</span>
+                    <select id="state-filter-status-select" onchange="renderStatementTable()"
+                        class="border rounded-full px-2.5 py-0.5 text-[10px] font-bold outline-none"
+                        style="background:#fff;border-color:#e2e8f0;color:#334155;">
                         <option value="ALL">전체</option>
                         <option value="대기">대기</option>
                         <option value="완료">완료</option>
@@ -680,111 +1099,117 @@
             </style>
 
             <!-- 자금청구명세서 가독성 제어판 -->
-            <div class="no-print mb-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div class="no-print mb-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-center p-3" style="background:linear-gradient(135deg,#f0fdf4,#f8fafc);border-color:#d1fae5;">
                 <div class="flex items-center gap-2">
-                    <div class="p-1.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 rounded-lg">
-                        <i data-lucide="sliders" class="w-5 h-5"></i>
+                    <div class="p-1.5 rounded-lg" style="background:#d1fae5;">
+                        <i data-lucide="sliders" class="w-4 h-4" style="color:#059669;"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-slate-800 dark:text-slate-200 text-xs">명세서 가독성 및 가로 인쇄 제어판</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">인쇄 및 모니터 규격에 맞게 조정해 줍니다.</p>
+                        <h4 class="font-bold text-xs" style="color:#1e293b;">명세서 가독성 및 인쇄 제어판</h4>
+                        <p class="text-[10px]" style="color:#94a3b8;">인쇄 및 모니터 규격에 맞게 조정</p>
                     </div>
                 </div>
                 
-                <div class="flex flex-wrap items-center gap-4 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                <div class="flex flex-wrap items-center gap-3 rounded-lg border p-2 text-xs" style="background:#fff;border-color:#e2e8f0;">
                     <div class="flex items-center gap-1.5">
-                        <span class="font-bold text-slate-600 dark:text-slate-400">폰트 크기:</span>
-                        <select id="state-font-size-select" onchange="adjustStatementFont(this.value)" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-1.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none font-black">
+                        <span class="font-bold" style="color:#64748b;">폰트 크기</span>
+                        <select id="state-font-size-select" onchange="adjustStatementFont(this.value)"
+                            class="border rounded px-1.5 py-1 text-xs font-semibold outline-none"
+                            style="background:#f8fafc;border-color:#e2e8f0;color:#334155;">
                             <option value="10px">10px (초미세)</option>
-                            <option value="11px" selected>11px (기본 컴팩트)</option>
+                            <option value="11px" selected>11px (기본)</option>
                             <option value="12px">12px (중간)</option>
                             <option value="13px">13px (선명)</option>
                             <option value="14px">14px (대형)</option>
                         </select>
                     </div>
-                    <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+                    <div class="h-4 w-px" style="background:#e2e8f0;"></div>
                     <div class="flex items-center gap-1.5">
-                        <span class="font-bold text-slate-600 dark:text-slate-400">행 줄간격:</span>
-                        <select id="state-padding-select" onchange="adjustStatementPadding(this.value)" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-1.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none font-black">
-                            <option value="py-1">컴팩트 (좁게)</option>
-                            <option value="py-2" selected>기본 (보통)</option>
-                            <option value="py-3">여유있게 (넓게)</option>
+                        <span class="font-bold" style="color:#64748b;">줄간격</span>
+                        <select id="state-padding-select" onchange="adjustStatementPadding(this.value)"
+                            class="border rounded px-1.5 py-1 text-xs font-semibold outline-none"
+                            style="background:#f8fafc;border-color:#e2e8f0;color:#334155;">
+                            <option value="py-1">컴팩트</option>
+                            <option value="py-2" selected>기본</option>
+                            <option value="py-3">여유</option>
                         </select>
                     </div>
-                    <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+                    <div class="h-4 w-px" style="background:#e2e8f0;"></div>
                     <div class="flex items-center gap-1.5">
-                        <span class="font-bold text-slate-600 dark:text-slate-400">가로 인쇄 가이드 라인:</span>
-                        <input type="checkbox" id="statement-guide-toggle" onchange="toggleStatementGuide(this.checked)" class="w-4 h-4 rounded text-emerald-600 cursor-pointer">
+                        <span class="font-bold" style="color:#64748b;">가로 인쇄 가이드</span>
+                        <input type="checkbox" id="statement-guide-toggle" onchange="toggleStatementGuide(this.checked)" class="w-4 h-4 rounded cursor-pointer" style="accent-color:#059669;">
                     </div>
                 </div>
             </div>
 
             <!-- 다중선택 일괄 변경 제어 바 -->
-            <div id="bulk-action-bar" class="hidden no-print mb-4 bg-indigo-900 text-white rounded-xl shadow-lg p-3 flex items-center justify-between transition-all duration-300">
+            <div id="bulk-action-bar" class="hidden no-print mb-3 text-white rounded-xl shadow-lg p-3 flex items-center justify-between transition-all duration-300" style="background:linear-gradient(135deg,#1e1b4b,#1e3a5f);border:1px solid rgba(99,102,241,0.3);box-shadow:0 4px 20px rgba(99,102,241,0.2);">
                 <div class="flex items-center gap-3 text-xs pl-2">
-                    <i data-lucide="check-square" class="w-4 h-4 text-indigo-300"></i>
-                    <span>선택한 <strong id="bulk-select-count" class="text-indigo-200 text-sm font-black">0</strong>개 항목에 대해 일괄 작업 적용:</span>
+                    <i data-lucide="check-square" class="w-4 h-4" style="color:#a5b4fc;"></i>
+                    <span>선택한 <strong id="bulk-select-count" class="text-sm font-black" style="color:#c7d2fe;">0</strong>개 항목:</span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 flex-wrap">
                     <button onclick="applyBulkStatus('완료')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 완료 처리
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 완료
                     </button>
-                    <button onclick="applyBulkStatus('대기')" class="bg-slate-600 hover:bg-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                        <i data-lucide="clock" class="w-3.5 h-3.5"></i> 대기 처리
+                    <button onclick="applyBulkStatus('대기')" class="text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all" style="background:#475569;">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i> 대기
                     </button>
                     <button onclick="applyBulkStatus('보류')" class="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> 보류 처리
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> 보류
                     </button>
-                    <div class="w-px h-5 bg-indigo-700 mx-1"></div>
+                    <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
                     <button onclick="openRowTransferModal('copy')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> 다른 문서로 복사
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> 복사
                     </button>
                     <button onclick="openRowTransferModal('move')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                        <i data-lucide="folder-input" class="w-3.5 h-3.5"></i> 다른 문서로 이동
+                        <i data-lucide="folder-input" class="w-3.5 h-3.5"></i> 이동
                     </button>
-                    <div class="w-px h-5 bg-indigo-700 mx-1"></div>
+                    <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
                     <button onclick="applyBulkDelete()" class="bg-red-500 hover:bg-red-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 일괄 삭제
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
                     </button>
                 </div>
             </div>
 
             <!-- 명세서 문서 영역 -->
-            <div id="statement-print-box" class="print-page print-landscape bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-6 md:p-8">
+            <div id="statement-print-box" class="print-page print-landscape bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 md:p-8" style="box-shadow:0 2px 12px rgba(0,0,0,0.06);">
                 <!-- 상단 메타 정보 영역 -->
-                <div class="flex flex-col gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex flex-col gap-4 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
                     <div class="w-full">
-                        <input type="text" id="doc-title" value="(2026년 06월) 자금청구명세서" onchange="syncMetaValues('doc-title', this.value)" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-950 dark:text-slate-100 border-b border-gray-300 dark:border-slate-700 focus:border-blue-600 pb-1.5 w-full bg-transparent outline-none">
+                        <input type="text" id="doc-title" value="(2026년 06월) 자금청구명세서" onchange="syncMetaValues('doc-title', this.value)"
+                            class="font-extrabold text-gray-950 dark:text-slate-100 border-b border-gray-300 dark:border-slate-700 focus:border-blue-600 pb-1.5 w-full bg-transparent outline-none"
+                            style="font-size:clamp(1.1rem,3vw,1.6rem);">
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-slate-300 bg-slate-50/50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border p-3" style="background:#f8fafc;border-color:#e2e8f0;">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="font-bold text-slate-400 dark:text-slate-500 shrink-0 w-16 font-semibold">현장명:</span>
-                            <input type="text" id="meta-site" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none">
+                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded" style="background:#e0e7ff;color:#3730a3;width:50px;text-align:center;">현장명</span>
+                            <input type="text" id="meta-site" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="font-bold text-slate-400 dark:text-slate-500 shrink-0 w-16 font-semibold">작성년월:</span>
-                            <input type="text" id="meta-month" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none">
+                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded" style="background:#dcfce7;color:#166534;width:50px;text-align:center;">작성월</span>
+                            <input type="text" id="meta-month" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="font-bold text-slate-400 dark:text-slate-500 shrink-0 w-16 font-semibold">회사명:</span>
-                            <input type="text" id="meta-company" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none">
+                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded" style="background:#fef3c7;color:#92400e;width:50px;text-align:center;">회사명</span>
+                            <input type="text" id="meta-company" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
                     </div>
                 </div>
 
                 <!-- 명세서 제어 바 -->
-                <div class="no-print mb-4 flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-bold px-2 py-1 rounded">정렬 우선순위</span>
-                        <span>외주비 ➔ 자재비 ➔ 장비비 ➔ 노무비 ➔ 관리비 순으로 대장이 완벽 자동정렬됩니다.</span>
+                <div class="no-print mb-4 flex flex-col sm:flex-row gap-3 justify-between items-center rounded-xl border p-3" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-color:#e2e8f0;">
+                    <div class="flex items-center gap-2 text-xs" style="color:#64748b;">
+                        <span class="font-bold px-2 py-1 rounded text-[10px]" style="background:#e0e7ff;color:#3730a3;">정렬 우선순위</span>
+                        <span>외주비 → 자재비 → 장비비 → 노무비 → 관리비</span>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400 px-2">표시 단위:</span>
-                            <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded bg-blue-600 text-white transition-all">원</button>
-                            <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded text-slate-600 dark:text-slate-300 transition-all">천원</button>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center border rounded-lg p-1" style="background:#fff;border-color:#e2e8f0;">
+                            <span class="text-xs font-bold px-2" style="color:#64748b;">표시 단위</span>
+                            <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="background:#2563eb;color:#fff;">원</button>
+                            <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="color:#64748b;">천원</button>
                         </div>
 
                         <button onclick="openAddRowModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm transition-all">
@@ -2060,6 +2485,7 @@
                                 <tr class="bg-slate-100 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300 text-center">
                                     <th class="py-2 px-3 text-left">대장(현장/회사/월)</th>
                                     <th class="py-2 px-2">구분</th>
+                                    <th class="py-2 px-2">대표자</th>
                                     <th class="py-2 px-3 text-right">공급가액</th>
                                     <th class="py-2 px-3 text-right">부가세</th>
                                     <th class="py-2 px-3 text-right">지급요청액</th>
@@ -2768,33 +3194,31 @@
             tabStats.classList.add('hidden');
             if (tabContract) tabContract.classList.add('hidden');
 
-            const inactiveClass = "py-2 px-4 font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1.5 transition-all";
-            btnStatement.className = inactiveClass;
-            btnRequest.className = inactiveClass;
-            btnRequestSpecial.className = inactiveClass;
-            btnStats.className = inactiveClass;
-            if (btnContract) btnContract.className = inactiveClass;
+            // 모든 탭 버튼 비활성화
+            [btnStatement, btnRequest, btnRequestSpecial, btnStats, btnContract].forEach(b => {
+                if (b) { b.classList.remove('tab-active'); }
+            });
 
             if (tabId === 'statement') {
                 tabStatement.classList.remove('hidden');
-                btnStatement.className = "py-2 px-4 font-semibold border-b-2 border-blue-500 text-blue-400 text-[11px] flex items-center gap-1.5 transition-all";
+                btnStatement.classList.add('tab-active');
             } else if (tabId === 'request') {
                 tabRequest.classList.remove('hidden');
-                btnRequest.className = "py-2 px-4 font-semibold border-b-2 border-indigo-500 text-indigo-400 text-[11px] flex items-center gap-1.5 transition-all";
+                btnRequest.classList.add('tab-active');
                 refreshRequestSelector();
             } else if (tabId === 'request-special') {
                 tabRequestSpecial.classList.remove('hidden');
-                btnRequestSpecial.className = "py-2 px-4 font-semibold border-b-2 border-amber-500 text-amber-400 text-[11px] flex items-center gap-1.5 transition-all";
+                btnRequestSpecial.classList.add('tab-active');
                 syncSpecialMetaFromRequest();
                 renderRequestSpecialTable();
                 lucide.createIcons();
             } else if (tabId === 'stats') {
                 tabStats.classList.remove('hidden');
-                btnStats.className = "py-2 px-4 font-semibold border-b-2 border-emerald-500 text-emerald-400 text-[11px] flex items-center gap-1.5 transition-all";
+                btnStats.classList.add('tab-active');
                 renderVendorStatistics();
             } else if (tabId === 'contract') {
                 if (tabContract) tabContract.classList.remove('hidden');
-                if (btnContract) btnContract.className = "py-2 px-4 font-semibold border-b-2 border-teal-500 text-teal-400 text-[11px] flex items-center gap-1.5 transition-all";
+                if (btnContract) btnContract.classList.add('tab-active');
                 renderContractMachineRows();
                 updateContractSignature();
                 lucide.createIcons();
@@ -3028,20 +3452,33 @@
                 }
             });
 
-            // 2) 계좌 중복: 동일 계좌번호가 다른 거래처에 등록된 경우
+            // 2) 계좌 중복: 현재 대장 + accountDb + 전체 저장 대장 통합 체크
             const accMap = {};
+            // 현재 대장 행
             dataset.forEach(row => {
                 const clean = (row.account || '').replace(/[^0-9]/g, '');
                 if (!clean) return;
                 if (!accMap[clean]) accMap[clean] = [];
-                if (!accMap[clean].find(r => r.vendor === row.vendor)) accMap[clean].push({ vendor: row.vendor, holder: row.holder, id: row.id });
+                if (!accMap[clean].find(r => r.vendor === row.vendor))
+                    accMap[clean].push({ vendor: row.vendor, holder: row.holder, ceo: row.ceo || '', id: row.id, src: '현재대장' });
             });
-            // accountDb도 함께 체크
+            // 계좌 DB
             accountDb.forEach(acc => {
                 const clean = (acc.account || '').replace(/[^0-9]/g, '');
                 if (!clean) return;
                 if (!accMap[clean]) accMap[clean] = [];
-                if (!accMap[clean].find(r => r.vendor === acc.vendor)) accMap[clean].push({ vendor: acc.vendor, holder: acc.holder, id: null });
+                if (!accMap[clean].find(r => r.vendor === acc.vendor))
+                    accMap[clean].push({ vendor: acc.vendor, holder: acc.holder, ceo: acc.ceo || '', id: null, src: '계좌DB' });
+            });
+            // 전체 저장 대장
+            savedDocuments.forEach(doc => {
+                (doc.dataset || []).forEach(row => {
+                    const clean = (row.account || '').replace(/[^0-9]/g, '');
+                    if (!clean) return;
+                    if (!accMap[clean]) accMap[clean] = [];
+                    if (!accMap[clean].find(r => r.vendor === row.vendor))
+                        accMap[clean].push({ vendor: row.vendor, holder: row.holder, ceo: row.ceo || '', id: null, src: doc.site ? `[${doc.site}] ${doc.month||''}` : '저장대장' });
+                });
             });
 
             let accDupCount = 0;
@@ -3050,17 +3487,59 @@
                 const vendors = [...new Set(rows.map(r => r.vendor).filter(Boolean))];
                 if (vendors.length > 1) {
                     accDupCount++;
-                    const display = acc.replace(/(\d{4})(?=\d)/g, '$1-');
-                    accChips.push(`<span class="inline-block bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full" title="${vendors.join(' / ')}">${display} (${vendors.length}개 거래처)</span>`);
+                    const display = acc.replace(/(\d{3,4})(?=\d{3,4})/g, '$1-');
+                    const detail = rows.map(r => `${r.vendor}${r.ceo ? ' (대표: ' + r.ceo + ')' : ''} [${r.src}]`).join(' / ');
+                    accChips.push(`<span class="inline-block bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help" title="${detail}">계좌 …${acc.slice(-4)} → ${vendors.length}개 거래처</span>`);
                     rows.forEach(r => { if (r.id !== null) duplicateItemIds.add(r.id); });
                 }
             });
 
-            // 배너 렌더링
-            const banner = document.getElementById('duplicate-alert-banner');
+            // 3) 대표자 중복 의심: 동일 거래처명인데 대장마다 다른 ceo
+            const ceoMap = {}; // vendor → Set<ceo>
+            // 현재 대장
+            dataset.forEach(row => {
+                if (!row.vendor) return;
+                const v = row.vendor.trim();
+                if (!ceoMap[v]) ceoMap[v] = new Set();
+                if (row.ceo && row.ceo.trim()) ceoMap[v].add(row.ceo.trim());
+            });
+            // 전체 저장 대장
+            savedDocuments.forEach(doc => {
+                (doc.dataset || []).forEach(row => {
+                    if (!row.vendor) return;
+                    const v = row.vendor.trim();
+                    if (!ceoMap[v]) ceoMap[v] = new Set();
+                    if (row.ceo && row.ceo.trim()) ceoMap[v].add(row.ceo.trim());
+                });
+            });
+            // 계좌 DB
+            accountDb.forEach(acc => {
+                if (!acc.vendor) return;
+                const v = acc.vendor.trim();
+                if (!ceoMap[v]) ceoMap[v] = new Set();
+                if (acc.ceo && acc.ceo.trim()) ceoMap[v].add(acc.ceo.trim());
+            });
+
+            let ceoDupCount = 0;
+            const ceoChips = [];
+            Object.entries(ceoMap).forEach(([vendor, ceos]) => {
+                if (ceos.size >= 2) {
+                    ceoDupCount++;
+                    const names = [...ceos].join(' / ');
+                    ceoChips.push(`<span class="inline-block bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help" title="등록된 대표자: ${names}">${vendor} → ${names}</span>`);
+                    // 현재 대장에서 해당 거래처 행 모두 경고 표시
+                    dataset.forEach(row => {
+                        if (row.vendor && row.vendor.trim() === vendor) duplicateItemIds.add(row.id);
+                    });
+                }
+            });
+
+            // ── 배너 렌더링 ──
+            const banner   = document.getElementById('duplicate-alert-banner');
             const claimSec = document.getElementById('dup-section-claim');
-            const accSec = document.getElementById('dup-section-account');
-            const hasAny = claimCount > 0 || accDupCount > 0;
+            const accSec   = document.getElementById('dup-section-account');
+            const ceoSec   = document.getElementById('dup-section-ceo');
+            const hasAny   = claimCount > 0 || accDupCount > 0 || ceoDupCount > 0;
 
             if (hasAny) {
                 banner.classList.remove('hidden');
@@ -3073,9 +3552,17 @@
                 // 계좌 중복
                 if (accDupCount > 0) {
                     accSec.classList.remove('hidden');
-                    document.getElementById('dup-account-msg').innerHTML = `서로 다른 거래처에 동일 계좌번호 <strong>${accDupCount}건</strong> — 오매칭 위험`;
+                    document.getElementById('dup-account-msg').innerHTML = `동일 계좌번호에 서로 다른 거래처 <strong>${accDupCount}건</strong> — 오매칭 위험 (전체 대장 포함 검사)`;
                     document.getElementById('dup-account-detail').innerHTML = accChips.join('');
                 } else { accSec.classList.add('hidden'); }
+                // 대표자 중복
+                if (ceoDupCount > 0) {
+                    ceoSec.classList.remove('hidden');
+                    document.getElementById('dup-ceo-msg').innerHTML = `동일 거래처에 대표자명 <strong>${ceoDupCount}건</strong> 불일치 — 명의 도용·오입력 확인 필요`;
+                    document.getElementById('dup-ceo-detail').innerHTML = ceoChips.join('');
+                } else { ceoSec.classList.add('hidden'); }
+
+                showToast("⚠️ 중복 의심 항목이 감지되었습니다. 상단 배너를 확인하세요.");
             } else {
                 banner.classList.add('hidden');
             }
@@ -5260,6 +5747,14 @@
             updateSavedSheetsSelector();
         }
 
+        /* "YYYY년 MM월" 형식 문자열을 숫자로 변환 — 정렬용 */
+        function parseMonthToNum(monthStr) {
+            if (!monthStr) return 0;
+            const m = monthStr.match(/(\d{4})년\s*(\d{1,2})월/);
+            if (!m) return 0;
+            return parseInt(m[1]) * 100 + parseInt(m[2]);
+        }
+
         function updateSavedSheetsSelector() {
             const selector = document.getElementById('saved-sheets-selector');
             const companyFilter = document.getElementById('filter-company').value;
@@ -5280,10 +5775,17 @@
                 return;
             }
 
+            // 현장명 오름차순 → 같은 현장이면 년월 오름차순 정렬
+            filteredDocs = [...filteredDocs].sort((a, b) => {
+                const siteCmp = (a.site || '').localeCompare(b.site || '', 'ko-KR');
+                if (siteCmp !== 0) return siteCmp;
+                return parseMonthToNum(a.month) - parseMonthToNum(b.month);
+            });
+
             filteredDocs.forEach(doc => {
                 const opt = document.createElement('option');
                 opt.value = doc.id;
-                opt.textContent = `[${doc.company}] [${doc.month}] ${doc.site}`;
+                opt.textContent = `[${doc.site}] [${doc.month}] ${doc.company}`;
                 if (doc.id === currentDocId) {
                     opt.selected = true;
                 }
@@ -6804,6 +7306,7 @@
                     <td class="py-2 px-2 text-center">
                         <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-bold">${r.type||''}</span>
                     </td>
+                    <td class="py-2 px-2 text-center font-semibold text-slate-700 dark:text-slate-200">${r.ceo || '—'}</td>
                     <td class="py-2 px-3 text-right font-semibold text-slate-700 dark:text-slate-200">${formatNumber(r.supply||0)}</td>
                     <td class="py-2 px-3 text-right text-slate-500 dark:text-slate-400">${formatNumber(r.tax||0)}</td>
                     <td class="py-2 px-3 text-right font-extrabold text-indigo-700 dark:text-indigo-400">${formatNumber(reqAmt)}</td>
@@ -6891,6 +7394,44 @@
                 const ded = (r.deduction || 0) + (r.prepaid || 0);
                 if (sup > 0 && ded > sup * 0.5) {
                     anomalies.push({ level:'warn', msg: `[${doc.month||''}] 공제·선급(${formatNumber(ded)}원)이 공급가(${formatNumber(sup)}원)의 50% 초과` });
+                }
+            });
+
+            // 6) 대표자 불일치: 대장마다 다른 ceo가 등록된 경우
+            const ceoSet = new Set(
+                allRows.map(a => (a.row.ceo || '').trim()).filter(Boolean)
+            );
+            if (accMatch && accMatch.ceo) ceoSet.add(accMatch.ceo.trim());
+            if (ceoSet.size >= 2) {
+                anomalies.push({ level:'high', msg: `대표자 불일치 — 등록된 이름: ${[...ceoSet].join(' / ')} (명의 도용·오입력 확인 필요)` });
+            }
+
+            // 7) 동일 계좌번호를 다른 거래처가 사용 중인지 전체 대장 검사
+            const myAccounts = new Set(
+                allRows.map(a => (a.row.account || '').replace(/[^0-9]/g, '')).filter(Boolean)
+            );
+            myAccounts.forEach(cleanAcc => {
+                const conflictVendors = new Set();
+                savedDocuments.forEach(doc => {
+                    (doc.dataset || []).forEach(row => {
+                        const c = (row.account || '').replace(/[^0-9]/g, '');
+                        if (c === cleanAcc && row.vendor && row.vendor.trim() !== vendorName.trim())
+                            conflictVendors.add(row.vendor.trim());
+                    });
+                });
+                dataset.forEach(row => {
+                    const c = (row.account || '').replace(/[^0-9]/g, '');
+                    if (c === cleanAcc && row.vendor && row.vendor.trim() !== vendorName.trim())
+                        conflictVendors.add(row.vendor.trim());
+                });
+                accountDb.forEach(acc => {
+                    const c = (acc.account || '').replace(/[^0-9]/g, '');
+                    if (c === cleanAcc && acc.vendor && acc.vendor.trim() !== vendorName.trim())
+                        conflictVendors.add(acc.vendor.trim());
+                });
+                if (conflictVendors.size > 0) {
+                    const display = '…' + cleanAcc.slice(-4);
+                    anomalies.push({ level:'high', msg: `계좌 ${display}가 다른 거래처(${[...conflictVendors].join(', ')})에도 등록됨 — 계좌 공유 또는 오매칭 확인` });
                 }
             });
 
