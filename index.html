@@ -425,6 +425,47 @@
         }
         .summary-chip:hover { transform: translateY(-1px); }
 
+        /* ── 건설기계 임대차계약서 (공정위 표준) 전용 스타일 ── */
+        .sig-canvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+        @media print {
+            body.contract-std-printing > *:not(#contract-std-print-wrapper) {
+                display: none !important;
+            }
+            body.contract-std-printing #contract-std-print-wrapper {
+                display: block !important;
+            }
+            #contract-std-print-wrapper .std-print-container {
+                display: block !important;
+                width: 210mm !important;
+                min-height: 297mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                padding: 15mm 18mm !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                page-break-after: always !important;
+                overflow: hidden !important;
+            }
+            #contract-std-print-wrapper .std-print-page2 {
+                display: block !important;
+                width: 210mm !important;
+                min-height: 297mm !important;
+                height: 297mm !important;
+                padding: 15mm 18mm !important;
+                margin: 0 auto !important;
+                box-sizing: border-box !important;
+                page-break-before: always !important;
+                page-break-inside: avoid !important;
+                overflow: hidden !important;
+                background: #ffffff !important;
+            }
+        }
         /* ── 탭바 개선 ── */
         .tab-bar {
             background: rgba(2,6,23,0.6);
@@ -1734,305 +1775,593 @@
         <!-- ===== 5. 건설기계 임대차계약서 ===== -->
         <div id="tab-contract" class="hidden">
 
+            <!-- 서브탭 전환 바 (no-print) -->
+            <div class="no-print flex items-center gap-1 mb-3 border-b border-slate-200 dark:border-slate-700 pb-0">
+                <button id="ctab-btn-form" onclick="switchContractSubTab('form')"
+                    class="ctab-btn px-4 py-2 text-xs font-bold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400 transition-all -mb-px">
+                    <i data-lucide="file-signature" class="w-3.5 h-3.5 inline mr-1"></i>계약서 작성
+                </button>
+                <button id="ctab-btn-db" onclick="switchContractSubTab('db')"
+                    class="ctab-btn px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-amber-600 transition-all -mb-px">
+                    <i data-lucide="database" class="w-3.5 h-3.5 inline mr-1"></i>계약 DB 관리
+                </button>
+            </div>
+
+            <!-- ── 서브탭: 계약서 작성 ── -->
+            <div id="ctab-form">
+
             <!-- 컨트롤 패널 (no-print) -->
             <div class="no-print bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 mb-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
-                        <div class="bg-teal-600 p-1.5 rounded-lg"><i data-lucide="file-signature" class="w-4 h-4 text-white"></i></div>
+                        <div class="bg-amber-600 p-1.5 rounded-lg"><i data-lucide="file-signature" class="w-4 h-4 text-white"></i></div>
                         <div>
-                            <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">건설기계 임대차계약서</h4>
-                            <p class="text-[10px] text-slate-400">직접 입력하거나, PDF를 파싱해 자동 채우기 — 완성 후 인쇄/PDF 저장</p>
+                            <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">건설기계임대차 표준계약서 <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">공정위 제10059호</span></h4>
+                            <p class="text-[10px] text-slate-400">디지털 서명/도장 내장 · 약관 2면 인쇄 · 다중 계약서 보관함</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <!-- PDF 파싱 가져오기 -->
-                        <button onclick="triggerContractPdfImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                            <i data-lucide="file-up" class="w-3.5 h-3.5"></i> PDF 파싱 가져오기
+                        <button onclick="stdSaveToArchiveAndDb()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> 저장 (보관함+DB)
                         </button>
-                        <input type="file" id="contract-pdf-input" accept=".pdf" class="hidden" onchange="importContractPdf(this)">
-                        <!-- 계약서 목록 -->
-                        <select id="contract-list-selector" onchange="loadContract(this.value)"
-                            class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs rounded px-2 py-1.5 font-bold text-slate-700 dark:text-slate-100 outline-none max-w-[220px]">
-                        </select>
-                        <button onclick="saveContract()" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                            <i data-lucide="save" class="w-3.5 h-3.5"></i> 저장
+                        <button onclick="stdShowArchiveModal()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-600 transition-all">
+                            <i data-lucide="layers" class="w-3.5 h-3.5"></i> 보관함 열기
                         </button>
-                        <button onclick="newContract()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                            <i data-lucide="file-plus" class="w-3.5 h-3.5"></i> 새 계약서
-                        </button>
-                        <button onclick="deleteContract()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
-                        </button>
+                        <div class="flex gap-1">
+                            <button onclick="stdExportBackup()" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
+                                <i data-lucide="download" class="w-3 h-3"></i> 백업
+                            </button>
+                            <button onclick="stdTriggerImport()" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
+                                <i data-lucide="upload" class="w-3 h-3"></i> 복원
+                            </button>
+                            <input type="file" id="std-import-file" accept=".json" onchange="stdImportBackup(event)" class="hidden">
+                        </div>
                         <div class="w-px h-5 bg-slate-200 dark:bg-slate-700"></div>
-                        <button onclick="printContract()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄/PDF저장
+                        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="std-print-conditions-toggle" onchange="stdTogglePrintConditions()" class="rounded">
+                            📄 약관 포함 인쇄
+                        </label>
+                        <button onclick="stdPrintContract()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> A4 인쇄/PDF
                         </button>
+                    </div>
+                </div>
+                <!-- 보관함 제목 입력 -->
+                <div class="mt-3 flex gap-2">
+                    <input type="text" id="std-archive-title" placeholder="계약서 제목 (보관함 저장 시 사용) 예: 원주 무실동 굴착기 계약" class="flex-1 px-3 py-1.5 text-xs border border-amber-200 dark:border-amber-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                    <button onclick="stdSyncFromRequest()" class="bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all" title="지불의뢰서·명세서에서 현장·거래처 정보를 가져옵니다">
+                        <i data-lucide="link" class="w-3 h-3"></i> 현장·거래처 연동
+                    </button>
+                    <button onclick="stdLoadSampleMachinery()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-amber-400 hover:text-amber-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
+                        <i data-lucide="sparkles" class="w-3 h-3 text-amber-500"></i> 샘플
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2단 레이아웃: 왼쪽 입력폼 + 오른쪽 미리보기 -->
+            <div id="contract-std-print-wrapper" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+                <!-- 왼쪽: 입력 폼 -->
+                <div class="no-print lg:col-span-5 space-y-4">
+
+                    <!-- 1. 건설기계 정보 -->
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">1</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">건설기계 정보</h2>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">기계명(기종)</label>
+                                <input type="text" id="std-machineName" placeholder="굴착기, 타이어식" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">규격 및 형식</label>
+                                <input type="text" id="std-machineSpec" placeholder="0.6㎥" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">등록번호(차량번호)</label>
+                                <input type="text" id="std-machineRegNo" placeholder="강원04가1234" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">보험(공제) 현황</label>
+                                <input type="text" id="std-machineInsurance" placeholder="대인/대물/종합보험 가입" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">정기검사 여부</label>
+                                <input type="text" id="std-machineInspection" placeholder="합격 (차기: 27년05월)" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">비고</label>
+                                <input type="text" id="std-machineNote" placeholder="양호" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 현장 정보 -->
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">2</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">현장 정보</h2>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">현장명</label>
+                                <input type="text" id="std-siteName" placeholder="공공체육시설 신축공사" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">현장 소재지</label>
+                                <input type="text" id="std-siteLocation" placeholder="강원도 원주시 무실동" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">발주자(원수급인)</label>
+                                <input type="text" id="std-siteClient" placeholder="원주시청 / (주)원주토건" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">건설업자(임차인)</label>
+                                <input type="text" id="std-siteLessee" placeholder="(주)에이스개발" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">대금지급보증 여부</label>
+                                <select id="std-paymentGuarantee" onchange="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200">
+                                    <option value="보증서 발급">보증서 발급 완료</option>
+                                    <option value="보증서 면제대상(200만원이하 등)">보증서 면제대상</option>
+                                    <option value="보증서 발급예정">보증서 발급예정</option>
+                                </select></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">현장 비고</label>
+                                <input type="text" id="std-siteNote" placeholder="공장등록지 내 작업" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 사용기간 및 금액 -->
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">3</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">사용기간 및 금액</h2>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-[10px] font-semibold text-slate-500">사용 기간</label>
+                                <span id="std-calculatedDays" class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-bold border border-amber-200">대여기간: -일</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="std-leaseStart" oninput="stdCalcDays(); stdUpdateContract()" class="flex-1 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200">
+                                <span class="text-slate-400 text-xs">~</span>
+                                <input type="date" id="std-leaseEnd" oninput="stdCalcDays(); stdUpdateContract()" class="flex-1 px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">대여료 기준</label>
+                                <select id="std-rentPayType" onchange="stdCalcDays(); stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200">
+                                    <option value="일급제">일급제 (일정액)</option>
+                                    <option value="월급제">월급제 (월정액)</option>
+                                    <option value="시간제">시간제</option>
+                                </select></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">사용 단가 (원)</label>
+                                <input type="number" id="std-rentAmount" placeholder="650000" oninput="stdFormatMoney(); stdCalcDays(); stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200">
+                                <span id="std-korRentAmount" class="text-[10px] text-amber-600 mt-0.5 block"></span></div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-semibold text-slate-500">총 예상금액 (원)</label>
+                                    <button id="std-btnApplyCalc" onclick="stdApplyCalcTotal()" class="hidden text-[9px] text-indigo-600 font-bold hover:underline">자동적용</button>
+                                </div>
+                                <input type="number" id="std-totalAmount" placeholder="공란 시 단가만 표기" oninput="stdFormatTotal(); stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200">
+                                <span id="std-korTotalAmount" class="text-[10px] text-amber-600 mt-0.5 block"></span></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">가동시간 기준</label>
+                                <input type="text" id="std-baseWorkHours" placeholder="1일 8시간 기준" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                        </div>
+                        <div class="border-t border-slate-100 dark:border-slate-700 pt-2 grid grid-cols-2 gap-2">
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">1개월 초과 시 지급(일)</label>
+                                <input type="number" id="std-payOver" placeholder="30" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                            <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">1개월 이하 시 지급(일)</label>
+                                <input type="number" id="std-payUnder" placeholder="15" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                        </div>
+                        <!-- 경비 분담 -->
+                        <div class="border-t border-slate-100 dark:border-slate-700 pt-2">
+                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 block mb-2">제경비 분담 협의</span>
+                            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                    <span class="font-semibold block mb-1 text-slate-500">⛽ 유류대</span>
+                                    <div class="flex gap-3">
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expFuel" value="임대인" onchange="stdUpdateContract()"> 임대인</label>
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expFuel" value="임차인" checked onchange="stdUpdateContract()"> 임차인</label>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                    <span class="font-semibold block mb-1 text-slate-500">👷 조종사 급여</span>
+                                    <div class="flex gap-3">
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expDriver" value="임대인" checked onchange="stdUpdateContract()"> 임대인</label>
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expDriver" value="임차인" onchange="stdUpdateContract()"> 임차인</label>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                    <span class="font-semibold block mb-1 text-slate-500">🔧 정비/소모품비</span>
+                                    <div class="flex gap-3">
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expMaint" value="임대인" checked onchange="stdUpdateContract()"> 임대인</label>
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expMaint" value="임차인" onchange="stdUpdateContract()"> 임차인</label>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                    <span class="font-semibold block mb-1 text-slate-500">🚚 왕복 수송비</span>
+                                    <div class="flex gap-3">
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expTrans" value="임대인" onchange="stdUpdateContract()"> 임대인</label>
+                                        <label class="cursor-pointer text-slate-600 dark:text-slate-300"><input type="radio" name="std-expTrans" value="임차인" checked onchange="stdUpdateContract()"> 임차인</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. 당사자 정보 및 서명 -->
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">4</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">계약 당사자 및 서명</h2>
+                        </div>
+                        <!-- 임대인 -->
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-blue-600">▲ 임대인 (건설기계 사업자)</span>
+                                <button type="button" onclick="stdOpenSigModal('lessor')" class="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-200 flex items-center gap-0.5">
+                                    <i data-lucide="pen-tool" class="w-2.5 h-2.5"></i> 서명/도장
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="std-lessorCompany" placeholder="상호명" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                                <input type="text" id="std-lessorName" placeholder="대표자명" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                                <input type="text" id="std-lessorRegNo" placeholder="사업자등록번호" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                                <input type="text" id="std-lessorPhone" placeholder="연락처" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                            </div>
+                            <input type="text" id="std-lessorAddr" placeholder="주소" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                        </div>
+                        <!-- 임차인 -->
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-orange-600">▼ 임차인 (건설업자)</span>
+                                <button type="button" onclick="stdOpenSigModal('lessee')" class="text-[10px] bg-orange-100 text-orange-800 border border-orange-200 px-2 py-0.5 rounded hover:bg-orange-200 flex items-center gap-0.5">
+                                    <i data-lucide="pen-tool" class="w-2.5 h-2.5"></i> 서명/도장
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="std-lesseeCompany" placeholder="상호명" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                                <input type="text" id="std-lesseeName" placeholder="대표자명" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                                <input type="text" id="std-lesseeRegNo" placeholder="사업자등록번호" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                                <input type="text" id="std-lesseePhone" placeholder="연락처" oninput="stdUpdateContract()" class="px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                            </div>
+                            <input type="text" id="std-lesseeAddr" placeholder="주소" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
+                        </div>
+                    </div>
+
+                    <!-- 5. 계약일 및 특약 -->
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
+                            <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">5</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">계약일 및 특약사항</h2>
+                        </div>
+                        <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">계약 체결일</label>
+                            <input type="date" id="std-contractDate" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
+                        <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">특약 사항</label>
+                            <textarea id="std-specialTerms" rows="4" placeholder="계약 조항 외 별도 합의사항을 입력하세요." oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none font-mono bg-white dark:bg-slate-800 dark:text-slate-200"></textarea>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                <button onclick="stdInsertSpecial('본 건설기계의 고장으로 인한 작업 지연 시 즉시 대체 기계를 배차하거나, 수리 기간에 비례해 임대료를 차감한다.')" class="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-300 rounded">🛠️ 고장 시 책임</button>
+                                <button onclick="stdInsertSpecial('안전사고 발생 시 원인은 현장 관리 기준 및 지휘체계 준수 여부에 따라 규명하며, 산재 발생 시 과실 비율에 따른다.')" class="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-300 rounded">⚠️ 안전 책임</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 실시간 미리보기 (인쇄 타겟) -->
+                <div class="lg:col-span-7 bg-slate-500 p-4 rounded-xl shadow-inner overflow-y-auto" style="max-height:85vh;">
+                    <div class="text-center mb-3 no-print flex justify-between items-center bg-slate-800/80 text-white px-4 py-2 rounded-lg text-xs font-semibold">
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>공정위 제10059호 정식 표준 서식</span>
+                    </div>
+
+                    <!-- A4 계약서 본문 -->
+                    <div class="std-print-container bg-white text-black shadow-2xl mx-auto rounded-sm text-[9.5px] leading-relaxed max-w-[210mm] min-h-[297mm] p-10">
+                        <div>
+                            <div class="flex justify-between items-end border-b-2 border-black pb-1.5 mb-4">
+                                <span class="font-black text-[11px] tracking-wide text-slate-900">건설기계임대차 표준계약서</span>
+                                <span class="text-[8.5px] text-right font-medium text-slate-600">공정거래위원회 표준약관 제10059호<br>(2015. 10. 30. 개정)</span>
+                            </div>
+
+                            <!-- 1. 목적물 -->
+                            <div class="mb-4">
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">1. 목적물의 표시</h3>
+                                <h4 class="font-bold text-[9.5px] mb-1 text-slate-700">가. 건설기계</h4>
+                                <table class="w-full border-collapse border-2 border-black text-center mb-3 text-[9px]">
+                                    <thead><tr class="bg-slate-100 font-bold border-b border-black">
+                                        <td class="border border-black p-1.5 w-[18%]">건설기계명</td>
+                                        <td class="border border-black p-1.5 w-[15%]">등록번호</td>
+                                        <td class="border border-black p-1.5 w-[15%]">형식(규격)</td>
+                                        <td class="border border-black p-1.5 w-[22%]">보험(공제) 가입현황</td>
+                                        <td class="border border-black p-1.5 w-[18%]">정기검사 여부</td>
+                                        <td class="border border-black p-1.5 w-[12%]">비고</td>
+                                    </tr></thead>
+                                    <tbody><tr>
+                                        <td id="std-vMachineName" class="border border-black p-1.5 font-bold text-slate-900">-</td>
+                                        <td id="std-vMachineRegNo" class="border border-black p-1.5 text-slate-800">-</td>
+                                        <td id="std-vMachineSpec" class="border border-black p-1.5 text-slate-800">-</td>
+                                        <td id="std-vMachineInsurance" class="border border-black p-1.5 text-left px-1 text-slate-800">-</td>
+                                        <td id="std-vMachineInspection" class="border border-black p-1.5 text-slate-800">-</td>
+                                        <td id="std-vMachineNote" class="border border-black p-1.5 text-slate-800">-</td>
+                                    </tr></tbody>
+                                </table>
+                                <h4 class="font-bold text-[9.5px] mb-1 text-slate-700">나. 현장</h4>
+                                <table class="w-full border-collapse border-2 border-black text-center text-[9px]">
+                                    <thead><tr class="bg-slate-100 font-bold border-b border-black">
+                                        <td class="border border-black p-1.5 w-[20%]">현장명</td>
+                                        <td class="border border-black p-1.5 w-[25%]">현장 소재지</td>
+                                        <td class="border border-black p-1.5 w-[15%]">발주자(원수급인)</td>
+                                        <td class="border border-black p-1.5 w-[15%]">건설업자(임차인)</td>
+                                        <td class="border border-black p-1.5 w-[15%]">대금 지급보증</td>
+                                        <td class="border border-black p-1.5 w-[10%]">비고</td>
+                                    </tr></thead>
+                                    <tbody><tr>
+                                        <td id="std-vSiteName" class="border border-black p-1.5 font-bold text-slate-900">-</td>
+                                        <td id="std-vSiteLocation" class="border border-black p-1.5 text-left px-1 text-slate-800">-</td>
+                                        <td id="std-vSiteClient" class="border border-black p-1.5 text-slate-800">-</td>
+                                        <td id="std-vSiteLessee" class="border border-black p-1.5 text-slate-800">-</td>
+                                        <td id="std-vPaymentGuarantee" class="border border-black p-1.5 text-slate-800">-</td>
+                                        <td id="std-vSiteNote" class="border border-black p-1.5 text-slate-800">-</td>
+                                    </tr></tbody>
+                                </table>
+                            </div>
+
+                            <!-- 2. 사용기간 -->
+                            <div class="mb-3">
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">2. 사용기간</h3>
+                                <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
+                                    사용기간은 <span id="std-vLeaseStart" class="underline font-bold text-slate-900">년 월 일</span> 부터 <span id="std-vLeaseEnd" class="underline font-bold text-slate-900">년 월 일</span> 까지로 한다.
+                                </div>
+                            </div>
+
+                            <!-- 3. 사용금액 -->
+                            <div class="mb-3">
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">3. 사용금액</h3>
+                                <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
+                                    당금 <span id="std-vRentAmtKor" class="font-black text-blue-900 text-[10.5px]">일금 원정</span> <span id="std-vRentAmtNum" class="text-slate-700 font-bold ml-1">(￦)</span> (기준: <span id="std-vRentPayType" class="font-bold">-</span>)
+                                    <span id="std-vTotalAmtBox" class="hidden"> / 총 금액: <span id="std-vTotalAmtKor" class="font-black text-emerald-900">일금 원정</span> <span id="std-vTotalAmtNum" class="text-slate-700 font-bold">(￦)</span></span>
+                                    <p class="text-slate-600 text-[8.5px] mt-0.5">(단, 부가가치세는 별도로 한다.)</p>
+                                </div>
+                            </div>
+
+                            <!-- 4. 가동시간 -->
+                            <div class="mb-3">
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">4. 가동시간</h3>
+                                <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
+                                    가동시간은 <span id="std-vBaseWorkHours" class="font-bold underline text-slate-900">1일 8시간 기준, 월 200시간 기준</span>으로 한다.
+                                </div>
+                            </div>
+
+                            <!-- 5. 지급시기 -->
+                            <div class="mb-3">
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">5. 지급시기</h3>
+                                <div class="border-2 border-black p-2 text-[9.5px] bg-slate-50">
+                                    • 1개월 초과 시: 매월 종료 후 (<span id="std-vPayOver" class="font-bold underline px-0.5">0</span>) 일 이내<br>
+                                    • 1개월 이하 시: 기간 종료 후 (<span id="std-vPayUnder" class="font-bold underline px-0.5">0</span>) 일 이내
+                                </div>
+                            </div>
+
+                            <p class="mb-3 text-[9px] text-justify text-slate-800">건설기계임대인과 건설기계임차인은 합의에 따라 계약을 체결하고, 신의성실에 따라 의무를 이행할 것을 확약하며, 계약의 증거로 계약서를 2통 작성하여 서명 날인 후 각각 1부씩 보관한다.</p>
+
+                            <!-- 특약 -->
+                            <div class="mb-4">
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">■ 특약 사항</h3>
+                                <div id="std-vSpecialTerms" class="border-2 border-black p-2 min-h-[50px] bg-slate-50 whitespace-pre-wrap text-[9px] font-mono text-slate-800">- 특약사항이 기재되지 않았습니다.</div>
+                            </div>
+                        </div>
+
+                        <!-- 하단: 계약일 + 서명란 -->
+                        <div class="mt-auto">
+                            <div id="std-vContractDate" class="text-center text-[11px] font-black tracking-widest mb-3 text-slate-900">2026년 06월 19일</div>
+                            <table class="w-full border-collapse border-2 border-black text-[9.5px]">
+                                <tbody>
+                                    <tr class="border-b border-black">
+                                        <td rowspan="2" class="border-r-2 border-black bg-slate-100 font-bold p-2 text-center w-8 text-slate-900">임<br>대<br>인</td>
+                                        <td class="border border-black bg-slate-50 p-1.5 w-20 text-center font-bold text-slate-800">상호(법인명)</td>
+                                        <td id="std-vLessorCompany" class="border border-black px-2 w-[38%] font-black text-slate-900">-</td>
+                                        <td class="border border-black bg-slate-50 p-1.5 w-24 text-center font-bold text-slate-800">사업자등록번호</td>
+                                        <td id="std-vLessorRegNo" class="border border-black px-2 text-slate-900">-</td>
+                                    </tr>
+                                    <tr class="border-b-2 border-black">
+                                        <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">성명(대표자)</td>
+                                        <td class="border border-black px-2 relative">
+                                            <span id="std-vLessorName" class="font-black text-slate-900">-</span>
+                                            <span class="float-right text-slate-400 text-[8px] mr-1">(인)</span>
+                                            <div id="std-lessorSignOutput" class="absolute right-6 -top-2 w-10 h-10 pointer-events-none flex items-center justify-center"></div>
+                                        </td>
+                                        <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">주소(전화번호)</td>
+                                        <td id="std-vLessorAddressPhone" class="border border-black px-2 text-slate-800">-</td>
+                                    </tr>
+                                    <tr class="border-b border-black">
+                                        <td rowspan="2" class="border-r-2 border-black bg-slate-100 font-bold p-2 text-center w-8 text-slate-900">임<br>차<br>인</td>
+                                        <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">상호(법인명)</td>
+                                        <td id="std-vLesseeCompany" class="border border-black px-2 font-black text-slate-900">-</td>
+                                        <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">사업자등록번호</td>
+                                        <td id="std-vLesseeRegNo" class="border border-black px-2 text-slate-900">-</td>
+                                    </tr>
+                                    <tr class="border-b-2 border-black">
+                                        <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">성명(대표자)</td>
+                                        <td class="border border-black px-2 relative">
+                                            <span id="std-vLesseeName" class="font-black text-slate-900">-</span>
+                                            <span class="float-right text-slate-400 text-[8px] mr-1">(인)</span>
+                                            <div id="std-lesseeSignOutput" class="absolute right-6 -top-2 w-10 h-10 pointer-events-none flex items-center justify-center"></div>
+                                        </td>
+                                        <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">주소(전화번호)</td>
+                                        <td id="std-vLesseeAddressPhone" class="border border-black px-2 text-slate-800">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 약관 2면 (토글) -->
+                    <div id="std-generalConditionsPage" class="std-print-page2 hidden bg-white text-black text-[7.5px] leading-relaxed mt-2 p-10 max-w-[210mm] mx-auto min-h-[297mm]">
+                        <div class="flex justify-between items-center border-b-2 border-black pb-1 mb-3">
+                            <span class="font-black text-[10px]">건설기계임대차 표준계약 일반조건</span>
+                            <span class="text-[7.5px] text-slate-500">제10059호 약관</span>
+                        </div>
+                        <div class="space-y-2 text-justify">
+                            <p><strong>제1조(총칙)</strong> 건설기계임대인(이하 "갑")과 건설기계임차인(이하 "을")은 대등한 입장에서 신의에 따라 성실히 계약을 이행한다.</p>
+                            <p><strong>제2조(사용기간)</strong> 사용기간은 계약서에 명시된 일자로 한다. 연장 시 "갑"과 "을"이 협의한다.</p>
+                            <p><strong>제3조(건설기계의 가동시간)</strong> ① 가동시간은 1일 8시간, 월 200시간 기준으로 한다. ② "갑" 귀책으로 기준 미달 시 대여대금 공제, "을" 귀책 시 기준시간 가동으로 간주한다. ③ 야간·초과 작업 요율은 관련법령을 적용한다.</p>
+                            <p><strong>제4조(대여대금 등)</strong> ① 대여대금은 계약서에 명시된 금액으로 한다. ② 조종사 급여, 기계손료가 포함된다. ③ 분해·조립 비용은 원칙적으로 "을"이 부담한다. ④ 천재지변 등 월 5일 이상 불가동 시 대여대금에서 차감한다.</p>
+                            <p><strong>제5조(경비 등의 부담)</strong> ① 유류비 및 운반비는 "을" 부담 원칙. ② 조종사 숙식, 소모품, 수선비 등은 상호 협의한다.</p>
+                            <p><strong>제6조(대여대금 지불조건)</strong> ① 1개월 초과 시 매월 종료 후, 1개월 이하 시 종료 후 각각 60일 이내 지불한다. ② "을"이 도급인으로부터 기성금을 받은 때는 수령 후 15일 이내 현금 지불한다. ③ "을" 체불 시 "갑"은 발주자에게 직접지급 요청할 수 있다.</p>
+                            <p><strong>제6조의2(지급보증)</strong> 임대차계약금액이 200만원 초과 시 "을"은 대금 지급보증서를 제공해야 한다.</p>
+                            <p><strong>제7조(전대 및 목적외 사용금지)</strong> "을"은 서면 합의 없이 기계를 전대하거나 계약 외 목적으로 사용할 수 없다.</p>
+                            <p><strong>제8조("갑"의 권리와 의무)</strong> ① "갑"은 장비 정상 가동을 위해 철저히 정비해야 한다. ② 보험증명·면허를 제공해야 한다. ③ 조종사 과실로 지장 초래 시 즉시 교체한다.</p>
+                            <p><strong>제9조("을"의 권리와 의무)</strong> ① "을"은 지하지장물 등 안전 수칙을 충분히 고지해야 한다. ② "갑"의 정기검사 수검을 보장해야 한다.</p>
+                            <p><strong>제10조(계약해제 및 해지)</strong> 일방이 조건 위반 시 서면 최고 후 해제한다. 5일 이상 수리 필요 시 합의 하에 즉시 해지할 수 있다.</p>
+                            <p><strong>제11조(분쟁해결)</strong> 합의 실패 시 건설분쟁조정위원회에 조정을 신청하거나 중재 요청한다.</p>
+                        </div>
+                        <div class="text-center border-t border-black pt-2 mt-4 text-[8px] font-bold text-slate-600">
+                            ※ 상세 일반조건 효력은 공정거래위원회 표준약관 제10059호 규정에 귀속됩니다.
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 계약서 본문 (인쇄 영역) -->
-            <div id="contract-print-box" class="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800"
-                style="font-family:'Noto Sans KR', sans-serif;">
-                <div class="p-8 md:p-12 max-w-4xl mx-auto text-slate-900 dark:text-slate-100" style="font-size:13px; line-height:1.9;">
+            </div><!-- /ctab-form -->
 
-                    <!-- 제목 -->
-                    <div class="text-center mb-8">
-                        <h1 class="text-2xl font-black tracking-widest border-b-2 border-slate-800 dark:border-slate-300 pb-3 inline-block px-8">건 설 기 계 임 대 차 계 약 서</h1>
+            <!-- ── 서브탭: 계약 DB 관리 ── -->
+            <div id="ctab-db" class="hidden">
+                <!-- 통계 카드 -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:border-amber-400 transition-all">
+                        <p class="text-[10px] text-slate-400 font-bold mb-1">전체 계약</p>
+                        <p class="text-2xl font-black text-slate-800 dark:text-slate-100" id="cdb-s-total">0</p>
+                        <p class="text-[10px] text-slate-400 mt-1">건</p>
                     </div>
-
-                    <!-- 전문 -->
-                    <p class="mb-6 text-justify leading-relaxed text-slate-700 dark:text-slate-300 text-[13px]">
-                        임대인과 임차인은 아래의 건설기계 임대차에 관하여 다음과 같이 계약을 체결한다.
-                    </p>
-
-                    <!-- 계약 기본 정보 테이블 -->
-                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
-                        <colgroup><col style="width:16%"><col style="width:34%"><col style="width:16%"><col style="width:34%"></colgroup>
-                        <tbody>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 font-bold px-3 py-2 text-center">현장명</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3">
-                                    <input type="text" id="ct-site" class="w-full bg-transparent outline-none font-semibold" placeholder="현장명 입력">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 font-bold px-3 py-2 text-center">계약 일자</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <input type="date" id="ct-date" class="w-full bg-transparent outline-none font-semibold">
-                                </td>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 font-bold px-3 py-2 text-center">계약 번호</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <input type="text" id="ct-number" class="w-full bg-transparent outline-none font-semibold" placeholder="예) 2026-001">
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- 임대인 / 임차인 -->
-                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
-                        <colgroup><col style="width:8%"><col style="width:16%"><col style="width:26%"><col style="width:16%"><col style="width:34%"></colgroup>
-                        <thead>
-                            <tr class="bg-slate-100 dark:bg-slate-800">
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 text-center font-bold" rowspan="5">임<br>대<br>인</th>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">상호(법인명)</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-company" class="w-full bg-transparent outline-none" placeholder="임대인 상호"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">사업자등록번호</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-biznum" class="w-full bg-transparent outline-none" placeholder="000-00-00000" oninput="formatBusinessNumber(this)"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">대표자</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-ceo" class="w-full bg-transparent outline-none" placeholder="대표자 성명"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">전화번호</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">주소</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3"><input type="text" id="ct-lessor-addr" class="w-full bg-transparent outline-none" placeholder="사업장 주소"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">은행/계좌번호</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-bank" class="w-full bg-transparent outline-none" placeholder="은행명"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">예금주</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-account" class="w-full bg-transparent outline-none" placeholder="계좌번호 및 예금주"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">운전원 성명</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-driver" class="w-full bg-transparent outline-none" placeholder="운전원 성명 (해당 시)"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">운전원 연락처</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessor-driver-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="bg-slate-100 dark:bg-slate-800">
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 text-center font-bold" rowspan="4">임<br>차<br>인</th>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">상호(법인명)</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-company" class="w-full bg-transparent outline-none" placeholder="임차인 상호"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">사업자등록번호</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-biznum" class="w-full bg-transparent outline-none" placeholder="000-00-00000" oninput="formatBusinessNumber(this)"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">대표자</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-ceo" class="w-full bg-transparent outline-none" placeholder="대표자 성명"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">전화번호</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">주소</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3"><input type="text" id="ct-lessee-addr" class="w-full bg-transparent outline-none" placeholder="사업장 주소"></td>
-                            </tr>
-                            <tr>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">담당자</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-manager" class="w-full bg-transparent outline-none" placeholder="담당자 성명"></td>
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center">담당자 연락처</th>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1"><input type="text" id="ct-lessee-manager-phone" class="w-full bg-transparent outline-none" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- 기계 정보 -->
-                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
-                        <thead>
-                            <tr class="bg-slate-100 dark:bg-slate-800">
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center" colspan="4">건설기계 명세</th>
-                            </tr>
-                            <tr class="bg-slate-50 dark:bg-slate-800/60 text-center text-[11px] font-bold">
-                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:22%">기계 종류</th>
-                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:22%">규격·형식</th>
-                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:22%">등록번호(차량번호)</th>
-                                <th class="border border-slate-400 dark:border-slate-600 py-1.5 px-2" style="width:34%">제조사·연식</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ct-machine-tbody">
-                            <!-- 행은 JS로 렌더 -->
-                        </tbody>
-                        <tfoot>
-                            <tr class="no-print">
-                                <td colspan="4" class="border border-slate-400 dark:border-slate-600 px-3 py-1.5 text-center">
-                                    <button onclick="addMachineRow()" class="text-[11px] text-teal-600 dark:text-teal-400 font-bold hover:underline flex items-center gap-1 mx-auto">
-                                        <i data-lucide="plus-circle" class="w-3 h-3"></i> 기계 행 추가
-                                    </button>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <!-- 계약 조건 -->
-                    <table class="w-full border-collapse border border-slate-400 dark:border-slate-600 mb-6 text-[12px]">
-                        <thead>
-                            <tr class="bg-slate-100 dark:bg-slate-800">
-                                <th class="border border-slate-400 dark:border-slate-600 py-2 px-3 font-bold text-center" colspan="4">계약 조건</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center" style="width:16%">임대 기간</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" style="width:34%">
-                                    <div class="flex items-center gap-1">
-                                        <input type="date" id="ct-period-from" class="bg-transparent outline-none font-semibold flex-1">
-                                        <span class="font-bold text-slate-400">~</span>
-                                        <input type="date" id="ct-period-to" class="bg-transparent outline-none font-semibold flex-1">
-                                    </div>
-                                </td>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center" style="width:16%">작업 현장</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" style="width:34%">
-                                    <input type="text" id="ct-work-site" class="w-full bg-transparent outline-none" placeholder="작업 현장 주소">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">임대료 단가</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <div class="flex items-center gap-1">
-                                        <input type="text" id="ct-unit-price" class="bg-transparent outline-none font-bold text-blue-700 dark:text-blue-400 flex-1"
-                                            placeholder="단가 입력" onfocus="this.value=this.value.replace(/,/g,'')"
-                                            onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); calcContractTotal()"
-                                            oninput="calcContractTotal()">
-                                        <select id="ct-unit-type" onchange="calcContractTotal()" class="bg-transparent outline-none text-[11px] font-bold text-slate-600 dark:text-slate-300 border-l border-slate-300 dark:border-slate-600 pl-1">
-                                            <option value="시간">원/시간</option>
-                                            <option value="일">원/일</option>
-                                            <option value="월">원/월</option>
-                                            <option value="식">원/식</option>
-                                            <option value="m3">원/m³</option>
-                                            <option value="ton">원/ton</option>
-                                        </select>
-                                    </div>
-                                </td>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">작업 시간</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <div class="flex items-center gap-1">
-                                        <input type="text" id="ct-work-start" class="bg-transparent outline-none flex-1" placeholder="시작(예: 08:00)">
-                                        <span class="text-slate-400 font-bold">~</span>
-                                        <input type="text" id="ct-work-end" class="bg-transparent outline-none flex-1" placeholder="종료(예: 17:00)">
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">수량(시간/일)</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <input type="number" id="ct-qty" class="w-full bg-transparent outline-none font-bold" placeholder="0" min="0" oninput="calcContractTotal()">
-                                </td>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">대기비</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <input type="text" id="ct-standby" class="w-full bg-transparent outline-none" placeholder="대기비 조건 기재 (예: 50% 적용)">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">공급가액</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <input type="text" id="ct-supply" class="w-full bg-transparent outline-none font-extrabold text-slate-800 dark:text-slate-100" readonly placeholder="자동 계산">
-                                </td>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">부가세(10%)</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <input type="text" id="ct-vat" class="w-full bg-transparent outline-none font-bold text-slate-700 dark:text-slate-200" readonly placeholder="자동 계산">
-                                </td>
-                            </tr>
-                            <tr class="bg-blue-50 dark:bg-blue-950/20">
-                                <td class="border border-slate-400 dark:border-slate-600 bg-blue-100 dark:bg-blue-900/40 font-extrabold px-3 py-2 text-center text-blue-800 dark:text-blue-300">계약 금액 합계</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-2 font-extrabold text-blue-700 dark:text-blue-400 text-base" colspan="3">
-                                    <span id="ct-total-display">금 0원정 (￦0)</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">지급 조건</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1" colspan="3">
-                                    <input type="text" id="ct-payment-terms" class="w-full bg-transparent outline-none" placeholder="예) 작업 완료 후 30일 이내 세금계산서 발행 및 현금 지급">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">연료 부담</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <select id="ct-fuel" class="w-full bg-transparent outline-none font-semibold">
-                                        <option value="임대인 부담">임대인 부담</option>
-                                        <option value="임차인 부담">임차인 부담</option>
-                                        <option value="협의">협의</option>
-                                    </select>
-                                </td>
-                                <td class="border border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 font-bold px-3 py-2 text-center">보험 부담</td>
-                                <td class="border border-slate-400 dark:border-slate-600 px-3 py-1">
-                                    <select id="ct-insurance" class="w-full bg-transparent outline-none font-semibold">
-                                        <option value="임대인 부담">임대인 부담</option>
-                                        <option value="임차인 부담">임차인 부담</option>
-                                        <option value="협의">협의</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- 특약 사항 -->
-                    <div class="border border-slate-400 dark:border-slate-600 rounded mb-6">
-                        <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-[12px] border-b border-slate-400 dark:border-slate-600">특약 사항</div>
-                        <textarea id="ct-special" rows="4" class="w-full px-4 py-3 bg-transparent outline-none text-[12px] resize-none dark:text-slate-100"
-                            placeholder="특약 사항을 입력하세요. (예: 우천 시 작업 중지, 안전사고 책임 소재, 기계 고장 시 처리 방법 등)"></textarea>
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:border-amber-400 transition-all">
+                        <p class="text-[10px] text-amber-500 font-bold mb-1">진행중</p>
+                        <p class="text-2xl font-black text-amber-600 dark:text-amber-400" id="cdb-s-active">0</p>
+                        <p class="text-[10px] text-slate-400 mt-1">건</p>
                     </div>
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:border-amber-400 transition-all">
+                        <p class="text-[10px] text-emerald-500 font-bold mb-1">완료</p>
+                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="cdb-s-done">0</p>
+                        <p class="text-[10px] text-slate-400 mt-1">건</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:border-blue-400 transition-all">
+                        <p class="text-[10px] text-blue-500 font-bold mb-1">총 계약금액</p>
+                        <p class="text-xl font-black text-blue-600 dark:text-blue-400" id="cdb-s-amount">0</p>
+                        <p class="text-[10px] text-slate-400 mt-1">원</p>
+                    </div>
+                </div>
 
-                    <!-- 서명란 -->
-                    <div class="mt-8 mb-4">
-                        <p class="text-center text-[13px] mb-6 text-slate-700 dark:text-slate-300">위 계약 내용을 확인하고 이에 동의하여 본 계약서 2부를 작성하고 각각 1부씩 보관한다.</p>
-                        <div class="flex justify-around gap-8 text-[12px]">
-                            <div class="flex-1 border border-slate-300 dark:border-slate-600 rounded-xl p-5">
-                                <p class="font-extrabold text-center text-slate-700 dark:text-slate-200 mb-4 text-[13px]">임 대 인</p>
-                                <div class="space-y-2">
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">상호 :</span><span id="ct-sig-lessor-company" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">대표자 :</span><span id="ct-sig-lessor-ceo" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span><span class="text-slate-400 dark:text-slate-500">(인)</span></div>
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">주소 :</span><span id="ct-sig-lessor-addr" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">연락처 :</span><span id="ct-sig-lessor-phone" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
-                                </div>
-                            </div>
-                            <div class="flex-1 border border-slate-300 dark:border-slate-600 rounded-xl p-5">
-                                <p class="font-extrabold text-center text-slate-700 dark:text-slate-200 mb-4 text-[13px]">임 차 인</p>
-                                <div class="space-y-2">
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">상호 :</span><span id="ct-sig-lessee-company" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">대표자 :</span><span id="ct-sig-lessee-ceo" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span><span class="text-slate-400 dark:text-slate-500">(인)</span></div>
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">주소 :</span><span id="ct-sig-lessee-addr" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
-                                    <div class="flex gap-2"><span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">연락처 :</span><span id="ct-sig-lessee-phone" class="font-semibold border-b border-slate-200 dark:border-slate-700 flex-1 min-h-[20px]"></span></div>
-                                </div>
-                            </div>
+                <!-- 검색·필터 바 -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-3 mb-3 shadow-sm">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-2 flex-1 min-w-[160px] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+                            <input type="text" id="cdb-search" class="bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none flex-1 placeholder-slate-400" placeholder="기계명, 현장명, 업체명 검색…" oninput="cdbRenderTable()">
+                        </div>
+                        <select id="cdb-filter-status" class="border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none" onchange="cdbRenderTable()">
+                            <option value="">전체 상태</option>
+                            <option value="진행중">진행중</option>
+                            <option value="완료">완료</option>
+                            <option value="대기">대기</option>
+                            <option value="취소">취소</option>
+                        </select>
+                        <select id="cdb-sort" class="border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none" onchange="cdbRenderTable()">
+                            <option value="date-desc">최신순</option>
+                            <option value="date-asc">오래된순</option>
+                            <option value="amount-desc">금액 높은순</option>
+                            <option value="machine">기계명순</option>
+                        </select>
+                        <button class="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1" onclick="cdbClearFilters()"><i data-lucide="x" class="w-3 h-3"></i>초기화</button>
+                        <div class="ml-auto flex gap-2">
+                            <button onclick="cdbExportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"><i data-lucide="table" class="w-3 h-3"></i>엑셀</button>
+                            <button onclick="cdbExportJson()" class="bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"><i data-lucide="download" class="w-3 h-3"></i>JSON</button>
+                            <input type="file" id="cdb-import-file" accept=".json" class="hidden" onchange="cdbHandleImport(event)">
+                            <button onclick="document.getElementById('cdb-import-file').click()" class="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><i data-lucide="upload" class="w-3 h-3"></i>가져오기</button>
                         </div>
                     </div>
+                </div>
 
-                </div><!-- /본문 내부 -->
-            </div><!-- /contract-print-box -->
+                <!-- 테이블 -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse" style="font-size:11px;">
+                            <thead>
+                                <tr class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-left">
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">상태</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">계약서명</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">기계명</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">등록번호</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">현장명</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">임차인</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">임대기간</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider text-right">총 계약금액</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">계약일</th>
+                                    <th class="py-2.5 px-3 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cdb-tbody">
+                                <tr><td colspan="10" class="text-center py-12 text-slate-400 text-xs">등록된 계약이 없습니다.<br><span class="text-slate-300 block mt-1 text-[10px]">계약서 작성 탭에서 "저장 (보관함+DB)" 버튼으로 추가하세요.</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <p class="text-[10px] text-slate-400" id="cdb-page-info">0건</p>
+                        <div class="flex gap-1" id="cdb-pagination"></div>
+                    </div>
+                </div>
+            </div><!-- /ctab-db -->
+
+            <!-- 계약 DB 상세/수정 모달 -->
+            <div id="cdb-detail-modal" class="no-print hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+                        <div>
+                            <p class="font-extrabold text-sm text-slate-800 dark:text-slate-100" id="cdb-detail-title">계약 상세</p>
+                            <div id="cdb-detail-badge" class="mt-1"></div>
+                        </div>
+                        <button onclick="document.getElementById('cdb-detail-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-5" id="cdb-detail-body"></div>
+                    <div class="flex justify-between items-center px-5 py-3 border-t border-slate-100 dark:border-slate-700 gap-2">
+                        <div class="flex gap-2">
+                            <select id="cdb-status-chg" class="border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none">
+                                <option value="대기">대기</option>
+                                <option value="진행중">진행중</option>
+                                <option value="완료">완료</option>
+                                <option value="취소">취소</option>
+                            </select>
+                            <button onclick="cdbApplyStatusChange()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all">상태 변경</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="cdbLoadToForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>계약서 수정</button>
+                            <button onclick="cdbDeleteCurrent()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>삭제</button>
+                            <button onclick="document.getElementById('cdb-detail-modal').classList.add('hidden')" class="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 서명 패드 모달 -->
+            <div id="std-sigModal" class="no-print hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-5 space-y-4">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
+                        <h3 class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-1.5" id="std-sigModalTitle">
+                            <i data-lucide="edit" class="w-4 h-4 text-indigo-600"></i> 디지털 서명 패드
+                        </h3>
+                        <button onclick="stdCloseSigModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 block mb-1">1. 서명 패드에 그리기</span>
+                        <div class="border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden bg-slate-50">
+                            <canvas id="std-sigCanvas" width="340" height="150" class="sig-canvas w-full h-[150px] bg-white"></canvas>
+                        </div>
+                        <div class="flex justify-end mt-1">
+                            <button onclick="stdClearCanvas()" class="text-[10px] bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 dark:text-slate-300">지우기</button>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-200 dark:border-slate-700 pt-3">
+                        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 block mb-1">2. 도장 이미지(PNG) 가져오기</span>
+                        <input type="file" id="std-stampFile" accept="image/*" onchange="stdHandleStamp(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-indigo-50 file:text-indigo-700">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <button onclick="stdCloseSigModal()" class="px-3 py-1.5 border hover:bg-slate-50 rounded-lg text-xs font-semibold dark:text-slate-200 dark:border-slate-600">취소</button>
+                        <button onclick="stdApplySignature()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">등록</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보관함 모달 -->
+            <div id="std-archiveModal" class="no-print hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md p-6 space-y-4">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
+                        <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                            <i data-lucide="archive" class="w-4 h-4 text-amber-600"></i> 계약서 보관함
+                        </h3>
+                        <button onclick="stdCloseArchiveModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div id="std-archiveList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                    <button onclick="stdCloseArchiveModal()" class="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 py-2 rounded-lg text-xs font-semibold">닫기</button>
+                </div>
+            </div>
+
         </div><!-- /tab-contract -->
 
     </main>
@@ -3399,9 +3728,8 @@
             } else if (tabId === 'contract') {
                 if (tabContract) tabContract.classList.remove('hidden');
                 if (btnContract) btnContract.classList.add('tab-active');
-                renderContractMachineRows();
-                updateContractSignature();
-                lucide.createIcons();
+                stdInitOnTabSwitch();
+                if(typeof cdbUpdateStats==='function') cdbUpdateStats();
             }
         }
 
@@ -8936,6 +9264,804 @@
             centerSub.textContent = `총 ${entries.length}구분`;
             totalLabel.textContent = `총 지급요청: ${formatNumber(grand)}원`;
         }
+        // ── 지불의뢰서·명세서 → 표준계약서 연동 (장비비 전용) ──
+        function stdSyncFromRequest() {
+            const setV = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+
+            // 장비비 카테고리 여부 확인
+            const category = (document.getElementById('req-title-category')?.textContent || '').trim();
+            if (category && category !== '장비비') {
+                showToast(`⚠️ 현재 지불의뢰서 구분이 "${category}"입니다. 장비비 거래처일 때만 연동할 수 있습니다.`, 'error');
+                return;
+            }
+
+            // ① 현장명: 명세서 meta-site 또는 지불의뢰서 req-meta-site
+            const siteName = (document.getElementById('meta-site')?.value || '').trim()
+                          || (document.getElementById('req-meta-site')?.value || '').trim();
+            if (siteName) setV('std-siteName', siteName);
+
+            // ② 원수급인(발주자): 명세서 meta-company
+            const company = (document.getElementById('meta-company')?.value || '').trim();
+            if (company) setV('std-siteClient', company);
+
+            // ③ 임대인(거래처) 정보: 지불의뢰서 거래처 필드
+            const vendor  = (document.getElementById('req-field-vendor')?.value || '').trim();
+            const ceo     = (document.getElementById('req-field-ceo')?.value || '').trim();
+            const biznum  = (document.getElementById('req-vendor-num')?.value || '').trim();
+            const phone   = (document.getElementById('req-vendor-phone')?.value || '').trim();
+            const bank    = (document.getElementById('req-vendor-bank')?.value || '').trim();
+            const account = (document.getElementById('req-vendor-account')?.value || '').trim();
+            const holder  = (document.getElementById('req-vendor-holder')?.value || '').trim();
+
+            if (vendor)  setV('std-lessorCompany', vendor);
+            if (ceo)     setV('std-lessorName', ceo);
+            if (biznum)  setV('std-lessorRegNo', biznum);
+            if (phone)   setV('std-lessorPhone', phone);
+            // 계좌 정보는 임대인 주소 란에 병기 (별도 필드 없으므로)
+            if (bank && account) {
+                const bankInfo = `${bank}은행 ${account}${holder ? ' / 예금주: '+holder : ''}`;
+                setV('std-lessorAddr', bankInfo);
+            }
+
+            // ④ 청구기간 → 임대 시작/종료일 파싱
+            // 형식: "2026년 06월 01일 ~ 2026년 06월 30일"
+            const period = (document.getElementById('req-meta-period')?.value || '').trim();
+            if (period) {
+                // "YYYY년 MM월 DD일" 두 개 추출
+                const matches = [...period.matchAll(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/g)];
+                if (matches.length >= 1) {
+                    const [, y1, m1, d1] = matches[0];
+                    setV('std-leaseStart', `${y1}-${m1.padStart(2,'0')}-${d1.padStart(2,'0')}`);
+                }
+                if (matches.length >= 2) {
+                    const [, y2, m2, d2] = matches[1];
+                    setV('std-leaseEnd', `${y2}-${m2.padStart(2,'0')}-${d2.padStart(2,'0')}`);
+                }
+            }
+
+            // ⑤ 계약일 = 오늘 (미입력 시만)
+            const dateEl = document.getElementById('std-contractDate');
+            if (dateEl && !dateEl.value) {
+                dateEl.value = new Date().toISOString().split('T')[0];
+            }
+
+            // 미리보기 및 날짜 계산 갱신
+            stdCalcDays();
+            stdUpdateContract();
+
+            // 연동 결과 토스트
+            const synced = [
+                siteName && `현장명: ${siteName}`,
+                vendor   && `임대인: ${vendor}`,
+                period   && `기간: ${period}`,
+            ].filter(Boolean);
+            showToast(synced.length
+                ? `✅ 연동 완료 — ${synced.join(' / ')}`
+                : '⚠️ 가져올 데이터가 없습니다. 지불의뢰서 탭에서 현장명·거래처를 먼저 입력하세요.',
+                synced.length ? 'success' : 'error'
+            );
+        }
+
+        // ── 기존 함수 이어서 ──
+        const STD_ARCHIVE_KEY = 'std_machinery_contract_v1';
+        let stdSavedSigs = { lessor: null, lessee: null };
+        let stdCurrentSigTarget = '';
+        let stdCanvas, stdCtx, stdIsDrawing = false;
+        let stdComputedDays = 0;
+
+        // 탭 전환 시 초기화
+        function stdInitOnTabSwitch() {
+            if (!stdCanvas) {
+                stdCanvas = document.getElementById('std-sigCanvas');
+                if (stdCanvas) {
+                    stdCtx = stdCanvas.getContext('2d');
+                    stdCtx.strokeStyle = '#000000';
+                    stdCtx.lineWidth = 2.5;
+                    stdCtx.lineCap = 'round';
+                    stdCanvas.addEventListener('mousedown', e => { stdIsDrawing=true; stdCtx.beginPath(); const r=stdCanvas.getBoundingClientRect(); stdCtx.moveTo(e.clientX-r.left, e.clientY-r.top); });
+                    stdCanvas.addEventListener('mousemove', e => { if (!stdIsDrawing) return; const r=stdCanvas.getBoundingClientRect(); stdCtx.lineTo(e.clientX-r.left, e.clientY-r.top); stdCtx.stroke(); });
+                    stdCanvas.addEventListener('mouseup', () => { stdIsDrawing=false; });
+                    stdCanvas.addEventListener('mouseout', () => { stdIsDrawing=false; });
+                    stdCanvas.addEventListener('touchstart', e => { e.preventDefault(); stdIsDrawing=true; stdCtx.beginPath(); const r=stdCanvas.getBoundingClientRect(), t=e.touches[0]; stdCtx.moveTo(t.clientX-r.left, t.clientY-r.top); }, {passive:false});
+                    stdCanvas.addEventListener('touchmove', e => { e.preventDefault(); if (!stdIsDrawing) return; const r=stdCanvas.getBoundingClientRect(), t=e.touches[0]; stdCtx.lineTo(t.clientX-r.left, t.clientY-r.top); stdCtx.stroke(); }, {passive:false});
+                    stdCanvas.addEventListener('touchend', () => { stdIsDrawing=false; });
+                }
+            }
+            // 오늘 날짜 기본값
+            const dateEl = document.getElementById('std-contractDate');
+            if (dateEl && !dateEl.value) {
+                dateEl.value = new Date().toISOString().split('T')[0];
+            }
+            stdUpdateContract();
+            lucide.createIcons();
+        }
+
+        // 캔버스 지우기
+        function stdClearCanvas() {
+            if (stdCtx) stdCtx.clearRect(0, 0, stdCanvas.width, stdCanvas.height);
+        }
+
+        // 서명 모달 열기
+        function stdOpenSigModal(target) {
+            stdCurrentSigTarget = target;
+            const labels = { lessor: '임대인 서명/도장', lessee: '임차인 서명/도장' };
+            const titleEl = document.getElementById('std-sigModalTitle');
+            if (titleEl) titleEl.innerHTML = `<i data-lucide="edit" class="w-4 h-4 text-indigo-600"></i> ${labels[target]} 등록`;
+            document.getElementById('std-stampFile').value = '';
+            stdClearCanvas();
+            const modal = document.getElementById('std-sigModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function stdCloseSigModal() {
+            const modal = document.getElementById('std-sigModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        // 도장 이미지 업로드
+        function stdHandleStamp(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    stdClearCanvas();
+                    const ratio = Math.min(stdCanvas.width/img.width, stdCanvas.height/img.height);
+                    const nw = img.width*ratio, nh = img.height*ratio;
+                    stdCtx.drawImage(img, (stdCanvas.width-nw)/2, (stdCanvas.height-nh)/2, nw, nh);
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 서명 등록 적용
+        function stdApplySignature() {
+            const dataUrl = stdCanvas.toDataURL();
+            stdSavedSigs[stdCurrentSigTarget] = dataUrl;
+            const el = document.getElementById(`std-${stdCurrentSigTarget}SignOutput`);
+            if (el) el.innerHTML = `<img src="${dataUrl}" class="max-w-full max-h-full object-contain mix-blend-multiply" />`;
+            showToast(`${stdCurrentSigTarget === 'lessor' ? '임대인' : '임차인'} 서명/도장이 등록되었습니다.`);
+            stdCloseSigModal();
+        }
+
+        // 일수 계산
+        function stdCalcDays() {
+            const s = document.getElementById('std-leaseStart').value;
+            const e = document.getElementById('std-leaseEnd').value;
+            const el = document.getElementById('std-calculatedDays');
+            const btn = document.getElementById('std-btnApplyCalc');
+            if (!s || !e) { el.textContent = '대여기간: -일'; stdComputedDays=0; btn.classList.add('hidden'); return; }
+            const diff = Math.ceil((new Date(e)-new Date(s))/(86400000))+1;
+            if (diff < 1) { el.textContent = '날짜 오류'; stdComputedDays=0; btn.classList.add('hidden'); return; }
+            stdComputedDays = diff;
+            el.textContent = `대여기간: ${diff}일`;
+            const unit = document.getElementById('std-rentAmount').value;
+            const type = document.getElementById('std-rentPayType').value;
+            if (type === '일급제' && unit && parseInt(unit) > 0) {
+                btn.textContent = `일급제 적용: ${(parseInt(unit)*diff).toLocaleString()}원`;
+                btn.classList.remove('hidden');
+            } else { btn.classList.add('hidden'); }
+        }
+
+        function stdApplyCalcTotal() {
+            if (stdComputedDays <= 0) return;
+            const unit = document.getElementById('std-rentAmount').value;
+            if (!unit) return;
+            document.getElementById('std-totalAmount').value = parseInt(unit) * stdComputedDays;
+            stdFormatTotal();
+            stdUpdateContract();
+        }
+
+        // 한글 금액 변환
+        function stdNumToKorean(num) {
+            if (!num || isNaN(num)) return '';
+            const d = ['','일','이','삼','사','오','육','칠','팔','구'];
+            const u = ['','십','백','천'];
+            const b = ['','만','억','조'];
+            let r = '', s = num.toString(), len = s.length;
+            for (let i=0; i<len; i++) {
+                const digit = parseInt(s.charAt(i));
+                const pos = len-i-1;
+                const ui = pos%4, bi = Math.floor(pos/4);
+                if (digit !== 0) r += d[digit]+u[ui];
+                if (ui===0 && bi>0 && parseInt(s.substring(Math.max(0,i-3),i+1))!==0) r += b[bi]+' ';
+            }
+            return r.trim();
+        }
+
+        function stdFormatMoney() {
+            const v = document.getElementById('std-rentAmount').value;
+            document.getElementById('std-korRentAmount').textContent = v ? `일금 ${stdNumToKorean(v)}원정` : '';
+        }
+
+        function stdFormatTotal() {
+            const v = document.getElementById('std-totalAmount').value;
+            document.getElementById('std-korTotalAmount').textContent = v ? `일금 ${stdNumToKorean(v)}원정` : '';
+        }
+
+        function stdFormatDateKorean(dateStr) {
+            if (!dateStr) return '년 월 일';
+            const p = dateStr.split('-');
+            return p.length===3 ? `${p[0]}년 ${parseInt(p[1])}월 ${parseInt(p[2])}일` : dateStr;
+        }
+
+        function stdGetVal(id) {
+            const el = document.getElementById(id);
+            return el ? el.value : '';
+        }
+
+        function stdGetRadio(name) {
+            const radios = document.getElementsByName(name);
+            for (let r of radios) { if (r.checked) return r.value; }
+            return '-';
+        }
+
+        function stdSetTxt(id, val) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val || '-';
+        }
+
+        // 실시간 미리보기 업데이트
+        function stdUpdateContract() {
+            stdSetTxt('std-vMachineName', stdGetVal('std-machineName'));
+            stdSetTxt('std-vMachineRegNo', stdGetVal('std-machineRegNo'));
+            stdSetTxt('std-vMachineSpec', stdGetVal('std-machineSpec'));
+            stdSetTxt('std-vMachineInsurance', stdGetVal('std-machineInsurance'));
+            stdSetTxt('std-vMachineInspection', stdGetVal('std-machineInspection'));
+            stdSetTxt('std-vMachineNote', stdGetVal('std-machineNote'));
+
+            stdSetTxt('std-vSiteName', stdGetVal('std-siteName'));
+            stdSetTxt('std-vSiteLocation', stdGetVal('std-siteLocation'));
+            stdSetTxt('std-vSiteClient', stdGetVal('std-siteClient'));
+            stdSetTxt('std-vSiteLessee', stdGetVal('std-siteLessee'));
+            stdSetTxt('std-vPaymentGuarantee', stdGetVal('std-paymentGuarantee'));
+            stdSetTxt('std-vSiteNote', stdGetVal('std-siteNote'));
+
+            stdSetTxt('std-vLeaseStart', stdFormatDateKorean(stdGetVal('std-leaseStart')));
+            stdSetTxt('std-vLeaseEnd', stdFormatDateKorean(stdGetVal('std-leaseEnd')));
+
+            const payType = stdGetVal('std-rentPayType');
+            stdSetTxt('std-vRentPayType', payType);
+            const amt = stdGetVal('std-rentAmount');
+            if (amt) {
+                stdSetTxt('std-vRentAmtKor', '일금 '+stdNumToKorean(amt)+'원정');
+                stdSetTxt('std-vRentAmtNum', '(￦'+parseFloat(amt).toLocaleString()+')');
+            } else {
+                stdSetTxt('std-vRentAmtKor', '일금 원정');
+                stdSetTxt('std-vRentAmtNum', '(￦)');
+            }
+
+            const tot = stdGetVal('std-totalAmount');
+            const totBox = document.getElementById('std-vTotalAmtBox');
+            if (tot && totBox) {
+                totBox.classList.remove('hidden');
+                stdSetTxt('std-vTotalAmtKor', '일금 '+stdNumToKorean(tot)+'원정');
+                stdSetTxt('std-vTotalAmtNum', '(￦'+parseFloat(tot).toLocaleString()+')');
+            } else if (totBox) { totBox.classList.add('hidden'); }
+
+            stdSetTxt('std-vBaseWorkHours', stdGetVal('std-baseWorkHours') || '1일 8시간 기준, 월 200시간 기준');
+            stdSetTxt('std-vPayOver', stdGetVal('std-payOver') || ' ');
+            stdSetTxt('std-vPayUnder', stdGetVal('std-payUnder') || ' ');
+
+            const spec = stdGetVal('std-specialTerms');
+            stdSetTxt('std-vSpecialTerms', spec && spec.trim() ? spec : '- 특약 합의사항이 기재되지 않았습니다.');
+
+            stdSetTxt('std-vContractDate', stdFormatDateKorean(stdGetVal('std-contractDate')));
+
+            stdSetTxt('std-vLessorCompany', stdGetVal('std-lessorCompany'));
+            stdSetTxt('std-vLessorRegNo', stdGetVal('std-lessorRegNo'));
+            stdSetTxt('std-vLessorName', stdGetVal('std-lessorName'));
+            const la = stdGetVal('std-lessorAddr'), lp = stdGetVal('std-lessorPhone');
+            stdSetTxt('std-vLessorAddressPhone', (la||lp) ? `${la} (Tel. ${lp})` : '-');
+
+            stdSetTxt('std-vLesseeCompany', stdGetVal('std-lesseeCompany'));
+            stdSetTxt('std-vLesseeRegNo', stdGetVal('std-lesseeRegNo'));
+            stdSetTxt('std-vLesseeName', stdGetVal('std-lesseeName'));
+            const ea = stdGetVal('std-lesseeAddr'), ep = stdGetVal('std-lesseePhone');
+            stdSetTxt('std-vLesseeAddressPhone', (ea||ep) ? `${ea} (Tel. ${ep})` : '-');
+        }
+
+        // 약관 토글
+        function stdTogglePrintConditions() {
+            const checked = document.getElementById('std-print-conditions-toggle').checked;
+            const page2 = document.getElementById('std-generalConditionsPage');
+            if (!page2) return;
+            page2.classList.toggle('hidden', !checked);
+        }
+
+        // 인쇄
+        function stdPrintContract() {
+            document.body.classList.add('contract-std-printing');
+            window.print();
+            setTimeout(() => document.body.classList.remove('contract-std-printing'), 1000);
+        }
+
+        // 특약 원클릭 삽입
+        function stdInsertSpecial(text) {
+            const ta = document.getElementById('std-specialTerms');
+            ta.value = ta.value.trim() ? ta.value + '\n' + text : text;
+            stdUpdateContract();
+        }
+
+        // ── 보관함 기능 ──
+        function stdSaveToArchive() {
+            const title = document.getElementById('std-archive-title').value.trim();
+            if (!title) { showToast('계약서 제목을 입력하세요.', 'error'); return; }
+            const state = {
+                id: Date.now(), title, created: new Date().toLocaleDateString(),
+                form: {
+                    machineName: stdGetVal('std-machineName'), machineSpec: stdGetVal('std-machineSpec'),
+                    machineRegNo: stdGetVal('std-machineRegNo'), machineInsurance: stdGetVal('std-machineInsurance'),
+                    machineInspection: stdGetVal('std-machineInspection'), machineNote: stdGetVal('std-machineNote'),
+                    siteName: stdGetVal('std-siteName'), siteLocation: stdGetVal('std-siteLocation'),
+                    siteClient: stdGetVal('std-siteClient'), siteLessee: stdGetVal('std-siteLessee'),
+                    paymentGuarantee: stdGetVal('std-paymentGuarantee'), siteNote: stdGetVal('std-siteNote'),
+                    leaseStart: stdGetVal('std-leaseStart'), leaseEnd: stdGetVal('std-leaseEnd'),
+                    rentPayType: stdGetVal('std-rentPayType'), rentAmount: stdGetVal('std-rentAmount'),
+                    totalAmount: stdGetVal('std-totalAmount'), baseWorkHours: stdGetVal('std-baseWorkHours'),
+                    payOver: stdGetVal('std-payOver'), payUnder: stdGetVal('std-payUnder'),
+                    expFuel: stdGetRadio('std-expFuel'), expDriver: stdGetRadio('std-expDriver'),
+                    expMaint: stdGetRadio('std-expMaint'), expTrans: stdGetRadio('std-expTrans'),
+                    lessorCompany: stdGetVal('std-lessorCompany'), lessorName: stdGetVal('std-lessorName'),
+                    lessorRegNo: stdGetVal('std-lessorRegNo'), lessorPhone: stdGetVal('std-lessorPhone'),
+                    lessorAddr: stdGetVal('std-lessorAddr'), lesseeCompany: stdGetVal('std-lesseeCompany'),
+                    lesseeName: stdGetVal('std-lesseeName'), lesseeRegNo: stdGetVal('std-lesseeRegNo'),
+                    lesseePhone: stdGetVal('std-lesseePhone'), lesseeAddr: stdGetVal('std-lesseeAddr'),
+                    contractDate: stdGetVal('std-contractDate'), specialTerms: stdGetVal('std-specialTerms'),
+                },
+                signatures: { ...stdSavedSigs }
+            };
+            let list = JSON.parse(localStorage.getItem(STD_ARCHIVE_KEY) || '[]');
+            const idx = list.findIndex(i => i.title === title);
+            if (idx !== -1) { list[idx] = state; showToast(`[${title}] 업데이트 완료`, 'success'); }
+            else { list.push(state); showToast(`[${title}] 보관함에 저장 완료`, 'success'); }
+            localStorage.setItem(STD_ARCHIVE_KEY, JSON.stringify(list));
+        }
+
+        function stdShowArchiveModal() {
+            const list = JSON.parse(localStorage.getItem(STD_ARCHIVE_KEY) || '[]');
+            const container = document.getElementById('std-archiveList');
+            container.innerHTML = '';
+            if (list.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 text-center py-5">저장된 계약서가 없습니다.</p>';
+            } else {
+                list.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between gap-2 p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition';
+                    const btn = document.createElement('button');
+                    btn.className = 'flex-1 text-left text-xs font-semibold text-slate-700 dark:text-slate-200';
+                    btn.innerHTML = `<span class="block text-slate-900 dark:text-slate-100">${item.title}</span><span class="text-[9px] text-slate-400">저장일: ${item.created}</span>`;
+                    btn.onclick = () => { stdLoadFromArchive(item); stdCloseArchiveModal(); };
+                    const del = document.createElement('button');
+                    del.className = 'p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded';
+                    del.innerHTML = '<i data-lucide="trash-2" class="w-3.5 h-3.5"></i>';
+                    del.onclick = e => { e.stopPropagation(); stdDeleteArchiveItem(item.id); };
+                    row.appendChild(btn); row.appendChild(del);
+                    container.appendChild(row);
+                });
+            }
+            document.getElementById('std-archiveModal').classList.remove('hidden');
+            document.getElementById('std-archiveModal').classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function stdCloseArchiveModal() {
+            const modal = document.getElementById('std-archiveModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function stdLoadFromArchive(item) {
+            const f = item.form;
+            const setV = (id, v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+            const setR = (name, v) => { document.getElementsByName(name).forEach(r=>{ if(r.value===v) r.checked=true; }); };
+
+            document.getElementById('std-archive-title').value = item.title || '';
+            setV('std-machineName',f.machineName); setV('std-machineSpec',f.machineSpec);
+            setV('std-machineRegNo',f.machineRegNo); setV('std-machineInsurance',f.machineInsurance);
+            setV('std-machineInspection',f.machineInspection); setV('std-machineNote',f.machineNote);
+            setV('std-siteName',f.siteName); setV('std-siteLocation',f.siteLocation);
+            setV('std-siteClient',f.siteClient); setV('std-siteLessee',f.siteLessee);
+            setV('std-paymentGuarantee',f.paymentGuarantee); setV('std-siteNote',f.siteNote);
+            setV('std-leaseStart',f.leaseStart); setV('std-leaseEnd',f.leaseEnd);
+            setV('std-rentPayType',f.rentPayType); setV('std-rentAmount',f.rentAmount);
+            setV('std-totalAmount',f.totalAmount); setV('std-baseWorkHours',f.baseWorkHours);
+            setV('std-payOver',f.payOver); setV('std-payUnder',f.payUnder);
+            setR('std-expFuel',f.expFuel||'임차인'); setR('std-expDriver',f.expDriver||'임대인');
+            setR('std-expMaint',f.expMaint||'임대인'); setR('std-expTrans',f.expTrans||'임차인');
+            setV('std-lessorCompany',f.lessorCompany); setV('std-lessorName',f.lessorName);
+            setV('std-lessorRegNo',f.lessorRegNo); setV('std-lessorPhone',f.lessorPhone);
+            setV('std-lessorAddr',f.lessorAddr); setV('std-lesseeCompany',f.lesseeCompany);
+            setV('std-lesseeName',f.lesseeName); setV('std-lesseeRegNo',f.lesseeRegNo);
+            setV('std-lesseePhone',f.lesseePhone); setV('std-lesseeAddr',f.lesseeAddr);
+            setV('std-contractDate',f.contractDate); setV('std-specialTerms',f.specialTerms);
+
+            if (item.signatures) {
+                Object.assign(stdSavedSigs, item.signatures);
+                ['lessor','lessee'].forEach(t => {
+                    const el = document.getElementById(`std-${t}SignOutput`);
+                    if (el) el.innerHTML = stdSavedSigs[t] ? `<img src="${stdSavedSigs[t]}" class="max-w-full max-h-full object-contain mix-blend-multiply" />` : '';
+                });
+            }
+            stdCalcDays(); stdFormatMoney(); stdFormatTotal(); stdUpdateContract();
+            showToast(`[${item.title}] 불러오기 완료`);
+        }
+
+        function stdDeleteArchiveItem(id) {
+            let list = JSON.parse(localStorage.getItem(STD_ARCHIVE_KEY) || '[]');
+            const idx = list.findIndex(i => i.id === id);
+            if (idx !== -1) {
+                const label = list[idx].title;
+                list.splice(idx, 1);
+                localStorage.setItem(STD_ARCHIVE_KEY, JSON.stringify(list));
+                showToast(`[${label}] 삭제 완료`, 'info');
+                stdShowArchiveModal();
+            }
+        }
+
+        // 백업/복원
+        function stdExportBackup() {
+            const data = { version:'std_v1', date: new Date().toISOString(), archive: localStorage.getItem(STD_ARCHIVE_KEY) };
+            const a = document.createElement('a');
+            a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data,null,2));
+            a.download = `표준계약서_백업_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); a.remove();
+            showToast('백업 파일 내보내기 완료');
+        }
+
+        function stdTriggerImport() { document.getElementById('std-import-file').click(); }
+
+        function stdImportBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.archive) localStorage.setItem(STD_ARCHIVE_KEY, parsed.archive);
+                    showToast('백업 복원 완료. 보관함을 열어 확인하세요.', 'success');
+                } catch { showToast('유효하지 않은 백업 파일입니다.', 'error'); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // 샘플 데이터
+        function stdLoadSampleMachinery() {
+            const setV = (id,v) => { const el=document.getElementById(id); if(el) el.value=v; };
+            const setR = (name,v) => { document.getElementsByName(name).forEach(r=>{ if(r.value===v) r.checked=true; }); };
+            setV('std-machineName','타이어식 굴착기'); setV('std-machineSpec','0.6㎥ (DX140W)');
+            setV('std-machineRegNo','강원04가9876'); setV('std-machineInsurance','영업배상 및 대인/대물 종합공제 완료');
+            setV('std-machineInspection','합격 (유효기한: 2027-11-20)'); setV('std-machineNote','종합 상태 최상');
+            setV('std-siteName','원주 기업도시 문화센터 신축공사'); setV('std-siteLocation','강원특별자치도 원주시 지정면 지정로 110');
+            setV('std-siteClient','원주도시개발공사 / (주)원주건설'); setV('std-siteLessee','(주)대박개발');
+            setV('std-paymentGuarantee','보증서 발급'); setV('std-siteNote','터파기 및 정지공사');
+            const today = new Date().toISOString().split('T')[0];
+            const end = new Date(); end.setDate(end.getDate()+24);
+            setV('std-leaseStart',today); setV('std-leaseEnd',end.toISOString().split('T')[0]);
+            setV('std-rentPayType','일급제'); setV('std-rentAmount','650000'); setV('std-totalAmount','16250000');
+            setV('std-baseWorkHours','1일 8시간 (토요일 반일, 일요일 휴무)');
+            setV('std-payOver','30'); setV('std-payUnder','15');
+            setR('std-expFuel','임차인'); setR('std-expDriver','임대인'); setR('std-expMaint','임대인'); setR('std-expTrans','임차인');
+            setV('std-lessorCompany','(주)원주건기'); setV('std-lessorName','정대여'); setV('std-lessorRegNo','224-81-12345');
+            setV('std-lessorPhone','010-1234-5678'); setV('std-lessorAddr','강원특별자치도 원주시 무실동 무실로 150');
+            setV('std-lesseeCompany','(주)대박개발'); setV('std-lesseeName','나임차'); setV('std-lesseeRegNo','113-81-67890');
+            setV('std-lesseePhone','010-8888-7777'); setV('std-lesseeAddr','강원특별자치도 원주시 기업도시로 20');
+            setV('std-specialTerms','1. 본 건설기계의 중대한 정비 결함으로 기동 불능이 발생 시, 임대인은 수리 기간만큼 일할 대여료를 차감 청구한다.\n2. 현장 노반 불량으로 위험한 가동 지시는 즉시 보류를 요청할 수 있다.');
+            document.getElementById('std-archive-title').value = '원주 기업도시 굴착기 계약서 (샘플)';
+            stdCalcDays(); stdFormatMoney(); stdFormatTotal(); stdUpdateContract();
+            showToast('샘플 양식이 로드되었습니다.', 'success');
+        }
+        // ===== 계약 DB 관리 (병합) =====
+        const CDB_KEY = 'constructionMachineContractDB_v1';
+        let cdbCurrentDetailId = null;
+        let cdbPage = 1;
+        const CDB_PAGE_SIZE = 15;
+
+        function cdbLoad() { try { return JSON.parse(localStorage.getItem(CDB_KEY)||'[]'); } catch { return []; } }
+        function cdbSave(list) { localStorage.setItem(CDB_KEY, JSON.stringify(list)); }
+
+        function cdbUid() { return Date.now()+'-'+Math.random().toString(36).slice(2,7); }
+        function cdbFmt(n) { const v=parseInt(String(n||0).replace(/,/g,''),10); return isNaN(v)?'0':v.toLocaleString('ko-KR'); }
+        function cdbParseMoney(s) { return parseInt(String(s||'').replace(/,/g,''),10)||0; }
+
+        function cdbStatusBadge(s) {
+            const map={진행중:'background:#fef3c7;color:#92400e;border:1px solid #fde68a;',완료:'background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;',대기:'background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;',취소:'background:#fee2e2;color:#991b1b;border:1px solid #fecaca;'};
+            return `<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;${map[s]||map['대기']}">${s||'대기'}</span>`;
+        }
+
+        // 계약서 작성 후 보관함+DB 동시 저장
+        function stdSaveToArchiveAndDb() {
+            const title = (document.getElementById('std-archive-title')||{}).value?.trim();
+            if (!title) { showToast('계약서 제목을 입력하세요.', 'error'); return; }
+            // 기존 보관함 저장 로직
+            stdSaveToArchive();
+            // DB에도 저장
+            const stdGetVal = id => { const el=document.getElementById(id); return el?el.value.trim():''; };
+            const stdGetRadio = name => { const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value:''; };
+            const list = cdbLoad();
+            const existing = list.findIndex(c => c.title === title);
+            const entry = {
+                id: existing>=0 ? list[existing].id : cdbUid(),
+                title, status: existing>=0 ? (list[existing].status||'대기') : '대기',
+                contractDate: stdGetVal('std-contractDate'),
+                machineName: stdGetVal('std-machineName'), machineSpec: stdGetVal('std-machineSpec'),
+                machineRegNo: stdGetVal('std-machineRegNo'), machineInsurance: stdGetVal('std-machineInsurance'),
+                machineInspection: stdGetVal('std-machineInspection'), machineNote: stdGetVal('std-machineNote'),
+                siteName: stdGetVal('std-siteName'), siteLocation: stdGetVal('std-siteLocation'),
+                siteClient: stdGetVal('std-siteClient'), siteLessee: stdGetVal('std-siteLessee'),
+                paymentGuarantee: stdGetVal('std-paymentGuarantee'), siteNote: stdGetVal('std-siteNote'),
+                leaseStart: stdGetVal('std-leaseStart'), leaseEnd: stdGetVal('std-leaseEnd'),
+                rentPayType: stdGetVal('std-rentPayType'),
+                rentAmount: cdbParseMoney(stdGetVal('std-rentAmount')),
+                totalAmount: cdbParseMoney(stdGetVal('std-totalAmount')),
+                baseWorkHours: stdGetVal('std-baseWorkHours'),
+                expFuel: stdGetRadio('std-expFuel'), expDriver: stdGetRadio('std-expDriver'),
+                expMaint: stdGetRadio('std-expMaint'), expTrans: stdGetRadio('std-expTrans'),
+                lessorCompany: stdGetVal('std-lessorCompany'), lessorName: stdGetVal('std-lessorName'),
+                lessorRegNo: stdGetVal('std-lessorRegNo'), lessorPhone: stdGetVal('std-lessorPhone'),
+                lessorAddr: stdGetVal('std-lessorAddr'), lesseeCompany: stdGetVal('std-lesseeCompany'),
+                lesseeName: stdGetVal('std-lesseeName'), lesseeRegNo: stdGetVal('std-lesseeRegNo'),
+                lesseePhone: stdGetVal('std-lesseePhone'), lesseeAddr: stdGetVal('std-lesseeAddr'),
+                specialTerms: stdGetVal('std-specialTerms'),
+                createdAt: existing>=0 ? (list[existing].createdAt||new Date().toISOString()) : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            if (existing>=0) list[existing]=entry; else list.unshift(entry);
+            cdbSave(list);
+            cdbUpdateStats();
+        }
+
+        function cdbGetFiltered() {
+            let list = cdbLoad();
+            const q = (document.getElementById('cdb-search')||{}).value?.trim().toLowerCase()||'';
+            const st = (document.getElementById('cdb-filter-status')||{}).value||'';
+            const sort = (document.getElementById('cdb-sort')||{}).value||'date-desc';
+            if (q) list=list.filter(c=>[c.title,c.machineName,c.siteName,c.lessorCompany,c.lesseeCompany,c.siteLessee].some(v=>v&&v.toLowerCase().includes(q)));
+            if (st) list=list.filter(c=>c.status===st);
+            list.sort((a,b)=>{
+                if(sort==='date-desc') return (b.createdAt||'')>(a.createdAt||'')?1:-1;
+                if(sort==='date-asc')  return (a.createdAt||'')>(b.createdAt||'')?1:-1;
+                if(sort==='amount-desc') return (b.totalAmount||0)-(a.totalAmount||0);
+                if(sort==='machine') return (a.machineName||'').localeCompare(b.machineName||'','ko');
+                return 0;
+            });
+            return list;
+        }
+
+        function cdbRenderTable() {
+            const list = cdbGetFiltered();
+            const total = list.length;
+            const start = (cdbPage-1)*CDB_PAGE_SIZE;
+            const page = list.slice(start, start+CDB_PAGE_SIZE);
+            const tbody = document.getElementById('cdb-tbody');
+            if (!page.length) {
+                tbody.innerHTML='<tr><td colspan="10" class="text-center py-10 text-slate-400 text-xs">조건에 맞는 계약이 없습니다.</td></tr>';
+            } else {
+                tbody.innerHTML = page.map(c=>{
+                    const days=(c.leaseStart&&c.leaseEnd)?Math.round((new Date(c.leaseEnd)-new Date(c.leaseStart))/(86400000))+'일':'-';
+                    return `<tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all">
+                        <td class="py-2 px-3">${cdbStatusBadge(c.status)}</td>
+                        <td class="py-2 px-3 font-bold text-slate-800 dark:text-slate-100 cursor-pointer hover:text-amber-600 transition-all" onclick="cdbOpenDetail('${c.id}')">${c.title||'-'}</td>
+                        <td class="py-2 px-3 text-slate-600 dark:text-slate-300">${c.machineName||'-'}${c.machineSpec?'<span class="text-slate-400"> / '+c.machineSpec+'</span>':''}</td>
+                        <td class="py-2 px-3 text-slate-500">${c.machineRegNo||'-'}</td>
+                        <td class="py-2 px-3 text-slate-600 dark:text-slate-300">${c.siteName||'-'}</td>
+                        <td class="py-2 px-3 text-slate-500">${c.lesseeCompany||c.siteLessee||'-'}</td>
+                        <td class="py-2 px-3 text-slate-500 text-[10px]">${c.leaseStart||''} ~ ${c.leaseEnd||''}<br>${days}</td>
+                        <td class="py-2 px-3 text-right font-bold text-blue-600 dark:text-blue-400">${c.totalAmount?cdbFmt(c.totalAmount)+'원':'-'}</td>
+                        <td class="py-2 px-3 text-slate-400 text-[10px]">${c.contractDate||'-'}</td>
+                        <td class="py-2 px-3">
+                            <div class="flex gap-1">
+                                <button onclick="cdbOpenDetail('${c.id}')" class="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-2 py-1 rounded text-[10px] font-bold hover:bg-amber-50 transition-all"><i data-lucide="eye" class="w-3 h-3 inline"></i></button>
+                                <button onclick="cdbDeleteById('${c.id}')" class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 px-2 py-1 rounded text-[10px] font-bold hover:bg-rose-100 transition-all"><i data-lucide="trash-2" class="w-3 h-3 inline"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+            // 페이지네이션
+            const totalPages=Math.ceil(total/CDB_PAGE_SIZE)||1;
+            document.getElementById('cdb-page-info').textContent=`총 ${total}건`;
+            const pg=document.getElementById('cdb-pagination');
+            pg.innerHTML='';
+            for(let i=1;i<=totalPages;i++){
+                const btn=document.createElement('button');
+                btn.className='px-2 py-1 rounded text-[10px] font-bold border transition-all '+(i===cdbPage?'bg-amber-500 text-white border-amber-500':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-amber-400');
+                btn.textContent=i;
+                btn.onclick=()=>{cdbPage=i;cdbRenderTable();};
+                pg.appendChild(btn);
+            }
+            if(typeof lucide!=='undefined') lucide.createIcons();
+        }
+
+        function cdbUpdateStats() {
+            const list=cdbLoad();
+            const el=id=>document.getElementById(id);
+            if(!el('cdb-s-total')) return;
+            el('cdb-s-total').textContent=list.length;
+            el('cdb-s-active').textContent=list.filter(c=>c.status==='진행중').length;
+            el('cdb-s-done').textContent=list.filter(c=>c.status==='완료').length;
+            const total=list.reduce((s,c)=>s+(c.totalAmount||0),0);
+            el('cdb-s-amount').textContent=total>=100000000?(total/100000000).toFixed(1)+'억':cdbFmt(total);
+        }
+
+        function cdbOpenDetail(id) {
+            const list=cdbLoad();
+            const c=list.find(x=>x.id===id);
+            if(!c) return;
+            cdbCurrentDetailId=id;
+            document.getElementById('cdb-detail-title').textContent=c.title||'계약 상세';
+            document.getElementById('cdb-detail-badge').innerHTML=cdbStatusBadge(c.status);
+            document.getElementById('cdb-status-chg').value=c.status||'대기';
+            const row=(label,val,cls='')=>val?`<tr><td class="text-[10px] text-slate-400 font-bold py-1.5 pr-4 whitespace-nowrap">${label}</td><td class="text-xs text-slate-700 dark:text-slate-200 py-1.5 ${cls}">${val}</td></tr>`:'';
+            document.getElementById('cdb-detail-body').innerHTML=`
+                <div class="space-y-4 text-sm">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span style="display:block;width:3px;height:12px;background:#f59e0b;border-radius:2px;"></span>기계 정보</p>
+                        <table class="w-full">${row('기계명',c.machineName)}${row('규격',c.machineSpec)}${row('등록번호',c.machineRegNo)}${row('보험',c.machineInsurance)}${row('검사',c.machineInspection)}</table></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span style="display:block;width:3px;height:12px;background:#3b82f6;border-radius:2px;"></span>현장 정보</p>
+                        <table class="w-full">${row('현장명',c.siteName)}${row('위치',c.siteLocation)}${row('발주처',c.siteClient)}${row('임차인',c.siteLessee)}</table></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span style="display:block;width:3px;height:12px;background:#10b981;border-radius:2px;"></span>임대 조건</p>
+                        <table class="w-full">${row('계약일',c.contractDate)}${row('임대기간',(c.leaseStart||'')+' ~ '+(c.leaseEnd||''))}${row('지급방식',c.rentPayType)}${row('기본임대료',c.rentAmount?cdbFmt(c.rentAmount)+'원':'','font-bold text-amber-600')}${row('총 계약금액',c.totalAmount?cdbFmt(c.totalAmount)+'원':'','font-bold text-blue-600')}${row('기준작업시간',c.baseWorkHours)}</table></div>
+                        <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span style="display:block;width:3px;height:12px;background:#8b5cf6;border-radius:2px;"></span>당사자</p>
+                        <table class="w-full">${row('임대인',(c.lessorCompany||'')+(c.lessorName?' / '+c.lessorName:''))}${row('임대인 연락',c.lessorPhone)}${row('임차인',(c.lesseeCompany||'')+(c.lesseeName?' / '+c.lesseeName:''))}${row('임차인 연락',c.lesseePhone)}</table></div>
+                    </div>
+                    ${c.specialTerms?`<div><p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">특약 사항</p><p class="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed">${c.specialTerms}</p></div>`:''}
+                </div>`;
+            document.getElementById('cdb-detail-modal').classList.remove('hidden');
+            if(typeof lucide!=='undefined') lucide.createIcons();
+        }
+
+        function cdbApplyStatusChange() {
+            if(!cdbCurrentDetailId) return;
+            const status=document.getElementById('cdb-status-chg').value;
+            const list=cdbLoad();
+            const idx=list.findIndex(c=>c.id===cdbCurrentDetailId);
+            if(idx>=0){ list[idx].status=status; cdbSave(list); }
+            document.getElementById('cdb-detail-badge').innerHTML=cdbStatusBadge(status);
+            cdbRenderTable(); cdbUpdateStats();
+            showToast('상태가 변경되었습니다.','success');
+        }
+
+        function cdbLoadToForm() {
+            if(!cdbCurrentDetailId) return;
+            const list=cdbLoad();
+            const c=list.find(x=>x.id===cdbCurrentDetailId);
+            if(!c) return;
+            const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+            const setR=(name,v)=>{ document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.checked=r.value===v); };
+            setV('std-archive-title',c.title);
+            setV('std-machineName',c.machineName); setV('std-machineSpec',c.machineSpec);
+            setV('std-machineRegNo',c.machineRegNo); setV('std-machineInsurance',c.machineInsurance);
+            setV('std-machineInspection',c.machineInspection); setV('std-machineNote',c.machineNote);
+            setV('std-siteName',c.siteName); setV('std-siteLocation',c.siteLocation);
+            setV('std-siteClient',c.siteClient); setV('std-siteLessee',c.siteLessee);
+            setV('std-paymentGuarantee',c.paymentGuarantee||'보증서 발급');
+            setV('std-leaseStart',c.leaseStart); setV('std-leaseEnd',c.leaseEnd);
+            setV('std-rentPayType',c.rentPayType||'일급제');
+            setV('std-rentAmount',c.rentAmount||''); setV('std-totalAmount',c.totalAmount||'');
+            setV('std-baseWorkHours',c.baseWorkHours);
+            setR('std-expFuel',c.expFuel||'임차인'); setR('std-expDriver',c.expDriver||'임대인');
+            setR('std-expMaint',c.expMaint||'임대인'); setR('std-expTrans',c.expTrans||'임차인');
+            setV('std-lessorCompany',c.lessorCompany); setV('std-lessorName',c.lessorName);
+            setV('std-lessorRegNo',c.lessorRegNo); setV('std-lessorPhone',c.lessorPhone);
+            setV('std-lessorAddr',c.lessorAddr); setV('std-lesseeCompany',c.lesseeCompany);
+            setV('std-lesseeName',c.lesseeName); setV('std-lesseeRegNo',c.lesseeRegNo);
+            setV('std-lesseePhone',c.lesseePhone); setV('std-lesseeAddr',c.lesseeAddr);
+            setV('std-contractDate',c.contractDate); setV('std-specialTerms',c.specialTerms);
+            if(typeof stdCalcDays==='function') stdCalcDays();
+            if(typeof stdFormatMoney==='function') stdFormatMoney();
+            if(typeof stdFormatTotal==='function') stdFormatTotal();
+            if(typeof stdUpdateContract==='function') stdUpdateContract();
+            document.getElementById('cdb-detail-modal').classList.add('hidden');
+            switchContractSubTab('form');
+            showToast(`[${c.title}] 계약서 작성 탭으로 불러왔습니다.`,'success');
+        }
+
+        function cdbDeleteCurrent() {
+            if(!cdbCurrentDetailId) return;
+            const list=cdbLoad();
+            const c=list.find(x=>x.id===cdbCurrentDetailId);
+            if(!c||!confirm(`[${c.title}]을 삭제하시겠습니까?`)) return;
+            cdbSave(list.filter(x=>x.id!==cdbCurrentDetailId));
+            document.getElementById('cdb-detail-modal').classList.add('hidden');
+            cdbCurrentDetailId=null;
+            cdbRenderTable(); cdbUpdateStats();
+            showToast('삭제 완료','info');
+        }
+
+        function cdbDeleteById(id) {
+            const list=cdbLoad();
+            const c=list.find(x=>x.id===id);
+            if(!c||!confirm(`[${c.title}]을 삭제하시겠습니까?`)) return;
+            cdbSave(list.filter(x=>x.id!==id));
+            cdbRenderTable(); cdbUpdateStats();
+            showToast('삭제 완료','info');
+        }
+
+        function cdbClearFilters() {
+            const s=document.getElementById('cdb-search'); if(s) s.value='';
+            const st=document.getElementById('cdb-filter-status'); if(st) st.value='';
+            const so=document.getElementById('cdb-sort'); if(so) so.value='date-desc';
+            cdbPage=1; cdbRenderTable();
+        }
+
+        function cdbExportJson() {
+            const list=cdbLoad();
+            const blob=new Blob([JSON.stringify({version:'cdb_v1',exportedAt:new Date().toISOString(),data:list},null,2)],{type:'application/json'});
+            const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+            a.download=`건설기계계약DB_${new Date().toISOString().split('T')[0]}.json`;
+            a.click(); showToast('JSON 내보내기 완료','success');
+        }
+
+        function cdbHandleImport(e) {
+            const file=e.target.files[0]; if(!file) return;
+            const reader=new FileReader();
+            reader.onload=ev=>{
+                try {
+                    const parsed=JSON.parse(ev.target.result);
+                    const arr=Array.isArray(parsed)?parsed:(parsed.data||[]);
+                    if(!Array.isArray(arr)) throw new Error('형식 오류');
+                    const existing=cdbLoad();
+                    const ids=new Set(existing.map(c=>c.id));
+                    let added=0;
+                    arr.forEach(c=>{ if(!ids.has(c.id)){existing.push(c);added++;} });
+                    cdbSave(existing);
+                    cdbRenderTable(); cdbUpdateStats();
+                    showToast(`${added}건 가져오기 완료`,'success');
+                } catch { showToast('유효하지 않은 파일','error'); }
+            };
+            reader.readAsText(file); e.target.value='';
+        }
+
+        function cdbExportExcel() {
+            if(typeof XLSX==='undefined'){showToast('XLSX 라이브러리 로딩 중…','error');return;}
+            const list=cdbLoad();
+            if(!list.length){showToast('내보낼 데이터가 없습니다.','error');return;}
+            const rows=list.map(c=>({'상태':c.status||'','계약서명':c.title||'','기계명':c.machineName||'','규격':c.machineSpec||'','등록번호':c.machineRegNo||'','현장명':c.siteName||'','현장위치':c.siteLocation||'','발주처':c.siteClient||'','임차인(현장)':c.siteLessee||'','임대시작':c.leaseStart||'','임대종료':c.leaseEnd||'','지급방식':c.rentPayType||'','기본임대료':c.rentAmount||0,'총계약금액':c.totalAmount||0,'임대인상호':c.lessorCompany||'','임대인대표':c.lessorName||'','임대인연락':c.lessorPhone||'','임차인상호':c.lesseeCompany||'','임차인대표':c.lesseeName||'','임차인연락':c.lesseePhone||'','계약일':c.contractDate||'','특약사항':c.specialTerms||'','등록일시':c.createdAt||''}));
+            const ws=XLSX.utils.json_to_sheet(rows);
+            const wb=XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb,ws,'계약서DB');
+            XLSX.writeFile(wb,`건설기계계약DB_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast('엑셀 내보내기 완료','success');
+        }
+
+        // 서브탭 전환
+        function switchContractSubTab(tab) {
+            const form=document.getElementById('ctab-form');
+            const db=document.getElementById('ctab-db');
+            const btnForm=document.getElementById('ctab-btn-form');
+            const btnDb=document.getElementById('ctab-btn-db');
+            if(!form||!db) return;
+            if(tab==='form'){
+                form.classList.remove('hidden'); db.classList.add('hidden');
+                if(btnForm){ btnForm.style.borderBottomColor='#f59e0b'; btnForm.style.color=''; btnForm.classList.add('text-amber-600','dark:text-amber-400'); }
+                if(btnDb){ btnDb.style.borderBottomColor='transparent'; btnDb.classList.remove('text-amber-600','dark:text-amber-400'); }
+            } else {
+                form.classList.add('hidden'); db.classList.remove('hidden');
+                if(btnDb){ btnDb.style.borderBottomColor='#f59e0b'; btnDb.classList.add('text-amber-600','dark:text-amber-400'); }
+                if(btnForm){ btnForm.style.borderBottomColor='transparent'; btnForm.classList.remove('text-amber-600','dark:text-amber-400'); }
+                cdbRenderTable(); cdbUpdateStats();
+            }
+            if(typeof lucide!=='undefined') lucide.createIcons();
+        }
+
+        // 기존 stdInitOnTabSwitch 에 DB 통계 갱신 연동
+        const _origStdInit = typeof stdInitOnTabSwitch==='function' ? stdInitOnTabSwitch : null;
+        function stdInitOnTabSwitchExtended() {
+            if(_origStdInit) _origStdInit();
+            cdbUpdateStats();
+        }
+        // ===== 끝: 계약 DB 관리 =====
+
+        // ===== 끝: 건설기계임대차 표준계약서 =====
     </script>
 </body>
 </html>
