@@ -1183,7 +1183,63 @@
                 .sf-chip.active { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
                 .dark .sf-chip { background: #1e293b; border-color: #334155; color: #94a3b8; }
                 .dark .sf-chip.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
-            </style>
+    
+        /* ── 거래처 자동완성 드롭다운 ── */
+        .vendor-ac-wrap { position: relative; flex: 1; min-width: 0; }
+        .vendor-ac-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 3px);
+            left: 0;
+            min-width: 280px;
+            max-width: 400px;
+            background: #fff;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 9999;
+            overflow: hidden;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .dark .vendor-ac-dropdown {
+            background: #1e293b;
+            border-color: #3b82f6;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .vendor-ac-dropdown.open { display: block; }
+        .vendor-ac-item {
+            padding: 7px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.1s;
+        }
+        .dark .vendor-ac-item { border-color: #334155; }
+        .vendor-ac-item:last-child { border-bottom: none; }
+        .vendor-ac-item:hover, .vendor-ac-item.ac-selected {
+            background: #eff6ff;
+        }
+        .dark .vendor-ac-item:hover, .dark .vendor-ac-item.ac-selected {
+            background: #1e3a5f;
+        }
+        .vendor-ac-name { font-weight: 700; font-size: 12px; color: #1e293b; }
+        .dark .vendor-ac-name { color: #e2e8f0; }
+        .vendor-ac-sub  { font-size: 10px; color: #64748b; margin-top: 1px; }
+        .dark .vendor-ac-sub { color: #94a3b8; }
+        .vendor-ac-mark { color: #2563eb; font-weight: 900; }
+        .vendor-ac-empty { padding: 10px; text-align: center; font-size: 11px; color: #94a3b8; }
+        .vendor-ac-header {
+            padding: 5px 10px;
+            font-size: 9px;
+            font-weight: 800;
+            color: #2563eb;
+            background: #eff6ff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .dark .vendor-ac-header { background: #1e3a5f; color: #60a5fa; }
+
+        </style>
 
             <!-- 자금청구명세서 가독성 제어판 -->
             <div class="no-print mb-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-center p-3" style="background:linear-gradient(135deg,#f0fdf4,#f8fafc);border-color:#d1fae5;">
@@ -1320,12 +1376,12 @@
                                 <th class="py-2.5 px-1 w-20 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('type')" id="th-col-type"><span class="flex items-center justify-center gap-0.5">구분(분류)<span id="si-type" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('vendor')" id="th-col-vendor"><span class="flex items-center justify-center gap-0.5">거래처<span id="si-vendor" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-2 w-16 bg-slate-100 dark:bg-slate-850">대표자</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('supply')" id="th-supply th-col-supply"><span class="flex items-center justify-center gap-0.5">공급가액(원)<span id="si-supply" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('tax')" id="th-tax th-col-tax"><span class="flex items-center justify-center gap-0.5">부가세(원)<span id="si-tax" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('total')" id="th-total th-col-total"><span class="flex items-center justify-center gap-0.5">결제금액(원)<span id="si-total" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-1 w-24 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('deduction')" id="th-deduction th-col-deduction"><span class="flex items-center justify-center gap-0.5">공제금액(원)<span id="si-deduction" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-1 w-18 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('prepaid')" id="th-prepaid th-col-prepaid"><span class="flex items-center justify-center gap-0.5">선지급(원)<span id="si-prepaid" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('request')" id="th-request th-col-request"><span class="flex items-center justify-center gap-0.5">지급요청금액(원)<span id="si-request" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('supply')" id="th-supply"><span class="flex items-center justify-center gap-0.5">공급가액(원)<span id="si-supply" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('tax')" id="th-tax"><span class="flex items-center justify-center gap-0.5">부가세(원)<span id="si-tax" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('total')" id="th-total"><span class="flex items-center justify-center gap-0.5">결제금액(원)<span id="si-total" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-1 w-24 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('deduction')" id="th-deduction"><span class="flex items-center justify-center gap-0.5">공제금액(원)<span id="si-deduction" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-1 w-18 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('prepaid')" id="th-prepaid"><span class="flex items-center justify-center gap-0.5">선지급(원)<span id="si-prepaid" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('request')" id="th-request"><span class="flex items-center justify-center gap-0.5">지급요청금액(원)<span id="si-request" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-1 w-16 bg-slate-100 dark:bg-slate-850">은행</th>
                                 <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850">입금계좌</th>
                                 <th class="py-2.5 px-2 w-24 bg-slate-100 dark:bg-slate-850">예금주(선택)</th>
@@ -3728,8 +3784,7 @@
             } else if (tabId === 'contract') {
                 if (tabContract) tabContract.classList.remove('hidden');
                 if (btnContract) btnContract.classList.add('tab-active');
-                stdInitOnTabSwitch();
-                if(typeof cdbUpdateStats==='function') cdbUpdateStats();
+                stdInitOnTabSwitchExtended();
             }
         }
 
@@ -4002,38 +4057,54 @@
                 }
             });
 
-            // 3) 대표자 중복 의심: 동일 거래처명인데 대장마다 다른 ceo
-            const ceoMap = {}; // vendor → Set<ceo>
-            // 현재 대장
-            dataset.forEach(row => {
-                if (!row.vendor) return;
-                const v = row.vendor.trim();
-                if (!ceoMap[v]) ceoMap[v] = new Set();
-                if (row.ceo && row.ceo.trim()) ceoMap[v].add(row.ceo.trim());
-            });
-            // 전체 저장 대장
-            savedDocuments.forEach(doc => {
-                (doc.dataset || []).forEach(row => {
-                    if (!row.vendor) return;
-                    const v = row.vendor.trim();
-                    if (!ceoMap[v]) ceoMap[v] = new Set();
-                    if (row.ceo && row.ceo.trim()) ceoMap[v].add(row.ceo.trim());
-                });
-            });
-            // 계좌 DB
+            // 3) 대표자 중복 의심 (개선): 같은 상호라도 대표자가 다를 수 있으므로
+            //    - accountDb 등록 거래처: DB 기준 ceo와 현재 대장 입력값이 다를 때만 경고
+            //    - accountDb 미등록 거래처: 현재 대장 안에서 같은 상호에 ceo 2개 이상일 때만 경고
+            //    - 대장 간(문서 간) 비교는 하지 않음 (시기별 대표자 변경은 정상)
+            const ceoMap = {}; // vendor → { dbCeo: string|null, curCeos: Set }
+
+            // 계좌 DB 기준 ceo 수집
             accountDb.forEach(acc => {
                 if (!acc.vendor) return;
                 const v = acc.vendor.trim();
-                if (!ceoMap[v]) ceoMap[v] = new Set();
-                if (acc.ceo && acc.ceo.trim()) ceoMap[v].add(acc.ceo.trim());
+                if (!ceoMap[v]) ceoMap[v] = { dbCeo: null, curCeos: new Set() };
+                if (acc.ceo && acc.ceo.trim()) ceoMap[v].dbCeo = acc.ceo.trim();
+            });
+
+            // 현재 대장의 ceo 수집 (현재 문서 내에서만)
+            dataset.forEach(row => {
+                if (!row.vendor || !row.ceo) return;
+                const v = row.vendor.trim();
+                const c = row.ceo.trim();
+                if (!c) return;
+                if (!ceoMap[v]) ceoMap[v] = { dbCeo: null, curCeos: new Set() };
+                ceoMap[v].curCeos.add(c);
             });
 
             let ceoDupCount = 0;
             const ceoChips = [];
-            Object.entries(ceoMap).forEach(([vendor, ceos]) => {
-                if (ceos.size >= 2) {
+            Object.entries(ceoMap).forEach(([vendor, info]) => {
+                const { dbCeo, curCeos } = info;
+                let suspicious = false;
+                let names = '';
+
+                if (dbCeo) {
+                    // 계좌 DB 등록 거래처: DB ceo와 다른 입력값이 있을 때만 경고
+                    const conflicts = [...curCeos].filter(c => c !== dbCeo);
+                    if (conflicts.length > 0) {
+                        suspicious = true;
+                        names = `DB: ${dbCeo} / 입력: ${conflicts.join(', ')}`;
+                    }
+                } else {
+                    // 계좌 DB 미등록: 현재 대장 내에서 동일 상호에 ceo 2개 이상일 때만 경고
+                    if (curCeos.size >= 2) {
+                        suspicious = true;
+                        names = [...curCeos].join(' / ');
+                    }
+                }
+
+                if (suspicious) {
                     ceoDupCount++;
-                    const names = [...ceos].join(' / ');
                     ceoChips.push(`<span class="inline-block bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help" title="등록된 대표자: ${names}">${vendor} → ${names}</span>`);
                     // 현재 대장에서 해당 거래처 행 모두 경고 표시
                     dataset.forEach(row => {
@@ -4856,7 +4927,17 @@
                     </td>
                     <td class="py-1 px-1 group/vendor">
                         <div class="flex items-center gap-0.5">
-                            <input type="text" value="${row.vendor || ''}" placeholder="기입" ondblclick="if(this.value) openVendorHistoryModal(this.value)" onblur="completeEditing(${row.id})" onchange="handleVendorNameChange(${row.id}, this.value)" title="더블클릭: 거래 이력 보기" class="flex-1 min-w-0 bg-transparent text-left font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
+                            <div class="vendor-ac-wrap">
+                                <input type="text" value="${row.vendor || ''}" placeholder="기입" autocomplete="off"
+                                    ondblclick="if(this.value) openVendorHistoryModal(this.value)"
+                                    onblur="hideVendorAcDelayed(${row.id})"
+                                    oninput="showVendorAc(this, ${row.id})"
+                                    onchange="handleVendorNameChange(${row.id}, this.value)"
+                                    onkeydown="vendorAcKeyNav(event, ${row.id})"
+                                    title="더블클릭: 거래 이력 보기 | 입력 시 계좌DB 자동완성"
+                                    class="w-full bg-transparent text-left font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
+                                <div class="vendor-ac-dropdown" id="vac-${row.id}"></div>
+                            </div>
                             ${row.vendor ? `<button onclick="openVendorHistoryModal('${row.vendor.replace(/'/g,"\\'")}')" class="no-print shrink-0 opacity-0 group-hover/vendor:opacity-100 bg-blue-500 hover:bg-blue-600 text-white p-0.5 rounded transition-all" title="${row.vendor} 거래 이력 보기"><i data-lucide="history" class="w-3 h-3"></i></button>` : ''}
                         </div>
                     </td>
@@ -5960,7 +6041,7 @@
         }
         function loadMemoForKey(key) {
             const docKey = 'req-memo:' + currentDocId + ':' + key;
-            try { return localStorage.getItem(docKey) || localStorage.getItem('req-memo:' + key) || ''; } catch(e) { return ''; }
+            try { return localStorage.getItem(docKey) || ''; } catch(e) { return ''; }
         }
         function autoResizeMemo(el) {
             el.style.height = 'auto';
@@ -7654,43 +7735,45 @@
 
         /* 폼 → 객체 */
         function readContractForm() {
+            const gv = (id, fallback='') => { const el=document.getElementById(id); return el ? (el.value||fallback) : fallback; };
+            const gvt = (id) => gv(id,'').trim();
             return {
                 id:               currentContractId || ('ct-' + Date.now()),
-                title:            document.getElementById('ct-site').value.trim() || '무제',
-                date:             document.getElementById('ct-date').value,
-                number:           document.getElementById('ct-number').value.trim(),
-                site:             document.getElementById('ct-site').value.trim(),
-                workSite:         document.getElementById('ct-work-site').value.trim(),
-                periodFrom:       document.getElementById('ct-period-from').value,
-                periodTo:         document.getElementById('ct-period-to').value,
-                workStart:        document.getElementById('ct-work-start').value.trim(),
-                workEnd:          document.getElementById('ct-work-end').value.trim(),
-                unitPrice:        document.getElementById('ct-unit-price').value.replace(/,/g,''),
-                unitType:         document.getElementById('ct-unit-type').value,
-                qty:              document.getElementById('ct-qty').value,
-                standby:          document.getElementById('ct-standby').value.trim(),
-                supply:           document.getElementById('ct-supply').value.replace(/,/g,''),
-                vat:              document.getElementById('ct-vat').value.replace(/,/g,''),
-                paymentTerms:     document.getElementById('ct-payment-terms').value.trim(),
-                fuel:             document.getElementById('ct-fuel').value,
-                insurance:        document.getElementById('ct-insurance').value,
-                special:          document.getElementById('ct-special').value.trim(),
-                lessorCompany:    document.getElementById('ct-lessor-company').value.trim(),
-                lessorBiznum:     document.getElementById('ct-lessor-biznum').value.trim(),
-                lessorCeo:        document.getElementById('ct-lessor-ceo').value.trim(),
-                lessorPhone:      document.getElementById('ct-lessor-phone').value.trim(),
-                lessorAddr:       document.getElementById('ct-lessor-addr').value.trim(),
-                lessorBank:       document.getElementById('ct-lessor-bank').value.trim(),
-                lessorAccount:    document.getElementById('ct-lessor-account').value.trim(),
-                lessorDriver:     document.getElementById('ct-lessor-driver').value.trim(),
-                lessorDriverPhone:document.getElementById('ct-lessor-driver-phone').value.trim(),
-                lesseeCompany:    document.getElementById('ct-lessee-company').value.trim(),
-                lesseeBiznum:     document.getElementById('ct-lessee-biznum').value.trim(),
-                lesseeCeo:        document.getElementById('ct-lessee-ceo').value.trim(),
-                lesseePhone:      document.getElementById('ct-lessee-phone').value.trim(),
-                lesseeAddr:       document.getElementById('ct-lessee-addr').value.trim(),
-                lesseeManager:    document.getElementById('ct-lessee-manager').value.trim(),
-                lesseeManagerPhone:document.getElementById('ct-lessee-manager-phone').value.trim(),
+                title:            gvt('ct-site') || '무제',
+                date:             gv('ct-date'),
+                number:           gvt('ct-number'),
+                site:             gvt('ct-site'),
+                workSite:         gvt('ct-work-site'),
+                periodFrom:       gv('ct-period-from'),
+                periodTo:         gv('ct-period-to'),
+                workStart:        gvt('ct-work-start'),
+                workEnd:          gvt('ct-work-end'),
+                unitPrice:        gv('ct-unit-price','0').replace(/,/g,''),
+                unitType:         gv('ct-unit-type','시간'),
+                qty:              gv('ct-qty','0'),
+                standby:          gvt('ct-standby'),
+                supply:           gv('ct-supply','0').replace(/,/g,''),
+                vat:              gv('ct-vat','0').replace(/,/g,''),
+                paymentTerms:     gvt('ct-payment-terms'),
+                fuel:             gv('ct-fuel','임대인 부담'),
+                insurance:        gv('ct-insurance','임대인 부담'),
+                special:          gvt('ct-special'),
+                lessorCompany:    gvt('ct-lessor-company'),
+                lessorBiznum:     gvt('ct-lessor-biznum'),
+                lessorCeo:        gvt('ct-lessor-ceo'),
+                lessorPhone:      gvt('ct-lessor-phone'),
+                lessorAddr:       gvt('ct-lessor-addr'),
+                lessorBank:       gvt('ct-lessor-bank'),
+                lessorAccount:    gvt('ct-lessor-account'),
+                lessorDriver:     gvt('ct-lessor-driver'),
+                lessorDriverPhone:gvt('ct-lessor-driver-phone'),
+                lesseeCompany:    gvt('ct-lessee-company'),
+                lesseeBiznum:     gvt('ct-lessee-biznum'),
+                lesseeCeo:        gvt('ct-lessee-ceo'),
+                lesseePhone:      gvt('ct-lessee-phone'),
+                lesseeAddr:       gvt('ct-lessee-addr'),
+                lesseeManager:    gvt('ct-lessee-manager'),
+                lesseeManagerPhone:gvt('ct-lessee-manager-phone'),
                 machines: JSON.parse(JSON.stringify(contractMachines)),
                 savedAt: new Date().toLocaleString('ko-KR'),
             };
@@ -7762,7 +7845,7 @@
              'ct-lessee-company','ct-lessee-biznum','ct-lessee-ceo','ct-lessee-phone',
              'ct-lessee-addr','ct-lessee-manager','ct-lessee-manager-phone'
             ].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-            document.getElementById('ct-total-display').textContent = '금 0원정 (￦0)';
+            const _ctTot=document.getElementById('ct-total-display'); if(_ctTot) _ctTot.textContent='금 0원정 (￦0)';
             renderContractMachineRows();
             updateContractSignature();
             showToast('새 계약서 양식이 초기화되었습니다.');
@@ -7819,12 +7902,17 @@
 
         /* 금액 자동 계산 */
         function calcContractTotal() {
-            const price = Number(String(document.getElementById('ct-unit-price').value).replace(/,/g,'')) || 0;
-            const qty   = Number(document.getElementById('ct-qty').value) || 0;
+            const _ctUP=document.getElementById('ct-unit-price');
+            const _ctQY=document.getElementById('ct-qty');
+            const _ctSU=document.getElementById('ct-supply');
+            const _ctVT=document.getElementById('ct-vat');
+            if (!_ctUP || !_ctQY) return;
+            const price = Number(String(_ctUP.value).replace(/,/g,'')) || 0;
+            const qty   = Number(_ctQY.value) || 0;
             const supply = price * qty;
             const vat    = Math.round(supply * 0.1);
-            document.getElementById('ct-supply').value = supply.toLocaleString('ko-KR');
-            document.getElementById('ct-vat').value    = vat.toLocaleString('ko-KR');
+            if (_ctSU) _ctSU.value = supply.toLocaleString('ko-KR');
+            if (_ctVT) _ctVT.value = vat.toLocaleString('ko-KR');
             updateContractTotal(supply, vat);
         }
 
@@ -7901,7 +7989,7 @@
 
         /* PDF 파싱 가져오기 */
         function triggerContractPdfImport() {
-            document.getElementById('contract-pdf-input').click();
+            const _pdfIn=document.getElementById('contract-pdf-input'); if(_pdfIn) _pdfIn.click();
         }
 
         async function importContractPdf(input) {
@@ -7937,13 +8025,13 @@
 
             // 현장명
             const site = find([/현장명[:\s]+(.+)/, /공사현장[:\s]+(.+)/, /작업현장[:\s]+(.+)/]);
-            if (site) document.getElementById('ct-site').value = site;
+            if (site) { const _e=document.getElementById('ct-site'); if(_e) _e.value=site; }
 
             // 날짜
             const dateMatch = text.match(/(\d{4})[년.\-]\s*(\d{1,2})[월.\-]\s*(\d{1,2})/);
             if (dateMatch) {
                 const y=dateMatch[1], m=dateMatch[2].padStart(2,'0'), d=dateMatch[3].padStart(2,'0');
-                document.getElementById('ct-date').value = `${y}-${m}-${d}`;
+                const _ctD=document.getElementById('ct-date'); if(_ctD) _ctD.value=`${y}-${m}-${d}`;
             }
 
             // 임대인 정보
@@ -7951,18 +8039,18 @@
             const lessorCeo     = find([/임대인.*대표자[:\s]+(.+)/, /대표자.*임대[:\s]+(.+)/]);
             const lessorPhone   = find([/임대인.*전화[:\s]+([\d\-]+)/, /임대인.*연락처[:\s]+([\d\-]+)/]);
             const lessorBiznum  = find([/임대인.*사업자[:\s]*([\d\-]+)/, /사업자등록번호[:\s]*([\d\-]+)/]);
-            if (lessorCompany) document.getElementById('ct-lessor-company').value = lessorCompany;
-            if (lessorCeo)     document.getElementById('ct-lessor-ceo').value     = lessorCeo;
-            if (lessorPhone)   document.getElementById('ct-lessor-phone').value   = lessorPhone;
-            if (lessorBiznum)  document.getElementById('ct-lessor-biznum').value  = lessorBiznum;
+            if (lessorCompany) { const _e=document.getElementById('ct-lessor-company'); if(_e) _e.value=lessorCompany; }
+            if (lessorCeo)     { const _e=document.getElementById('ct-lessor-ceo'); if(_e) _e.value=lessorCeo; }
+            if (lessorPhone)   { const _e=document.getElementById('ct-lessor-phone'); if(_e) _e.value=lessorPhone; }
+            if (lessorBiznum)  { const _e=document.getElementById('ct-lessor-biznum'); if(_e) _e.value=lessorBiznum; }
 
             // 임차인 정보
             const lesseeCompany = find([/임차인.*상호[:\s]+(.+)/, /임차인[:\s]+(.+)/]);
             const lesseeCeo     = find([/임차인.*대표자[:\s]+(.+)/]);
             const lesseePhone   = find([/임차인.*전화[:\s]+([\d\-]+)/, /임차인.*연락처[:\s]+([\d\-]+)/]);
-            if (lesseeCompany) document.getElementById('ct-lessee-company').value = lesseeCompany;
-            if (lesseeCeo)     document.getElementById('ct-lessee-ceo').value     = lesseeCeo;
-            if (lesseePhone)   document.getElementById('ct-lessee-phone').value   = lesseePhone;
+            if (lesseeCompany) { const _e=document.getElementById('ct-lessee-company'); if(_e) _e.value=lesseeCompany; }
+            if (lesseeCeo)     { const _e=document.getElementById('ct-lessee-ceo'); if(_e) _e.value=lesseeCeo; }
+            if (lesseePhone)   { const _e=document.getElementById('ct-lessee-phone'); if(_e) _e.value=lesseePhone; }
 
             // 금액
             const amtMatch = text.match(/계약금액[^\d]*([\d,]+)/);
@@ -7970,8 +8058,8 @@
                 const total  = Number(amtMatch[1].replace(/,/g,''));
                 const supply = Math.round(total / 1.1);
                 const vat    = total - supply;
-                document.getElementById('ct-supply').value = supply.toLocaleString('ko-KR');
-                document.getElementById('ct-vat').value    = vat.toLocaleString('ko-KR');
+                const _eS=document.getElementById('ct-supply'); if(_eS) _eS.value=supply.toLocaleString('ko-KR');
+                const _eV=document.getElementById('ct-vat'); if(_eV) _eV.value=vat.toLocaleString('ko-KR');
                 updateContractTotal(supply, vat);
             }
 
@@ -10059,6 +10147,142 @@
             if(_origStdInit) _origStdInit();
             cdbUpdateStats();
         }
+
+        // ========================================================
+        // ★ 거래처 계좌 자동완성 (Vendor Account Autocomplete)
+        // ========================================================
+        let _vacActiveId = null;   // 현재 열린 dropdown의 rowId
+        let _vacSelIdx   = -1;     // 키보드 선택 인덱스
+
+        /** 입력값으로 accountDb 검색 → 드롭다운 표시 */
+        function showVendorAc(input, rowId) {
+            const q = (input.value || '').trim();
+            const drop = document.getElementById('vac-' + rowId);
+            if (!drop) return;
+
+            // 1글자 미만이면 숨김
+            if (q.length < 1) { drop.classList.remove('open'); _vacActiveId = null; return; }
+
+            // accountDb 검색: vendor / holder / ceo 에서 포함 검색
+            const ql = q.toLowerCase();
+            const matches = accountDb.filter(a =>
+                (a.vendor  || '').toLowerCase().includes(ql) ||
+                (a.holder  || '').toLowerCase().includes(ql) ||
+                (a.ceo     || '').toLowerCase().includes(ql)
+            ).slice(0, 10);
+
+            if (!matches.length) {
+                drop.innerHTML = '<div class="vendor-ac-empty">계좌 DB에 없는 거래처</div>';
+                drop.classList.add('open');
+                _vacActiveId = rowId;
+                _vacSelIdx = -1;
+                return;
+            }
+
+            function hl(str, q) {
+                if (!str) return '';
+                const idx = str.toLowerCase().indexOf(q.toLowerCase());
+                if (idx < 0) return str;
+                return str.slice(0, idx) + '<span class="vendor-ac-mark">' + str.slice(idx, idx + q.length) + '</span>' + str.slice(idx + q.length);
+            }
+
+            drop.innerHTML = '<div class="vendor-ac-header">계좌 DB — ' + matches.length + '건</div>' +
+                matches.map((a, i) => {
+                    const accMask = a.account ? a.account.replace(/(\d{3})\d+(\d{4})/, '$1****$2') : '계좌 없음';
+                    return `<div class="vendor-ac-item" data-idx="${i}"
+                        onmousedown="applyVendorAc(event, ${rowId}, ${a.id})"
+                        onmouseenter="vacHover(${rowId}, ${i})">
+                        <div class="vendor-ac-name">${hl(a.vendor || a.holder, q)}</div>
+                        <div class="vendor-ac-sub">${hl(a.ceo || '', q) ? '대표 ' + hl(a.ceo, q) + ' · ' : ''}${a.bank || ''}은행 ${accMask} · ${hl(a.holder || '', q)}</div>
+                    </div>`;
+                }).join('');
+
+            drop.classList.add('open');
+            _vacActiveId = rowId;
+            _vacSelIdx = -1;
+        }
+
+        /** 드롭다운 항목 선택 → 행에 계좌 정보 자동 채우기 */
+        function applyVendorAc(e, rowId, accId) {
+            e.preventDefault();
+            const acc = accountDb.find(a => a.id === accId);
+            if (!acc) return;
+            const index = dataset.findIndex(r => r.id === rowId);
+            if (index < 0) return;
+            dataset[index].vendor  = acc.vendor || acc.holder;
+            dataset[index].ceo     = acc.ceo     || '';
+            dataset[index].holder  = acc.holder   || '';
+            dataset[index].bank    = acc.bank     || '';
+            dataset[index].account = acc.account  || '';
+            dataset[index].phone   = acc.phone    || '';
+            dataset[index].biznum  = acc.biznum   || '';
+            delete dataset[index].isNew;
+            const drop = document.getElementById('vac-' + rowId);
+            if (drop) drop.classList.remove('open');
+            _vacActiveId = null;
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+            showToast('✓ ' + (acc.vendor || acc.holder) + ' 계좌 자동 완성', 'success');
+        }
+
+        /** 마우스 호버 시 선택 인덱스 동기화 */
+        function vacHover(rowId, idx) {
+            _vacSelIdx = idx;
+            const drop = document.getElementById('vac-' + rowId);
+            if (!drop) return;
+            drop.querySelectorAll('.vendor-ac-item').forEach((el, i) => {
+                el.classList.toggle('ac-selected', i === idx);
+            });
+        }
+
+        /** 키보드 네비게이션 (↑↓ Enter Escape) */
+        function vendorAcKeyNav(e, rowId) {
+            const drop = document.getElementById('vac-' + rowId);
+            if (!drop || !drop.classList.contains('open')) return;
+            const items = drop.querySelectorAll('.vendor-ac-item');
+            if (!items.length) { if (e.key === 'Escape') drop.classList.remove('open'); return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                _vacSelIdx = Math.min(_vacSelIdx + 1, items.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                _vacSelIdx = Math.max(_vacSelIdx - 1, 0);
+            } else if (e.key === 'Enter' && _vacSelIdx >= 0) {
+                e.preventDefault();
+                items[_vacSelIdx].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                return;
+            } else if (e.key === 'Escape') {
+                drop.classList.remove('open'); _vacActiveId = null; return;
+            } else { return; }
+            items.forEach((el, i) => el.classList.toggle('ac-selected', i === _vacSelIdx));
+            items[_vacSelIdx]?.scrollIntoView({ block: 'nearest' });
+        }
+
+        /** onblur 시 약간의 딜레이 후 닫기 (mousedown 이벤트 먼저 처리되도록) */
+        function hideVendorAcDelayed(rowId) {
+            setTimeout(() => {
+                const drop = document.getElementById('vac-' + rowId);
+                if (drop) drop.classList.remove('open');
+                if (_vacActiveId === rowId) _vacActiveId = null;
+                // 기존 completeEditing 호출
+                completeEditing(rowId);
+            }, 180);
+        }
+
+        /** 문서 클릭 시 열린 드롭다운 모두 닫기 */
+        document.addEventListener('click', function(e) {
+            if (_vacActiveId === null) return;
+            const drop = document.getElementById('vac-' + _vacActiveId);
+            if (drop && !drop.contains(e.target)) {
+                drop.classList.remove('open');
+                _vacActiveId = null;
+            }
+        });
+        // ========================================================
+        // ★ 끝: 거래처 계좌 자동완성
+        // ========================================================
+
         // ===== 끝: 계약 DB 관리 =====
 
         // ===== 끝: 건설기계임대차 표준계약서 =====
