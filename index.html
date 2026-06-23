@@ -466,7 +466,101 @@
                 background: #ffffff !important;
             }
         }
-        /* ── 탭바 개선 ── */
+        /* ══════════════════════════════════════════════
+           PC 최적화 — 뷰포트 고정 레이아웃
+        ══════════════════════════════════════════════ */
+
+        /* 전체 높이 고정 — 스크롤은 콘텐츠 영역만 */
+        html { height: 100%; overflow: hidden; }
+
+        /* 헤더는 축소 방지 */
+        header.app-header { flex-shrink: 0; }
+
+        /* 콘텐츠 스크롤바 세련되게 */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* 테이블 스크롤 컨테이너 — 높이 제한 해제 후 자연스럽게 */
+        .table-scroll-container { max-height: none !important; }
+
+        /* 메인 콘텐츠 최대 폭 없애고 전체 사용 */
+        main > div { max-width: none !important; }
+
+        /* 인쇄 시 원복 */
+        @media print {
+            html { height: auto; overflow: visible; }
+            body { height: auto !important; overflow: visible !important; }
+            .flex[style*="overflow:hidden"] { overflow: visible !important; }
+        }
+
+        /* ══════════════════════════════════════════════
+           사이드바 메뉴 스타일
+        ══════════════════════════════════════════════ */
+
+        /* 사이드바 탭 버튼 기본 */
+        .sidebar-tab-btn {
+            color: #64748b;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            outline: none;
+        }
+        .sidebar-tab-btn:hover {
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+        }
+        .sidebar-tab-btn:hover .sidebar-tab-num {
+            background: rgba(59,130,246,0.2);
+            color: #93c5fd;
+        }
+        /* 활성 탭 */
+        .sidebar-tab-active {
+            background: rgba(59,130,246,0.12) !important;
+            color: #60a5fa !important;
+            box-shadow: inset 2px 0 0 #3b82f6;
+        }
+        .sidebar-tab-active .sidebar-tab-num {
+            background: rgba(59,130,246,0.3) !important;
+            color: #93c5fd !important;
+        }
+        /* 번호 뱃지 기본 */
+        .sidebar-tab-num {
+            background: rgba(100,116,139,0.25);
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        /* 아이콘 색상 */
+        .sidebar-tab-btn .sidebar-tab-icon { color: inherit; transition: color 0.2s; }
+
+        /* ── 사이드바 접힘 상태 ── */
+        #app-sidebar.sidebar-collapsed {
+            width: 52px !important;
+        }
+        #app-sidebar.sidebar-collapsed .sidebar-tab-label,
+        #app-sidebar.sidebar-collapsed #sidebar-label,
+        #app-sidebar.sidebar-collapsed #sidebar-footer {
+            display: none !important;
+        }
+        #app-sidebar.sidebar-collapsed .sidebar-tab-btn {
+            justify-content: center;
+            padding: 10px 0;
+        }
+        #app-sidebar.sidebar-collapsed .sidebar-tab-num {
+            display: none;
+        }
+        #app-sidebar.sidebar-collapsed #sidebar-nav-items {
+            padding-left: 4px;
+            padding-right: 4px;
+        }
+
+        @media print {
+            #app-sidebar { display: none !important; }
+            .flex.flex-grow.overflow-hidden { display: block !important; }
+        }
+
+        /* ── 탭바 개선 (기존 — 비활성화 but 남겨둠) ── */
         .tab-bar {
             background: rgba(2,6,23,0.6);
             border-top: 1px solid rgba(255,255,255,0.06);
@@ -754,7 +848,7 @@
         }
     </style>
 </head>
-<body class="text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col font-sans dark:bg-slate-950 transition-colors duration-200">
+<body class="text-slate-800 dark:text-slate-100 antialiased font-sans dark:bg-slate-950 transition-colors duration-200" id="app-body" style="display:flex;flex-direction:column;height:100dvh;overflow:hidden;">
 
     <!-- ══════════════════════════════════════════════════════════
          상단 고정 컨트롤 존 (헤더 + 대시보드 + 탭 전부 압축)
@@ -763,7 +857,7 @@
     <header class="no-print app-header text-white sticky top-0 z-40" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#1a2744 100%);border-bottom:1px solid rgba(59,130,246,0.15);box-shadow:0 4px 24px rgba(0,0,0,0.4);">
 
         <!-- ─── 1행: 로고 + 액션 버튼 ─── -->
-        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-2" style="border-bottom:1px solid rgba(255,255,255,0.07);">
+        <div class="px-4 py-2 flex items-center justify-between gap-2" style="border-bottom:1px solid rgba(255,255,255,0.07);">
             <!-- 로고 -->
             <div class="flex items-center gap-2.5 shrink-0">
                 <div class="logo-badge p-1.5 rounded-lg" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 0 14px rgba(99,102,241,0.45);">
@@ -819,7 +913,7 @@
         </div>
 
         <!-- ─── 2행: 대시보드 컨트롤 존 ─── -->
-        <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center gap-2.5 flex-wrap dashboard-row">
+        <div class="px-4 py-1.5 flex items-center gap-2.5 flex-wrap dashboard-row">
 
             <!-- 현장 선택 -->
             <div class="flex items-center gap-1.5 shrink-0">
@@ -908,39 +1002,73 @@
             </div>
         </div>
 
-        <!-- ─── 3행: 탭 바 ─── -->
-        <div class="max-w-7xl mx-auto px-4 flex items-center overflow-x-auto tab-bar" style="scrollbar-width:none;">
-            <button id="tab-btn-statement" onclick="switchTab('statement')" class="tab-btn tab-active">
-                <span class="tab-num">1</span>
-                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
-                <span>자금청구명세서</span>
-            </button>
-            <button id="tab-btn-request" onclick="switchTab('request')" class="tab-btn">
-                <span class="tab-num">2</span>
-                <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
-                <span>지불의뢰서</span>
-            </button>
-            <button id="tab-btn-request-special" onclick="switchTab('request-special')" class="tab-btn">
-                <span class="tab-num">3</span>
-                <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i>
-                <span>특고 신고</span>
-            </button>
-            <button id="tab-btn-stats" onclick="switchTab('stats')" class="tab-btn">
-                <span class="tab-num">4</span>
-                <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
-                <span>집계표</span>
-            </button>
-            <button id="tab-btn-contract" onclick="switchTab('contract')" class="tab-btn">
-                <span class="tab-num">5</span>
-                <i data-lucide="file-signature" class="w-3.5 h-3.5"></i>
-                <span>건설기계 임대차계약서</span>
-            </button>
-        </div>
-
     </header>
 
+    <!-- ── 사이드바 + 콘텐츠 래퍼 ── -->
+    <div class="flex" style="flex:1 1 0%;min-height:0;overflow:hidden;">
+
+        <!-- ═══ 좌측 사이드바 ═══ -->
+        <nav id="app-sidebar" class="no-print flex flex-col shrink-0 transition-all duration-300"
+             style="width:200px;background:linear-gradient(180deg,#0f172a 0%,#1a2744 100%);border-right:1px solid rgba(59,130,246,0.18);z-index:30;height:100%;overflow-y:auto;overflow-x:hidden;">
+
+            <!-- 사이드바 토글 버튼 -->
+            <div class="flex items-center justify-between px-3 py-2.5" style="border-bottom:1px solid rgba(255,255,255,0.07);">
+                <span id="sidebar-label" class="text-[10px] font-bold tracking-widest uppercase" style="color:#475569;">메뉴</span>
+                <button onclick="toggleSidebar()" class="rounded-md p-1 transition-colors hover:bg-white/10" title="메뉴 접기/펼치기" style="color:#64748b;">
+                    <i id="sidebar-toggle-icon" data-lucide="panel-left-close" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- 탭 메뉴 목록 -->
+            <div class="flex flex-col py-2 gap-0.5 px-2 flex-grow" id="sidebar-nav-items">
+
+                <button id="tab-btn-statement" onclick="switchTab('statement')"
+                    class="sidebar-tab-btn sidebar-tab-active group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">1</span>
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">자금청구명세서</span>
+                </button>
+
+                <button id="tab-btn-request" onclick="switchTab('request')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">2</span>
+                    <i data-lucide="file-check" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">지불의뢰서</span>
+                </button>
+
+                <button id="tab-btn-request-special" onclick="switchTab('request-special')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">3</span>
+                    <i data-lucide="hard-hat" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">특고 신고</span>
+                </button>
+
+                <button id="tab-btn-stats" onclick="switchTab('stats')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">4</span>
+                    <i data-lucide="pie-chart" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">집계표</span>
+                </button>
+
+                <button id="tab-btn-contract" onclick="switchTab('contract')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">5</span>
+                    <i data-lucide="file-signature" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">건설기계<br>임대차계약서</span>
+                </button>
+
+            </div>
+
+            <!-- 사이드바 하단 버전 표시 -->
+            <div id="sidebar-footer" class="px-3 py-2 text-[9px] font-bold" style="color:#334155;border-top:1px solid rgba(255,255,255,0.06);">
+                <span class="sidebar-tab-label">현장 자금관리 Pro V23</span>
+            </div>
+        </nav>
+
+    <!-- ═══ 우측 콘텐츠 영역 ═══ -->
+    <div style="flex:1 1 0%;min-width:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;">
     <!-- 메인 콘텐츠 영역 -->
-    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-3 tab-content-fade">
+    <main class="w-full px-4 py-3 tab-content-fade" style="flex:1 1 auto;">
         
         <!-- 계좌 정보 모달/패널 (no-print) -->
         <div id="account-manager-panel" class="hidden no-print bg-white dark:bg-slate-900 rounded-xl shadow-md border border-blue-200 dark:border-blue-900 p-5 mb-3">
@@ -2421,6 +2549,8 @@
         </div><!-- /tab-contract -->
 
     </main>
+    </div><!-- /우측 콘텐츠 -->
+    </div><!-- /사이드바+콘텐츠 래퍼 -->
 
     <!-- 통계 상세조회 모달 팝업 -->
     <div id="stats-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -3740,6 +3870,33 @@
             }
         }
 
+        /* ── 사이드바 접기/펼치기 ── */
+        function toggleSidebar() {
+            const sb = document.getElementById('app-sidebar');
+            const icon = document.getElementById('sidebar-toggle-icon');
+            if (!sb) return;
+            const collapsed = sb.classList.toggle('sidebar-collapsed');
+            if (icon) {
+                icon.setAttribute('data-lucide', collapsed ? 'panel-left-open' : 'panel-left-close');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+            try { localStorage.setItem('v23_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e){}
+        }
+
+        /* 페이지 로드 시 사이드바 상태 복원 */
+        (function() {
+            try {
+                if (localStorage.getItem('v23_sidebar_collapsed') === '1') {
+                    const sb = document.getElementById('app-sidebar');
+                    if (sb) {
+                        sb.classList.add('sidebar-collapsed');
+                        const icon = document.getElementById('sidebar-toggle-icon');
+                        if (icon) icon.setAttribute('data-lucide','panel-left-open');
+                    }
+                }
+            } catch(e){}
+        })();
+
         function switchTab(tabId) {
             const tabStatement = document.getElementById('tab-statement');
             const tabRequest = document.getElementById('tab-request');
@@ -3759,31 +3916,34 @@
             tabStats.classList.add('hidden');
             if (tabContract) tabContract.classList.add('hidden');
 
-            // 모든 탭 버튼 비활성화
+            // 모든 탭 버튼 비활성화 (상단 탭바 & 사이드바 공용)
             [btnStatement, btnRequest, btnRequestSpecial, btnStats, btnContract].forEach(b => {
-                if (b) { b.classList.remove('tab-active'); }
+                if (b) {
+                    b.classList.remove('tab-active');
+                    b.classList.remove('sidebar-tab-active');
+                }
             });
 
             if (tabId === 'statement') {
                 tabStatement.classList.remove('hidden');
-                btnStatement.classList.add('tab-active');
+                btnStatement.classList.add('tab-active','sidebar-tab-active');
             } else if (tabId === 'request') {
                 tabRequest.classList.remove('hidden');
-                btnRequest.classList.add('tab-active');
+                btnRequest.classList.add('tab-active','sidebar-tab-active');
                 refreshRequestSelector();
             } else if (tabId === 'request-special') {
                 tabRequestSpecial.classList.remove('hidden');
-                btnRequestSpecial.classList.add('tab-active');
+                btnRequestSpecial.classList.add('tab-active','sidebar-tab-active');
                 syncSpecialMetaFromRequest();
                 renderRequestSpecialTable();
                 lucide.createIcons();
             } else if (tabId === 'stats') {
                 tabStats.classList.remove('hidden');
-                btnStats.classList.add('tab-active');
+                btnStats.classList.add('tab-active','sidebar-tab-active');
                 renderVendorStatistics();
             } else if (tabId === 'contract') {
                 if (tabContract) tabContract.classList.remove('hidden');
-                if (btnContract) btnContract.classList.add('tab-active');
+                if (btnContract) btnContract.classList.add('tab-active','sidebar-tab-active');
                 stdInitOnTabSwitchExtended();
             }
         }
