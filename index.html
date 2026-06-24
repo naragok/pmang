@@ -930,13 +930,14 @@
             <!-- 대장 선택 영역 -->
             <div class="flex items-center gap-1.5 flex-wrap">
                 <span style="font-size:9px;color:#475569;font-weight:700;letter-spacing:0.05em;">대장</span>
-                <select id="filter-company" onchange="applyDocumentFilters()" class="hdr-select">
+                <!-- 회사 필터(숨김) — optgroup 방식으로 통합, buildFilterOptions 호환용 -->
+                <select id="filter-company" class="hdr-select" style="display:none;">
                     <option value="ALL">전체 회사</option>
                 </select>
                 <select id="filter-month" onchange="applyDocumentFilters()" class="hdr-select">
                     <option value="ALL">전체 월</option>
                 </select>
-                <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)" class="hdr-select" style="max-width:210px;border-color:rgba(99,102,241,0.4);">
+                <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)" class="hdr-select" style="max-width:280px;min-width:180px;border-color:rgba(99,102,241,0.4);">
                 </select>
 
                 <div class="hdr-divider shrink-0"></div>
@@ -1257,158 +1258,114 @@
                 </div>
             </div>
 
-            <!-- 통합 검색 및 필터링 시스템 바 -->
-            <div class="no-print mb-3 rounded-xl border flex flex-col gap-2.5 p-3" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-color:#e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
-                <!-- 검색창 행 -->
-                <div class="flex items-center gap-2">
+            <!-- ── 통합 툴바 (검색·필터·가독성 접이식) ── -->
+            <style>
+                .sf-chip { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+                .sf-chip.active { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+                .dark .sf-chip { background: #1e293b; border-color: #334155; color: #94a3b8; }
+                .dark .sf-chip.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
+                .vendor-ac-wrap { position: relative; flex: 1; min-width: 0; }
+                .vendor-ac-dropdown { display:none;position:absolute;top:calc(100% + 3px);left:0;min-width:280px;max-width:400px;background:#fff;border:1px solid #3b82f6;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;max-height:220px;overflow-y:auto; }
+                .dark .vendor-ac-dropdown { background:#1e293b;border-color:#3b82f6;box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+                .vendor-ac-dropdown.open { display:block; }
+                .vendor-ac-item { padding:7px 10px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background 0.1s; }
+                .dark .vendor-ac-item { border-color:#334155; }
+                .vendor-ac-item:last-child { border-bottom:none; }
+                .vendor-ac-item:hover,.vendor-ac-item.ac-selected { background:#eff6ff; }
+                .dark .vendor-ac-item:hover,.dark .vendor-ac-item.ac-selected { background:#1e3a5f; }
+                .vendor-ac-name { font-weight:700;font-size:12px;color:#1e293b; }
+                .dark .vendor-ac-name { color:#e2e8f0; }
+                .vendor-ac-sub { font-size:10px;color:#64748b;margin-top:1px; }
+                .dark .vendor-ac-sub { color:#94a3b8; }
+                .vendor-ac-mark { color:#2563eb;font-weight:900; }
+                .vendor-ac-empty { padding:10px;text-align:center;font-size:11px;color:#94a3b8; }
+                .vendor-ac-header { padding:5px 10px;font-size:9px;font-weight:800;color:#2563eb;background:#eff6ff;letter-spacing:0.05em;text-transform:uppercase; }
+                .dark .vendor-ac-header { background:#1e3a5f;color:#60a5fa; }
+                #stmt-toolbar-body { overflow:hidden; transition:max-height 0.25s ease, opacity 0.2s ease; }
+                #stmt-toolbar-body.collapsed { max-height:0 !important; opacity:0; pointer-events:none; }
+            </style>
+            <div class="no-print mb-2 rounded-xl border" style="background:#f8fafc;border-color:#e2e8f0;">
+                <!-- 한줄 헤더 — 항상 표시 -->
+                <div class="flex items-center gap-2 px-3 py-2">
+                    <!-- 검색창 (항상 표시) -->
                     <div class="relative flex-1">
-                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
                         <input type="text" id="state-search-keyword" oninput="onUnifiedSearch()"
-                            placeholder="거래처명, 예금주, 계좌번호, 사업자번호, 적요 통합검색..."
-                            class="w-full border text-xs rounded-lg pl-8 pr-8 py-2 outline-none font-semibold transition-all"
+                            placeholder="거래처명·적요 검색..."
+                            class="w-full border text-xs rounded-lg pl-8 pr-7 py-1.5 outline-none font-semibold transition-all"
                             style="background:#fff;border-color:#e2e8f0;color:#1e293b;"
-                            onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                        <button onclick="clearSearchFilters()" class="absolute right-2.5 top-1/2 -translate-y-1/2" style="color:#94a3b8;" onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                        <button onclick="clearSearchFilters()" class="absolute right-2 top-1/2 -translate-y-1/2" style="color:#94a3b8;">
+                            <i data-lucide="x" class="w-3 h-3"></i>
                         </button>
                     </div>
                     <span id="search-result-count" class="text-[11px] font-bold whitespace-nowrap hidden" style="color:#3b82f6;"></span>
-                </div>
-                <!-- 검색 필드 토글 칩 + 필터 -->
-                <div class="flex flex-wrap gap-1.5 items-center">
-                    <span class="text-[10px] font-bold mr-0.5" style="color:#94a3b8;letter-spacing:0.05em;">범위</span>
-                    <button onclick="toggleSearchField('vendor')" id="sf-chip-vendor" class="sf-chip active text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">거래처명</button>
-                    <button onclick="toggleSearchField('holder')" id="sf-chip-holder" class="sf-chip active text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">예금주</button>
-                    <button onclick="toggleSearchField('account')" id="sf-chip-account" class="sf-chip text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">계좌번호</button>
-                    <button onclick="toggleSearchField('biznum')" id="sf-chip-biznum" class="sf-chip text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">사업자번호</button>
-                    <button onclick="toggleSearchField('note')" id="sf-chip-note" class="sf-chip active text-[10px] px-2.5 py-0.5 rounded-full border font-bold transition-all">적요</button>
-                    <div class="h-4 w-px mx-1" style="background:#e2e8f0;"></div>
-                    <span class="text-[10px] font-bold mr-0.5" style="color:#94a3b8;letter-spacing:0.05em;">구분</span>
+                    <!-- 구분 필터 -->
                     <select id="state-filter-type-select" onchange="renderStatementTable()"
-                        class="border rounded-full px-2.5 py-0.5 text-[10px] font-bold outline-none"
+                        class="border rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0"
                         style="background:#fff;border-color:#e2e8f0;color:#334155;">
-                        <option value="ALL">전체</option>
+                        <option value="ALL">전체 구분</option>
                         <option value="외주비">외주비</option>
                         <option value="자재비">자재비</option>
                         <option value="장비비">장비비</option>
                         <option value="노무비">노무비</option>
                         <option value="관리비">관리비</option>
                     </select>
-                    <span class="text-[10px] font-bold mx-0.5" style="color:#94a3b8;letter-spacing:0.05em;">상태</span>
+                    <!-- 상태 필터 -->
                     <select id="state-filter-status-select" onchange="renderStatementTable()"
-                        class="border rounded-full px-2.5 py-0.5 text-[10px] font-bold outline-none"
+                        class="border rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0"
                         style="background:#fff;border-color:#e2e8f0;color:#334155;">
-                        <option value="ALL">전체</option>
+                        <option value="ALL">전체 상태</option>
                         <option value="대기">대기</option>
                         <option value="완료">완료</option>
                         <option value="보류">보류</option>
                     </select>
+                    <!-- 툴바 토글 버튼 -->
+                    <button onclick="toggleStmtToolbar()" id="stmt-toolbar-toggle"
+                        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all"
+                        style="background:#fff;border-color:#e2e8f0;color:#64748b;" title="상세 옵션">
+                        <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                        <i data-lucide="chevron-down" class="w-3 h-3" id="stmt-toolbar-chevron"></i>
+                    </button>
                 </div>
-            </div>
-            <style>
-                .sf-chip { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
-                .sf-chip.active { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
-                .dark .sf-chip { background: #1e293b; border-color: #334155; color: #94a3b8; }
-                .dark .sf-chip.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
-    
-        /* ── 거래처 자동완성 드롭다운 ── */
-        .vendor-ac-wrap { position: relative; flex: 1; min-width: 0; }
-        .vendor-ac-dropdown {
-            display: none;
-            position: absolute;
-            top: calc(100% + 3px);
-            left: 0;
-            min-width: 280px;
-            max-width: 400px;
-            background: #fff;
-            border: 1px solid #3b82f6;
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            z-index: 9999;
-            overflow: hidden;
-            max-height: 220px;
-            overflow-y: auto;
-        }
-        .dark .vendor-ac-dropdown {
-            background: #1e293b;
-            border-color: #3b82f6;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        .vendor-ac-dropdown.open { display: block; }
-        .vendor-ac-item {
-            padding: 7px 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            transition: background 0.1s;
-        }
-        .dark .vendor-ac-item { border-color: #334155; }
-        .vendor-ac-item:last-child { border-bottom: none; }
-        .vendor-ac-item:hover, .vendor-ac-item.ac-selected {
-            background: #eff6ff;
-        }
-        .dark .vendor-ac-item:hover, .dark .vendor-ac-item.ac-selected {
-            background: #1e3a5f;
-        }
-        .vendor-ac-name { font-weight: 700; font-size: 12px; color: #1e293b; }
-        .dark .vendor-ac-name { color: #e2e8f0; }
-        .vendor-ac-sub  { font-size: 10px; color: #64748b; margin-top: 1px; }
-        .dark .vendor-ac-sub { color: #94a3b8; }
-        .vendor-ac-mark { color: #2563eb; font-weight: 900; }
-        .vendor-ac-empty { padding: 10px; text-align: center; font-size: 11px; color: #94a3b8; }
-        .vendor-ac-header {
-            padding: 5px 10px;
-            font-size: 9px;
-            font-weight: 800;
-            color: #2563eb;
-            background: #eff6ff;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-        .dark .vendor-ac-header { background: #1e3a5f; color: #60a5fa; }
-
-        </style>
-
-            <!-- 자금청구명세서 가독성 제어판 -->
-            <div class="no-print mb-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-center p-3" style="background:linear-gradient(135deg,#f0fdf4,#f8fafc);border-color:#d1fae5;">
-                <div class="flex items-center gap-2">
-                    <div class="p-1.5 rounded-lg" style="background:#d1fae5;">
-                        <i data-lucide="sliders" class="w-4 h-4" style="color:#059669;"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-xs" style="color:#1e293b;">명세서 가독성 및 인쇄 제어판</h4>
-                        <p class="text-[10px]" style="color:#94a3b8;">인쇄 및 모니터 규격에 맞게 조정</p>
-                    </div>
-                </div>
-                
-                <div class="flex flex-wrap items-center gap-3 rounded-lg border p-2 text-xs" style="background:#fff;border-color:#e2e8f0;">
-                    <div class="flex items-center gap-1.5">
-                        <span class="font-bold" style="color:#64748b;">폰트 크기</span>
-                        <select id="state-font-size-select" onchange="adjustStatementFont(this.value)"
-                            class="border rounded px-1.5 py-1 text-xs font-semibold outline-none"
-                            style="background:#f8fafc;border-color:#e2e8f0;color:#334155;">
-                            <option value="10px">10px (초미세)</option>
-                            <option value="11px" selected>11px (기본)</option>
-                            <option value="12px">12px (중간)</option>
-                            <option value="13px">13px (선명)</option>
-                            <option value="14px">14px (대형)</option>
-                        </select>
-                    </div>
-                    <div class="h-4 w-px" style="background:#e2e8f0;"></div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="font-bold" style="color:#64748b;">줄간격</span>
-                        <select id="state-padding-select" onchange="adjustStatementPadding(this.value)"
-                            class="border rounded px-1.5 py-1 text-xs font-semibold outline-none"
-                            style="background:#f8fafc;border-color:#e2e8f0;color:#334155;">
-                            <option value="py-1">컴팩트</option>
-                            <option value="py-2" selected>기본</option>
-                            <option value="py-3">여유</option>
-                        </select>
-                    </div>
-                    <div class="h-4 w-px" style="background:#e2e8f0;"></div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="font-bold" style="color:#64748b;">가로 인쇄 가이드</span>
-                        <input type="checkbox" id="statement-guide-toggle" onchange="toggleStatementGuide(this.checked)" class="w-4 h-4 rounded cursor-pointer" style="accent-color:#059669;">
+                <!-- 접이식 상세 옵션 -->
+                <div id="stmt-toolbar-body" class="collapsed" style="max-height:120px;">
+                    <div class="px-3 pb-2.5 flex flex-wrap gap-3 items-center border-t" style="border-color:#e2e8f0;padding-top:10px;">
+                        <!-- 검색 범위 칩 -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[10px] font-bold" style="color:#94a3b8;">검색범위</span>
+                            <button onclick="toggleSearchField('vendor')" id="sf-chip-vendor" class="sf-chip active text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">거래처명</button>
+                            <button onclick="toggleSearchField('holder')" id="sf-chip-holder" class="sf-chip active text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">예금주</button>
+                            <button onclick="toggleSearchField('account')" id="sf-chip-account" class="sf-chip text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">계좌번호</button>
+                            <button onclick="toggleSearchField('biznum')" id="sf-chip-biznum" class="sf-chip text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">사업자번호</button>
+                            <button onclick="toggleSearchField('note')" id="sf-chip-note" class="sf-chip active text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">적요</button>
+                        </div>
+                        <div class="h-4 w-px" style="background:#e2e8f0;"></div>
+                        <!-- 가독성 -->
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] font-bold" style="color:#94a3b8;">폰트</span>
+                            <select id="state-font-size-select" onchange="adjustStatementFont(this.value)"
+                                class="border rounded px-1.5 py-1 text-[11px] font-semibold outline-none"
+                                style="background:#fff;border-color:#e2e8f0;color:#334155;">
+                                <option value="10px">10px</option>
+                                <option value="11px" selected>11px</option>
+                                <option value="12px">12px</option>
+                                <option value="13px">13px</option>
+                                <option value="14px">14px</option>
+                            </select>
+                            <span class="text-[10px] font-bold" style="color:#94a3b8;">줄간격</span>
+                            <select id="state-padding-select" onchange="adjustStatementPadding(this.value)"
+                                class="border rounded px-1.5 py-1 text-[11px] font-semibold outline-none"
+                                style="background:#fff;border-color:#e2e8f0;color:#334155;">
+                                <option value="py-1">컴팩트</option>
+                                <option value="py-2" selected>기본</option>
+                                <option value="py-3">여유</option>
+                            </select>
+                            <label class="flex items-center gap-1 text-[10px] font-bold cursor-pointer" style="color:#64748b;">
+                                <input type="checkbox" id="statement-guide-toggle" onchange="toggleStatementGuide(this.checked)" class="w-3.5 h-3.5 rounded" style="accent-color:#059669;">
+                                인쇄가이드
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1632,7 +1589,10 @@
                                 <p class="text-[10px] font-bold text-slate-800 dark:text-slate-250">● 청구 및 의뢰 품목 내역</p>
                                 <div class="flex items-center gap-1.5 no-print ml-auto">
                                     <button onclick="addRequestItemRow()" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[9px] px-2 py-1 rounded border border-slate-300 dark:border-slate-700 font-semibold flex items-center gap-0.5">
-                                        <i data-lucide="plus" class="w-2.5 h-2.5"></i> 품목 행 추가
+                                        <i data-lucide="plus" class="w-2.5 h-2.5"></i> 품목 추가
+                                    </button>
+                                    <button onclick="resetVendorItems()" class="bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[9px] px-2 py-1 rounded border border-amber-300 dark:border-amber-700 font-semibold flex items-center gap-0.5" title="저장된 품목 프리셋 초기화 — 대장 기본값으로 되돌림">
+                                        <i data-lucide="rotate-ccw" class="w-2.5 h-2.5"></i> 초기화
                                     </button>
                                     <div class="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
                                     <!-- 명세서 반영 확정 버튼 -->
@@ -1642,6 +1602,8 @@
                                         title="현재 품목 합계를 자금청구명세서의 해당 행 공급가액/부가세에 반영합니다">
                                         <i data-lucide="arrow-left-right" class="w-2.5 h-2.5"></i> 명세서에 반영
                                     </button>
+                                    <!-- 품목 자동저장 뱃지 -->
+                                    <span id="vendor-items-saved-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded hidden" style="background:rgba(16,185,129,0.12);color:#059669;"></span>
                                     <!-- 합계 일치 여부 상태 뱃지 -->
                                     <span id="items-sync-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded hidden"></span>
                                 </div>
@@ -1729,13 +1691,13 @@
                             </div>
                         </div>
 
-                        <!-- 담당자 메모 -->
+                        <!-- 담당자 메모 (화면 전용 — 인쇄 제외) -->
                         <div class="req-memo-section border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-[10px] mb-2">
                             <div class="flex items-center gap-2 mb-1">
                                 <p class="font-bold text-slate-800 dark:text-slate-200">● 담당자 메모 / 특이사항</p>
-                                <span class="no-print text-[9px] text-slate-400 dark:text-slate-500">(인쇄 시 포함됩니다)</span>
+                                <span class="no-print text-[9px] text-slate-400 dark:text-slate-500">(인쇄 시 포함)</span>
                             </div>
-                            <textarea id="req-manager-memo" rows="3" oninput="saveRequestMemo(); autoResizeMemo(this)" placeholder="협의내용, 특이사항, 담당자 전달사항 등을 입력하세요..." class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
+                            <textarea id="req-manager-memo" rows="3" oninput="saveRequestMemo(); autoResizeMemo(this)" placeholder="" class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold focus:outline-none leading-relaxed"></textarea>
                         </div>
 
                         <!-- 서명란 -->
@@ -3871,6 +3833,17 @@
         }
 
         /* ── 사이드바 접기/펼치기 ── */
+        /* ── 명세서 통합 툴바 접기/펼치기 ── */
+        function toggleStmtToolbar() {
+            const body = document.getElementById('stmt-toolbar-body');
+            const chevron = document.getElementById('stmt-toolbar-chevron');
+            const btn = document.getElementById('stmt-toolbar-toggle');
+            if (!body) return;
+            const isCollapsed = body.classList.toggle('collapsed');
+            if (chevron) chevron.style.transform = isCollapsed ? '' : 'rotate(180deg)';
+            if (btn) btn.style.borderColor = isCollapsed ? '#e2e8f0' : '#3b82f6';
+        }
+
         function toggleSidebar() {
             const sb = document.getElementById('app-sidebar');
             const icon = document.getElementById('sidebar-toggle-icon');
@@ -5424,6 +5397,12 @@
                     row.deduction = 0;
                     row.prepaid = 0;
                     row.status = "대기";
+                    // 품목 프리셋 금액도 초기화 (품목명/수량은 유지)
+                    if (row.vendorItems && row.vendorItems.length > 0) {
+                        row.vendorItems = row.vendorItems.map(it => ({
+                            ...it, supply: 0, tax: 0
+                        }));
+                    }
                 });
             }
 
@@ -5952,7 +5931,8 @@
                 const opt = document.createElement('option');
                 opt.value = `row-${item.id}`;
                 const ceoLabel = item.ceo ? ` / ${item.ceo}` : '';
-                opt.textContent = `[단일] [${item.type}] ${item.vendor}${ceoLabel} - ${formatNumber(item.supply + item.tax)}원`;
+                const noteLabel = item.note && item.note.trim() ? ` [${item.note.trim()}]` : '';
+                opt.textContent = `[${item.type}] ${item.vendor}${ceoLabel}${noteLabel} - ${formatNumber(item.supply + item.tax)}원`;
                 selector.appendChild(opt);
             });
 
@@ -5963,13 +5943,15 @@
                     const opt = document.createElement('option');
                     opt.value = `combine-${vendor}`;
                     const ceoLabel = list[0].ceo ? ` / ${list[0].ceo}` : '';
-                    opt.textContent = `🌟 [합산] ${vendor}${ceoLabel} (총 ${list.length}건 합산) - ${formatNumber(totalCombinedAmt)}원`;
+                    opt.textContent = `🌟 [합산] ${vendor}${ceoLabel} / ${list.length}건 - ${formatNumber(totalCombinedAmt)}원`;
                     selector.appendChild(opt);
                 }
             });
 
             if (currentSelectedValue && [...selector.options].some(o => o.value === currentSelectedValue)) {
                 selector.value = currentSelectedValue;
+                // 같은 거래처 재선택 — 품목 보존 플래그
+                loadRequestData._currentKey = currentSelectedValue;
                 loadRequestData(currentSelectedValue);
             } else if (selector.options.length > 1) {
                 const firstVal = selector.options[1].value;
@@ -6124,12 +6106,18 @@
                 }
 
                 if (!isSameKey) {
-                    requestItems.push({
-                        item: `${target.type} - ${target.note || '품목 청구'}`,
-                        qty: "1.0",
-                        supply: target.supply,
-                        tax: target.tax
-                    });
+                    // vendorItems(저장된 품목 프리셋) 우선 — 없으면 dataset 기반 기본 1행
+                    const savedVendorItems = target.vendorItems && target.vendorItems.length > 0
+                        ? JSON.parse(JSON.stringify(target.vendorItems))
+                        : null;
+                    if (savedVendorItems) {
+                        requestItems = savedVendorItems;
+                    } else {
+                        const itemLabel = target.note && target.note.trim()
+                            ? target.note.trim()
+                            : (target.vendor || target.type || '품목 청구');
+                        requestItems.push({ item: itemLabel, qty: "1.0", supply: target.supply, tax: target.tax });
+                    }
                 }
 
                 buildSpecialItemsFromRows([target]);
@@ -6173,14 +6161,20 @@
                 }
 
                 if (!isSameKey) {
-                    matchedRows.forEach(row => {
-                        requestItems.push({
-                            item: `${row.type} - ${row.note || '품목 청구'}`,
-                            qty: "1.0",
-                            supply: row.supply,
-                            tax: row.tax
+                    // vendorItems 우선 — 합산 거래처는 첫 번째 row의 vendorItems 사용
+                    const savedVendorItemsC = firstItem.vendorItems && firstItem.vendorItems.length > 0
+                        ? JSON.parse(JSON.stringify(firstItem.vendorItems))
+                        : null;
+                    if (savedVendorItemsC) {
+                        requestItems = savedVendorItemsC;
+                    } else {
+                        matchedRows.forEach(row => {
+                            const itemLabel = row.note && row.note.trim()
+                                ? row.note.trim()
+                                : (row.type || '품목 청구');
+                            requestItems.push({ item: itemLabel, qty: "1.0", supply: row.supply, tax: row.tax });
                         });
-                    });
+                    }
                 }
 
                 buildSpecialItemsFromRows(matchedRows.filter(row => row.type === '장비비'));
@@ -6276,11 +6270,42 @@
             updateItemsSyncBadge(totalRequestSupply, totalRequestTax);
         }
 
+        /* ── 현재 requestItems를 dataset의 vendorItems에 백업 ── */
+        function saveVendorItems() {
+            const selector = document.getElementById('request-selector');
+            if (!selector) return;
+            const key = selector.value;
+            if (!key || key === 'custom') return;
+
+            const snapshot = JSON.parse(JSON.stringify(requestItems));
+
+            if (key.startsWith('row-')) {
+                const rowId = key.replace('row-', '');
+                const row = dataset.find(r => r.id == rowId);
+                if (row) row.vendorItems = snapshot;
+            } else if (key.startsWith('combine-')) {
+                const vendor = key.replace('combine-', '');
+                const first = dataset.find(r => r.vendor === vendor);
+                if (first) first.vendorItems = snapshot;
+            }
+            saveToLocalStorage();
+
+            // 저장 완료 뱃지 표시
+            const badge = document.getElementById('vendor-items-saved-badge');
+            if (badge) {
+                badge.textContent = '✓ 품목 저장됨';
+                badge.classList.remove('hidden');
+                clearTimeout(saveVendorItems._timer);
+                saveVendorItems._timer = setTimeout(() => badge.classList.add('hidden'), 2000);
+            }
+        }
+
         function updateRequestItem(index, field, value) {
             if (requestItems[index]) {
                 requestItems[index][field] = value;
                 // ★ requestItems 변경은 의뢰서 전용 — dataset(명세서)에는 절대 역전파하지 않음
                 renderRequestItemsTable();
+                saveVendorItems();
             }
         }
 
@@ -6412,16 +6437,43 @@
             // ★ 명세서(dataset) supply는 건드리지 않음 — 의뢰서 품목 금액은 의뢰서 전용
         }
 
+        /* ── 품목 프리셋 초기화 — dataset 기본값으로 재생성 ── */
+        function resetVendorItems() {
+            const selector = document.getElementById('request-selector');
+            if (!selector) return;
+            const key = selector.value;
+            if (!key || key === 'custom') return;
+
+            if (!confirm('저장된 품목 목록을 초기화하고 대장 기본값으로 되돌릴까요?')) return;
+
+            // vendorItems 삭제
+            if (key.startsWith('row-')) {
+                const row = dataset.find(r => r.id == key.replace('row-',''));
+                if (row) delete row.vendorItems;
+            } else if (key.startsWith('combine-')) {
+                const vendor = key.replace('combine-','');
+                const first = dataset.find(r => r.vendor === vendor);
+                if (first) delete first.vendorItems;
+            }
+
+            // isSameKey가 true가 되지 않도록 _currentKey 초기화
+            loadRequestData._currentKey = null;
+            requestItems = [];
+            loadRequestData(key);
+            saveToLocalStorage();
+            showToast('품목 목록을 초기화했습니다.');
+        }
+
         function addRequestItemRow() {
             requestItems.push({ item: "새 품목명", qty: "1.0", supply: 0, tax: 0 });
-            // ★ dataset에 새 행 추가 없음 — 의뢰서 전용 품목만 추가
             renderRequestItemsTable();
+            saveVendorItems();
         }
 
         function deleteRequestItemRow(index) {
             requestItems = requestItems.filter((_, i) => i !== index);
-            // ★ dataset 삭제 없음 — 의뢰서 전용 품목만 제거
             renderRequestItemsTable();
+            saveVendorItems();
         }
 
         // ===== 특고(일용) 인적용역 신고 내역 — 지불의뢰서 연동 =====
@@ -6618,15 +6670,12 @@
 
         function updateSavedSheetsSelector() {
             const selector = document.getElementById('saved-sheets-selector');
-            const companyFilter = document.getElementById('filter-company').value;
             const monthFilter = document.getElementById('filter-month').value;
 
             selector.innerHTML = "";
 
+            // 월 필터 적용
             let filteredDocs = savedDocuments;
-            if (companyFilter !== "ALL") {
-                filteredDocs = filteredDocs.filter(doc => doc.company === companyFilter);
-            }
             if (monthFilter !== "ALL") {
                 filteredDocs = filteredDocs.filter(doc => doc.month === monthFilter);
             }
@@ -6636,22 +6685,49 @@
                 return;
             }
 
-            // 현장명 오름차순 → 같은 현장이면 년월 오름차순 정렬
-            filteredDocs = [...filteredDocs].sort((a, b) => {
-                const siteCmp = (a.site || '').localeCompare(b.site || '', 'ko-KR');
-                if (siteCmp !== 0) return siteCmp;
-                return parseMonthToNum(a.month) - parseMonthToNum(b.month);
+            // 회사별 그룹화
+            const companyMap = {};
+            filteredDocs.forEach(doc => {
+                const key = doc.company || '(회사명 없음)';
+                if (!companyMap[key]) companyMap[key] = [];
+                companyMap[key].push(doc);
             });
 
-            filteredDocs.forEach(doc => {
-                const opt = document.createElement('option');
-                opt.value = doc.id;
-                opt.textContent = `[${doc.site}] [${doc.month}] ${doc.company}`;
-                if (doc.id === currentDocId) {
-                    opt.selected = true;
-                }
-                selector.appendChild(opt);
+            // 회사명 가나다 정렬
+            const sortedCompanies = Object.keys(companyMap).sort((a, b) =>
+                a.localeCompare(b, 'ko-KR'));
+
+            let selectedFound = false;
+
+            sortedCompanies.forEach(company => {
+                const group = document.createElement('optgroup');
+                group.label = `▶ ${company}`;
+
+                // 같은 회사 내: 년월 내림차순(최신 먼저) → 현장명 오름차순
+                const docs = [...companyMap[company]].sort((a, b) => {
+                    const monthCmp = parseMonthToNum(b.month) - parseMonthToNum(a.month);
+                    if (monthCmp !== 0) return monthCmp;
+                    return (a.site || '').localeCompare(b.site || '', 'ko-KR');
+                });
+
+                docs.forEach(doc => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = `[${doc.month}] ${doc.site}`;
+                    if (doc.id === currentDocId) {
+                        opt.selected = true;
+                        selectedFound = true;
+                    }
+                    group.appendChild(opt);
+                });
+
+                selector.appendChild(group);
             });
+
+            // 현재 문서가 필터 결과에 없으면 첫 항목 선택 표시만
+            if (!selectedFound && selector.options.length > 0) {
+                selector.options[0].selected = true;
+            }
         }
 
         function loadSavedDocument(id) {
@@ -8714,13 +8790,16 @@
                     const phone   = accMatch?.phone   || row.phone   || '';
                     const biznum  = accMatch?.biznum  || row.biznum  || '';
 
-                    // 품목 items 구성 (requestItems는 현재 선택된 거래처만 갖고 있으므로 dataset row로 구성)
-                    const items = vendorRows.map(r => ({
-                        item: `${r.type} - ${r.note || '품목 청구'}`,
-                        qty:  '1.0',
-                        supply: r.supply || 0,
-                        tax:    r.tax    || 0,
-                    }));
+                    // 품목 items 구성: vendorItems(저장 프리셋) 우선, 없으면 dataset row 기반
+                    const firstVendorRow = vendorRows[0];
+                    const items = (firstVendorRow.vendorItems && firstVendorRow.vendorItems.length > 0)
+                        ? firstVendorRow.vendorItems
+                        : vendorRows.map(r => ({
+                            item: r.note && r.note.trim() ? r.note.trim() : (r.type || '품목 청구'),
+                            qty:  '1.0',
+                            supply: r.supply || 0,
+                            tax:    r.tax    || 0,
+                        }));
 
                     const reqAmt = totalSum
                         - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
