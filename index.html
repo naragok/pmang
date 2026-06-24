@@ -18,6 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
         body {
@@ -1501,57 +1502,8 @@
 
         <!-- 2. 지불의뢰서 영역 -->
         <div id="tab-request" class="hidden">
-            <div class="no-print bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 mb-6">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="printer" class="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5"></i>
-                        <div>
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">지불의뢰서 인쇄 및 검색 제어판</h4>
-                            <p class="text-xs text-slate-500 mt-1">
-                                검색 필터와 여백 조절 및 슬라이더 배율 조정을 통해 **A4 한 장 안에 정중앙 중앙맞춤 인쇄**됩니다.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <!-- 지불의뢰서 퀵 검색창 탑재 -->
-                        <div class="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-300 dark:border-slate-700">
-                            <span class="text-xs font-bold text-slate-500">🔍 상호검색:</span>
-                            <input type="text" id="req-quick-search" oninput="filterRequestSelector()" placeholder="거래처 상호 검색..." class="text-xs bg-transparent text-slate-850 dark:text-slate-100 outline-none w-36">
-                        </div>
-                        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-350">A4 가이드 표시:</span>
-                            <input type="checkbox" id="a4-guide-toggle" onchange="toggleA4Guide(this.checked)" class="w-4 h-4 rounded text-blue-600 cursor-pointer">
-                        </div>
-                        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-350">글자 크기:</span>
-                            <select id="req-font-size-select" onchange="adjustRequestFont(this.value)" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-1.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-100 outline-none">
-                                <option value="9px">9px (초미세)</option>
-                                <option value="10px" selected>10px (기본)</option>
-                                <option value="11px">11px (중간)</option>
-                                <option value="12px">12px (대형)</option>
-                            </select>
-                        </div>
-                        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-350">인쇄 출력 배율:</span>
-                            <input type="range" id="print-scale-slider" min="0.70" max="1.00" step="0.01" value="1.00" oninput="changePrintScale(this.value)" class="w-32 accent-blue-600 cursor-pointer">
-                            <span id="print-scale-label" class="text-xs font-bold text-blue-700 dark:text-blue-400 min-w-[35px]">100%</span>
-                        </div>
-                        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-650 dark:text-slate-350">거래처 선택:</span>
-                            <select id="request-selector" onchange="loadRequestData(this.value)" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs px-2 py-1 focus:border-indigo-500 outline-none max-w-xs font-semibold text-slate-800 dark:text-slate-100">
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- 의뢰서 바로 출력 지원 레이아웃 -->
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
                 
                 <!-- 지불의뢰서 실물 A4 portrait 양식 -->
                 <div class="lg:col-span-3">
@@ -1710,40 +1662,79 @@
                     </div>
                 </div>
 
-                <!-- 옆쪽 고정 인쇄 퀵 컨트롤러 패널 -->
-                <div class="no-print bg-slate-900 dark:bg-slate-900 text-white rounded-xl shadow-lg border border-slate-800 dark:border-slate-700 p-5 sticky top-6 font-semibold text-xs">
-                    <div class="flex items-center gap-2 text-indigo-400 mb-3 border-b border-slate-850 dark:border-slate-700 pb-2">
-                        <i data-lucide="printer-check" class="w-5 h-5"></i>
-                        <h4 class="font-extrabold text-sm text-slate-200">의뢰서 출력 퀵 패널</h4>
+                <!-- 퀵 패널 -->
+                <div class="no-print flex flex-col gap-1.5 sticky top-6" style="min-width:148px;max-width:160px;">
+                    <!-- 거래처 선택 -->
+                    <div class="text-[9px] font-bold mb-0.5 px-0.5" style="color:#475569;">거래처</div>
+                    <input type="text" id="req-quick-search" oninput="filterRequestSelector()" placeholder="상호 검색..." class="w-full rounded-lg border border-slate-700 bg-slate-800 text-white text-[11px] px-2 py-1.5 outline-none placeholder-slate-500">
+                    <select id="request-selector" onchange="loadRequestData(this.value)" class="w-full rounded-lg border border-slate-700 bg-slate-800 text-white text-[11px] px-2 py-1.5 outline-none font-semibold">
+                    </select>
+                    <span id="quick-vendor-name" class="text-indigo-400 font-bold text-[10px] px-0.5 truncate"></span>
+                    <div class="border-t border-slate-700 my-0.5"></div>
+                    <!-- 설정 -->
+                    <div class="flex flex-col gap-1 text-[10px]">
+                        <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
+                            <span>글자크기</span>
+                            <select id="req-font-size-select" onchange="adjustRequestFont(this.value)" class="rounded border border-slate-700 bg-slate-800 text-white text-[10px] px-1 py-0.5 outline-none">
+                                <option value="9px">9px</option>
+                                <option value="10px" selected>10px</option>
+                                <option value="11px">11px</option>
+                                <option value="12px">12px</option>
+                            </select>
+                        </label>
+                        <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
+                            <span>A4 가이드</span>
+                            <input type="checkbox" id="a4-guide-toggle" onchange="toggleA4Guide(this.checked)" class="w-3.5 h-3.5 rounded cursor-pointer" style="accent-color:#3b82f6;">
+                        </label>
+                        <label class="flex flex-col gap-0.5" style="color:#94a3b8;">
+                            <div class="flex justify-between">
+                                <span>배율</span>
+                                <span id="print-scale-label" class="font-bold text-blue-400">100%</span>
+                            </div>
+                            <input type="range" id="print-scale-slider" min="0.70" max="1.00" step="0.01" value="1.00" oninput="changePrintScale(this.value)" class="w-full accent-blue-500 cursor-pointer">
+                        </label>
                     </div>
-                    <p class="text-slate-450 leading-relaxed mb-4">
-                        현재 선택한 <span id="quick-vendor-name" class="font-bold text-indigo-300">거래처</span>의 지불의뢰서를 A4 1장에 가로/세로 정밀 중앙 맞춤 인쇄합니다.
-                    </p>
-                    <div class="space-y-2">
-                        <button onclick="openPrintPreviewModal('request')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
-                            <i data-lucide="eye" class="w-4 h-4"></i> 인쇄 미리보기
-                        </button>
-                        <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
-                            <i data-lucide="printer" class="w-4 h-4"></i> 현재 의뢰서 출력 (중앙 배치)
-                        </button>
-                        <button onclick="printAllRequests()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow transition-all">
-                            <i data-lucide="layers" class="w-4 h-4"></i> 전체 거래처 일괄 출력
-                        </button>
-                        <button onclick="exportRequestToXLSX('current')" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white py-2.5 px-4 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5 shadow transition-all">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 현재 의뢰서 Excel 저장
-                        </button>
-                        <button onclick="exportRequestToXLSX('all')" class="w-full bg-teal-700 hover:bg-teal-600 text-white py-2.5 px-4 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5 shadow transition-all">
-                            <i data-lucide="table-2" class="w-3.5 h-3.5"></i> 전체 거래처 Excel 일괄 저장
-                        </button>
-                        <!-- 현재 지불의뢰서 거래처를 계좌 DB 마스터로 퀵 등록하는 편의 기능 -->
-                        <button onclick="quickRegisterCurrentVendorToDb()" class="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 py-2.5 px-4 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all" title="현재 지불의뢰서 기재 거래처를 마스터 DB에 추가">
-                            <i data-lucide="database-backup" class="w-3.5 h-3.5 text-emerald-400"></i> 현 거래처 계좌 마스터 DB 등록
-                        </button>
-                        <button onclick="switchTab('request-special')" class="w-full bg-amber-600 hover:bg-amber-700 text-white border border-amber-500 py-2.5 px-4 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all" title="특고(일용) 인적용역 신고 내역 탭으로 이동">
-                            <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i> 특고(일용) 신고 내역 바로가기
-                        </button>
-                    </div>
+                    <div class="border-t border-slate-700 my-0.5"></div>
+                    <!-- 출력 -->
+                    <button onclick="openPrintPreviewModal('request')" class="qbtn" style="--qc:#059669;" title="인쇄 미리보기">
+                        <i data-lucide="eye" class="w-3.5 h-3.5"></i><span>미리보기</span>
+                    </button>
+                    <button onclick="window.print()" class="qbtn" style="--qc:#2563eb;" title="현재 의뢰서 출력">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i><span>출력</span>
+                    </button>
+                    <button onclick="printAllRequests()" class="qbtn" style="--qc:#4f46e5;" title="전체 거래처 일괄 출력">
+                        <i data-lucide="layers" class="w-3.5 h-3.5"></i><span>일괄 출력</span>
+                    </button>
+                    <div class="border-t border-slate-700 my-0.5"></div>
+                    <!-- 저장 -->
+                    <button onclick="exportRequestToXLSX('current')" class="qbtn" style="--qc:#0f766e;" title="현재 의뢰서 Excel">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i><span>Excel</span>
+                    </button>
+                    <button onclick="exportRequestToXLSX('all')" class="qbtn" style="--qc:#0e7490;" title="전체 Excel 일괄">
+                        <i data-lucide="table-2" class="w-3.5 h-3.5"></i><span>Excel 전체</span>
+                    </button>
+                    <button onclick="exportRequestToDocx()" class="qbtn" style="--qc:#1d4ed8;" title="현재 의뢰서 Word">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i><span>Word</span>
+                    </button>
+                    <div class="border-t border-slate-700 my-0.5"></div>
+                    <!-- 기타 -->
+                    <button onclick="quickRegisterCurrentVendorToDb()" class="qbtn" style="--qc:#334155;" title="거래처 계좌 DB 등록">
+                        <i data-lucide="database-backup" class="w-3.5 h-3.5" style="color:#34d399;"></i><span>DB 등록</span>
+                    </button>
+                    <button onclick="switchTab('request-special')" class="qbtn" style="--qc:#b45309;" title="특고 신고 바로가기">
+                        <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i><span>특고 신고</span>
+                    </button>
                 </div>
+                <style>
+                .qbtn {
+                    display:flex;align-items:center;gap:6px;
+                    width:100%;padding:6px 10px;border-radius:8px;border:none;cursor:pointer;
+                    background:var(--qc);color:#fff;font-size:11px;font-weight:700;
+                    transition:opacity 0.15s,transform 0.1s;
+                }
+                .qbtn:hover { opacity:0.85; transform:translateX(1px); }
+                .qbtn i { flex-shrink:0; }
+                </style>
 
             </div>
         </div>
@@ -8719,6 +8710,321 @@
            mode = 'current' : 현재 선택된 거래처 1건
            mode = 'all'     : 현재 대장 전체 거래처 시트별 저장
         ============================================================ */
+        /* ══════════════════════════════════════════════
+           지불의뢰서 Word(.docx) 내보내기
+        ══════════════════════════════════════════════ */
+        async function exportRequestToDocx() {
+            if (typeof JSZip === 'undefined') {
+                showToast('JSZip 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.', 'warn');
+                return;
+            }
+
+            // ── 필드값 수집 ──
+            const g = id => (document.getElementById(id) || {}).value || '';
+            const site      = g('req-meta-site');
+            const period    = g('req-meta-period');
+            const category  = (document.getElementById('req-title-category') || {}).textContent || '';
+            const type      = g('req-field-type');
+            const contract  = g('req-field-contract');
+            const vendor    = g('req-field-vendor');
+            const ceo       = g('req-field-ceo');
+            const bizNum    = g('req-vendor-num');
+            const bank      = g('req-vendor-bank');
+            const account   = g('req-vendor-account');
+            const holder    = g('req-vendor-holder');
+            const phone     = g('req-vendor-phone');
+            const calcSupply = g('req-calc-supply');
+            const calcTax    = g('req-calc-tax');
+            const calcTotal  = g('req-calc-total');
+            const memo      = (document.getElementById('req-manager-memo') || {}).value || '';
+
+            // 체크리스트
+            const chkIds = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const checklist = chkIds.map((id,i) => ({
+                label: chkLabels[i],
+                checked: (document.getElementById(id) || {}).checked
+            }));
+
+            // 품목 테이블 (DOM에서 직접 읽기)
+            const itemRows = [];
+            document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input[type=text]');
+                if (inputs.length >= 4) {
+                    itemRows.push({
+                        item:   inputs[0].value || '',
+                        qty:    inputs[1].value || '',
+                        supply: inputs[2].value || '0',
+                        tax:    inputs[3].value || '0',
+                        total:  inputs[4] ? inputs[4].value || '0' : '0',
+                    });
+                }
+            });
+
+            // ── XML 헬퍼 ──
+            const esc = s => String(s)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+            // 단락 생성 (bold, size, align, color 옵션)
+            const para = (text, opts={}) => {
+                const { bold=false, size=20, align='left', color='000000', space=0, indent=0 } = opts;
+                return `<w:p>
+  <w:pPr>
+    <w:jc w:val="${align}"/>
+    ${space ? `<w:spacing w:before="${space}" w:after="${space}"/>` : ''}
+    ${indent ? `<w:ind w:left="${indent}"/>` : ''}
+  </w:pPr>
+  <w:r>
+    <w:rPr>
+      <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
+      ${bold ? '<w:b/><w:bCs/>' : ''}
+      <w:sz w:val="${size}"/><w:szCs w:val="${size}"/>
+      <w:color w:val="${color}"/>
+    </w:rPr>
+    <w:t xml:space="preserve">${esc(text)}</w:t>
+  </w:r>
+</w:p>`;
+            };
+
+            // 테이블 셀
+            const cell = (text, opts={}) => {
+                const { bold=false, size=18, align='center', width=1000, bg='', color='000000', vAlign='center' } = opts;
+                return `<w:tc>
+  <w:tcPr>
+    <w:tcW w:w="${width}" w:type="dxa"/>
+    ${bg ? `<w:shd w:val="clear" w:color="auto" w:fill="${bg}"/>` : ''}
+    <w:vAlign w:val="${vAlign}"/>
+    <w:tcBorders>
+      <w:top w:val="single" w:sz="4" w:color="AAAAAA"/>
+      <w:bottom w:val="single" w:sz="4" w:color="AAAAAA"/>
+      <w:left w:val="single" w:sz="4" w:color="AAAAAA"/>
+      <w:right w:val="single" w:sz="4" w:color="AAAAAA"/>
+    </w:tcBorders>
+  </w:tcPr>
+  <w:p>
+    <w:pPr><w:jc w:val="${align}"/><w:spacing w:before="40" w:after="40"/>
+    </w:pPr>
+    <w:r>
+      <w:rPr>
+        <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
+        ${bold ? '<w:b/><w:bCs/>' : ''}
+        <w:sz w:val="${size}"/><w:szCs w:val="${size}"/>
+        <w:color w:val="${color}"/>
+      </w:rPr>
+      <w:t xml:space="preserve">${esc(text)}</w:t>
+    </w:r>
+  </w:p>
+</w:tc>`;
+            };
+
+            const row = (...cells) => `<w:tr>${cells.join('')}</w:tr>`;
+
+            // ── 페이지 여백: A4, 상20mm 하15mm 좌우20mm ──
+            // 1mm ≈ 56.7 DXA
+            const pgSz  = `<w:pgSz w:w="11906" w:h="16838"/>`;
+            const pgMar = `<w:pgMar w:top="1134" w:right="1134" w:bottom="851" w:left="1134" w:header="709" w:footer="709" w:gutter="0"/>`;
+            // 본문 폭: 11906 - 1134*2 = 9638 DXA
+
+            // ── 품목 테이블 행 생성 ──
+            const TW = 9638; // 전체 폭
+            // 열 폭: 품목명 3200 | 수량 700 | 공급가액 1800 | 부가세 1800 | 합계 2138
+            const C = [3200, 700, 1800, 1800, 2138];
+
+            const itemHeaderRow = row(
+                cell('품목명 / 비고', {bold:true, width:C[0], bg:'E8ECEF', align:'center', size:18}),
+                cell('수량',          {bold:true, width:C[1], bg:'E8ECEF', align:'center', size:18}),
+                cell('공급가액',      {bold:true, width:C[2], bg:'E8ECEF', align:'center', size:18}),
+                cell('부가세',        {bold:true, width:C[3], bg:'E8ECEF', align:'center', size:18}),
+                cell('합계금액',      {bold:true, width:C[4], bg:'E8ECEF', align:'center', size:18}),
+            );
+            const itemDataRows = itemRows.map(it => row(
+                cell(it.item,   {width:C[0], align:'center', size:18}),
+                cell(it.qty,    {width:C[1], align:'center', size:18}),
+                cell(it.supply, {width:C[2], align:'right',  size:18}),
+                cell(it.tax,    {width:C[3], align:'right',  size:18}),
+                cell(it.total,  {width:C[4], align:'right',  size:18, bold:true}),
+            )).join('');
+
+            // ── 거래처/계좌 테이블 ──
+            // 열 폭: 레이블 1400 | 값 3419 | 레이블 1400 | 값 3419
+            const LC = [1400,3419,1400,3419];
+            const infoRow = (l1,v1,l2,v2) => row(
+                cell(l1,{bold:true,width:LC[0],bg:'E8ECEF',align:'left',size:18}),
+                cell(v1,{width:LC[1],align:'left',size:18,bold:true,color:'1D4ED8'}),
+                cell(l2,{bold:true,width:LC[2],bg:'E8ECEF',align:'left',size:18}),
+                cell(v2,{width:LC[3],align:'left',size:18}),
+            );
+
+            // ── 체크리스트 문자열 ──
+            const chkStr = checklist.map(c => `${c.checked ? '☑' : '☐'} ${c.label}`).join('   ');
+
+            // ── document.xml 본문 ──
+            const body = `
+${para('', {size:8})}
+${para(`(${category}) 지불의뢰서`, {bold:true, size:36, align:'center', color:'1E3A5F'})}
+${para('', {size:10})}
+<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:color="334155"/></w:pBdr></w:pPr></w:p>
+${para(`현 장 명: ${site}`, {size:20})}
+${para(`청구기간: ${period}`, {size:20})}
+<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="4" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>
+${para('', {size:8})}
+
+${para('● 청구 및 의뢰 품목 내역', {bold:true, size:20})}
+${para('', {size:6})}
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="${TW}" w:type="dxa"/>
+    <w:tblBorders>
+      <w:insideH w:val="single" w:sz="4" w:color="CCCCCC"/>
+      <w:insideV w:val="single" w:sz="4" w:color="CCCCCC"/>
+    </w:tblBorders>
+  </w:tblPr>
+  <w:tblGrid>
+    ${C.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}
+  </w:tblGrid>
+  ${itemHeaderRow}
+  ${itemDataRows}
+</w:tbl>
+${para('', {size:6})}
+
+${para('● 청구 산출 근거', {bold:true, size:20})}
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="${TW}" w:type="dxa"/>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="4819"/><w:gridCol w:w="4819"/></w:tblGrid>
+  ${row(cell('공급가액계',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(calcSupply,{width:4819,align:'right',size:18,bold:true}))}
+  ${row(cell('부가가치세',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(calcTax,{width:4819,align:'right',size:18}))}
+  ${row(cell('청구 금액 계',{bold:true,width:4819,bg:'D1E4F5',align:'left',size:20,color:'1D4ED8'}),cell(calcTotal,{width:4819,align:'right',size:20,bold:true,color:'1D4ED8'}))}
+</w:tbl>
+${para('', {size:6})}
+
+${para('● 공종 및 거래처 정보', {bold:true, size:20})}
+<w:tbl>
+  <w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+  <w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+  ${infoRow('공종명', type, '청구금액', contract)}
+  ${infoRow('거래처', vendor, '대표자', ceo)}
+</w:tbl>
+${para('', {size:6})}
+
+${para('● 거래처 및 입금 계좌 정보', {bold:true, size:20})}
+<w:tbl>
+  <w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+  <w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+  ${infoRow('사업자번호', bizNum, '은행', bank)}
+  ${infoRow('계좌번호', account, '예금주', holder)}
+  ${row(cell('연락처',{bold:true,width:LC[0],bg:'E8ECEF',align:'left',size:18}),cell(phone,{width:LC[1],align:'left',size:18}),cell('',{width:LC[2],size:18}),cell('',{width:LC[3],size:18}))}
+</w:tbl>
+${para('', {size:6})}
+
+${para('● 구비 서류 체크리스트', {bold:true, size:20})}
+${para(chkStr, {size:18})}
+${para('', {size:6})}
+
+${memo ? para('● 담당자 메모 / 특이사항', {bold:true, size:20}) : ''}
+${memo ? para(memo, {size:18}) : ''}
+${memo ? para('', {size:6}) : ''}
+
+<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>
+${para('위의 청구내역이 틀림없음을 확인합니다.', {align:'right', size:18, bold:true})}
+${para('', {size:8})}
+`;
+
+            // ── docx XML 파일 구성 ──
+            const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+  xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink"
+  xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+  xmlns:w10="urn:schemas-microsoft-com:office:word"
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+  xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml"
+  xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex"
+  xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid"
+  xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml"
+  xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash"
+  xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex"
+  xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+  xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk"
+  xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
+  xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+  mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh wp14">
+<w:body>
+${body}
+<w:sectPr>
+  ${pgSz}
+  ${pgMar}
+</w:sectPr>
+</w:body>
+</w:document>`;
+
+            const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+
+            const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:docDefaults>
+    <w:rPrDefault>
+      <w:rPr>
+        <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
+        <w:sz w:val="20"/><w:szCs w:val="20"/>
+        <w:lang w:val="ko-KR" w:eastAsia="ko-KR"/>
+      </w:rPr>
+    </w:rPrDefault>
+  </w:docDefaults>
+</w:styles>`;
+
+            const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`;
+
+            const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+            // ── ZIP 생성 및 다운로드 ──
+            try {
+                const zip = new JSZip();
+                zip.file('[Content_Types].xml', contentTypes);
+                zip.file('_rels/.rels', rootRels);
+                zip.file('word/document.xml', docXml);
+                zip.file('word/_rels/document.xml.rels', relsXml);
+                zip.file('word/styles.xml', stylesXml);
+
+                const blob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                const docLabel = document.getElementById('saved-sheets-selector')
+                    ? (document.getElementById('saved-sheets-selector').selectedOptions[0]?.text || '의뢰서') : '의뢰서';
+                const fname = `${vendor || '거래처'}_지불의뢰서_${period.replace(/[~\s]/g,'').substring(0,12)}.docx`;
+
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = fname;
+                a.click();
+                URL.revokeObjectURL(a.href);
+                showToast(`Word 파일 저장: ${fname}`);
+            } catch(e) {
+                console.error('docx 생성 오류:', e);
+                showToast('Word 파일 생성 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
         function exportRequestToXLSX(mode) {
             if (typeof XLSX === 'undefined') {
                 showToast('Excel 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
