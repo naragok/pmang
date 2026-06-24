@@ -1281,7 +1281,7 @@
                 .vendor-ac-empty { padding:10px;text-align:center;font-size:11px;color:#94a3b8; }
                 .vendor-ac-header { padding:5px 10px;font-size:9px;font-weight:800;color:#2563eb;background:#eff6ff;letter-spacing:0.05em;text-transform:uppercase; }
                 .dark .vendor-ac-header { background:#1e3a5f;color:#60a5fa; }
-                #stmt-toolbar-body { overflow:hidden; transition:max-height 0.25s ease, opacity 0.2s ease; }
+                #stmt-toolbar-body { overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; max-height:200px; }
                 #stmt-toolbar-body.collapsed { max-height:0 !important; opacity:0; pointer-events:none; }
             </style>
             <div class="no-print mb-2 rounded-xl border" style="background:#f8fafc;border-color:#e2e8f0;">
@@ -1329,7 +1329,7 @@
                     </button>
                 </div>
                 <!-- 접이식 상세 옵션 -->
-                <div id="stmt-toolbar-body" class="collapsed" style="max-height:120px;">
+                <div id="stmt-toolbar-body" class="collapsed">
                     <div class="px-3 pb-2.5 flex flex-wrap gap-3 items-center border-t" style="border-color:#e2e8f0;padding-top:10px;">
                         <!-- 검색 범위 칩 -->
                         <div class="flex items-center gap-1.5 flex-wrap">
