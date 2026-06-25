@@ -1716,6 +1716,9 @@
                     <button onclick="exportRequestToDocx()" class="qbtn" style="--qc:#1d4ed8;" title="현재 의뢰서 Word">
                         <i data-lucide="file-text" class="w-3.5 h-3.5"></i><span>Word</span>
                     </button>
+                    <button onclick="exportAllRequestsToDocx()" class="qbtn" style="--qc:#1e3a8a;" title="전체 거래처 Word 일괄 (ZIP)">
+                        <i data-lucide="folder-archive" class="w-3.5 h-3.5"></i><span>Word 전체</span>
+                    </button>
                     <div class="border-t border-slate-700 my-0.5"></div>
                     <!-- 기타 -->
                     <button onclick="quickRegisterCurrentVendorToDb()" class="qbtn" style="--qc:#334155;" title="거래처 계좌 DB 등록">
@@ -8710,145 +8713,64 @@
            mode = 'current' : 현재 선택된 거래처 1건
            mode = 'all'     : 현재 대장 전체 거래처 시트별 저장
         ============================================================ */
-        /* ══════════════════════════════════════════════
-           지불의뢰서 Word(.docx) 내보내기
-        ══════════════════════════════════════════════ */
-        async function exportRequestToDocx() {
-            if (typeof JSZip === 'undefined') {
-                showToast('JSZip 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.', 'warn');
-                return;
-            }
-
-            // ── 필드값 수집 ──
-            const g = id => (document.getElementById(id) || {}).value || '';
-            const site      = g('req-meta-site');
-            const period    = g('req-meta-period');
-            const category  = (document.getElementById('req-title-category') || {}).textContent || '';
-            const type      = g('req-field-type');
-            const contract  = g('req-field-contract');
-            const vendor    = g('req-field-vendor');
-            const ceo       = g('req-field-ceo');
-            const bizNum    = g('req-vendor-num');
-            const bank      = g('req-vendor-bank');
-            const account   = g('req-vendor-account');
-            const holder    = g('req-vendor-holder');
-            const phone     = g('req-vendor-phone');
-            const calcSupply = g('req-calc-supply');
-            const calcTax    = g('req-calc-tax');
-            const calcTotal  = g('req-calc-total');
-            const memo      = (document.getElementById('req-manager-memo') || {}).value || '';
-
-            // 체크리스트
-            const chkIds = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
-            const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
-            const checklist = chkIds.map((id,i) => ({
-                label: chkLabels[i],
-                checked: (document.getElementById(id) || {}).checked
-            }));
-
-            // 품목 테이블 (DOM에서 직접 읽기)
-            const itemRows = [];
-            document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
-                const inputs = tr.querySelectorAll('input[type=text]');
-                if (inputs.length >= 4) {
-                    itemRows.push({
-                        item:   inputs[0].value || '',
-                        qty:    inputs[1].value || '',
-                        supply: inputs[2].value || '0',
-                        tax:    inputs[3].value || '0',
-                        total:  inputs[4] ? inputs[4].value || '0' : '0',
-                    });
-                }
-            });
-
-            // ── XML 헬퍼 ──
-            const esc = s => String(s)
+        /* ── docx XML 공통 빌더 ── */
+        function buildRequestDocxXml(d) {
+            // d: { category, site, period, type, contract, vendor, ceo,
+            //      bizNum, bank, account, holder, phone,
+            //      calcSupply, calcTax, calcTotal, memo, checklist[], itemRows[] }
+            const esc = s => String(s||'')
                 .replace(/&/g,'&amp;').replace(/</g,'&lt;')
                 .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-            // 단락 생성 (bold, size, align, color 옵션)
             const para = (text, opts={}) => {
-                const { bold=false, size=20, align='left', color='000000', space=0, indent=0 } = opts;
-                return `<w:p>
-  <w:pPr>
-    <w:jc w:val="${align}"/>
-    ${space ? `<w:spacing w:before="${space}" w:after="${space}"/>` : ''}
-    ${indent ? `<w:ind w:left="${indent}"/>` : ''}
-  </w:pPr>
-  <w:r>
-    <w:rPr>
-      <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
-      ${bold ? '<w:b/><w:bCs/>' : ''}
-      <w:sz w:val="${size}"/><w:szCs w:val="${size}"/>
-      <w:color w:val="${color}"/>
-    </w:rPr>
-    <w:t xml:space="preserve">${esc(text)}</w:t>
-  </w:r>
-</w:p>`;
+                const { bold=false, size=20, align='left', color='000000', space=0 } = opts;
+                return `<w:p><w:pPr><w:jc w:val="${align}"/>${space?`<w:spacing w:before="${space}" w:after="${space}"/>`:''}
+</w:pPr><w:r><w:rPr>
+<w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
+${bold?'<w:b/><w:bCs/>':''}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/>
+<w:color w:val="${color}"/></w:rPr>
+<w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p>`;
             };
 
-            // 테이블 셀
             const cell = (text, opts={}) => {
-                const { bold=false, size=18, align='center', width=1000, bg='', color='000000', vAlign='center' } = opts;
-                return `<w:tc>
-  <w:tcPr>
-    <w:tcW w:w="${width}" w:type="dxa"/>
-    ${bg ? `<w:shd w:val="clear" w:color="auto" w:fill="${bg}"/>` : ''}
-    <w:vAlign w:val="${vAlign}"/>
-    <w:tcBorders>
-      <w:top w:val="single" w:sz="4" w:color="AAAAAA"/>
-      <w:bottom w:val="single" w:sz="4" w:color="AAAAAA"/>
-      <w:left w:val="single" w:sz="4" w:color="AAAAAA"/>
-      <w:right w:val="single" w:sz="4" w:color="AAAAAA"/>
-    </w:tcBorders>
-  </w:tcPr>
-  <w:p>
-    <w:pPr><w:jc w:val="${align}"/><w:spacing w:before="40" w:after="40"/>
-    </w:pPr>
-    <w:r>
-      <w:rPr>
-        <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
-        ${bold ? '<w:b/><w:bCs/>' : ''}
-        <w:sz w:val="${size}"/><w:szCs w:val="${size}"/>
-        <w:color w:val="${color}"/>
-      </w:rPr>
-      <w:t xml:space="preserve">${esc(text)}</w:t>
-    </w:r>
-  </w:p>
-</w:tc>`;
+                const { bold=false, size=18, align='center', width=1000, bg='', color='000000' } = opts;
+                return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/>
+${bg?`<w:shd w:val="clear" w:color="auto" w:fill="${bg}"/>`:''}
+<w:vAlign w:val="center"/>
+<w:tcBorders>
+<w:top w:val="single" w:sz="4" w:color="AAAAAA"/>
+<w:bottom w:val="single" w:sz="4" w:color="AAAAAA"/>
+<w:left w:val="single" w:sz="4" w:color="AAAAAA"/>
+<w:right w:val="single" w:sz="4" w:color="AAAAAA"/>
+</w:tcBorders></w:tcPr>
+<w:p><w:pPr><w:jc w:val="${align}"/><w:spacing w:before="40" w:after="40"/></w:pPr>
+<w:r><w:rPr>
+<w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
+${bold?'<w:b/><w:bCs/>':''}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/>
+<w:color w:val="${color}"/>
+</w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`;
             };
 
             const row = (...cells) => `<w:tr>${cells.join('')}</w:tr>`;
-
-            // ── 페이지 여백: A4, 상20mm 하15mm 좌우20mm ──
-            // 1mm ≈ 56.7 DXA
-            const pgSz  = `<w:pgSz w:w="11906" w:h="16838"/>`;
-            const pgMar = `<w:pgMar w:top="1134" w:right="1134" w:bottom="851" w:left="1134" w:header="709" w:footer="709" w:gutter="0"/>`;
-            // 본문 폭: 11906 - 1134*2 = 9638 DXA
-
-            // ── 품목 테이블 행 생성 ──
-            const TW = 9638; // 전체 폭
-            // 열 폭: 품목명 3200 | 수량 700 | 공급가액 1800 | 부가세 1800 | 합계 2138
-            const C = [3200, 700, 1800, 1800, 2138];
+            const TW = 9638;
+            const C  = [3200, 700, 1800, 1800, 2138];
+            const LC = [1400, 3419, 1400, 3419];
 
             const itemHeaderRow = row(
-                cell('품목명 / 비고', {bold:true, width:C[0], bg:'E8ECEF', align:'center', size:18}),
-                cell('수량',          {bold:true, width:C[1], bg:'E8ECEF', align:'center', size:18}),
-                cell('공급가액',      {bold:true, width:C[2], bg:'E8ECEF', align:'center', size:18}),
-                cell('부가세',        {bold:true, width:C[3], bg:'E8ECEF', align:'center', size:18}),
-                cell('합계금액',      {bold:true, width:C[4], bg:'E8ECEF', align:'center', size:18}),
+                cell('품목명 / 비고',{bold:true,width:C[0],bg:'E8ECEF',align:'center',size:18}),
+                cell('수량',         {bold:true,width:C[1],bg:'E8ECEF',align:'center',size:18}),
+                cell('공급가액',     {bold:true,width:C[2],bg:'E8ECEF',align:'center',size:18}),
+                cell('부가세',       {bold:true,width:C[3],bg:'E8ECEF',align:'center',size:18}),
+                cell('합계금액',     {bold:true,width:C[4],bg:'E8ECEF',align:'center',size:18}),
             );
-            const itemDataRows = itemRows.map(it => row(
-                cell(it.item,   {width:C[0], align:'center', size:18}),
-                cell(it.qty,    {width:C[1], align:'center', size:18}),
-                cell(it.supply, {width:C[2], align:'right',  size:18}),
-                cell(it.tax,    {width:C[3], align:'right',  size:18}),
-                cell(it.total,  {width:C[4], align:'right',  size:18, bold:true}),
+            const itemDataRows = (d.itemRows||[]).map(it => row(
+                cell(it.item,  {width:C[0],align:'center',size:18}),
+                cell(it.qty||'1.0',{width:C[1],align:'center',size:18}),
+                cell(typeof it.supply==='number'?it.supply.toLocaleString('ko-KR'):it.supply,{width:C[2],align:'right',size:18}),
+                cell(typeof it.tax==='number'?it.tax.toLocaleString('ko-KR'):it.tax,{width:C[3],align:'right',size:18}),
+                cell(typeof it.total==='number'?it.total.toLocaleString('ko-KR'):(it.total||((it.supply||0)+(it.tax||0)).toLocaleString('ko-KR')),{width:C[4],align:'right',size:18,bold:true}),
             )).join('');
 
-            // ── 거래처/계좌 테이블 ──
-            // 열 폭: 레이블 1400 | 값 3419 | 레이블 1400 | 값 3419
-            const LC = [1400,3419,1400,3419];
             const infoRow = (l1,v1,l2,v2) => row(
                 cell(l1,{bold:true,width:LC[0],bg:'E8ECEF',align:'left',size:18}),
                 cell(v1,{width:LC[1],align:'left',size:18,bold:true,color:'1D4ED8'}),
@@ -8856,373 +8778,692 @@
                 cell(v2,{width:LC[3],align:'left',size:18}),
             );
 
-            // ── 체크리스트 문자열 ──
-            const chkStr = checklist.map(c => `${c.checked ? '☑' : '☐'} ${c.label}`).join('   ');
+            const chkStr = (d.checklist||[]).map(c=>`${c.checked?'☑':'☐'} ${c.label}`).join('   ');
+            const tblW = w => `<w:tblPr><w:tblW w:w="${w}" w:type="dxa"/></w:tblPr><w:tblGrid>${C.slice(0,2).map(()=>'').join('')}</w:tblGrid>`;
 
-            // ── document.xml 본문 ──
             const body = `
-${para('', {size:8})}
-${para(`(${category}) 지불의뢰서`, {bold:true, size:36, align:'center', color:'1E3A5F'})}
-${para('', {size:10})}
+${para('',{size:8})}
+${para(`(${d.category||''}) 지불의뢰서`,{bold:true,size:36,align:'center',color:'1E3A5F'})}
+${para('',{size:10})}
 <w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:color="334155"/></w:pBdr></w:pPr></w:p>
-${para(`현 장 명: ${site}`, {size:20})}
-${para(`청구기간: ${period}`, {size:20})}
+${para(`현 장 명: ${d.site||''}`,{size:20})}
+${para(`청구기간: ${d.period||''}`,{size:20})}
 <w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="4" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>
-${para('', {size:8})}
-
-${para('● 청구 및 의뢰 품목 내역', {bold:true, size:20})}
-${para('', {size:6})}
-<w:tbl>
-  <w:tblPr>
-    <w:tblW w:w="${TW}" w:type="dxa"/>
-    <w:tblBorders>
-      <w:insideH w:val="single" w:sz="4" w:color="CCCCCC"/>
-      <w:insideV w:val="single" w:sz="4" w:color="CCCCCC"/>
-    </w:tblBorders>
-  </w:tblPr>
-  <w:tblGrid>
-    ${C.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}
-  </w:tblGrid>
-  ${itemHeaderRow}
-  ${itemDataRows}
+${para('',{size:8})}
+${para('● 청구 및 의뢰 품목 내역',{bold:true,size:20})}
+${para('',{size:6})}
+<w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+<w:tblGrid>${C.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+${itemHeaderRow}${itemDataRows}
 </w:tbl>
-${para('', {size:6})}
-
-${para('● 청구 산출 근거', {bold:true, size:20})}
-<w:tbl>
-  <w:tblPr>
-    <w:tblW w:w="${TW}" w:type="dxa"/>
-  </w:tblPr>
-  <w:tblGrid><w:gridCol w:w="4819"/><w:gridCol w:w="4819"/></w:tblGrid>
-  ${row(cell('공급가액계',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(calcSupply,{width:4819,align:'right',size:18,bold:true}))}
-  ${row(cell('부가가치세',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(calcTax,{width:4819,align:'right',size:18}))}
-  ${row(cell('청구 금액 계',{bold:true,width:4819,bg:'D1E4F5',align:'left',size:20,color:'1D4ED8'}),cell(calcTotal,{width:4819,align:'right',size:20,bold:true,color:'1D4ED8'}))}
+${para('',{size:6})}
+${para('● 청구 산출 근거',{bold:true,size:20})}
+<w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+<w:tblGrid><w:gridCol w:w="4819"/><w:gridCol w:w="4819"/></w:tblGrid>
+${row(cell('공급가액계',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(d.calcSupply||'0',{width:4819,align:'right',size:18,bold:true}))}
+${row(cell('부가가치세',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(d.calcTax||'0',{width:4819,align:'right',size:18}))}
+${row(cell('청구 금액 계',{bold:true,width:4819,bg:'D1E4F5',align:'left',size:20,color:'1D4ED8'}),cell(d.calcTotal||'0',{width:4819,align:'right',size:20,bold:true,color:'1D4ED8'}))}
 </w:tbl>
-${para('', {size:6})}
-
-${para('● 공종 및 거래처 정보', {bold:true, size:20})}
-<w:tbl>
-  <w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
-  <w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
-  ${infoRow('공종명', type, '청구금액', contract)}
-  ${infoRow('거래처', vendor, '대표자', ceo)}
+${para('',{size:6})}
+${para('● 공종 및 거래처 정보',{bold:true,size:20})}
+<w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+<w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+${infoRow('공종명',d.type||'','청구금액',d.contract||'')}
+${infoRow('거래처',d.vendor||'','대표자',d.ceo||'')}
 </w:tbl>
-${para('', {size:6})}
-
-${para('● 거래처 및 입금 계좌 정보', {bold:true, size:20})}
-<w:tbl>
-  <w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
-  <w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
-  ${infoRow('사업자번호', bizNum, '은행', bank)}
-  ${infoRow('계좌번호', account, '예금주', holder)}
-  ${row(cell('연락처',{bold:true,width:LC[0],bg:'E8ECEF',align:'left',size:18}),cell(phone,{width:LC[1],align:'left',size:18}),cell('',{width:LC[2],size:18}),cell('',{width:LC[3],size:18}))}
+${para('',{size:6})}
+${para('● 거래처 및 입금 계좌 정보',{bold:true,size:20})}
+<w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+<w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+${infoRow('사업자번호',d.bizNum||'','은행',d.bank||'')}
+${infoRow('계좌번호',d.account||'','예금주',d.holder||'')}
+${row(cell('연락처',{bold:true,width:LC[0],bg:'E8ECEF',align:'left',size:18}),cell(d.phone||'',{width:LC[1],align:'left',size:18}),cell('',{width:LC[2],size:18}),cell('',{width:LC[3],size:18}))}
 </w:tbl>
-${para('', {size:6})}
-
-${para('● 구비 서류 체크리스트', {bold:true, size:20})}
-${para(chkStr, {size:18})}
-${para('', {size:6})}
-
-${memo ? para('● 담당자 메모 / 특이사항', {bold:true, size:20}) : ''}
-${memo ? para(memo, {size:18}) : ''}
-${memo ? para('', {size:6}) : ''}
-
+${para('',{size:6})}
+${para('● 구비 서류 체크리스트',{bold:true,size:20})}
+${para(chkStr,{size:18})}
+${para('',{size:6})}
+${d.memo?para('● 담당자 메모 / 특이사항',{bold:true,size:20}):''}
+${d.memo?para(d.memo,{size:18}):''}
+${d.memo?para('',{size:6}):''}
 <w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>
-${para('위의 청구내역이 틀림없음을 확인합니다.', {align:'right', size:18, bold:true})}
-${para('', {size:8})}
+${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',size:18,bold:true})}
 `;
-
-            // ── docx XML 파일 구성 ──
-            const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
-  xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink"
-  xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d"
-  xmlns:o="urn:schemas-microsoft-com:office:office"
+            return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-  xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
-  xmlns:v="urn:schemas-microsoft-com:vml"
-  xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
-  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
-  xmlns:w10="urn:schemas-microsoft-com:office:word"
   xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-  xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
-  xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml"
-  xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex"
-  xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid"
-  xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml"
-  xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash"
-  xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex"
-  xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
-  xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk"
-  xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
-  xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-  mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh wp14">
-<w:body>
-${body}
-<w:sectPr>
-  ${pgSz}
-  ${pgMar}
-</w:sectPr>
-</w:body>
-</w:document>`;
-
-            const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-</Relationships>`;
-
-            const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:docDefaults>
-    <w:rPrDefault>
-      <w:rPr>
-        <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕"/>
-        <w:sz w:val="20"/><w:szCs w:val="20"/>
-        <w:lang w:val="ko-KR" w:eastAsia="ko-KR"/>
-      </w:rPr>
-    </w:rPrDefault>
-  </w:docDefaults>
-</w:styles>`;
-
-            const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-  <Default Extension="xml" ContentType="application/xml"/>
-  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
-</Types>`;
-
-            const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
-</Relationships>`;
-
-            // ── ZIP 생성 및 다운로드 ──
-            try {
-                const zip = new JSZip();
-                zip.file('[Content_Types].xml', contentTypes);
-                zip.file('_rels/.rels', rootRels);
-                zip.file('word/document.xml', docXml);
-                zip.file('word/_rels/document.xml.rels', relsXml);
-                zip.file('word/styles.xml', stylesXml);
-
-                const blob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-                const docLabel = document.getElementById('saved-sheets-selector')
-                    ? (document.getElementById('saved-sheets-selector').selectedOptions[0]?.text || '의뢰서') : '의뢰서';
-                const fname = `${vendor || '거래처'}_지불의뢰서_${period.replace(/[~\s]/g,'').substring(0,12)}.docx`;
-
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = fname;
-                a.click();
-                URL.revokeObjectURL(a.href);
-                showToast(`Word 파일 저장: ${fname}`);
-            } catch(e) {
-                console.error('docx 생성 오류:', e);
-                showToast('Word 파일 생성 중 오류가 발생했습니다.', 'error');
-            }
+  mc:Ignorable="w14 w15">
+<w:body>${body}
+<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>
+<w:pgMar w:top="1134" w:right="1134" w:bottom="851" w:left="1134" w:header="709" w:footer="709" w:gutter="0"/>
+</w:sectPr></w:body></w:document>`;
         }
 
-        function exportRequestToXLSX(mode) {
-            if (typeof XLSX === 'undefined') {
-                showToast('Excel 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
-                return;
+        /* ── ZIP 내 단일 docx 파일 생성 헬퍼 ── */
+        /* ── docx 공용 XML 파트 ── */
+        const DOCX_CONTENT_TYPES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
+</Types>`;
+        const DOCX_ROOT_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+        const DOCX_WORD_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>
+</Relationships>`;
+        const DOCX_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+          xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+          mc:Ignorable="w14">
+<w:docDefaults>
+  <w:rPrDefault><w:rPr>
+    <w:rFonts w:ascii="맑은 고딕" w:hAnsi="맑은 고딕" w:eastAsia="맑은 고딕" w:cs="맑은 고딕"/>
+    <w:sz w:val="20"/><w:szCs w:val="20"/>
+    <w:lang w:val="ko-KR" w:eastAsia="ko-KR" w:bidi="ar-SA"/>
+  </w:rPr></w:rPrDefault>
+  <w:pPrDefault><w:pPr>
+    <w:spacing w:after="0" w:line="240" w:lineRule="auto"/>
+  </w:pPr></w:pPrDefault>
+</w:docDefaults>
+</w:styles>`;
+        const DOCX_SETTINGS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat>
+</w:settings>`;
+
+        /* ── docx Blob 직접 생성 (JSZip 한 개, zip-in-zip 없음) ── */
+        async function makeDocxBlob(docXml) {
+            const zip = new JSZip();
+            zip.file('[Content_Types].xml',        DOCX_CONTENT_TYPES);
+            zip.file('_rels/.rels',                DOCX_ROOT_RELS);
+            zip.file('word/document.xml',          docXml);
+            zip.file('word/_rels/document.xml.rels', DOCX_WORD_RELS);
+            zip.file('word/styles.xml',            DOCX_STYLES);
+            zip.file('word/settings.xml',          DOCX_SETTINGS);
+            return zip.generateAsync({
+                type: 'blob',
+                mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                compression: 'DEFLATE',
+                compressionOptions: { level: 6 }
+            });
+        }
+
+        /* ── 단일 docx 다운로드 헬퍼 ── */
+        function downloadBlob(blob, filename) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+
+        /* ══════════════════════════════════════════════
+           지불의뢰서 Word(.docx) 내보내기 — 현재 1건
+        ══════════════════════════════════════════════ */
+        async function exportRequestToDocx() {
+            if (typeof JSZip === 'undefined') { showToast('JSZip 로딩 중입니다.', 'warn'); return; }
+            const g = id => (document.getElementById(id)||{}).value||'';
+            const chkIds    = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const itemRows  = [];
+            document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
+                const inp = tr.querySelectorAll('input[type=text]');
+                if (inp.length >= 4) itemRows.push({
+                    item: inp[0].value, qty: inp[1].value,
+                    supply: inp[2].value, tax: inp[3].value,
+                    total: inp[4] ? inp[4].value : ''
+                });
+            });
+            const d = {
+                category:   (document.getElementById('req-title-category')||{}).textContent||'',
+                site:       g('req-meta-site'),    period:     g('req-meta-period'),
+                type:       g('req-field-type'),   contract:   g('req-field-contract'),
+                vendor:     g('req-field-vendor'), ceo:        g('req-field-ceo'),
+                bizNum:     g('req-vendor-num'),   bank:       g('req-vendor-bank'),
+                account:    g('req-vendor-account'),holder:    g('req-vendor-holder'),
+                phone:      g('req-vendor-phone'),
+                calcSupply: g('req-calc-supply'),  calcTax:    g('req-calc-tax'),
+                calcTotal:  g('req-calc-total'),
+                memo:       (document.getElementById('req-manager-memo')||{}).value||'',
+                checklist:  chkIds.map((id,i) => ({label:chkLabels[i], checked:!!(document.getElementById(id)||{}).checked})),
+                itemRows,
+            };
+            try {
+                const blob  = await makeDocxBlob(buildRequestDocxXml(d));
+                const fname = `${d.vendor||'거래처'}_지불의뢰서_${(d.period||'').replace(/[\s~]/g,'').substring(0,12)}.docx`;
+                downloadBlob(blob, fname);
+                showToast(`Word 저장: ${fname}`);
+            } catch(e) { console.error('docx 오류:', e); showToast('Word 생성 오류', 'error'); }
+        }
+
+        /* ══════════════════════════════════════════════
+           지불의뢰서 Word(.docx) 전체 일괄 — ZIP 묶음
+        ══════════════════════════════════════════════ */
+        async function exportAllRequestsToDocx() {
+            if (typeof JSZip === 'undefined') { showToast('JSZip 로딩 중입니다.','warn'); return; }
+
+            const site   = document.getElementById('req-meta-site')?.value  || '';
+            const period = document.getElementById('req-meta-period')?.value || '';
+            const chkIds    = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            // 전체 내보내기는 체크리스트 미체크 상태로
+            const checklist = chkLabels.map(label=>({label,checked:false}));
+
+            const currentDoc = savedDocuments.find(d=>d.id===currentDocId);
+            const docLabel   = currentDoc ? `${currentDoc.company}_${currentDoc.month}` : '지불의뢰서';
+
+            const processed = new Set();
+            const outerZip  = new JSZip();
+            let count = 0;
+
+            showToast('Word 파일 생성 중...');
+
+            for (const row of [...dataset].filter(r=>r.vendor)) {
+                // 거래처명 + 대표자 복합 키 — 같은 상호라도 대표자 다르면 개별 파일
+                const vendorKey = `${row.vendor}||${row.ceo||''}`;
+                if (processed.has(vendorKey)) continue;
+                processed.add(vendorKey);
+
+                const vendorRows = dataset.filter(r=>r.vendor===row.vendor && (r.ceo||'')===(row.ceo||''));
+                const supplySum  = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
+                const taxSum     = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+                const totalSum   = supplySum + taxSum;
+                const reqAmt     = totalSum
+                    - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
+                    - vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
+
+                const accMatch = accountDb.find(a=>a.vendor===row.vendor && (a.ceo||'')===(row.ceo||''))
+                              || accountDb.find(a=>a.vendor===row.vendor);
+                const bank    = accMatch?.bank    || row.bank    || '';
+                const account = accMatch?.account || row.account || '';
+                const holder  = accMatch?.holder  || row.holder  || '';
+                const phone   = accMatch?.phone   || row.phone   || '';
+                const bizNum  = accMatch?.biznum  || row.biznum  || '';
+
+                const firstRow = vendorRows[0];
+                const itemRows = (firstRow.vendorItems && firstRow.vendorItems.length>0)
+                    ? firstRow.vendorItems.map(it=>({
+                        item:it.item, qty:it.qty||'1.0',
+                        supply:typeof it.supply==='number'?it.supply.toLocaleString('ko-KR'):it.supply,
+                        tax:typeof it.tax==='number'?it.tax.toLocaleString('ko-KR'):it.tax,
+                        total:typeof it.supply==='number'?((it.supply||0)+(it.tax||0)).toLocaleString('ko-KR'):''
+                      }))
+                    : vendorRows.map(r=>({
+                        item: r.note&&r.note.trim()?r.note.trim():(r.type||'품목 청구'),
+                        qty:'1.0',
+                        supply:(r.supply||0).toLocaleString('ko-KR'),
+                        tax:(r.tax||0).toLocaleString('ko-KR'),
+                        total:((r.supply||0)+(r.tax||0)).toLocaleString('ko-KR')
+                      }));
+
+                const d = {
+                    category: row.type||'',
+                    site, period,
+                    type:     row.type||'',
+                    contract: `일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`,
+                    vendor:   row.vendor, ceo: row.ceo||'',
+                    bizNum, bank: bank?`${bank}은행`:bank, account, holder, phone,
+                    calcSupply: formatNumber(supplySum),
+                    calcTax:    formatNumber(taxSum),
+                    calcTotal:  formatNumber(totalSum)+' 원',
+                    memo: '', checklist, itemRows,
+                };
+
+                const docXml  = buildRequestDocxXml(d);
+                const docBlob = await makeDocxBlob(docXml);
+                const ceoSuffix = row.ceo ? `_${row.ceo}` : '';
+                const fname = `${row.vendor}${ceoSuffix}_지불의뢰서.docx`;
+                outerZip.file(fname, docBlob);
+                count++;
             }
+
+            if (count===0) { showToast('내보낼 거래처가 없습니다.','warn'); return; }
+
+            try {
+                const zipBlob = await outerZip.generateAsync({type:'blob',compression:'DEFLATE'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(zipBlob);
+                a.download = `${docLabel}_지불의뢰서_전체_${count}건.zip`;
+                a.click(); URL.revokeObjectURL(a.href);
+                showToast(`전체 ${count}개 거래처 Word 저장 완료 (ZIP)`);
+            } catch(e) { console.error(e); showToast('ZIP 생성 오류','error'); }
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           xlsx OpenXML 서식 엔진 (JSZip 직접 작성)
+           — 헤더 배경색·볼드, 셀 테두리, 숫자 서식, 병합 셀
+        ═══════════════════════════════════════════════════════ */
+
+        /* ── 스타일 인덱스 상수 ── */
+        const XSI = {
+            DEFAULT:    0,  // 일반
+            TITLE:      1,  // 제목 (진한 배경+흰글씨+볼드+대형)
+            SEC_HEAD:   2,  // 섹션 헤더 (중간 배경+볼드)
+            LABEL:      3,  // 레이블 셀 (연한 배경+볼드)
+            VALUE:      4,  // 값 셀 (테두리)
+            TBL_HEAD:   5,  // 테이블 헤더 (진한+흰+볼드+테두리)
+            TBL_DATA:   6,  // 테이블 데이터 (테두리)
+            TBL_NUM:    7,  // 테이블 숫자 (테두리+우정렬+#,##0)
+            TBL_TOTAL:  8,  // 합계 행 (연한 배경+볼드+테두리+숫자)
+            CONTRACT:   9,  // 청구금액 강조 (파랑+볼드)
+            SUM_HEAD:  10,  // 요약 헤더
+            SUM_NUM:   11,  // 요약 숫자
+        };
+
+        const XLSX_STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="6">
+  <font><sz val="11"/><name val="맑은 고딕"/><family val="2"/></font>
+  <font><b/><sz val="16"/><name val="맑은 고딕"/><color rgb="FFFFFFFF"/></font>
+  <font><b/><sz val="11"/><name val="맑은 고딕"/><color rgb="FFFFFFFF"/></font>
+  <font><b/><sz val="11"/><name val="맑은 고딕"/><color rgb="FF1E3A5F"/></font>
+  <font><b/><sz val="11"/><name val="맑은 고딕"/></font>
+  <font><sz val="11"/><name val="맑은 고딕"/><color rgb="FF1D4ED8"/></font>
+</fonts>
+<fills count="6">
+  <fill><patternFill patternType="none"/></fill>
+  <fill><patternFill patternType="gray125"/></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FF1E3A5F"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FF2D5986"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFD6E4F0"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFE8F4FD"/></patternFill></fill>
+</fills>
+<borders count="3">
+  <border><left/><right/><top/><bottom/><diagonal/></border>
+  <border>
+    <left style="thin"><color rgb="FFAAAAAA"/></left>
+    <right style="thin"><color rgb="FFAAAAAA"/></right>
+    <top style="thin"><color rgb="FFAAAAAA"/></top>
+    <bottom style="thin"><color rgb="FFAAAAAA"/></bottom>
+    <diagonal/>
+  </border>
+  <border>
+    <left style="medium"><color rgb="FF1E3A5F"/></left>
+    <right style="medium"><color rgb="FF1E3A5F"/></right>
+    <top style="medium"><color rgb="FF1E3A5F"/></top>
+    <bottom style="medium"><color rgb="FF1E3A5F"/></bottom>
+    <diagonal/>
+  </border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="12">
+  <xf numFmtId="0"   fontId="0" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0"   fontId="1" fillId="2" borderId="2" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+  <xf numFmtId="0"   fontId="3" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+  <xf numFmtId="0"   fontId="4" fillId="4" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+  <xf numFmtId="0"   fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>
+  <xf numFmtId="0"   fontId="2" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+  <xf numFmtId="0"   fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+  <xf numFmtId="3"   fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+  <xf numFmtId="3"   fontId="4" fillId="5" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+  <xf numFmtId="0"   fontId="5" fillId="5" borderId="2" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>
+  <xf numFmtId="0"   fontId="4" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+  <xf numFmtId="3"   fontId="4" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+</cellXfs>
+</styleSheet>`;
+
+        const XLSX_CT = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml"  ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml"           ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/styles.xml"             ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+<Override PartName="/xl/sharedStrings.xml"      ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
+SHEET_OVERRIDES
+</Types>`;
+
+        const XLSX_ROOT_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+
+        /* ── 공유 문자열 테이블 ── */
+        class SharedStrings {
+            constructor() { this._map = new Map(); this._list = []; }
+            idx(s) {
+                const k = String(s??'');
+                if (!this._map.has(k)) { this._map.set(k, this._list.length); this._list.push(k); }
+                return this._map.get(k);
+            }
+            xml() {
+                const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${this._list.length}" uniqueCount="${this._list.length}">\n`
+                    + this._list.map(s=>`<si><t xml:space="preserve">${esc(s)}</t></si>`).join('\n')
+                    + '\n</sst>';
+            }
+            get count() { return this._list.length; }
+        }
+
+        /* ── 셀 ref 변환 ── */
+        function xlsxColName(c) {
+            let s=''; c++;
+            while(c>0){ s=String.fromCharCode(64+(c%26||26))+s; c=Math.floor((c-1)/26); }
+            return s;
+        }
+        function xlsxRef(r,c){ return `${xlsxColName(c)}${r+1}`; }
+
+        /* ── worksheet XML 생성 ── */
+        function buildXlsxSheet(rows, ss, merges=[], colWidths=[]) {
+            const cells = [];
+            rows.forEach((row, ri) => {
+                if (!row || !row.length) return;
+                const rowCells = [];
+                row.forEach((cell, ci) => {
+                    if (cell === null || cell === undefined || cell === '') return;
+                    const ref = xlsxRef(ri, ci);
+                    const si  = typeof cell.v === 'number' ? cell.si ?? XSI.DEFAULT : cell.si ?? XSI.DEFAULT;
+                    const val = cell.v ?? cell;
+                    if (typeof val === 'number') {
+                        rowCells.push(`<c r="${ref}" s="${si}" t="n"><v>${val}</v></c>`);
+                    } else {
+                        rowCells.push(`<c r="${ref}" s="${si}" t="s"><v>${ss.idx(String(val))}</v></c>`);
+                    }
+                });
+                if (rowCells.length) {
+                    cells.push(`<row r="${ri+1}" customHeight="1" ht="18">${rowCells.join('')}</row>`);
+                }
+            });
+
+            const mergeSxml = merges.length
+                ? `<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${xlsxRef(m.r1,m.c1)}:${xlsxRef(m.r2,m.c2)}"/>`).join('')}</mergeCells>` : '';
+
+            const colSxml = colWidths.length
+                ? `<cols>${colWidths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : '';
+
+            return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetViews><sheetView workbookViewId="0"><selection activeCell="A1"/></sheetView></sheetViews>
+${colSxml}
+<sheetData>${cells.join('')}</sheetData>
+${mergeSxml}
+<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
+</worksheet>`;
+        }
+
+        /* ── c() 헬퍼: 값 + 스타일 인덱스 객체 생성 ── */
+        const c = (v, si) => ({v, si});
+
+        /* ── 의뢰서 1장 → rows 배열 생성 ── */
+        function buildRequestXlsxRows(d) {
+            const S = XSI;
+            const rows = [];
+
+            // 제목
+            rows.push([c('지 불 의 뢰 서', S.TITLE)]);                 // r0  → 병합 A:F
+            rows.push([]);                                              // r1
+            // 현장 정보
+            rows.push([c('현 장 정 보', S.SEC_HEAD)]);                 // r2  → 병합 A:F
+            rows.push([c('현장명',S.LABEL),'','',c(d.site,S.VALUE),'',''  ]); // r3
+            rows.push([c('청구기간',S.LABEL),'','',c(d.period,S.VALUE),'','' ]); // r4
+            rows.push([]);                                              // r5
+            // 거래처 정보
+            rows.push([c('거 래 처 정 보', S.SEC_HEAD)]);              // r6  → 병합
+            rows.push([c('공종명', S.LABEL),'', c(d.type,S.VALUE),'', c('청구금액',S.LABEL),'']);  // r7
+            rows.push([c('거래처', S.LABEL),'', c(d.vendor,S.VALUE),'', c('대표자',S.LABEL),'' ]); // r8
+            rows.push([c('사업자번호',S.LABEL),'', c(d.biznum,S.VALUE),'','','']);                  // r9
+            rows.push([]);                                              // r10
+            // 계좌 정보
+            rows.push([c('입 금 계 좌 정 보', S.SEC_HEAD)]);           // r11 → 병합
+            rows.push([c('은행', S.LABEL),'', c(d.bank,S.VALUE),'', c('예금주',S.LABEL),'']);      // r12
+            rows.push([c('계좌번호',S.LABEL),'', c(d.account,S.VALUE),'', c('연락처',S.LABEL),'']); // r13
+            rows.push([c(d.holder, S.VALUE),'','','', c(d.phone,S.VALUE),'' ]);                    // r14
+            rows.push([]);                                              // r15
+            // 품목 테이블
+            rows.push([c('청 구 품 목 내 역', S.SEC_HEAD)]);           // r16 → 병합
+            rows.push([
+                c('번호',S.TBL_HEAD), c('품목명 / 비고',S.TBL_HEAD),
+                c('수량',S.TBL_HEAD), c('공급가액',S.TBL_HEAD),
+                c('부가세',S.TBL_HEAD), c('합계금액',S.TBL_HEAD),
+            ]); // r17
+
+            const itemStartR = rows.length;
+            d.items.forEach((it, i) => {
+                const sup = typeof it.supply==='number'?it.supply:parseInt(String(it.supply).replace(/,/g,''))||0;
+                const tax = typeof it.tax==='number'?it.tax:parseInt(String(it.tax).replace(/,/g,''))||0;
+                rows.push([
+                    c(i+1, S.TBL_DATA),
+                    c(it.item||'', S.TBL_DATA),
+                    c(it.qty||'1.0', S.TBL_DATA),
+                    c(sup, S.TBL_NUM),
+                    c(tax, S.TBL_NUM),
+                    c(sup+tax, S.TBL_NUM),
+                ]);
+            });
+
+            // 합계
+            const supplyNum = parseInt(String(d.supply).replace(/,/g,''))||0;
+            const taxNum    = parseInt(String(d.tax).replace(/,/g,''))||0;
+            const totalNum  = supplyNum + taxNum;
+            rows.push([
+                c('합  계',S.TBL_TOTAL), c('',S.TBL_TOTAL),
+                c('',S.TBL_TOTAL),
+                c(supplyNum,S.TBL_TOTAL), c(taxNum,S.TBL_TOTAL), c(totalNum,S.TBL_TOTAL),
+            ]);
+            rows.push([]);
+            // 청구금액
+            rows.push([c('청구금액',S.LABEL),'','',c(d.contract,S.CONTRACT),'','']);
+            if (d.memo) {
+                rows.push([]);
+                rows.push([c('담당자 메모',S.LABEL),'','',c(d.memo,S.VALUE),'','']);
+            }
+
+            // 병합 목록
+            const NR = rows.length;
+            const merges = [
+                {r1:0,  c1:0, r2:0,  c2:5},  // 제목
+                {r1:2,  c1:0, r2:2,  c2:5},  // 현장정보 헤더
+                {r1:3,  c1:0, r2:3,  c2:2},  // 현장명 레이블
+                {r1:3,  c1:3, r2:3,  c2:5},  // 현장명 값
+                {r1:4,  c1:0, r2:4,  c2:2},  // 청구기간 레이블
+                {r1:4,  c1:3, r2:4,  c2:5},  // 청구기간 값
+                {r1:6,  c1:0, r2:6,  c2:5},  // 거래처 헤더
+                {r1:7,  c1:0, r2:7,  c2:1},  // 공종명 레이블
+                {r1:7,  c1:2, r2:7,  c2:3},  // 공종명 값
+                {r1:7,  c1:4, r2:7,  c2:5},  // 청구금액 레이블+값
+                {r1:8,  c1:0, r2:8,  c2:1},
+                {r1:8,  c1:2, r2:8,  c2:3},
+                {r1:8,  c1:4, r2:8,  c2:5},
+                {r1:9,  c1:0, r2:9,  c2:1},
+                {r1:9,  c1:2, r2:9,  c2:5},
+                {r1:11, c1:0, r2:11, c2:5},  // 계좌 헤더
+                {r1:12, c1:0, r2:12, c2:1},
+                {r1:12, c1:2, r2:12, c2:3},
+                {r1:12, c1:4, r2:12, c2:5},
+                {r1:13, c1:0, r2:13, c2:1},
+                {r1:13, c1:2, r2:13, c2:3},
+                {r1:13, c1:4, r2:13, c2:5},
+                {r1:14, c1:0, r2:14, c2:3},
+                {r1:14, c1:4, r2:14, c2:5},
+                {r1:16, c1:0, r2:16, c2:5},  // 품목 헤더
+                // 합계 행 병합
+                {r1:itemStartR+d.items.length, c1:0, r2:itemStartR+d.items.length, c2:2},
+            ];
+            const contractR = itemStartR + d.items.length + 2;
+            merges.push({r1:contractR, c1:0, r2:contractR, c2:2});
+            merges.push({r1:contractR, c1:3, r2:contractR, c2:5});
+
+            return { rows, merges };
+        }
+
+        /* ── 요약 시트 rows ── */
+        function buildSummaryXlsxRows(site, period, summaryData) {
+            const S = XSI;
+            const rows = [
+                [c('지불의뢰서 전체 거래처 요약', S.TITLE),'','','','','',''],
+                [c(`현장: ${site}`,S.LABEL),'',c(`청구기간: ${period}`,S.LABEL),'','','',''],
+                [],
+                [c('거래처',S.SUM_HEAD),c('대표자',S.SUM_HEAD),c('공종',S.SUM_HEAD),
+                 c('공급가액',S.SUM_HEAD),c('부가세',S.SUM_HEAD),c('합계금액',S.SUM_HEAD),c('은행/계좌',S.SUM_HEAD)],
+            ];
+            summaryData.forEach(sd => {
+                rows.push([
+                    c(sd.vendor, S.VALUE), c(sd.ceo||'', S.VALUE), c(sd.type||'', S.VALUE),
+                    c(sd.supply, S.SUM_NUM), c(sd.tax, S.SUM_NUM), c(sd.total, S.SUM_NUM),
+                    c(sd.bankInfo, S.VALUE),
+                ]);
+            });
+            const merges = [
+                {r1:0,c1:0,r2:0,c2:6},
+                {r1:1,c1:0,r2:1,c2:1},
+                {r1:1,c1:2,r2:1,c2:6},
+            ];
+            return { rows, merges };
+        }
+
+        /* ── xlsx 파일 Blob 생성 ── */
+        async function makeXlsxBlob(sheets) {
+            // sheets: [{name, rows, merges, colWidths}]
+            const ss = new SharedStrings();
+
+            const sheetXmls = sheets.map(sh => buildXlsxSheet(sh.rows, ss, sh.merges||[], sh.colWidths||[]));
+            const ssXml = ss.xml();
+
+            const sheetRels = sheets.map((sh,i) => ({
+                id:`rId${i+1}`, name:sh.name, sheetId:`${i+1}`, target:`sheets/sheet${i+1}.xml`
+            }));
+
+            const wbXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets>${sheetRels.map(s=>`<sheet name="${s.name}" sheetId="${s.sheetId}" r:id="${s.id}"/>`).join('')}</sheets>
+</workbook>`;
+
+            const wbRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="${s.target}"/>`).join('\n')}
+<Relationship Id="rIdSS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
+<Relationship Id="rIdSt" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+
+            const ctXml = XLSX_CT.replace('SHEET_OVERRIDES',
+                sheetRels.map(s=>`<Override PartName="/xl/${s.target}" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('\n'));
+
+            const zip = new JSZip();
+            zip.file('[Content_Types].xml', ctXml);
+            zip.file('_rels/.rels', XLSX_ROOT_RELS);
+            zip.file('xl/workbook.xml', wbXml);
+            zip.file('xl/_rels/workbook.xml.rels', wbRelsXml);
+            zip.file('xl/styles.xml', XLSX_STYLES_XML);
+            zip.file('xl/sharedStrings.xml', ssXml);
+            sheetXmls.forEach((xml,i) => zip.file(`xl/sheets/sheet${i+1}.xml`, xml));
+
+            return zip.generateAsync({
+                type:'blob',
+                mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                compression:'DEFLATE', compressionOptions:{level:6}
+            });
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           exportRequestToXLSX — 서식 적용 버전
+        ═══════════════════════════════════════════════════════ */
+        async function exportRequestToXLSX(mode) {
+            if (typeof JSZip === 'undefined') { showToast('JSZip 로딩 중입니다.'); return; }
 
             const currentDoc = savedDocuments.find(d => d.id === currentDocId);
             const docLabel   = currentDoc ? `${currentDoc.company}_${currentDoc.month}` : '지불의뢰서';
             const site       = document.getElementById('req-meta-site')?.value  || '';
             const period     = document.getElementById('req-meta-period')?.value || '';
-
-            const wb = XLSX.utils.book_new();
+            const COL_W      = [6, 18, 8, 14, 14, 14];
 
             if (mode === 'current') {
-                // ── 현재 선택된 거래처 1건 ──
-                const sheetData = buildRequestSheetData({
+                const g = id => document.getElementById(id)?.value||'';
+                const d = {
                     site, period,
-                    type:    document.getElementById('req-field-type')?.value    || '',
-                    vendor:  document.getElementById('req-field-vendor')?.value  || '',
-                    ceo:     document.getElementById('req-field-ceo')?.value     || '',
-                    contract:document.getElementById('req-field-contract')?.value|| '',
-                    supply:  document.getElementById('req-calc-supply')?.value   || '0',
-                    tax:     document.getElementById('req-calc-tax')?.value      || '0',
-                    total:   document.getElementById('req-calc-total')?.value    || '0',
-                    biznum:  document.getElementById('req-vendor-num')?.value    || '',
-                    bank:    document.getElementById('req-vendor-bank')?.value   || '',
-                    account: document.getElementById('req-vendor-account')?.value|| '',
-                    holder:  document.getElementById('req-vendor-holder')?.value || '',
-                    phone:   document.getElementById('req-vendor-phone')?.value  || '',
-                    memo:    document.getElementById('req-manager-memo')?.value  || '',
-                    items:   requestItems,
-                });
-                const ws = buildRequestWorksheet(sheetData);
-                const sheetName = (document.getElementById('req-field-vendor')?.value || '의뢰서').slice(0, 28);
-                XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                XLSX.writeFile(wb, `${docLabel}_지불의뢰서_${sheetName}.xlsx`);
-                showToast(`[${sheetName}] 지불의뢰서 Excel 저장 완료!`);
+                    type:     g('req-field-type'),    contract: g('req-field-contract'),
+                    vendor:   g('req-field-vendor'),  ceo:      g('req-field-ceo'),
+                    biznum:   g('req-vendor-num'),    bank:     g('req-vendor-bank'),
+                    account:  g('req-vendor-account'),holder:   g('req-vendor-holder'),
+                    phone:    g('req-vendor-phone'),
+                    supply:   g('req-calc-supply'),   tax:      g('req-calc-tax'),
+                    memo:     document.getElementById('req-manager-memo')?.value||'',
+                    items:    requestItems,
+                };
+                const { rows, merges } = buildRequestXlsxRows(d);
+                const sheetName = (g('req-field-vendor')||'의뢰서').slice(0,28).replace(/[:\\/?*\[\]]/g,'_');
+                const blob = await makeXlsxBlob([{name:sheetName, rows, merges, colWidths:COL_W}]);
+                downloadBlob(blob, `${docLabel}_지불의뢰서_${sheetName}.xlsx`);
+                showToast(`[${sheetName}] Excel 저장 완료`);
 
             } else {
-                // ── 전체 거래처 일괄: 거래처별 시트 + 요약 시트 ──
-                const summaryRows = [
-                    ['지불의뢰서 전체 거래처 요약', '', '', '', '', '', ''],
-                    [`현장: ${site}`, '', `청구기간: ${period}`, '', '', '', ''],
-                    [],
-                    ['거래처', '대표자', '공종', '공급가액', '부가세', '합계금액', '은행/계좌'],
-                ];
-
-                // dataset 기준으로 거래처별 순회
+                showToast('Excel 전체 생성 중...');
                 const processed = new Set();
-                const sortedRows = [...dataset].filter(r => r.vendor);
+                const xlsxSheets = [];
+                const summaryData = [];
 
-                sortedRows.forEach(row => {
-                    const vendorKey = row.vendor;
-                    if (processed.has(vendorKey)) return;
+                for (const row of [...dataset].filter(r=>r.vendor)) {
+                    const vendorKey = `${row.vendor}||${row.ceo||''}`;
+                    if (processed.has(vendorKey)) continue;
                     processed.add(vendorKey);
 
-                    const vendorRows = dataset.filter(r => r.vendor === vendorKey);
-                    const supplySum  = vendorRows.reduce((s, r) => s + (r.supply||0), 0);
-                    const taxSum     = vendorRows.reduce((s, r) => s + (r.tax   ||0), 0);
-                    const totalSum   = supplySum + taxSum;
+                    const vendorRows = dataset.filter(r=>r.vendor===row.vendor&&(r.ceo||'')===(row.ceo||''));
+                    const supplySum  = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
+                    const taxSum     = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+                    const totalSum   = supplySum+taxSum;
+                    const reqAmt     = totalSum
+                        -vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
+                        -vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
 
-                    // 계좌 정보 조회
-                    const accMatch = accountDb.find(a =>
-                        a.vendor === vendorKey || a.holder === vendorKey || a.ceo === row.ceo
-                    );
+                    const accMatch = accountDb.find(a=>a.vendor===row.vendor&&(a.ceo||'')===(row.ceo||''))
+                                  || accountDb.find(a=>a.vendor===row.vendor);
                     const bank    = accMatch?.bank    || row.bank    || '';
                     const account = accMatch?.account || row.account || '';
                     const holder  = accMatch?.holder  || row.holder  || '';
                     const phone   = accMatch?.phone   || row.phone   || '';
                     const biznum  = accMatch?.biznum  || row.biznum  || '';
 
-                    // 품목 items 구성: vendorItems(저장 프리셋) 우선, 없으면 dataset row 기반
-                    const firstVendorRow = vendorRows[0];
-                    const items = (firstVendorRow.vendorItems && firstVendorRow.vendorItems.length > 0)
-                        ? firstVendorRow.vendorItems
-                        : vendorRows.map(r => ({
-                            item: r.note && r.note.trim() ? r.note.trim() : (r.type || '품목 청구'),
-                            qty:  '1.0',
-                            supply: r.supply || 0,
-                            tax:    r.tax    || 0,
-                        }));
+                    const firstRow = vendorRows[0];
+                    const items = (firstRow.vendorItems && firstRow.vendorItems.length>0)
+                        ? firstRow.vendorItems
+                        : vendorRows.map(r=>({
+                            item: r.note&&r.note.trim()?r.note.trim():(r.type||'품목 청구'),
+                            qty:'1.0', supply:r.supply||0, tax:r.tax||0,
+                          }));
 
-                    const reqAmt = totalSum
-                        - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
-                        - vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
-
-                    // 요약 시트에 행 추가
-                    summaryRows.push([
-                        vendorKey, row.ceo||'', row.type||'',
-                        supplySum, taxSum, totalSum,
-                        `${bank} ${account} (${holder})`
-                    ]);
-
-                    // 개별 시트 생성
-                    const sheetData = buildRequestSheetData({
+                    const d = {
                         site, period,
-                        type:     row.type    || '',
-                        vendor:   vendorKey,
-                        ceo:      row.ceo     || '',
-                        contract: `일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`,
-                        supply:   formatNumber(supplySum),
-                        tax:      formatNumber(taxSum),
-                        total:    formatNumber(totalSum),
-                        biznum, bank: bank ? `${bank}은행` : '', account, holder, phone,
-                        memo: '',
-                        items,
-                    });
-                    const ws = buildRequestWorksheet(sheetData);
-                    const sheetName = vendorKey.slice(0, 28);
-                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                });
+                        type:    row.type||'',
+                        contract:`일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`,
+                        vendor:  row.vendor, ceo: row.ceo||'',
+                        biznum, bank:bank?`${bank}은행`:bank, account, holder, phone,
+                        supply:  supplySum, tax: taxSum,
+                        memo:'', items,
+                    };
+                    const { rows, merges } = buildRequestXlsxRows(d);
+                    const sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
+                                + (row.ceo?`_${row.ceo.slice(0,4)}`:'');
+                    xlsxSheets.push({name:sName, rows, merges, colWidths:COL_W});
+                    summaryData.push({vendor:row.vendor,ceo:row.ceo||'',type:row.type||'',
+                        supply:supplySum,tax:taxSum,total:totalSum,
+                        bankInfo:`${bank} ${account} (${holder})`});
+                }
 
-                // 요약 시트를 맨 앞에 삽입
-                const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
-                wsSummary['!cols'] = [{wch:18},{wch:10},{wch:10},{wch:13},{wch:11},{wch:13},{wch:26}];
-                wsSummary['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:6} }];
-                // 금액 서식
-                const numFmt = '#,##0';
-                summaryRows.forEach((r, ri) => {
-                    if (ri >= 4) {
-                        [3,4,5].forEach(ci => {
-                            const addr = XLSX.utils.encode_cell({r:ri,c:ci});
-                            if (wsSummary[addr]) wsSummary[addr].z = numFmt;
-                        });
-                    }
-                });
-                wb.SheetNames.unshift('전체요약');
-                wb.Sheets['전체요약'] = wsSummary;
+                // 요약 시트 맨 앞
+                const { rows:sRows, merges:sMerges } = buildSummaryXlsxRows(site, period, summaryData);
+                xlsxSheets.unshift({name:'전체요약', rows:sRows, merges:sMerges,
+                    colWidths:[16,10,10,13,11,13,24]});
 
-                const filename = `${docLabel}_지불의뢰서_전체.xlsx`;
-                XLSX.writeFile(wb, filename);
-                showToast(`전체 ${processed.size}개 거래처 지불의뢰서 Excel 저장 완료!`);
+                const blob = await makeXlsxBlob(xlsxSheets);
+                downloadBlob(blob, `${docLabel}_지불의뢰서_전체.xlsx`);
+                showToast(`전체 ${summaryData.length}개 거래처 Excel 저장 완료`);
             }
         }
 
-        /* 의뢰서 데이터 → 2D 배열 (한 시트 분량) */
-        function buildRequestSheetData(d) {
-            const rows = [
-                ['지 불 의 뢰 서', '', '', '', '', ''],
-                [],
-                ['현장명', d.site,        '', '청구기간', d.period, ''],
-                [],
-                ['거 래 처 정 보', '', '', '', '', ''],
-                ['공종명',   d.type,    '', '청구금액', d.contract, ''],
-                ['거래처',   d.vendor,  '', '대표자',   d.ceo,      ''],
-                ['사업자번호', d.biznum, '', '',         '',         ''],
-                [],
-                ['입 금 계 좌 정 보', '', '', '', '', ''],
-                ['은행',     d.bank,    '', '예금주',   d.holder, ''],
-                ['계좌번호', d.account, '', '연락처',   d.phone,  ''],
-                [],
-                ['청 구 품 목 내 역', '', '', '', '', ''],
-                ['번호', '품목명', '수량', '공급가액', '부가세', '합계'],
-            ];
-
-            // 품목 행
-            d.items.forEach((it, i) => {
-                const rowTotal = (it.supply||0) + (it.tax||0);
-                rows.push([i+1, it.item||'', it.qty||'1.0', it.supply||0, it.tax||0, rowTotal]);
-            });
-
-            // 합계 행
-            const supplyNum = parseInt(String(d.supply).replace(/,/g,'')) || 0;
-            const taxNum    = parseInt(String(d.tax   ).replace(/,/g,'')) || 0;
-            const totalNum  = supplyNum + taxNum;
-            rows.push([]);
-            rows.push(['합계', '', '', supplyNum, taxNum, totalNum]);
-            rows.push([]);
-            rows.push(['청구금액', d.contract, '', '', '', '']);
-
-            if (d.memo) {
-                rows.push([]);
-                rows.push(['담당자 메모', d.memo, '', '', '', '']);
-            }
-
-            return rows;
-        }
-
-        /* 2D 배열 → 워크시트 + 스타일 */
-        function buildRequestWorksheet(data) {
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            ws['!cols'] = [{wch:12},{wch:22},{wch:7},{wch:12},{wch:22},{wch:13}];
-            // 제목 병합
-            ws['!merges'] = [
-                { s:{r:0,c:0}, e:{r:0,c:5} },
-            ];
-            // 금액 서식
-            const numFmt = '#,##0';
-            data.forEach((row, ri) => {
-                row.forEach((cell, ci) => {
-                    if (typeof cell === 'number') {
-                        const addr = XLSX.utils.encode_cell({r:ri,c:ci});
-                        if (ws[addr]) ws[addr].z = numFmt;
-                    }
-                });
-            });
-            return ws;
-        }
+        /* buildRequestSheetData / buildRequestWorksheet — 구 함수 (미사용, 호환 유지) */
+        function buildRequestSheetData(d) { return []; }
+        function buildRequestWorksheet(data) { return {}; }
 
         // ── 계좌 일괄 동기화 ──
         function openBulkSyncModal() {
