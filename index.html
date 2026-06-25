@@ -9198,101 +9198,104 @@ ${mergeSxml}
         /* ── 의뢰서 1장 → rows 배열 생성 ── */
         function buildRequestXlsxRows(d) {
             const S = XSI;
+            // 6컬럼 구조: A(레이블1) B(값1-span) C | D(레이블2) E(값2-span) F
+            // 병합: 레이블=A:B, 값=C:D, 레이블2=E, 값2=F  또는 전폭 병합
             const rows = [];
+            const merges = [];
+            let r = 0;
 
-            // 제목
-            rows.push([c('지 불 의 뢰 서', S.TITLE)]);                 // r0  → 병합 A:F
-            rows.push([]);                                              // r1
-            // 현장 정보
-            rows.push([c('현 장 정 보', S.SEC_HEAD)]);                 // r2  → 병합 A:F
-            rows.push([c('현장명',S.LABEL),'','',c(d.site,S.VALUE),'',''  ]); // r3
-            rows.push([c('청구기간',S.LABEL),'','',c(d.period,S.VALUE),'','' ]); // r4
-            rows.push([]);                                              // r5
-            // 거래처 정보
-            rows.push([c('거 래 처 정 보', S.SEC_HEAD)]);              // r6  → 병합
-            rows.push([c('공종명', S.LABEL),'', c(d.type,S.VALUE),'', c('청구금액',S.LABEL),'']);  // r7
-            rows.push([c('거래처', S.LABEL),'', c(d.vendor,S.VALUE),'', c('대표자',S.LABEL),'' ]); // r8
-            rows.push([c('사업자번호',S.LABEL),'', c(d.biznum,S.VALUE),'','','']);                  // r9
-            rows.push([]);                                              // r10
-            // 계좌 정보
-            rows.push([c('입 금 계 좌 정 보', S.SEC_HEAD)]);           // r11 → 병합
-            rows.push([c('은행', S.LABEL),'', c(d.bank,S.VALUE),'', c('예금주',S.LABEL),'']);      // r12
-            rows.push([c('계좌번호',S.LABEL),'', c(d.account,S.VALUE),'', c('연락처',S.LABEL),'']); // r13
-            rows.push([c(d.holder, S.VALUE),'','','', c(d.phone,S.VALUE),'' ]);                    // r14
-            rows.push([]);                                              // r15
-            // 품목 테이블
-            rows.push([c('청 구 품 목 내 역', S.SEC_HEAD)]);           // r16 → 병합
-            rows.push([
+            const addRow = (cells) => { rows.push(cells); return r++; };
+            const addMerge = (r1,c1,r2,c2) => merges.push({r1,c1,r2,c2});
+
+            // ── 제목 (r0) ──
+            addRow([c('지 불 의 뢰 서', S.TITLE),'','','','','']);
+            addMerge(0,0,0,5);
+            addRow([]); // r1 빈줄
+
+            // ── 현장 정보 (r2~r4) ──
+            addRow([c('현 장 정 보', S.SEC_HEAD),'','','','','']);
+            addMerge(2,0,2,5);
+            addRow([c('현장명',S.LABEL),'',c(d.site||'',S.VALUE),'','','']);
+            addMerge(3,0,3,1); addMerge(3,2,3,5);
+            addRow([c('청구기간',S.LABEL),'',c(d.period||'',S.VALUE),'','','']);
+            addMerge(4,0,4,1); addMerge(4,2,4,5);
+            addRow([]); // r5
+
+            // ── 거래처 정보 (r6~r10) ──
+            addRow([c('거 래 처 정 보', S.SEC_HEAD),'','','','','']);
+            addMerge(6,0,6,5);
+            //  공종명(A:B) | 값(C:D) | 청구금액레이블(E) | 값(F)
+            addRow([c('공종명',S.LABEL),'',c(d.type||'',S.VALUE),'',c('청구금액',S.LABEL),c(d.contract||'',S.CONTRACT)]);
+            addMerge(7,0,7,1); addMerge(7,2,7,3);
+            //  거래처(A:B) | 값(C:D) | 대표자(E) | 값(F)
+            addRow([c('거래처',S.LABEL),'',c(d.vendor||'',S.VALUE),'',c('대표자',S.LABEL),c(d.ceo||'',S.VALUE)]);
+            addMerge(8,0,8,1); addMerge(8,2,8,3);
+            //  사업자번호(A:B) | 값(C:F)
+            addRow([c('사업자번호',S.LABEL),'',c(d.biznum||'',S.VALUE),'','','']);
+            addMerge(9,0,9,1); addMerge(9,2,9,5);
+            addRow([]); // r10
+
+            // ── 계좌 정보 (r11~r14) ──
+            addRow([c('입 금 계 좌 정 보', S.SEC_HEAD),'','','','','']);
+            addMerge(11,0,11,5);
+            //  은행(A:B) | 값(C:D) | 예금주(E) | 값(F)
+            addRow([c('은행',S.LABEL),'',c(d.bank||'',S.VALUE),'',c('예금주',S.LABEL),c(d.holder||'',S.VALUE)]);
+            addMerge(12,0,12,1); addMerge(12,2,12,3);
+            //  계좌번호(A:B) | 값(C:D) | 연락처(E) | 값(F)
+            addRow([c('계좌번호',S.LABEL),'',c(d.account||'',S.VALUE),'',c('연락처',S.LABEL),c(d.phone||'',S.VALUE)]);
+            addMerge(13,0,13,1); addMerge(13,2,13,3);
+            addRow([]); // r14
+
+            // ── 첨부 서류 (r15~r16) ──
+            const CHK_LABELS = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const checklist  = d.checklist || CHK_LABELS.map(l=>({label:l,checked:false}));
+            const chkStr = checklist.map(ck=>`${ck.checked?'☑':'☐'} ${ck.label}`).join('  ');
+            addRow([c('구 비 서 류', S.SEC_HEAD),'','','','','']);
+            addMerge(15,0,15,5);
+            addRow([c(chkStr, S.VALUE),'','','','','']);
+            addMerge(16,0,16,5);
+            addRow([]); // r17
+
+            // ── 품목 테이블 (r18~) ──
+            addRow([c('청 구 품 목 내 역', S.SEC_HEAD),'','','','','']);
+            addMerge(18,0,18,5);
+            addRow([
                 c('번호',S.TBL_HEAD), c('품목명 / 비고',S.TBL_HEAD),
                 c('수량',S.TBL_HEAD), c('공급가액',S.TBL_HEAD),
                 c('부가세',S.TBL_HEAD), c('합계금액',S.TBL_HEAD),
-            ]); // r17
+            ]);
 
             const itemStartR = rows.length;
             d.items.forEach((it, i) => {
                 const sup = typeof it.supply==='number'?it.supply:parseInt(String(it.supply).replace(/,/g,''))||0;
                 const tax = typeof it.tax==='number'?it.tax:parseInt(String(it.tax).replace(/,/g,''))||0;
-                rows.push([
-                    c(i+1, S.TBL_DATA),
-                    c(it.item||'', S.TBL_DATA),
-                    c(it.qty||'1.0', S.TBL_DATA),
-                    c(sup, S.TBL_NUM),
-                    c(tax, S.TBL_NUM),
-                    c(sup+tax, S.TBL_NUM),
+                addRow([
+                    c(i+1, S.TBL_DATA), c(it.item||'', S.TBL_DATA), c(it.qty||'1.0', S.TBL_DATA),
+                    c(sup, S.TBL_NUM),  c(tax, S.TBL_NUM),           c(sup+tax, S.TBL_NUM),
                 ]);
             });
 
-            // 합계
-            const supplyNum = parseInt(String(d.supply).replace(/,/g,''))||0;
-            const taxNum    = parseInt(String(d.tax).replace(/,/g,''))||0;
+            // 합계 행
+            const supplyNum = typeof d.supply==='number'?d.supply:parseInt(String(d.supply).replace(/,/g,''))||0;
+            const taxNum    = typeof d.tax==='number'?d.tax:parseInt(String(d.tax).replace(/,/g,''))||0;
             const totalNum  = supplyNum + taxNum;
-            rows.push([
-                c('합  계',S.TBL_TOTAL), c('',S.TBL_TOTAL),
-                c('',S.TBL_TOTAL),
-                c(supplyNum,S.TBL_TOTAL), c(taxNum,S.TBL_TOTAL), c(totalNum,S.TBL_TOTAL),
-            ]);
-            rows.push([]);
-            // 청구금액
-            rows.push([c('청구금액',S.LABEL),'','',c(d.contract,S.CONTRACT),'','']);
-            if (d.memo) {
-                rows.push([]);
-                rows.push([c('담당자 메모',S.LABEL),'','',c(d.memo,S.VALUE),'','']);
-            }
+            const totR = rows.length;
+            addRow([c('합  계',S.TBL_TOTAL),'','',c(supplyNum,S.TBL_TOTAL),c(taxNum,S.TBL_TOTAL),c(totalNum,S.TBL_TOTAL)]);
+            addMerge(totR,0,totR,2);
+            addRow([]);
 
-            // 병합 목록
-            const NR = rows.length;
-            const merges = [
-                {r1:0,  c1:0, r2:0,  c2:5},  // 제목
-                {r1:2,  c1:0, r2:2,  c2:5},  // 현장정보 헤더
-                {r1:3,  c1:0, r2:3,  c2:2},  // 현장명 레이블
-                {r1:3,  c1:3, r2:3,  c2:5},  // 현장명 값
-                {r1:4,  c1:0, r2:4,  c2:2},  // 청구기간 레이블
-                {r1:4,  c1:3, r2:4,  c2:5},  // 청구기간 값
-                {r1:6,  c1:0, r2:6,  c2:5},  // 거래처 헤더
-                {r1:7,  c1:0, r2:7,  c2:1},  // 공종명 레이블
-                {r1:7,  c1:2, r2:7,  c2:3},  // 공종명 값
-                {r1:7,  c1:4, r2:7,  c2:5},  // 청구금액 레이블+값
-                {r1:8,  c1:0, r2:8,  c2:1},
-                {r1:8,  c1:2, r2:8,  c2:3},
-                {r1:8,  c1:4, r2:8,  c2:5},
-                {r1:9,  c1:0, r2:9,  c2:1},
-                {r1:9,  c1:2, r2:9,  c2:5},
-                {r1:11, c1:0, r2:11, c2:5},  // 계좌 헤더
-                {r1:12, c1:0, r2:12, c2:1},
-                {r1:12, c1:2, r2:12, c2:3},
-                {r1:12, c1:4, r2:12, c2:5},
-                {r1:13, c1:0, r2:13, c2:1},
-                {r1:13, c1:2, r2:13, c2:3},
-                {r1:13, c1:4, r2:13, c2:5},
-                {r1:14, c1:0, r2:14, c2:3},
-                {r1:14, c1:4, r2:14, c2:5},
-                {r1:16, c1:0, r2:16, c2:5},  // 품목 헤더
-                // 합계 행 병합
-                {r1:itemStartR+d.items.length, c1:0, r2:itemStartR+d.items.length, c2:2},
-            ];
-            const contractR = itemStartR + d.items.length + 2;
-            merges.push({r1:contractR, c1:0, r2:contractR, c2:2});
-            merges.push({r1:contractR, c1:3, r2:contractR, c2:5});
+            // 청구금액 강조행
+            const conR = rows.length;
+            addRow([c('청 구 금 액',S.LABEL),'',c(d.contract||'',S.CONTRACT),'','','']);
+            addMerge(conR,0,conR,1); addMerge(conR,2,conR,5);
+
+            // 메모
+            if (d.memo) {
+                addRow([]);
+                const memoR = rows.length;
+                addRow([c('담당자 메모',S.LABEL),'',c(d.memo,S.VALUE),'','','']);
+                addMerge(memoR,0,memoR,1); addMerge(memoR,2,memoR,5);
+            }
 
             return { rows, merges };
         }
@@ -9380,6 +9383,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             if (mode === 'current') {
                 const g = id => document.getElementById(id)?.value||'';
+                const chkIds    = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+                const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
                 const d = {
                     site, period,
                     type:     g('req-field-type'),    contract: g('req-field-contract'),
@@ -9389,6 +9394,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     phone:    g('req-vendor-phone'),
                     supply:   g('req-calc-supply'),   tax:      g('req-calc-tax'),
                     memo:     document.getElementById('req-manager-memo')?.value||'',
+                    checklist: chkIds.map((id,i)=>({label:chkLabels[i],checked:!!(document.getElementById(id)||{}).checked})),
                     items:    requestItems,
                 };
                 const { rows, merges } = buildRequestXlsxRows(d);
