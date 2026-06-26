@@ -1761,6 +1761,12 @@
                         <button onclick="addSpecialItemRow()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 행 추가
                         </button>
+                        <button onclick="openPrevMonthImportModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all" title="전월 동일 운전원 불러오기">
+                            <i data-lucide="history" class="w-3.5 h-3.5"></i> 전월 불러오기
+                        </button>
+                        <button onclick="openDriverDbModal()" class="bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all" title="운전원 DB 관리">
+                            <i data-lucide="users" class="w-3.5 h-3.5"></i> 운전원 DB
+                        </button>
                         <button onclick="printSpecialSection()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> 특고 대장 인쇄
                         </button>
@@ -1806,6 +1812,7 @@
                                 <th class="py-2 px-2 border border-amber-700 w-8">No.</th>
                                 <th class="py-2 px-2 border border-amber-700">운전원명</th>
                                 <th class="py-2 px-2 border border-amber-700 w-36">주민등록번호</th>
+                                <th class="py-2 px-2 border border-amber-700 w-16">생년월일·나이</th>
                                 <th class="py-2 px-2 border border-amber-700 w-14">가동<br>일수</th>
                                 <th class="py-2 px-2 border border-amber-700">장비대금<br>(공급가액)</th>
                                 <th class="py-2 px-2 border border-amber-700">보수총액<br>(고용보험 기준)</th>
@@ -1813,14 +1820,14 @@
                                 <th class="py-2 px-2 border border-amber-700">산재<br>보험료</th>
                                 <th class="py-2 px-2 border border-amber-700">기타<br>공제</th>
                                 <th class="py-2 px-2 border border-amber-700">실지급액</th>
-                                <th class="py-2 px-2 border border-amber-700 no-print w-14">관리</th>
+                                <th class="py-2 px-2 border border-amber-700 no-print w-16">관리</th>
                             </tr>
                         </thead>
                         <tbody id="req-special-tbody" class="divide-y divide-amber-200 dark:divide-amber-900 bg-white dark:bg-slate-900">
                         </tbody>
                         <tfoot>
                             <tr class="bg-amber-50 dark:bg-amber-950/30 font-extrabold border-t-2 border-amber-600">
-                                <td colspan="4" class="py-2 px-3 text-left border border-amber-300 dark:border-amber-800 text-slate-800 dark:text-slate-200">합 계</td>
+                                <td colspan="5" class="py-2 px-3 text-left border border-amber-300 dark:border-amber-800 text-slate-800 dark:text-slate-200">합 계</td>
                                 <td id="req-special-total-supply" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
                                 <td id="req-special-total-remun" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
                                 <td id="req-special-total-empinsur" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
@@ -6508,13 +6515,23 @@
 
                 const tr = document.createElement('tr');
                 tr.className = "divide-x divide-amber-200 dark:divide-amber-800 hover:bg-amber-50/30 dark:hover:bg-amber-950/10 transition-all";
+
+                // 주민번호 → 생년월일·나이 파싱
+                const rrnInfo = parseRrnInfo(item.empRrn || '');
+                const ageBadge = rrnInfo.age !== null
+                    ? `<span class="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${rrnInfo.age >= 60 ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700'}">${rrnInfo.birth} · ${rrnInfo.age}세</span>`
+                    : `<span class="inline-block text-[9px] text-slate-400 mt-0.5">—</span>`;
+
                 tr.innerHTML = `
                     <td class="py-2 px-2 text-center border border-amber-200 dark:border-amber-800 text-slate-500 dark:text-slate-400 font-bold text-[10px]">${index + 1}</td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
                         <input type="text" value="${item.empName || ''}" placeholder="운전원명" onchange="updateSpecialItem(${index}, 'empName', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-800 dark:text-slate-100 outline-none text-[10px] min-w-[60px]">
                     </td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
-                        <input type="text" value="${item.empRrn || ''}" placeholder="000000-0000000" oninput="formatSpecialRrn(this)" maxlength="14" onchange="updateSpecialItem(${index}, 'empRrn', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 outline-none text-[10px] min-w-[90px]">
+                        <input type="text" value="${item.empRrn || ''}" placeholder="000000-0000000" oninput="formatSpecialRrn(this); refreshRrnCell(this, ${index})" maxlength="14" onchange="updateSpecialItem(${index}, 'empRrn', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 outline-none text-[10px] min-w-[90px]">
+                    </td>
+                    <td class="py-1 px-1 border border-amber-200 dark:border-amber-800 text-center" id="rrn-info-${index}">
+                        ${ageBadge}
                     </td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
                         <input type="number" value="${item.workDays || ''}" placeholder="0" onchange="updateSpecialItem(${index}, 'workDays', Number(this.value)||0)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-700 dark:text-slate-200 outline-none text-[10px]">
@@ -6539,7 +6556,9 @@
                     </td>
                     <td class="py-1.5 px-1 no-print text-center border border-amber-200 dark:border-amber-800">
                         <div class="flex flex-col gap-1">
-                            <button onclick="calcSpecialInsurAutoByIndex(${index})" class="bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold" title="보험료 자동계산">자동</button>
+                            <button onclick="calcSpecialInsurAutoByIndex(${index})" class="bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold" title="보험료 자동계산(고용0.9%·산재1.8%)">보험 자동</button>
+                            <button onclick="calcRemunByDays(${index})" class="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-[9px] px-1.5 py-0.5 rounded font-bold" title="가동일수×단가로 보수총액 역산">일수 역산</button>
+                            <button onclick="saveDriverToDb(${index})" class="bg-teal-50 hover:bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800 text-[9px] px-1.5 py-0.5 rounded font-bold" title="운전원 DB에 저장">DB저장</button>
                             <button onclick="deleteSpecialItemRow(${index})" class="text-rose-500 hover:text-rose-700 font-bold text-[9px]">삭제</button>
                         </div>
                     </td>
@@ -6615,6 +6634,194 @@
 
             saveToLocalStorage();
             renderStatementTable();
+        }
+
+        /* ═══════════════════════════════════════════════════
+           탭4 특고 편의 기능
+        ═══════════════════════════════════════════════════ */
+
+        /* ── 1. 주민번호 → 생년월일·나이 파싱 ── */
+        function parseRrnInfo(rrn) {
+            const clean = rrn.replace(/[^0-9]/g, '');
+            if (clean.length < 7) return { birth: '—', age: null };
+            const yy = clean.slice(0, 2);
+            const mm = clean.slice(2, 4);
+            const dd = clean.slice(4, 6);
+            const gender = parseInt(clean[6]);
+            let yyyy;
+            if (gender === 1 || gender === 2 || gender === 5 || gender === 6) yyyy = '19' + yy;
+            else if (gender === 3 || gender === 4 || gender === 7 || gender === 8) yyyy = '20' + yy;
+            else yyyy = '19' + yy;
+            const today = new Date();
+            const birthDate = new Date(`${yyyy}-${mm}-${dd}`);
+            if (isNaN(birthDate)) return { birth: '—', age: null };
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const mDiff = today.getMonth() - birthDate.getMonth();
+            if (mDiff < 0 || (mDiff === 0 && today.getDate() < birthDate.getDate())) age--;
+            return { birth: `${yyyy.slice(2)}.${mm}.${dd}`, age };
+        }
+
+        /* ── 2. 주민번호 입력 시 해당 셀 나이 실시간 갱신 ── */
+        function refreshRrnCell(input, index) {
+            const cell = document.getElementById('rrn-info-' + index);
+            if (!cell) return;
+            const info = parseRrnInfo(input.value);
+            if (info.age !== null) {
+                cell.innerHTML = `<span class="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${info.age >= 60 ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700'}">${info.birth} · ${info.age}세</span>`;
+            } else {
+                cell.innerHTML = `<span class="inline-block text-[9px] text-slate-400">—</span>`;
+            }
+        }
+
+        /* ── 3. 가동일수 × 일당 → 보수총액 역산 ── */
+        function calcRemunByDays(index) {
+            const item = requestSpecialItems[index];
+            if (!item) return;
+            const days = item.workDays || 0;
+            if (!days) { showToast('가동일수를 먼저 입력하세요.'); return; }
+            // 역산 단가 입력 모달
+            const rate = prompt(`[${item.empName || (index+1)+'번'}] 일당 단가를 입력하세요 (원)\n가동일수: ${days}일`, item._dayRate || '');
+            if (rate === null) return;
+            const rateNum = parseInt(rate.replace(/[^0-9]/g, ''), 10);
+            if (!rateNum) { showToast('유효한 단가를 입력하세요.'); return; }
+            item._dayRate = rateNum;
+            item.supply = rateNum * days;
+            item.remun  = item.supply;
+            renderRequestSpecialTable();
+            syncSpecialItemToDataset(index);
+            showToast(`[${item.empName || (index+1)+'번'}] 보수총액 = ${rateNum.toLocaleString()}원 × ${days}일 = ${item.supply.toLocaleString()}원`);
+        }
+
+        /* ── 4. 운전원 DB (localStorage) ── */
+        const DRIVER_DB_KEY = 'driver_db_v1';
+        function loadDriverDb() {
+            try { return JSON.parse(localStorage.getItem(DRIVER_DB_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function saveDriverDb(list) {
+            localStorage.setItem(DRIVER_DB_KEY, JSON.stringify(list));
+        }
+
+        /* 현재 행 → DB 저장 */
+        function saveDriverToDb(index) {
+            const item = requestSpecialItems[index];
+            if (!item) return;
+            if (!item.empName) { showToast('운전원명을 먼저 입력하세요.'); return; }
+            const list = loadDriverDb();
+            const cleanRrn = (item.empRrn || '').replace(/[^0-9]/g, '');
+            const dup = cleanRrn ? list.findIndex(d => d.empRrn.replace(/[^0-9]/g,'') === cleanRrn) : -1;
+            const entry = { empName: item.empName, empRrn: item.empRrn || '', _dayRate: item._dayRate || 0, savedAt: new Date().toLocaleDateString('ko-KR') };
+            if (dup >= 0) { list[dup] = { ...list[dup], ...entry }; showToast(`[${item.empName}] DB 정보 업데이트 완료`); }
+            else { list.push(entry); showToast(`[${item.empName}] 운전원 DB 등록 완료`); }
+            saveDriverDb(list);
+        }
+
+        /* ── 5. 운전원 DB 모달 ── */
+        function openDriverDbModal() {
+            renderDriverDbList();
+            document.getElementById('driver-db-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeDriverDbModal() {
+            document.getElementById('driver-db-modal').classList.add('hidden');
+        }
+        function renderDriverDbList() {
+            const list = loadDriverDb();
+            const el = document.getElementById('driver-db-list');
+            if (!list.length) {
+                el.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">저장된 운전원이 없습니다.<br>테이블에서 「DB저장」 버튼을 누르면 등록됩니다.</p>';
+                return;
+            }
+            el.innerHTML = list.map((d, i) => {
+                const info = parseRrnInfo(d.empRrn || '');
+                const ageTxt = info.age !== null ? `${info.birth} · ${info.age}세` : '생년월일 없음';
+                return `<div class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-600 transition-all">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs">${d.empName}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">${ageTxt}${d._dayRate ? ' · 일당 ' + d._dayRate.toLocaleString() + '원' : ''}</p>
+                        <p class="text-[9px] text-slate-300 dark:text-slate-600">${d.empRrn || '주민번호 없음'}</p>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="addDriverFromDb(${i})" class="bg-teal-500 hover:bg-teal-600 text-white text-[9px] px-2 py-1 rounded font-bold">추가</button>
+                        <button onclick="deleteDriverFromDb(${i})" class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-600 text-[9px] px-2 py-1 rounded font-bold">삭제</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function addDriverFromDb(dbIndex) {
+            const list = loadDriverDb();
+            const d = list[dbIndex];
+            if (!d) return;
+            // 중복 주민번호 체크
+            const cleanRrn = (d.empRrn || '').replace(/[^0-9]/g, '');
+            if (cleanRrn && requestSpecialItems.some(it => (it.empRrn || '').replace(/[^0-9]/g,'') === cleanRrn)) {
+                showToast(`[${d.empName}] 이미 추가된 운전원입니다. (주민번호 중복)`);
+                return;
+            }
+            requestSpecialItems.push({ datasetId: null, empName: d.empName, empRrn: d.empRrn || '', workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0, _dayRate: d._dayRate || 0 });
+            renderRequestSpecialTable();
+            showToast(`[${d.empName}] 운전원 추가 완료`);
+        }
+        function deleteDriverFromDb(dbIndex) {
+            const list = loadDriverDb();
+            const name = list[dbIndex]?.empName || '';
+            list.splice(dbIndex, 1);
+            saveDriverDb(list);
+            renderDriverDbList();
+            showToast(`[${name}] DB에서 삭제했습니다.`);
+        }
+
+        /* ── 6. 전월 불러오기 모달 ── */
+        function openPrevMonthImportModal() {
+            // 전체 저장 대장에서 특고 데이터가 있는 문서 목록 구성
+            const candidates = [];
+            savedDocuments.forEach(doc => {
+                if (doc.id === currentDocId) return;
+                (doc.dataset || []).forEach(row => {
+                    if (row.empName && row.empRrn) {
+                        const found = candidates.find(c => c.docId === doc.id);
+                        if (found) { found.count++; }
+                        else candidates.push({ docId: doc.id, label: `[${doc.month}] ${doc.site} (${doc.company})`, count: 1, doc });
+                    }
+                });
+            });
+            const el = document.getElementById('prev-month-list');
+            if (!candidates.length) {
+                el.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">불러올 수 있는 전월 특고 데이터가 없습니다.<br>다른 대장에 운전원(주민번호) 데이터가 있어야 합니다.</p>';
+            } else {
+                el.innerHTML = candidates.map(c =>
+                    `<label class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-600 cursor-pointer transition-all">
+                        <input type="checkbox" class="prev-month-chk w-3.5 h-3.5 accent-indigo-500 shrink-0" data-docid="${c.docId}">
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100 text-xs">${c.label}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">특고 운전원 ${c.count}명</p>
+                        </div>
+                    </label>`
+                ).join('');
+            }
+            document.getElementById('prev-month-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closePrevMonthModal() {
+            document.getElementById('prev-month-modal').classList.add('hidden');
+        }
+        function importFromPrevMonth() {
+            const checked = [...document.querySelectorAll('.prev-month-chk:checked')].map(el => el.dataset.docid);
+            if (!checked.length) { showToast('불러올 대장을 선택하세요.'); return; }
+            let added = 0, skipped = 0;
+            checked.forEach(docId => {
+                const doc = savedDocuments.find(d => d.id === docId);
+                if (!doc) return;
+                (doc.dataset || []).forEach(row => {
+                    if (!row.empName || !row.empRrn) return;
+                    const cleanRrn = row.empRrn.replace(/[^0-9]/g,'');
+                    if (cleanRrn && requestSpecialItems.some(it => (it.empRrn||'').replace(/[^0-9]/g,'') === cleanRrn)) { skipped++; return; }
+                    requestSpecialItems.push({ datasetId: null, empName: row.empName, empRrn: row.empRrn || '', workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0, _dayRate: row._dayRate || 0 });
+                    added++;
+                });
+            });
+            renderRequestSpecialTable();
+            closePrevMonthModal();
+            showToast(`전월 운전원 ${added}명 추가 완료${skipped ? ` (중복 ${skipped}명 제외)` : ''}`);
         }
 
         function addSpecialItemRow() {
@@ -11079,5 +11286,49 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         // ===== 끝: 건설기계임대차 표준계약서 =====
     </script>
+
+        <!-- ══ 운전원 DB 모달 ══ -->
+        <div id="driver-db-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);">
+            <div class="modal-card w-full max-w-md max-h-[80vh] flex flex-col">
+                <div class="modal-header flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="p-1.5 bg-teal-600 rounded-lg"><i data-lucide="users" class="w-4 h-4 text-white"></i></div>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">운전원 DB 관리</h3>
+                    </div>
+                    <button onclick="closeDriverDbModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-4 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    테이블에서 「DB저장」을 누르면 자동 등록됩니다. 「추가」를 누르면 현재 특고 대장에 즉시 삽입됩니다.
+                </div>
+                <div id="driver-db-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+                <div class="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                    <button onclick="closeDriverDbModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded-lg text-xs font-bold transition-all">닫기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ 전월 불러오기 모달 ══ -->
+        <div id="prev-month-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);">
+            <div class="modal-card w-full max-w-md max-h-[80vh] flex flex-col">
+                <div class="modal-header flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="p-1.5 bg-indigo-600 rounded-lg"><i data-lucide="history" class="w-4 h-4 text-white"></i></div>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">전월 운전원 불러오기</h3>
+                    </div>
+                    <button onclick="closePrevMonthModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-4 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    불러올 대장을 선택하세요. 주민번호 기준 중복 운전원은 자동 제외됩니다. 가동일수·금액은 0으로 초기화됩니다.
+                </div>
+                <div id="prev-month-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+                <div class="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+                    <button onclick="closePrevMonthModal()" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded-lg text-xs font-bold">취소</button>
+                    <button onclick="importFromPrevMonth()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> 선택 불러오기
+                    </button>
+                </div>
+            </div>
+        </div>
+
 </body>
 </html>
