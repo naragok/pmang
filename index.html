@@ -884,7 +884,7 @@
 
         /* ── 지불의뢰서 A4 헤더 메타 ── */
         .req-header-section h2,
-        .req-header-section h2 * { font-size: var(--req-title-size, 28px); }
+        .req-header-section h2 * { font-size: 28px; }
         .req-meta-grid { display:flex; flex-direction:column; gap:3px; }
         .req-meta-row  { display:flex; align-items:center; }
         .req-meta-label {
@@ -908,7 +908,7 @@
             .req-meta-label { color:#334155 !important; }
             .req-meta-input { color:#0f172a !important; border-bottom:1px solid #475569 !important; }
             .req-header-section h2,
-            .req-header-section h2 * { font-size: var(--req-title-size, 28px) !important; }
+            .req-header-section h2 * { font-size: 28px !important; }
         }
 
         /* ── 반응형 헤더 압축 ── */
@@ -1576,7 +1576,7 @@
                 
                 <!-- 지불의뢰서 실물 A4 portrait 양식 -->
                 <div class="lg:col-span-3">
-                    <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 10px; --req-title-size: 28px;">
+                    <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 10px;">
                         
                         <!-- 상단 타이틀 -->
                         <div class="req-header-section border-b-2 border-slate-800 dark:border-slate-400 pb-3 mb-4">
@@ -1782,14 +1782,7 @@
                                 <option value="12px">12px</option>
                             </select>
                         </label>
-                        <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
-                            <span>제목크기</span>
-                            <div class="flex items-center gap-1">
-                                <button onclick="changeReqTitleSize(-1)" class="w-5 h-5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center justify-center leading-none">−</button>
-                                <span id="req-title-size-label" class="font-bold text-blue-400 w-6 text-center">28</span>
-                                <button onclick="changeReqTitleSize(1)" class="w-5 h-5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center justify-center leading-none">+</button>
-                            </div>
-                        </label>
+
                         <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
                             <span>A4 가이드</span>
                             <input type="checkbox" id="a4-guide-toggle" onchange="toggleA4Guide(this.checked)" class="w-3.5 h-3.5 rounded cursor-pointer" style="accent-color:#3b82f6;">
@@ -5942,14 +5935,6 @@
             openAddRowModal();
         }
 
-        let _reqTitleSize = 28;
-        function changeReqTitleSize(delta) {
-            _reqTitleSize = Math.min(40, Math.max(11, _reqTitleSize + delta));
-            const box = document.getElementById('portrait-print-box');
-            if (box) box.style.setProperty('--req-title-size', _reqTitleSize + 'px');
-            const label = document.getElementById('req-title-size-label');
-            if (label) label.textContent = _reqTitleSize;
-        }
 
         function changePrintScale(value) {
             const percent = Math.round(value * 100);
@@ -5971,27 +5956,6 @@
                 printBox.dataset.savedTransform = printBox.style.transform || '';
                 printBox.style.transform = 'none';
                 printBox.style.transformOrigin = '';
-                // 제목 크기 CSS 변수를 인라인으로 명시 — 일부 브라우저 인쇄 시 변수 손실 방지
-                const titleSize = _reqTitleSize || 17;
-                printBox.style.setProperty('--req-title-size', titleSize + 'px');
-                const h2 = printBox.querySelector('.req-header-section h2');
-                if (h2) {
-                    h2.style.setProperty('font-size', titleSize + 'px', 'important');
-                    h2.querySelectorAll('*').forEach(el => el.style.setProperty('font-size', titleSize + 'px', 'important'));
-                }
-            }
-        });
-        window.addEventListener('afterprint', function() {
-            const printBox = document.getElementById('portrait-print-box');
-            if (printBox && printBox.dataset.savedTransform !== undefined) {
-                printBox.style.transform = printBox.dataset.savedTransform;
-                printBox.style.transformOrigin = 'center center';
-                // 인라인 강제 스타일 복구 (화면 표시는 CSS 변수로 복원)
-                const h2 = printBox.querySelector('.req-header-section h2');
-                if (h2) {
-                    h2.style.removeProperty('font-size');
-                    h2.querySelectorAll('*').forEach(el => el.style.removeProperty('font-size'));
-                }
             }
         });
 
@@ -8395,11 +8359,285 @@
         }
 
         /* ============================================================
-           건설기계 임대차계약서 (V15) — 구형 ct-* 함수 제거됨 (std-* 체계로 통합)
+           건설기계 임대차계약서 (V15)
         ============================================================ */
         const CONTRACT_STORE_KEY = 'cons_contracts_v15';
+        let currentContractId = null;
+        let contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
 
+        function getContracts() {
+            try { return JSON.parse(localStorage.getItem(CONTRACT_STORE_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function setContracts(arr) { localStorage.setItem(CONTRACT_STORE_KEY, JSON.stringify(arr)); }
 
+        /* 셀렉터 갱신 */
+        function refreshContractSelector() {
+            const sel  = document.getElementById('contract-list-selector');
+            if (!sel) return;
+            const list = getContracts();
+            sel.innerHTML = list.length
+                ? list.map(c => `<option value="${c.id}" ${c.id===currentContractId?'selected':''}>${c.title||'무제'} (${c.date||'날짜 없음'})</option>`).join('')
+                : '<option value="">저장된 계약서 없음</option>';
+        }
+
+        /* 폼 → 객체 */
+        function readContractForm() {
+            const gv = (id, fallback='') => { const el=document.getElementById(id); return el ? (el.value||fallback) : fallback; };
+            const gvt = (id) => gv(id,'').trim();
+            return {
+                id:               currentContractId || ('ct-' + Date.now()),
+                title:            gvt('ct-site') || '무제',
+                date:             gv('ct-date'),
+                number:           gvt('ct-number'),
+                site:             gvt('ct-site'),
+                workSite:         gvt('ct-work-site'),
+                periodFrom:       gv('ct-period-from'),
+                periodTo:         gv('ct-period-to'),
+                workStart:        gvt('ct-work-start'),
+                workEnd:          gvt('ct-work-end'),
+                unitPrice:        gv('ct-unit-price','0').replace(/,/g,''),
+                unitType:         gv('ct-unit-type','시간'),
+                qty:              gv('ct-qty','0'),
+                standby:          gvt('ct-standby'),
+                supply:           gv('ct-supply','0').replace(/,/g,''),
+                vat:              gv('ct-vat','0').replace(/,/g,''),
+                paymentTerms:     gvt('ct-payment-terms'),
+                fuel:             gv('ct-fuel','임대인 부담'),
+                insurance:        gv('ct-insurance','임대인 부담'),
+                special:          gvt('ct-special'),
+                lessorCompany:    gvt('ct-lessor-company'),
+                lessorBiznum:     gvt('ct-lessor-biznum'),
+                lessorCeo:        gvt('ct-lessor-ceo'),
+                lessorPhone:      gvt('ct-lessor-phone'),
+                lessorAddr:       gvt('ct-lessor-addr'),
+                lessorBank:       gvt('ct-lessor-bank'),
+                lessorAccount:    gvt('ct-lessor-account'),
+                lessorDriver:     gvt('ct-lessor-driver'),
+                lessorDriverPhone:gvt('ct-lessor-driver-phone'),
+                lesseeCompany:    gvt('ct-lessee-company'),
+                lesseeBiznum:     gvt('ct-lessee-biznum'),
+                lesseeCeo:        gvt('ct-lessee-ceo'),
+                lesseePhone:      gvt('ct-lessee-phone'),
+                lesseeAddr:       gvt('ct-lessee-addr'),
+                lesseeManager:    gvt('ct-lessee-manager'),
+                lesseeManagerPhone:gvt('ct-lessee-manager-phone'),
+                machines: JSON.parse(JSON.stringify(contractMachines)),
+                savedAt: new Date().toLocaleString('ko-KR'),
+            };
+        }
+
+        /* 객체 → 폼 */
+        function writeContractForm(c) {
+            const set = (id, v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+            set('ct-site', c.site); set('ct-date', c.date); set('ct-number', c.number);
+            set('ct-work-site', c.workSite);
+            set('ct-period-from', c.periodFrom); set('ct-period-to', c.periodTo);
+            set('ct-work-start', c.workStart); set('ct-work-end', c.workEnd);
+            set('ct-unit-price', Number(c.unitPrice||0).toLocaleString('ko-KR'));
+            const ut=document.getElementById('ct-unit-type'); if(ut) ut.value=c.unitType||'시간';
+            set('ct-qty', c.qty); set('ct-standby', c.standby);
+            set('ct-supply', Number(c.supply||0).toLocaleString('ko-KR'));
+            set('ct-vat',    Number(c.vat||0).toLocaleString('ko-KR'));
+            set('ct-payment-terms', c.paymentTerms);
+            const fu=document.getElementById('ct-fuel'); if(fu) fu.value=c.fuel||'임대인 부담';
+            const ins=document.getElementById('ct-insurance'); if(ins) ins.value=c.insurance||'임대인 부담';
+            set('ct-special', c.special);
+            set('ct-lessor-company', c.lessorCompany); set('ct-lessor-biznum', c.lessorBiznum);
+            set('ct-lessor-ceo', c.lessorCeo); set('ct-lessor-phone', c.lessorPhone);
+            set('ct-lessor-addr', c.lessorAddr); set('ct-lessor-bank', c.lessorBank);
+            set('ct-lessor-account', c.lessorAccount);
+            set('ct-lessor-driver', c.lessorDriver); set('ct-lessor-driver-phone', c.lessorDriverPhone);
+            set('ct-lessee-company', c.lesseeCompany); set('ct-lessee-biznum', c.lesseeBiznum);
+            set('ct-lessee-ceo', c.lesseeCeo); set('ct-lessee-phone', c.lesseePhone);
+            set('ct-lessee-addr', c.lesseeAddr);
+            set('ct-lessee-manager', c.lesseeManager); set('ct-lessee-manager-phone', c.lesseeManagerPhone);
+            contractMachines = (c.machines && c.machines.length) ? c.machines : [{ kind:'', spec:'', regnum:'', maker:'' }];
+            renderContractMachineRows();
+            updateContractTotal(Number(c.supply||0), Number(c.vat||0));
+            updateContractSignature();
+        }
+
+        /* 저장 */
+        function saveContract() {
+            const obj  = readContractForm();
+            currentContractId = obj.id;
+            const list = getContracts();
+            const idx  = list.findIndex(c => c.id === obj.id);
+            if (idx >= 0) list[idx] = obj; else list.push(obj);
+            setContracts(list);
+            refreshContractSelector();
+            showToast(`[${obj.title}] 계약서 저장 완료!`);
+        }
+
+        /* 불러오기 */
+        function loadContract(id) {
+            if (!id) return;
+            const list = getContracts();
+            const c    = list.find(x => x.id === id);
+            if (!c) return;
+            currentContractId = c.id;
+            writeContractForm(c);
+            showToast(`[${c.title}] 계약서를 불러왔습니다.`);
+        }
+
+        /* 새 계약서 */
+        function newContract() {
+            currentContractId = null;
+            contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
+            ['ct-site','ct-date','ct-number','ct-work-site','ct-period-from','ct-period-to',
+             'ct-work-start','ct-work-end','ct-unit-price','ct-qty','ct-standby',
+             'ct-supply','ct-vat','ct-payment-terms','ct-special',
+             'ct-lessor-company','ct-lessor-biznum','ct-lessor-ceo','ct-lessor-phone',
+             'ct-lessor-addr','ct-lessor-bank','ct-lessor-account','ct-lessor-driver','ct-lessor-driver-phone',
+             'ct-lessee-company','ct-lessee-biznum','ct-lessee-ceo','ct-lessee-phone',
+             'ct-lessee-addr','ct-lessee-manager','ct-lessee-manager-phone'
+            ].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            const _ctTot=document.getElementById('ct-total-display'); if(_ctTot) _ctTot.textContent='금 0원정 (￦0)';
+            renderContractMachineRows();
+            updateContractSignature();
+            showToast('새 계약서 양식이 초기화되었습니다.');
+        }
+
+        /* 삭제 */
+        function deleteContract() {
+            if (!currentContractId) { showToast('선택된 계약서가 없습니다.'); return; }
+            showConfirmModal('계약서 삭제', '현재 계약서를 삭제합니다. 복구할 수 없습니다.', function() {
+                const list = getContracts().filter(c => c.id !== currentContractId);
+                setContracts(list);
+                currentContractId = null;
+                newContract();
+                refreshContractSelector();
+                showToast('계약서가 삭제되었습니다.');
+            });
+        }
+
+        /* 인쇄 */
+        function printContract() {
+            saveContract();
+            updateContractSignature();
+            const box = document.getElementById('contract-print-box');
+            if (!box) return;
+            const clone = box.cloneNode(true);
+            clone.querySelectorAll('.no-print').forEach(n => n.remove());
+            // input → span 변환 (인쇄 시 값 표시)
+            clone.querySelectorAll('input, select, textarea').forEach(el => {
+                const span = document.createElement(el.tagName === 'TEXTAREA' ? 'div' : 'span');
+                span.textContent = el.value || el.textContent || '';
+                span.style.cssText = el.style.cssText;
+                span.className = el.className.replace('outline-none','');
+                el.parentNode.replaceChild(span, el);
+            });
+            const win = window.open('', '_blank', 'width=900,height=1200');
+            win.document.write(`<!DOCTYPE html><html><head>
+                <meta charset="utf-8">
+                <title>건설기계 임대차계약서</title>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+                <style>
+                    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+                    body{font-family:'Noto Sans KR',sans-serif;font-size:12px;line-height:1.8;color:#111;background:#fff;margin:0;padding:0;}
+                    @page{size:A4 portrait;margin:15mm 15mm 15mm 15mm;}
+                    table{border-collapse:collapse;width:100%;}
+                    td,th{border:1px solid #888;padding:4px 8px;vertical-align:middle;}
+                    input,select,textarea{border:none;outline:none;background:transparent;}
+                    .no-print{display:none!important;}
+                    @media print{.no-print{display:none!important;}}
+                </style>
+            </head><body>${clone.innerHTML}</body></html>`);
+            win.document.close();
+            setTimeout(() => { win.focus(); win.print(); }, 400);
+        }
+
+        /* 금액 자동 계산 */
+        function calcContractTotal() {
+            const _ctUP=document.getElementById('ct-unit-price');
+            const _ctQY=document.getElementById('ct-qty');
+            const _ctSU=document.getElementById('ct-supply');
+            const _ctVT=document.getElementById('ct-vat');
+            if (!_ctUP || !_ctQY) return;
+            const price = Number(String(_ctUP.value).replace(/,/g,'')) || 0;
+            const qty   = Number(_ctQY.value) || 0;
+            const supply = price * qty;
+            const vat    = Math.round(supply * 0.1);
+            if (_ctSU) _ctSU.value = supply.toLocaleString('ko-KR');
+            if (_ctVT) _ctVT.value = vat.toLocaleString('ko-KR');
+            updateContractTotal(supply, vat);
+        }
+
+        function updateContractTotal(supply, vat) {
+            const total = supply + vat;
+            const el = document.getElementById('ct-total-display');
+            if (el) el.textContent = `금 ${total.toLocaleString('ko-KR')}원정 (￦${total.toLocaleString('ko-KR')})`;
+        }
+
+        /* 서명란 실시간 동기화 */
+        function updateContractSignature() {
+            const sync = (fromId, toId) => {
+                const from = document.getElementById(fromId);
+                const to   = document.getElementById(toId);
+                if (from && to) to.textContent = from.value || '';
+            };
+            sync('ct-lessor-company','ct-sig-lessor-company');
+            sync('ct-lessor-ceo',    'ct-sig-lessor-ceo');
+            sync('ct-lessor-addr',   'ct-sig-lessor-addr');
+            sync('ct-lessor-phone',  'ct-sig-lessor-phone');
+            sync('ct-lessee-company','ct-sig-lessee-company');
+            sync('ct-lessee-ceo',    'ct-sig-lessee-ceo');
+            sync('ct-lessee-addr',   'ct-sig-lessee-addr');
+            sync('ct-lessee-phone',  'ct-sig-lessee-phone');
+        }
+        // 입력 시 실시간 서명란 업데이트
+        ['ct-lessor-company','ct-lessor-ceo','ct-lessor-addr','ct-lessor-phone',
+         'ct-lessee-company','ct-lessee-ceo','ct-lessee-addr','ct-lessee-phone'].forEach(id => {
+            document.addEventListener('input', e => { if(e.target.id===id) updateContractSignature(); });
+        });
+
+        /* 기계 행 렌더 */
+        function renderContractMachineRows() {
+            const tbody = document.getElementById('ct-machine-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = contractMachines.map((m, i) => `
+                <tr>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <input type="text" value="${m.kind||''}" placeholder="예) 굴착기, 지게차"
+                            oninput="contractMachines[${i}].kind=this.value"
+                            class="w-full bg-transparent outline-none text-[12px]">
+                    </td>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <input type="text" value="${m.spec||''}" placeholder="예) 0.4m³, 3ton"
+                            oninput="contractMachines[${i}].spec=this.value"
+                            class="w-full bg-transparent outline-none text-[12px]">
+                    </td>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <input type="text" value="${m.regnum||''}" placeholder="예) 강원 01 가 1234"
+                            oninput="contractMachines[${i}].regnum=this.value"
+                            class="w-full bg-transparent outline-none text-[12px]">
+                    </td>
+                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
+                        <div class="flex items-center gap-1">
+                            <input type="text" value="${m.maker||''}" placeholder="예) 두산 / 2018년"
+                                oninput="contractMachines[${i}].maker=this.value"
+                                class="flex-1 bg-transparent outline-none text-[12px]">
+                            ${contractMachines.length > 1 ? `<button onclick="removeMachineRow(${i})" class="no-print text-rose-400 hover:text-rose-600 shrink-0 p-0.5"><i data-lucide="x" class="w-3 h-3"></i></button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function addMachineRow() {
+            contractMachines.push({ kind:'', spec:'', regnum:'', maker:'' });
+            renderContractMachineRows();
+        }
+        function removeMachineRow(idx) {
+            contractMachines.splice(idx, 1);
+            renderContractMachineRows();
+        }
+
+        /* PDF 파싱 가져오기 */
+        function triggerContractPdfImport() {
+            const _pdfIn=document.getElementById('contract-pdf-input'); if(_pdfIn) _pdfIn.click();
+        }
 
         async function importContractPdf(input) {
             const file = input.files[0];
@@ -8419,7 +8657,7 @@
             }
         }
 
-        /* PDF 텍스트 → 계약서 필드 자동 채우기 (std-* ID 체계) */
+        /* PDF 텍스트 → 계약서 필드 자동 채우기 */
         function parseContractPdfText(text) {
             const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
             const find  = (patterns) => {
@@ -8431,51 +8669,52 @@
                 }
                 return '';
             };
-            const setVal = (id, v) => { const el=document.getElementById(id); if(el && v) { el.value=v; el.dispatchEvent(new Event('input')); } };
 
             // 현장명
             const site = find([/현장명[:\s]+(.+)/, /공사현장[:\s]+(.+)/, /작업현장[:\s]+(.+)/]);
-            setVal('std-siteName', site);
+            if (site) { const _e=document.getElementById('ct-site'); if(_e) _e.value=site; }
 
-            // 계약일
+            // 날짜
             const dateMatch = text.match(/(\d{4})[년.\-]\s*(\d{1,2})[월.\-]\s*(\d{1,2})/);
             if (dateMatch) {
-                const y=dateMatch[1], mo=dateMatch[2].padStart(2,'0'), d=dateMatch[3].padStart(2,'0');
-                setVal('std-contractDate', `${y}-${mo}-${d}`);
+                const y=dateMatch[1], m=dateMatch[2].padStart(2,'0'), d=dateMatch[3].padStart(2,'0');
+                const _ctD=document.getElementById('ct-date'); if(_ctD) _ctD.value=`${y}-${m}-${d}`;
             }
 
             // 임대인 정보
             const lessorCompany = find([/임대인.*상호[:\s]+(.+)/, /임대인[:\s]+(.+)/]);
             const lessorCeo     = find([/임대인.*대표자[:\s]+(.+)/, /대표자.*임대[:\s]+(.+)/]);
             const lessorPhone   = find([/임대인.*전화[:\s]+([\d\-]+)/, /임대인.*연락처[:\s]+([\d\-]+)/]);
-            const lessorRegNo   = find([/임대인.*사업자[:\s]*([\d\-]+)/, /사업자등록번호[:\s]*([\d\-]+)/]);
-            setVal('std-lessorCompany', lessorCompany);
-            setVal('std-lessorName',    lessorCeo);
-            setVal('std-lessorPhone',   lessorPhone);
-            setVal('std-lessorRegNo',   lessorRegNo);
+            const lessorBiznum  = find([/임대인.*사업자[:\s]*([\d\-]+)/, /사업자등록번호[:\s]*([\d\-]+)/]);
+            if (lessorCompany) { const _e=document.getElementById('ct-lessor-company'); if(_e) _e.value=lessorCompany; }
+            if (lessorCeo)     { const _e=document.getElementById('ct-lessor-ceo'); if(_e) _e.value=lessorCeo; }
+            if (lessorPhone)   { const _e=document.getElementById('ct-lessor-phone'); if(_e) _e.value=lessorPhone; }
+            if (lessorBiznum)  { const _e=document.getElementById('ct-lessor-biznum'); if(_e) _e.value=lessorBiznum; }
 
             // 임차인 정보
             const lesseeCompany = find([/임차인.*상호[:\s]+(.+)/, /임차인[:\s]+(.+)/]);
             const lesseeCeo     = find([/임차인.*대표자[:\s]+(.+)/]);
             const lesseePhone   = find([/임차인.*전화[:\s]+([\d\-]+)/, /임차인.*연락처[:\s]+([\d\-]+)/]);
-            setVal('std-lesseeCompany', lesseeCompany);
-            setVal('std-lesseeName',    lesseeCeo);
-            setVal('std-lesseePhone',   lesseePhone);
+            if (lesseeCompany) { const _e=document.getElementById('ct-lessee-company'); if(_e) _e.value=lesseeCompany; }
+            if (lesseeCeo)     { const _e=document.getElementById('ct-lessee-ceo'); if(_e) _e.value=lesseeCeo; }
+            if (lesseePhone)   { const _e=document.getElementById('ct-lessee-phone'); if(_e) _e.value=lesseePhone; }
 
             // 금액
             const amtMatch = text.match(/계약금액[^\d]*([\d,]+)/);
             if (amtMatch) {
                 const total  = Number(amtMatch[1].replace(/,/g,''));
                 const supply = Math.round(total / 1.1);
-                setVal('std-rentAmount', String(supply));
-                setVal('std-totalAmount', String(total));
+                const vat    = total - supply;
+                const _eS=document.getElementById('ct-supply'); if(_eS) _eS.value=supply.toLocaleString('ko-KR');
+                const _eV=document.getElementById('ct-vat'); if(_eV) _eV.value=vat.toLocaleString('ko-KR');
+                updateContractTotal(supply, vat);
             }
 
             // 기계 종류
             const machineKind = find([/기계종류[:\s]+(.+)/, /건설기계[:\s]+(.+)/]);
-            setVal('std-machineName', machineKind);
+            if (machineKind) { contractMachines[0].kind = machineKind; renderContractMachineRows(); }
 
-            if (typeof stdUpdateContract === 'function') stdUpdateContract();
+            updateContractSignature();
             showToast('PDF 파싱 완료! 내용을 확인 후 수정해 주세요.');
         }
 
