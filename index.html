@@ -842,6 +842,75 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ── 구비서류 체크카드 ── */
+        .chk-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+        .chk-card:hover { border-color: #a78bfa; background: #faf5ff; color: #5b21b6; }
+        .chk-card .chk-icon  { font-size: 13px; flex-shrink: 0; }
+        .chk-card .chk-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chk-card .chk-mark  { display: none; font-size: 11px; font-weight: 900; color: #fff; flex-shrink: 0; }
+        .chk-card.checked {
+            background: linear-gradient(135deg,#7c3aed,#5b21b6);
+            border-color: #7c3aed;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(124,58,237,.3);
+        }
+        .chk-card.checked .chk-mark { display: block; }
+        .chk-card.checked .chk-icon { filter: brightness(0) invert(1); }
+        .dark .chk-card { background:#1e293b; border-color:#334155; color:#94a3b8; }
+        .dark .chk-card:hover { border-color:#8b5cf6; background:#1e1b4b; color:#c4b5fd; }
+        .dark .chk-card.checked { background:linear-gradient(135deg,#6d28d9,#4c1d95); border-color:#7c3aed; color:#fff; }
+        @media print {
+            .chk-card { border:1px solid #ccc !important; background:#fff !important; color:#334155 !important; box-shadow:none !important; padding:3px 6px; font-size:9px; }
+            .chk-card.checked { border-color:#4f46e5 !important; background:#ede9fe !important; color:#3730a3 !important; }
+            .chk-card .chk-icon { filter:none !important; }
+            .chk-card .chk-mark { color:#4f46e5 !important; }
+            #chk-summary-badge { display:none !important; }
+        }
+
+        /* ── 지불의뢰서 A4 헤더 메타 ── */
+        .req-header-section h2,
+        .req-header-section h2 * { font-size: var(--req-title-size, 28px); }
+        .req-meta-grid { display:flex; flex-direction:column; gap:3px; }
+        .req-meta-row  { display:flex; align-items:center; }
+        .req-meta-label {
+            width: 56px; flex-shrink: 0;
+            font-size: 11px; font-weight: 700;
+            color: #475569; letter-spacing: .04em;
+        }
+        .dark .req-meta-label { color:#94a3b8; }
+        .req-meta-sep  { width:14px; flex-shrink:0; text-align:center; color:#94a3b8; font-weight:700; }
+        .req-meta-input {
+            flex: 1; min-width: 0;
+            font-size: 11px; font-weight: 700;
+            color: #1e293b; background: transparent;
+            border: none; border-bottom: 1px solid #e2e8f0;
+            outline: none; padding: 2px 4px;
+        }
+        .req-meta-input:focus { border-bottom-color:#3b82f6; }
+        .dark .req-meta-input { color:#e2e8f0; border-bottom-color:#334155; }
+        .dark .req-meta-input:focus { border-bottom-color:#60a5fa; }
+        @media print {
+            .req-meta-label { color:#334155 !important; }
+            .req-meta-input { color:#0f172a !important; border-bottom:1px solid #475569 !important; }
+            .req-header-section h2,
+            .req-header-section h2 * { font-size: var(--req-title-size, 28px) !important; }
+        }
+
         /* ── 반응형 헤더 압축 ── */
         @media (max-width: 768px) {
             .hdr-btn .btn-label { display: none; }
@@ -1507,18 +1576,26 @@
                 
                 <!-- 지불의뢰서 실물 A4 portrait 양식 -->
                 <div class="lg:col-span-3">
-                    <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 10px;">
+                    <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 10px; --req-title-size: 28px;">
                         
                         <!-- 상단 타이틀 -->
-                        <div class="req-header-section flex justify-between items-start border-b border-slate-300 dark:border-slate-700 pb-2 mb-3">
-                            <div class="w-full">
-                                <h2 class="text-xl md:text-2xl font-black tracking-tight text-gray-950 dark:text-slate-100 pb-1 flex items-center">
-                                    (<span id="req-title-category" contenteditable="true" onblur="applyCategoryColor(this.textContent)" class="font-extrabold focus:outline-none min-w-[60px] px-2 py-0.5 rounded-md border text-center inline-block transition-all duration-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 print-badge-emerald">자재비</span>) 
-                                    <span class="ml-1.5">지불의뢰서</span>
+                        <div class="req-header-section border-b-2 border-slate-800 dark:border-slate-400 pb-3 mb-4">
+                            <div class="flex justify-center mb-5">
+                                <h2 class="font-black text-gray-950 dark:text-slate-100 leading-none flex items-center gap-1.5">
+                                    <span class="text-slate-400 dark:text-slate-500 font-bold">(</span><span id="req-title-category" contenteditable="true" onblur="applyCategoryColor(this.textContent)" class="font-extrabold focus:outline-none min-w-[60px] px-2 py-0.5 rounded-md border text-center inline-block transition-all duration-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 print-badge-emerald">자재비</span><span class="text-slate-400 dark:text-slate-500 font-bold">)</span>
+                                    <span class="text-gray-900 dark:text-slate-100" style="letter-spacing:0.25em;">지불의뢰서</span>
                                 </h2>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 flex flex-col gap-0.5">
-                                    <div class="flex items-center"><span class="w-14 font-semibold text-slate-400">현 장 명:</span> <input type="text" id="req-meta-site" value="원주 캠프롱 현장" onchange="syncMetaSiteFromReq(this.value)" class="border-b border-slate-200 dark:border-slate-700 w-full font-bold text-slate-700 dark:text-slate-100 py-0.5 bg-transparent outline-none"></div>
-                                    <div class="flex items-center"><span class="w-14 font-semibold text-slate-400">청구기간:</span> <input type="text" id="req-meta-period" onchange="syncPeriodValue(this.value)" value="2026년 06월 01일 ~ 2026년 06월 30일" class="border-b border-slate-200 dark:border-slate-700 w-full font-bold text-slate-700 dark:text-slate-100 py-0.5 bg-transparent outline-none"></div>
+                            </div>
+                            <div class="req-meta-grid">
+                                <div class="req-meta-row">
+                                    <span class="req-meta-label">현 장 명</span>
+                                    <span class="req-meta-sep">:</span>
+                                    <input type="text" id="req-meta-site" value="원주 캠프롱 현장" onchange="syncMetaSiteFromReq(this.value)" class="req-meta-input">
+                                </div>
+                                <div class="req-meta-row">
+                                    <span class="req-meta-label">청구기간</span>
+                                    <span class="req-meta-sep">:</span>
+                                    <input type="text" id="req-meta-period" onchange="syncPeriodValue(this.value)" value="2026년 06월 01일 ~ 2026년 06월 30일" class="req-meta-input">
                                 </div>
                             </div>
                         </div>
@@ -1632,14 +1709,37 @@
 
                         <!-- 첨부 구비서류 체크리스트 -->
                         <div class="req-checklist-section border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-[10px] mb-2">
-                            <p class="font-bold text-slate-800 dark:text-slate-200 mb-1">● 구비 서류 체크리스트</p>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-semibold text-slate-750 dark:text-slate-250" id="req-checklist-container">
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-biz" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 사업자등록증 사본</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-bank" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 통장사본</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-tax" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 세금계산서</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-trans" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 거래명세표</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-lease" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 장비임대차계약서</label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chk-equip" onchange="saveChecklistStateDirectly()" class="print-checkbox w-3.5 h-3.5 rounded text-blue-600"> 건설기계등록증</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                                    <span class="text-violet-500 font-black">●</span> 구비 서류 체크리스트
+                                </p>
+                                <span id="chk-summary-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all" style="background:rgba(109,40,217,0.1);color:#7c3aed;">0 / 6</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" id="req-checklist-container">
+                                <label class="chk-card" data-chk="chk-biz">
+                                    <input type="checkbox" id="chk-biz" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                                    <span class="chk-icon">📋</span><span class="chk-label">사업자등록증 사본</span><span class="chk-mark">✓</span>
+                                </label>
+                                <label class="chk-card" data-chk="chk-bank">
+                                    <input type="checkbox" id="chk-bank" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                                    <span class="chk-icon">🏦</span><span class="chk-label">통장사본</span><span class="chk-mark">✓</span>
+                                </label>
+                                <label class="chk-card" data-chk="chk-tax">
+                                    <input type="checkbox" id="chk-tax" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                                    <span class="chk-icon">🧾</span><span class="chk-label">세금계산서</span><span class="chk-mark">✓</span>
+                                </label>
+                                <label class="chk-card" data-chk="chk-trans">
+                                    <input type="checkbox" id="chk-trans" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                                    <span class="chk-icon">📄</span><span class="chk-label">거래명세표</span><span class="chk-mark">✓</span>
+                                </label>
+                                <label class="chk-card" data-chk="chk-lease">
+                                    <input type="checkbox" id="chk-lease" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                                    <span class="chk-icon">🚜</span><span class="chk-label">장비임대차계약서</span><span class="chk-mark">✓</span>
+                                </label>
+                                <label class="chk-card" data-chk="chk-equip">
+                                    <input type="checkbox" id="chk-equip" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                                    <span class="chk-icon">🏗️</span><span class="chk-label">건설기계등록증</span><span class="chk-mark">✓</span>
+                                </label>
                             </div>
                         </div>
 
@@ -1681,6 +1781,14 @@
                                 <option value="11px">11px</option>
                                 <option value="12px">12px</option>
                             </select>
+                        </label>
+                        <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
+                            <span>제목크기</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="changeReqTitleSize(-1)" class="w-5 h-5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center justify-center leading-none">−</button>
+                                <span id="req-title-size-label" class="font-bold text-blue-400 w-6 text-center">28</span>
+                                <button onclick="changeReqTitleSize(1)" class="w-5 h-5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center justify-center leading-none">+</button>
+                            </div>
                         </label>
                         <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
                             <span>A4 가이드</span>
@@ -1761,12 +1869,6 @@
                         <button onclick="addSpecialItemRow()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 행 추가
                         </button>
-                        <button onclick="openPrevMonthImportModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all" title="전월 동일 운전원 불러오기">
-                            <i data-lucide="history" class="w-3.5 h-3.5"></i> 전월 불러오기
-                        </button>
-                        <button onclick="openDriverDbModal()" class="bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all" title="운전원 DB 관리">
-                            <i data-lucide="users" class="w-3.5 h-3.5"></i> 운전원 DB
-                        </button>
                         <button onclick="printSpecialSection()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> 특고 대장 인쇄
                         </button>
@@ -1812,7 +1914,6 @@
                                 <th class="py-2 px-2 border border-amber-700 w-8">No.</th>
                                 <th class="py-2 px-2 border border-amber-700">운전원명</th>
                                 <th class="py-2 px-2 border border-amber-700 w-36">주민등록번호</th>
-                                <th class="py-2 px-2 border border-amber-700 w-16">생년월일·나이</th>
                                 <th class="py-2 px-2 border border-amber-700 w-14">가동<br>일수</th>
                                 <th class="py-2 px-2 border border-amber-700">장비대금<br>(공급가액)</th>
                                 <th class="py-2 px-2 border border-amber-700">보수총액<br>(고용보험 기준)</th>
@@ -1820,14 +1921,14 @@
                                 <th class="py-2 px-2 border border-amber-700">산재<br>보험료</th>
                                 <th class="py-2 px-2 border border-amber-700">기타<br>공제</th>
                                 <th class="py-2 px-2 border border-amber-700">실지급액</th>
-                                <th class="py-2 px-2 border border-amber-700 no-print w-16">관리</th>
+                                <th class="py-2 px-2 border border-amber-700 no-print w-14">관리</th>
                             </tr>
                         </thead>
                         <tbody id="req-special-tbody" class="divide-y divide-amber-200 dark:divide-amber-900 bg-white dark:bg-slate-900">
                         </tbody>
                         <tfoot>
                             <tr class="bg-amber-50 dark:bg-amber-950/30 font-extrabold border-t-2 border-amber-600">
-                                <td colspan="5" class="py-2 px-3 text-left border border-amber-300 dark:border-amber-800 text-slate-800 dark:text-slate-200">합 계</td>
+                                <td colspan="4" class="py-2 px-3 text-left border border-amber-300 dark:border-amber-800 text-slate-800 dark:text-slate-200">합 계</td>
                                 <td id="req-special-total-supply" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
                                 <td id="req-special-total-remun" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
                                 <td id="req-special-total-empinsur" class="py-2 px-2 text-right border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-slate-100">0</td>
@@ -1905,15 +2006,43 @@
                             <p class="text-xs text-slate-400 mt-0.5">구분별 거래처 통합액을 파악합니다. 카드를 클릭하면 상세 목록이 표출됩니다.</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="exportStatsToExcel()" class="bg-green-700 hover:bg-green-600 text-white text-xs px-3 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel 내보내기
+                        </button>
                         <button onclick="exportStatsToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
-                            <i data-lucide="file-down" class="w-3.5 h-3.5"></i> CSV 내보내기
+                            <i data-lucide="file-down" class="w-3.5 h-3.5"></i> CSV
                         </button>
                         <span class="text-xs bg-slate-800 text-slate-300 font-bold px-3 py-1 rounded-full border border-slate-700" id="stats-total-vendor-count">총 0개 거래처 집계 중</span>
                     </div>
                 </div>
-                
-                <!-- 분석 통계 내부 카드 보드 -->
+
+                <!-- ▶ 분석 대시보드 (차트 + 랭킹) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" id="stats-dashboard-row">
+                    <!-- 도넛 차트 -->
+                    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex flex-col items-center gap-3">
+                        <p class="text-xs font-bold text-slate-300 self-start">공종별 청구 비율</p>
+                        <svg id="stats-donut-svg" viewBox="0 0 200 200" width="160" height="160"></svg>
+                        <div id="stats-donut-legend" class="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px]"></div>
+                    </div>
+                    <!-- Top 5 랭킹 -->
+                    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex flex-col gap-2">
+                        <p class="text-xs font-bold text-slate-300">Top 5 거래처 (청구합계 기준)</p>
+                        <div id="stats-top5" class="flex flex-col gap-1.5 mt-1"></div>
+                    </div>
+                    <!-- 전월 대비 증감 -->
+                    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-bold text-slate-300">전월 대비 공종별 증감</p>
+                            <select id="stats-prev-doc-sel" onchange="renderStatsDelta()" class="text-[10px] bg-slate-700 border border-slate-600 text-slate-200 rounded px-1.5 py-0.5 outline-none max-w-[120px]">
+                                <option value="">전월 선택</option>
+                            </select>
+                        </div>
+                        <div id="stats-delta-list" class="flex flex-col gap-1 mt-1"></div>
+                    </div>
+                </div>
+
+                <!-- 거래처 카드 보드 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="vendor-stats-board">
                 </div>
             </div>
@@ -4498,6 +4627,267 @@
                 });
             });
             lucide.createIcons();
+            renderStatsDonut();
+            renderStatsTop5();
+            populateStatsPrevDocSel();
+            renderStatsDelta();
+        }
+
+        /* ═══════════════════════════════════════════════════
+           탭3 분석 대시보드
+        ═══════════════════════════════════════════════════ */
+
+        const STATS_CAT_COLORS = {
+            "외주비": { fill: "#3b82f6", text: "#93c5fd" },
+            "자재비": { fill: "#10b981", text: "#6ee7b7" },
+            "장비비": { fill: "#f59e0b", text: "#fcd34d" },
+            "노무비": { fill: "#8b5cf6", text: "#c4b5fd" },
+            "관리비": { fill: "#f43f5e", text: "#fda4af" },
+        };
+        const CAT_LIST = ["외주비","자재비","장비비","노무비","관리비"];
+
+        /* 공종별 청구합계 집계 */
+        function calcCatTotals(rows) {
+            const totals = {};
+            CAT_LIST.forEach(c => totals[c] = 0);
+            rows.forEach(r => {
+                if (totals[r.type] !== undefined)
+                    totals[r.type] += (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0);
+            });
+            return totals;
+        }
+
+        /* ── 1. 도넛 차트 ── */
+        function renderStatsDonut() {
+            const svg = document.getElementById('stats-donut-svg');
+            const legend = document.getElementById('stats-donut-legend');
+            if (!svg || !legend) return;
+            svg.innerHTML = '';
+            legend.innerHTML = '';
+
+            const totals = calcCatTotals(dataset);
+            const grand = Object.values(totals).reduce((s,v)=>s+v,0);
+            if (!grand) {
+                svg.innerHTML = `<text x="100" y="108" text-anchor="middle" font-size="11" fill="#64748b">데이터 없음</text>`;
+                return;
+            }
+
+            const cx = 100, cy = 100, R = 78, r = 50;
+            let startAngle = -Math.PI / 2;
+
+            CAT_LIST.forEach(cat => {
+                const val = totals[cat];
+                if (!val) return;
+                const pct = val / grand;
+                const angle = pct * 2 * Math.PI;
+                const endAngle = startAngle + angle;
+                const largeArc = angle > Math.PI ? 1 : 0;
+
+                const x1 = cx + R * Math.cos(startAngle), y1 = cy + R * Math.sin(startAngle);
+                const x2 = cx + R * Math.cos(endAngle),   y2 = cy + R * Math.sin(endAngle);
+                const ix1 = cx + r * Math.cos(endAngle),  iy1 = cy + r * Math.sin(endAngle);
+                const ix2 = cx + r * Math.cos(startAngle),iy2 = cy + r * Math.sin(startAngle);
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+                path.setAttribute('d', `M${x1},${y1} A${R},${R},0,${largeArc},1,${x2},${y2} L${ix1},${iy1} A${r},${r},0,${largeArc},0,${ix2},${iy2} Z`);
+                path.setAttribute('fill', STATS_CAT_COLORS[cat].fill);
+                path.setAttribute('opacity','0.9');
+                path.innerHTML = `<title>${cat}: ${Math.round(pct*100)}%</title>`;
+                svg.appendChild(path);
+
+                // 레이블 (5% 이상만)
+                if (pct >= 0.05) {
+                    const midA = startAngle + angle / 2;
+                    const lx = cx + (R+r)/2 * Math.cos(midA), ly = cy + (R+r)/2 * Math.sin(midA);
+                    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+                    txt.setAttribute('x', lx); txt.setAttribute('y', ly + 4);
+                    txt.setAttribute('text-anchor','middle');
+                    txt.setAttribute('font-size','9'); txt.setAttribute('font-weight','bold');
+                    txt.setAttribute('fill','#fff');
+                    txt.textContent = `${Math.round(pct*100)}%`;
+                    svg.appendChild(txt);
+                }
+                startAngle = endAngle;
+
+                // legend
+                const li = document.createElement('span');
+                li.className = 'flex items-center gap-1 text-slate-300';
+                li.innerHTML = `<span class="inline-block w-2.5 h-2.5 rounded-sm shrink-0" style="background:${STATS_CAT_COLORS[cat].fill}"></span>${cat}`;
+                legend.appendChild(li);
+            });
+
+            // 중앙 텍스트
+            const ct = document.createElementNS('http://www.w3.org/2000/svg','text');
+            ct.setAttribute('x','100'); ct.setAttribute('y','96');
+            ct.setAttribute('text-anchor','middle'); ct.setAttribute('font-size','10');
+            ct.setAttribute('fill','#94a3b8'); ct.textContent = '총 청구';
+            svg.appendChild(ct);
+            const cv = document.createElementNS('http://www.w3.org/2000/svg','text');
+            cv.setAttribute('x','100'); cv.setAttribute('y','113');
+            cv.setAttribute('text-anchor','middle'); cv.setAttribute('font-size','11');
+            cv.setAttribute('font-weight','bold'); cv.setAttribute('fill','#e2e8f0');
+            cv.textContent = (grand/10000/10000).toFixed(1) + '억원';
+            svg.appendChild(cv);
+        }
+
+        /* ── 2. Top 5 거래처 ── */
+        function renderStatsTop5() {
+            const el = document.getElementById('stats-top5');
+            if (!el) return;
+
+            const map = {};
+            dataset.forEach(r => {
+                if (!r.vendor) return;
+                const amt = (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0);
+                map[r.vendor] = (map[r.vendor] || 0) + amt;
+            });
+            const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,5);
+            const maxAmt = sorted[0]?.[1] || 1;
+
+            if (!sorted.length) {
+                el.innerHTML = '<p class="text-[10px] text-slate-500 text-center py-4">데이터 없음</p>';
+                return;
+            }
+
+            const medals = ['🥇','🥈','🥉','4','5'];
+            el.innerHTML = sorted.map(([vendor, amt], i) => {
+                const pct = Math.round(amt / maxAmt * 100);
+                const catRow = dataset.find(r => r.vendor === vendor);
+                const cat = catRow?.type || '';
+                const color = STATS_CAT_COLORS[cat]?.fill || '#64748b';
+                return `<div>
+                    <div class="flex items-center justify-between mb-0.5">
+                        <span class="text-[10px] font-bold text-slate-200 flex items-center gap-1">
+                            <span class="text-[11px]">${medals[i]}</span>${vendor}
+                            ${cat ? `<span class="text-[8px] px-1 py-0.5 rounded" style="background:${color}22;color:${color};border:1px solid ${color}44">${cat}</span>` : ''}
+                        </span>
+                        <span class="text-[10px] font-bold text-slate-300">${formatNumber(amt)}원</span>
+                    </div>
+                    <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%;background:${color}"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        /* ── 3. 전월 대비 증감 ── */
+        function populateStatsPrevDocSel() {
+            const sel = document.getElementById('stats-prev-doc-sel');
+            if (!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '<option value="">전월 선택</option>';
+            savedDocuments.forEach(doc => {
+                if (doc.id === currentDocId) return;
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = `[${doc.month||''}] ${(doc.company||'').slice(0,8)}`;
+                sel.appendChild(opt);
+            });
+            if (prev) sel.value = prev;
+        }
+
+        function renderStatsDelta() {
+            const el = document.getElementById('stats-delta-list');
+            if (!el) return;
+            const selId = document.getElementById('stats-prev-doc-sel')?.value;
+
+            const curTotals  = calcCatTotals(dataset);
+
+            if (!selId) {
+                el.innerHTML = '<p class="text-[10px] text-slate-500 text-center py-4">전월 대장을 선택하세요</p>';
+                return;
+            }
+            const prevDoc = savedDocuments.find(d => d.id === selId);
+            if (!prevDoc) { el.innerHTML = '<p class="text-[10px] text-slate-500">대장을 찾을 수 없음</p>'; return; }
+            const prevTotals = calcCatTotals(prevDoc.dataset || []);
+
+            el.innerHTML = CAT_LIST.map(cat => {
+                const cur  = curTotals[cat]  || 0;
+                const prev = prevTotals[cat] || 0;
+                if (!cur && !prev) return '';
+                const diff = cur - prev;
+                const pct  = prev ? ((diff / prev) * 100).toFixed(1) : (cur ? '+100' : '0');
+                const up   = diff >= 0;
+                const color = up ? '#34d399' : '#f87171';
+                const arrow = up ? '▲' : '▼';
+                return `<div class="flex items-center justify-between text-[10px]">
+                    <span class="text-slate-300 font-semibold" style="border-left:3px solid ${STATS_CAT_COLORS[cat].fill};padding-left:6px">${cat}</span>
+                    <span class="font-bold" style="color:${color}">${arrow} ${Math.abs(pct)}%</span>
+                    <span class="text-slate-400">${diff>=0?'+':''}${formatNumber(diff)}원</span>
+                </div>`;
+            }).join('');
+            if (!el.innerHTML.trim()) el.innerHTML = '<p class="text-[10px] text-slate-500 text-center py-4">공통 항목 없음</p>';
+        }
+
+        /* ── 4. Excel 내보내기 ── */
+        function exportStatsToExcel() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const title = currentDoc ? `${currentDoc.company||''} ${currentDoc.month||''} 자금청구집계표` : "자금청구집계표";
+
+            // SheetJS CDN 동적 로드 후 실행
+            function doExport() {
+                const wb = XLSX.utils.book_new();
+
+                // ── 시트1: 공종별 집계 요약 ──
+                const sumRows = [['공종','거래처수','공급가액','부가세','합계','공제','선지급','청구합계']];
+                const totals = calcCatTotals(dataset);
+                CAT_LIST.forEach(cat => {
+                    const rows = dataset.filter(r => r.type === cat);
+                    if (!rows.length) return;
+                    const vendors = new Set(rows.map(r=>r.vendor));
+                    const supply  = rows.reduce((s,r)=>s+(r.supply||0),0);
+                    const tax     = rows.reduce((s,r)=>s+(r.tax||0),0);
+                    const ded     = rows.reduce((s,r)=>s+(r.deduction||0),0);
+                    const pre     = rows.reduce((s,r)=>s+(r.prepaid||0),0);
+                    sumRows.push([cat, vendors.size, supply, tax, supply+tax, ded, pre, supply+tax-ded-pre]);
+                });
+                const grand = dataset.reduce((s,r)=>s+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0),0);
+                sumRows.push(['합 계','','','','','','',grand]);
+                const ws1 = XLSX.utils.aoa_to_sheet(sumRows);
+                ws1['!cols'] = [{wch:8},{wch:8},{wch:14},{wch:12},{wch:14},{wch:12},{wch:10},{wch:14}];
+                XLSX.utils.book_append_sheet(wb, ws1, '공종별 집계');
+
+                // ── 시트2: 거래처별 상세 ──
+                const detRows = [['공종','거래처','대표자','건수','공급가액','부가세','청구합계']];
+                CAT_LIST.forEach(cat => {
+                    const rows = dataset.filter(r => r.type === cat);
+                    const map = {};
+                    rows.forEach(r => {
+                        if (!r.vendor) return;
+                        if (!map[r.vendor]) map[r.vendor] = {cnt:0, supply:0, tax:0, req:0, ceo:r.ceo||''};
+                        map[r.vendor].cnt++;
+                        map[r.vendor].supply += r.supply||0;
+                        map[r.vendor].tax    += r.tax||0;
+                        map[r.vendor].req    += (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
+                    });
+                    Object.entries(map).sort((a,b)=>b[1].req-a[1].req).forEach(([v,d])=>{
+                        detRows.push([cat,v,d.ceo,d.cnt,d.supply,d.tax,d.req]);
+                    });
+                });
+                const ws2 = XLSX.utils.aoa_to_sheet(detRows);
+                ws2['!cols'] = [{wch:8},{wch:20},{wch:12},{wch:6},{wch:14},{wch:12},{wch:14}];
+                XLSX.utils.book_append_sheet(wb, ws2, '거래처별 상세');
+
+                // ── Top5 시트 ──
+                const map5 = {};
+                dataset.forEach(r=>{if(!r.vendor)return; map5[r.vendor]=(map5[r.vendor]||0)+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);});
+                const top5Rows = [['순위','거래처','청구합계']];
+                Object.entries(map5).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([v,a],i)=>top5Rows.push([i+1,v,a]));
+                const ws3 = XLSX.utils.aoa_to_sheet(top5Rows);
+                ws3['!cols'] = [{wch:6},{wch:20},{wch:14}];
+                XLSX.utils.book_append_sheet(wb, ws3, 'Top5 거래처');
+
+                XLSX.writeFile(wb, `${title}.xlsx`);
+                showToast('Excel 내보내기 완료!');
+            }
+
+            if (typeof XLSX !== 'undefined') { doExport(); return; }
+            // SheetJS 없으면 동적 로드
+            const s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            s.onload = doExport;
+            s.onerror = () => showToast('SheetJS 로드 실패. 네트워크를 확인하세요.');
+            document.head.appendChild(s);
         }
 
         function exportStatsToCSV() {
@@ -5552,6 +5942,15 @@
             openAddRowModal();
         }
 
+        let _reqTitleSize = 28;
+        function changeReqTitleSize(delta) {
+            _reqTitleSize = Math.min(40, Math.max(11, _reqTitleSize + delta));
+            const box = document.getElementById('portrait-print-box');
+            if (box) box.style.setProperty('--req-title-size', _reqTitleSize + 'px');
+            const label = document.getElementById('req-title-size-label');
+            if (label) label.textContent = _reqTitleSize;
+        }
+
         function changePrintScale(value) {
             const percent = Math.round(value * 100);
             document.getElementById('print-scale-label').textContent = `${percent}%`;
@@ -5572,6 +5971,14 @@
                 printBox.dataset.savedTransform = printBox.style.transform || '';
                 printBox.style.transform = 'none';
                 printBox.style.transformOrigin = '';
+                // 제목 크기 CSS 변수를 인라인으로 명시 — 일부 브라우저 인쇄 시 변수 손실 방지
+                const titleSize = _reqTitleSize || 17;
+                printBox.style.setProperty('--req-title-size', titleSize + 'px');
+                const h2 = printBox.querySelector('.req-header-section h2');
+                if (h2) {
+                    h2.style.setProperty('font-size', titleSize + 'px', 'important');
+                    h2.querySelectorAll('*').forEach(el => el.style.setProperty('font-size', titleSize + 'px', 'important'));
+                }
             }
         });
         window.addEventListener('afterprint', function() {
@@ -5579,6 +5986,12 @@
             if (printBox && printBox.dataset.savedTransform !== undefined) {
                 printBox.style.transform = printBox.dataset.savedTransform;
                 printBox.style.transformOrigin = 'center center';
+                // 인라인 강제 스타일 복구 (화면 표시는 CSS 변수로 복원)
+                const h2 = printBox.querySelector('.req-header-section h2');
+                if (h2) {
+                    h2.style.removeProperty('font-size');
+                    h2.querySelectorAll('*').forEach(el => el.style.removeProperty('font-size'));
+                }
             }
         });
 
@@ -5883,6 +6296,8 @@
             // 검색 결과 매칭되는 첫 옵션 자동 선택 로드
             if (firstVisibleIndex !== -1 && searchKeyword !== "") {
                 selector.selectedIndex = firstVisibleIndex;
+                // 검색으로 다른 거래처가 선택될 수 있으므로 _currentKey 리셋
+                loadRequestData._currentKey = null;
                 loadRequestData(options[firstVisibleIndex].value);
             }
         }
@@ -5951,8 +6366,7 @@
 
             if (currentSelectedValue && [...selector.options].some(o => o.value === currentSelectedValue)) {
                 selector.value = currentSelectedValue;
-                // 같은 거래처 재선택 — 품목 보존 플래그
-                loadRequestData._currentKey = currentSelectedValue;
+                // 같은 거래처 재선택 — loadRequestData가 isSameKey 판단하도록 직접 호출
                 loadRequestData(currentSelectedValue);
             } else if (selector.options.length > 1) {
                 const firstVal = selector.options[1].value;
@@ -6000,9 +6414,38 @@
                 const el = document.getElementById(id);
                 if (el) state[id] = el.checked;
             });
-            // 대장 ID + 셀렉터 선택 고유값의 조합으로 확실하게 독립 분리 저장
             const checklistStorageKey = `chklist_${currentDocId}_${selectorVal}`;
             localStorage.setItem(checklistStorageKey, JSON.stringify(state));
+        }
+
+        /* ── 체크카드 단일 토글 ── */
+        function updateChkCard(checkbox) {
+            const card = checkbox.closest('.chk-card');
+            if (card) card.classList.toggle('checked', checkbox.checked);
+            refreshChkSummary();
+        }
+
+        /* ── 배지 카운터 갱신 ── */
+        function refreshChkSummary() {
+            const ids = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const checked = ids.filter(id => { const el = document.getElementById(id); return el && el.checked; }).length;
+            const badge = document.getElementById('chk-summary-badge');
+            if (!badge) return;
+            badge.textContent = `${checked} / ${ids.length}`;
+            if (checked === ids.length) { badge.style.background='rgba(5,150,105,.12)'; badge.style.color='#059669'; }
+            else if (checked === 0)     { badge.style.background='rgba(109,40,217,.1)';  badge.style.color='#7c3aed'; }
+            else                        { badge.style.background='rgba(245,158,11,.12)'; badge.style.color='#b45309'; }
+        }
+
+        /* ── 전체 카드 상태 동기화 (로드 후 호출) ── */
+        function syncAllChkCards() {
+            ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const card = el.closest('.chk-card');
+                if (card) card.classList.toggle('checked', el.checked);
+            });
+            refreshChkSummary();
         }
 
         function loadChecklist(vendorKey) {
@@ -6011,8 +6454,8 @@
                 const el = document.getElementById(id);
                 if (el) el.checked = false;
             });
-            if (!vendorKey || vendorKey === 'custom') return;
-            
+            if (!vendorKey || vendorKey === 'custom') { syncAllChkCards(); return; }
+
             const checklistStorageKey = `chklist_${currentDocId}_${vendorKey}`;
             const saved = localStorage.getItem(checklistStorageKey);
             if (saved) {
@@ -6022,20 +6465,21 @@
                     if (el && state[id] !== undefined) el.checked = state[id];
                 });
             }
+            syncAllChkCards();
         }
 
         function loadRequestData(valueKey) {
-            // ★ 현재 표시 중인 거래처를 다시 선택하면 requestItems를 재초기화하지 않음
-            //    (품목 행을 추가·수정한 상태를 보존)
+            // ★ _currentKey는 loadRequestData 진입 전 외부에서 절대 세팅하지 말 것
+            //    refreshRequestSelector에서 미리 세팅하던 패턴이 isSameKey 오판의 원인이었음
             const _prevKey = loadRequestData._currentKey;
-            loadRequestData._currentKey = valueKey;
-            const isSameKey = (_prevKey && _prevKey === valueKey);
+            // valueKey 가 실제로 다를 때만 isSameKey=false (품목 초기화 여부 결정)
+            const isSameKey = (typeof _prevKey === 'string') && (_prevKey === valueKey);
+            loadRequestData._currentKey = valueKey;  // ← 판단 후에 갱신
 
             requestSpecialItems = [];
-            if (!isSameKey) {
-                requestItems = [];
-            }
-            
+            // requestItems는 각 분기(row-/combine-/custom)에서 직전 초기화
+            // isSameKey=true일 때만 기존 품목 보존
+
             const currentDoc = savedDocuments.find(d => d.id === currentDocId);
             if (currentDoc) {
                 if (!currentDoc.period) {
@@ -6111,6 +6555,7 @@
                     const savedVendorItems = target.vendorItems && target.vendorItems.length > 0
                         ? JSON.parse(JSON.stringify(target.vendorItems))
                         : null;
+                    requestItems = [];  // ← 할당 직전 초기화 (savedVendorItems 결정 후)
                     if (savedVendorItems) {
                         requestItems = savedVendorItems;
                     } else {
@@ -6166,6 +6611,7 @@
                     const savedVendorItemsC = firstItem.vendorItems && firstItem.vendorItems.length > 0
                         ? JSON.parse(JSON.stringify(firstItem.vendorItems))
                         : null;
+                    requestItems = [];  // ← 할당 직전 초기화
                     if (savedVendorItemsC) {
                         requestItems = savedVendorItemsC;
                     } else {
@@ -6515,23 +6961,13 @@
 
                 const tr = document.createElement('tr');
                 tr.className = "divide-x divide-amber-200 dark:divide-amber-800 hover:bg-amber-50/30 dark:hover:bg-amber-950/10 transition-all";
-
-                // 주민번호 → 생년월일·나이 파싱
-                const rrnInfo = parseRrnInfo(item.empRrn || '');
-                const ageBadge = rrnInfo.age !== null
-                    ? `<span class="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${rrnInfo.age >= 60 ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700'}">${rrnInfo.birth} · ${rrnInfo.age}세</span>`
-                    : `<span class="inline-block text-[9px] text-slate-400 mt-0.5">—</span>`;
-
                 tr.innerHTML = `
                     <td class="py-2 px-2 text-center border border-amber-200 dark:border-amber-800 text-slate-500 dark:text-slate-400 font-bold text-[10px]">${index + 1}</td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
                         <input type="text" value="${item.empName || ''}" placeholder="운전원명" onchange="updateSpecialItem(${index}, 'empName', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-800 dark:text-slate-100 outline-none text-[10px] min-w-[60px]">
                     </td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
-                        <input type="text" value="${item.empRrn || ''}" placeholder="000000-0000000" oninput="formatSpecialRrn(this); refreshRrnCell(this, ${index})" maxlength="14" onchange="updateSpecialItem(${index}, 'empRrn', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 outline-none text-[10px] min-w-[90px]">
-                    </td>
-                    <td class="py-1 px-1 border border-amber-200 dark:border-amber-800 text-center" id="rrn-info-${index}">
-                        ${ageBadge}
+                        <input type="text" value="${item.empRrn || ''}" placeholder="000000-0000000" oninput="formatSpecialRrn(this)" maxlength="14" onchange="updateSpecialItem(${index}, 'empRrn', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-semibold text-slate-700 dark:text-slate-300 outline-none text-[10px] min-w-[90px]">
                     </td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
                         <input type="number" value="${item.workDays || ''}" placeholder="0" onchange="updateSpecialItem(${index}, 'workDays', Number(this.value)||0)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-700 dark:text-slate-200 outline-none text-[10px]">
@@ -6556,9 +6992,7 @@
                     </td>
                     <td class="py-1.5 px-1 no-print text-center border border-amber-200 dark:border-amber-800">
                         <div class="flex flex-col gap-1">
-                            <button onclick="calcSpecialInsurAutoByIndex(${index})" class="bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold" title="보험료 자동계산(고용0.9%·산재1.8%)">보험 자동</button>
-                            <button onclick="calcRemunByDays(${index})" class="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-[9px] px-1.5 py-0.5 rounded font-bold" title="가동일수×단가로 보수총액 역산">일수 역산</button>
-                            <button onclick="saveDriverToDb(${index})" class="bg-teal-50 hover:bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800 text-[9px] px-1.5 py-0.5 rounded font-bold" title="운전원 DB에 저장">DB저장</button>
+                            <button onclick="calcSpecialInsurAutoByIndex(${index})" class="bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold" title="보험료 자동계산">자동</button>
                             <button onclick="deleteSpecialItemRow(${index})" class="text-rose-500 hover:text-rose-700 font-bold text-[9px]">삭제</button>
                         </div>
                     </td>
@@ -6634,194 +7068,6 @@
 
             saveToLocalStorage();
             renderStatementTable();
-        }
-
-        /* ═══════════════════════════════════════════════════
-           탭4 특고 편의 기능
-        ═══════════════════════════════════════════════════ */
-
-        /* ── 1. 주민번호 → 생년월일·나이 파싱 ── */
-        function parseRrnInfo(rrn) {
-            const clean = rrn.replace(/[^0-9]/g, '');
-            if (clean.length < 7) return { birth: '—', age: null };
-            const yy = clean.slice(0, 2);
-            const mm = clean.slice(2, 4);
-            const dd = clean.slice(4, 6);
-            const gender = parseInt(clean[6]);
-            let yyyy;
-            if (gender === 1 || gender === 2 || gender === 5 || gender === 6) yyyy = '19' + yy;
-            else if (gender === 3 || gender === 4 || gender === 7 || gender === 8) yyyy = '20' + yy;
-            else yyyy = '19' + yy;
-            const today = new Date();
-            const birthDate = new Date(`${yyyy}-${mm}-${dd}`);
-            if (isNaN(birthDate)) return { birth: '—', age: null };
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const mDiff = today.getMonth() - birthDate.getMonth();
-            if (mDiff < 0 || (mDiff === 0 && today.getDate() < birthDate.getDate())) age--;
-            return { birth: `${yyyy.slice(2)}.${mm}.${dd}`, age };
-        }
-
-        /* ── 2. 주민번호 입력 시 해당 셀 나이 실시간 갱신 ── */
-        function refreshRrnCell(input, index) {
-            const cell = document.getElementById('rrn-info-' + index);
-            if (!cell) return;
-            const info = parseRrnInfo(input.value);
-            if (info.age !== null) {
-                cell.innerHTML = `<span class="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${info.age >= 60 ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700'}">${info.birth} · ${info.age}세</span>`;
-            } else {
-                cell.innerHTML = `<span class="inline-block text-[9px] text-slate-400">—</span>`;
-            }
-        }
-
-        /* ── 3. 가동일수 × 일당 → 보수총액 역산 ── */
-        function calcRemunByDays(index) {
-            const item = requestSpecialItems[index];
-            if (!item) return;
-            const days = item.workDays || 0;
-            if (!days) { showToast('가동일수를 먼저 입력하세요.'); return; }
-            // 역산 단가 입력 모달
-            const rate = prompt(`[${item.empName || (index+1)+'번'}] 일당 단가를 입력하세요 (원)\n가동일수: ${days}일`, item._dayRate || '');
-            if (rate === null) return;
-            const rateNum = parseInt(rate.replace(/[^0-9]/g, ''), 10);
-            if (!rateNum) { showToast('유효한 단가를 입력하세요.'); return; }
-            item._dayRate = rateNum;
-            item.supply = rateNum * days;
-            item.remun  = item.supply;
-            renderRequestSpecialTable();
-            syncSpecialItemToDataset(index);
-            showToast(`[${item.empName || (index+1)+'번'}] 보수총액 = ${rateNum.toLocaleString()}원 × ${days}일 = ${item.supply.toLocaleString()}원`);
-        }
-
-        /* ── 4. 운전원 DB (localStorage) ── */
-        const DRIVER_DB_KEY = 'driver_db_v1';
-        function loadDriverDb() {
-            try { return JSON.parse(localStorage.getItem(DRIVER_DB_KEY) || '[]'); } catch(e) { return []; }
-        }
-        function saveDriverDb(list) {
-            localStorage.setItem(DRIVER_DB_KEY, JSON.stringify(list));
-        }
-
-        /* 현재 행 → DB 저장 */
-        function saveDriverToDb(index) {
-            const item = requestSpecialItems[index];
-            if (!item) return;
-            if (!item.empName) { showToast('운전원명을 먼저 입력하세요.'); return; }
-            const list = loadDriverDb();
-            const cleanRrn = (item.empRrn || '').replace(/[^0-9]/g, '');
-            const dup = cleanRrn ? list.findIndex(d => d.empRrn.replace(/[^0-9]/g,'') === cleanRrn) : -1;
-            const entry = { empName: item.empName, empRrn: item.empRrn || '', _dayRate: item._dayRate || 0, savedAt: new Date().toLocaleDateString('ko-KR') };
-            if (dup >= 0) { list[dup] = { ...list[dup], ...entry }; showToast(`[${item.empName}] DB 정보 업데이트 완료`); }
-            else { list.push(entry); showToast(`[${item.empName}] 운전원 DB 등록 완료`); }
-            saveDriverDb(list);
-        }
-
-        /* ── 5. 운전원 DB 모달 ── */
-        function openDriverDbModal() {
-            renderDriverDbList();
-            document.getElementById('driver-db-modal').classList.remove('hidden');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-        function closeDriverDbModal() {
-            document.getElementById('driver-db-modal').classList.add('hidden');
-        }
-        function renderDriverDbList() {
-            const list = loadDriverDb();
-            const el = document.getElementById('driver-db-list');
-            if (!list.length) {
-                el.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">저장된 운전원이 없습니다.<br>테이블에서 「DB저장」 버튼을 누르면 등록됩니다.</p>';
-                return;
-            }
-            el.innerHTML = list.map((d, i) => {
-                const info = parseRrnInfo(d.empRrn || '');
-                const ageTxt = info.age !== null ? `${info.birth} · ${info.age}세` : '생년월일 없음';
-                return `<div class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-600 transition-all">
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs">${d.empName}</p>
-                        <p class="text-[10px] text-slate-400 mt-0.5">${ageTxt}${d._dayRate ? ' · 일당 ' + d._dayRate.toLocaleString() + '원' : ''}</p>
-                        <p class="text-[9px] text-slate-300 dark:text-slate-600">${d.empRrn || '주민번호 없음'}</p>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <button onclick="addDriverFromDb(${i})" class="bg-teal-500 hover:bg-teal-600 text-white text-[9px] px-2 py-1 rounded font-bold">추가</button>
-                        <button onclick="deleteDriverFromDb(${i})" class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-600 text-[9px] px-2 py-1 rounded font-bold">삭제</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        function addDriverFromDb(dbIndex) {
-            const list = loadDriverDb();
-            const d = list[dbIndex];
-            if (!d) return;
-            // 중복 주민번호 체크
-            const cleanRrn = (d.empRrn || '').replace(/[^0-9]/g, '');
-            if (cleanRrn && requestSpecialItems.some(it => (it.empRrn || '').replace(/[^0-9]/g,'') === cleanRrn)) {
-                showToast(`[${d.empName}] 이미 추가된 운전원입니다. (주민번호 중복)`);
-                return;
-            }
-            requestSpecialItems.push({ datasetId: null, empName: d.empName, empRrn: d.empRrn || '', workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0, _dayRate: d._dayRate || 0 });
-            renderRequestSpecialTable();
-            showToast(`[${d.empName}] 운전원 추가 완료`);
-        }
-        function deleteDriverFromDb(dbIndex) {
-            const list = loadDriverDb();
-            const name = list[dbIndex]?.empName || '';
-            list.splice(dbIndex, 1);
-            saveDriverDb(list);
-            renderDriverDbList();
-            showToast(`[${name}] DB에서 삭제했습니다.`);
-        }
-
-        /* ── 6. 전월 불러오기 모달 ── */
-        function openPrevMonthImportModal() {
-            // 전체 저장 대장에서 특고 데이터가 있는 문서 목록 구성
-            const candidates = [];
-            savedDocuments.forEach(doc => {
-                if (doc.id === currentDocId) return;
-                (doc.dataset || []).forEach(row => {
-                    if (row.empName && row.empRrn) {
-                        const found = candidates.find(c => c.docId === doc.id);
-                        if (found) { found.count++; }
-                        else candidates.push({ docId: doc.id, label: `[${doc.month}] ${doc.site} (${doc.company})`, count: 1, doc });
-                    }
-                });
-            });
-            const el = document.getElementById('prev-month-list');
-            if (!candidates.length) {
-                el.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">불러올 수 있는 전월 특고 데이터가 없습니다.<br>다른 대장에 운전원(주민번호) 데이터가 있어야 합니다.</p>';
-            } else {
-                el.innerHTML = candidates.map(c =>
-                    `<label class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-600 cursor-pointer transition-all">
-                        <input type="checkbox" class="prev-month-chk w-3.5 h-3.5 accent-indigo-500 shrink-0" data-docid="${c.docId}">
-                        <div>
-                            <p class="font-bold text-slate-800 dark:text-slate-100 text-xs">${c.label}</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">특고 운전원 ${c.count}명</p>
-                        </div>
-                    </label>`
-                ).join('');
-            }
-            document.getElementById('prev-month-modal').classList.remove('hidden');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-        function closePrevMonthModal() {
-            document.getElementById('prev-month-modal').classList.add('hidden');
-        }
-        function importFromPrevMonth() {
-            const checked = [...document.querySelectorAll('.prev-month-chk:checked')].map(el => el.dataset.docid);
-            if (!checked.length) { showToast('불러올 대장을 선택하세요.'); return; }
-            let added = 0, skipped = 0;
-            checked.forEach(docId => {
-                const doc = savedDocuments.find(d => d.id === docId);
-                if (!doc) return;
-                (doc.dataset || []).forEach(row => {
-                    if (!row.empName || !row.empRrn) return;
-                    const cleanRrn = row.empRrn.replace(/[^0-9]/g,'');
-                    if (cleanRrn && requestSpecialItems.some(it => (it.empRrn||'').replace(/[^0-9]/g,'') === cleanRrn)) { skipped++; return; }
-                    requestSpecialItems.push({ datasetId: null, empName: row.empName, empRrn: row.empRrn || '', workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0, _dayRate: row._dayRate || 0 });
-                    added++;
-                });
-            });
-            renderRequestSpecialTable();
-            closePrevMonthModal();
-            showToast(`전월 운전원 ${added}명 추가 완료${skipped ? ` (중복 ${skipped}명 제외)` : ''}`);
         }
 
         function addSpecialItemRow() {
@@ -8149,285 +8395,11 @@
         }
 
         /* ============================================================
-           건설기계 임대차계약서 (V15)
+           건설기계 임대차계약서 (V15) — 구형 ct-* 함수 제거됨 (std-* 체계로 통합)
         ============================================================ */
         const CONTRACT_STORE_KEY = 'cons_contracts_v15';
-        let currentContractId = null;
-        let contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
 
-        function getContracts() {
-            try { return JSON.parse(localStorage.getItem(CONTRACT_STORE_KEY) || '[]'); } catch(e) { return []; }
-        }
-        function setContracts(arr) { localStorage.setItem(CONTRACT_STORE_KEY, JSON.stringify(arr)); }
 
-        /* 셀렉터 갱신 */
-        function refreshContractSelector() {
-            const sel  = document.getElementById('contract-list-selector');
-            if (!sel) return;
-            const list = getContracts();
-            sel.innerHTML = list.length
-                ? list.map(c => `<option value="${c.id}" ${c.id===currentContractId?'selected':''}>${c.title||'무제'} (${c.date||'날짜 없음'})</option>`).join('')
-                : '<option value="">저장된 계약서 없음</option>';
-        }
-
-        /* 폼 → 객체 */
-        function readContractForm() {
-            const gv = (id, fallback='') => { const el=document.getElementById(id); return el ? (el.value||fallback) : fallback; };
-            const gvt = (id) => gv(id,'').trim();
-            return {
-                id:               currentContractId || ('ct-' + Date.now()),
-                title:            gvt('ct-site') || '무제',
-                date:             gv('ct-date'),
-                number:           gvt('ct-number'),
-                site:             gvt('ct-site'),
-                workSite:         gvt('ct-work-site'),
-                periodFrom:       gv('ct-period-from'),
-                periodTo:         gv('ct-period-to'),
-                workStart:        gvt('ct-work-start'),
-                workEnd:          gvt('ct-work-end'),
-                unitPrice:        gv('ct-unit-price','0').replace(/,/g,''),
-                unitType:         gv('ct-unit-type','시간'),
-                qty:              gv('ct-qty','0'),
-                standby:          gvt('ct-standby'),
-                supply:           gv('ct-supply','0').replace(/,/g,''),
-                vat:              gv('ct-vat','0').replace(/,/g,''),
-                paymentTerms:     gvt('ct-payment-terms'),
-                fuel:             gv('ct-fuel','임대인 부담'),
-                insurance:        gv('ct-insurance','임대인 부담'),
-                special:          gvt('ct-special'),
-                lessorCompany:    gvt('ct-lessor-company'),
-                lessorBiznum:     gvt('ct-lessor-biznum'),
-                lessorCeo:        gvt('ct-lessor-ceo'),
-                lessorPhone:      gvt('ct-lessor-phone'),
-                lessorAddr:       gvt('ct-lessor-addr'),
-                lessorBank:       gvt('ct-lessor-bank'),
-                lessorAccount:    gvt('ct-lessor-account'),
-                lessorDriver:     gvt('ct-lessor-driver'),
-                lessorDriverPhone:gvt('ct-lessor-driver-phone'),
-                lesseeCompany:    gvt('ct-lessee-company'),
-                lesseeBiznum:     gvt('ct-lessee-biznum'),
-                lesseeCeo:        gvt('ct-lessee-ceo'),
-                lesseePhone:      gvt('ct-lessee-phone'),
-                lesseeAddr:       gvt('ct-lessee-addr'),
-                lesseeManager:    gvt('ct-lessee-manager'),
-                lesseeManagerPhone:gvt('ct-lessee-manager-phone'),
-                machines: JSON.parse(JSON.stringify(contractMachines)),
-                savedAt: new Date().toLocaleString('ko-KR'),
-            };
-        }
-
-        /* 객체 → 폼 */
-        function writeContractForm(c) {
-            const set = (id, v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
-            set('ct-site', c.site); set('ct-date', c.date); set('ct-number', c.number);
-            set('ct-work-site', c.workSite);
-            set('ct-period-from', c.periodFrom); set('ct-period-to', c.periodTo);
-            set('ct-work-start', c.workStart); set('ct-work-end', c.workEnd);
-            set('ct-unit-price', Number(c.unitPrice||0).toLocaleString('ko-KR'));
-            const ut=document.getElementById('ct-unit-type'); if(ut) ut.value=c.unitType||'시간';
-            set('ct-qty', c.qty); set('ct-standby', c.standby);
-            set('ct-supply', Number(c.supply||0).toLocaleString('ko-KR'));
-            set('ct-vat',    Number(c.vat||0).toLocaleString('ko-KR'));
-            set('ct-payment-terms', c.paymentTerms);
-            const fu=document.getElementById('ct-fuel'); if(fu) fu.value=c.fuel||'임대인 부담';
-            const ins=document.getElementById('ct-insurance'); if(ins) ins.value=c.insurance||'임대인 부담';
-            set('ct-special', c.special);
-            set('ct-lessor-company', c.lessorCompany); set('ct-lessor-biznum', c.lessorBiznum);
-            set('ct-lessor-ceo', c.lessorCeo); set('ct-lessor-phone', c.lessorPhone);
-            set('ct-lessor-addr', c.lessorAddr); set('ct-lessor-bank', c.lessorBank);
-            set('ct-lessor-account', c.lessorAccount);
-            set('ct-lessor-driver', c.lessorDriver); set('ct-lessor-driver-phone', c.lessorDriverPhone);
-            set('ct-lessee-company', c.lesseeCompany); set('ct-lessee-biznum', c.lesseeBiznum);
-            set('ct-lessee-ceo', c.lesseeCeo); set('ct-lessee-phone', c.lesseePhone);
-            set('ct-lessee-addr', c.lesseeAddr);
-            set('ct-lessee-manager', c.lesseeManager); set('ct-lessee-manager-phone', c.lesseeManagerPhone);
-            contractMachines = (c.machines && c.machines.length) ? c.machines : [{ kind:'', spec:'', regnum:'', maker:'' }];
-            renderContractMachineRows();
-            updateContractTotal(Number(c.supply||0), Number(c.vat||0));
-            updateContractSignature();
-        }
-
-        /* 저장 */
-        function saveContract() {
-            const obj  = readContractForm();
-            currentContractId = obj.id;
-            const list = getContracts();
-            const idx  = list.findIndex(c => c.id === obj.id);
-            if (idx >= 0) list[idx] = obj; else list.push(obj);
-            setContracts(list);
-            refreshContractSelector();
-            showToast(`[${obj.title}] 계약서 저장 완료!`);
-        }
-
-        /* 불러오기 */
-        function loadContract(id) {
-            if (!id) return;
-            const list = getContracts();
-            const c    = list.find(x => x.id === id);
-            if (!c) return;
-            currentContractId = c.id;
-            writeContractForm(c);
-            showToast(`[${c.title}] 계약서를 불러왔습니다.`);
-        }
-
-        /* 새 계약서 */
-        function newContract() {
-            currentContractId = null;
-            contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
-            ['ct-site','ct-date','ct-number','ct-work-site','ct-period-from','ct-period-to',
-             'ct-work-start','ct-work-end','ct-unit-price','ct-qty','ct-standby',
-             'ct-supply','ct-vat','ct-payment-terms','ct-special',
-             'ct-lessor-company','ct-lessor-biznum','ct-lessor-ceo','ct-lessor-phone',
-             'ct-lessor-addr','ct-lessor-bank','ct-lessor-account','ct-lessor-driver','ct-lessor-driver-phone',
-             'ct-lessee-company','ct-lessee-biznum','ct-lessee-ceo','ct-lessee-phone',
-             'ct-lessee-addr','ct-lessee-manager','ct-lessee-manager-phone'
-            ].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-            const _ctTot=document.getElementById('ct-total-display'); if(_ctTot) _ctTot.textContent='금 0원정 (￦0)';
-            renderContractMachineRows();
-            updateContractSignature();
-            showToast('새 계약서 양식이 초기화되었습니다.');
-        }
-
-        /* 삭제 */
-        function deleteContract() {
-            if (!currentContractId) { showToast('선택된 계약서가 없습니다.'); return; }
-            showConfirmModal('계약서 삭제', '현재 계약서를 삭제합니다. 복구할 수 없습니다.', function() {
-                const list = getContracts().filter(c => c.id !== currentContractId);
-                setContracts(list);
-                currentContractId = null;
-                newContract();
-                refreshContractSelector();
-                showToast('계약서가 삭제되었습니다.');
-            });
-        }
-
-        /* 인쇄 */
-        function printContract() {
-            saveContract();
-            updateContractSignature();
-            const box = document.getElementById('contract-print-box');
-            if (!box) return;
-            const clone = box.cloneNode(true);
-            clone.querySelectorAll('.no-print').forEach(n => n.remove());
-            // input → span 변환 (인쇄 시 값 표시)
-            clone.querySelectorAll('input, select, textarea').forEach(el => {
-                const span = document.createElement(el.tagName === 'TEXTAREA' ? 'div' : 'span');
-                span.textContent = el.value || el.textContent || '';
-                span.style.cssText = el.style.cssText;
-                span.className = el.className.replace('outline-none','');
-                el.parentNode.replaceChild(span, el);
-            });
-            const win = window.open('', '_blank', 'width=900,height=1200');
-            win.document.write(`<!DOCTYPE html><html><head>
-                <meta charset="utf-8">
-                <title>건설기계 임대차계약서</title>
-                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
-                <style>
-                    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-                    body{font-family:'Noto Sans KR',sans-serif;font-size:12px;line-height:1.8;color:#111;background:#fff;margin:0;padding:0;}
-                    @page{size:A4 portrait;margin:15mm 15mm 15mm 15mm;}
-                    table{border-collapse:collapse;width:100%;}
-                    td,th{border:1px solid #888;padding:4px 8px;vertical-align:middle;}
-                    input,select,textarea{border:none;outline:none;background:transparent;}
-                    .no-print{display:none!important;}
-                    @media print{.no-print{display:none!important;}}
-                </style>
-            </head><body>${clone.innerHTML}</body></html>`);
-            win.document.close();
-            setTimeout(() => { win.focus(); win.print(); }, 400);
-        }
-
-        /* 금액 자동 계산 */
-        function calcContractTotal() {
-            const _ctUP=document.getElementById('ct-unit-price');
-            const _ctQY=document.getElementById('ct-qty');
-            const _ctSU=document.getElementById('ct-supply');
-            const _ctVT=document.getElementById('ct-vat');
-            if (!_ctUP || !_ctQY) return;
-            const price = Number(String(_ctUP.value).replace(/,/g,'')) || 0;
-            const qty   = Number(_ctQY.value) || 0;
-            const supply = price * qty;
-            const vat    = Math.round(supply * 0.1);
-            if (_ctSU) _ctSU.value = supply.toLocaleString('ko-KR');
-            if (_ctVT) _ctVT.value = vat.toLocaleString('ko-KR');
-            updateContractTotal(supply, vat);
-        }
-
-        function updateContractTotal(supply, vat) {
-            const total = supply + vat;
-            const el = document.getElementById('ct-total-display');
-            if (el) el.textContent = `금 ${total.toLocaleString('ko-KR')}원정 (￦${total.toLocaleString('ko-KR')})`;
-        }
-
-        /* 서명란 실시간 동기화 */
-        function updateContractSignature() {
-            const sync = (fromId, toId) => {
-                const from = document.getElementById(fromId);
-                const to   = document.getElementById(toId);
-                if (from && to) to.textContent = from.value || '';
-            };
-            sync('ct-lessor-company','ct-sig-lessor-company');
-            sync('ct-lessor-ceo',    'ct-sig-lessor-ceo');
-            sync('ct-lessor-addr',   'ct-sig-lessor-addr');
-            sync('ct-lessor-phone',  'ct-sig-lessor-phone');
-            sync('ct-lessee-company','ct-sig-lessee-company');
-            sync('ct-lessee-ceo',    'ct-sig-lessee-ceo');
-            sync('ct-lessee-addr',   'ct-sig-lessee-addr');
-            sync('ct-lessee-phone',  'ct-sig-lessee-phone');
-        }
-        // 입력 시 실시간 서명란 업데이트
-        ['ct-lessor-company','ct-lessor-ceo','ct-lessor-addr','ct-lessor-phone',
-         'ct-lessee-company','ct-lessee-ceo','ct-lessee-addr','ct-lessee-phone'].forEach(id => {
-            document.addEventListener('input', e => { if(e.target.id===id) updateContractSignature(); });
-        });
-
-        /* 기계 행 렌더 */
-        function renderContractMachineRows() {
-            const tbody = document.getElementById('ct-machine-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = contractMachines.map((m, i) => `
-                <tr>
-                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
-                        <input type="text" value="${m.kind||''}" placeholder="예) 굴착기, 지게차"
-                            oninput="contractMachines[${i}].kind=this.value"
-                            class="w-full bg-transparent outline-none text-[12px]">
-                    </td>
-                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
-                        <input type="text" value="${m.spec||''}" placeholder="예) 0.4m³, 3ton"
-                            oninput="contractMachines[${i}].spec=this.value"
-                            class="w-full bg-transparent outline-none text-[12px]">
-                    </td>
-                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
-                        <input type="text" value="${m.regnum||''}" placeholder="예) 강원 01 가 1234"
-                            oninput="contractMachines[${i}].regnum=this.value"
-                            class="w-full bg-transparent outline-none text-[12px]">
-                    </td>
-                    <td class="border border-slate-400 dark:border-slate-600 px-2 py-1">
-                        <div class="flex items-center gap-1">
-                            <input type="text" value="${m.maker||''}" placeholder="예) 두산 / 2018년"
-                                oninput="contractMachines[${i}].maker=this.value"
-                                class="flex-1 bg-transparent outline-none text-[12px]">
-                            ${contractMachines.length > 1 ? `<button onclick="removeMachineRow(${i})" class="no-print text-rose-400 hover:text-rose-600 shrink-0 p-0.5"><i data-lucide="x" class="w-3 h-3"></i></button>` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function addMachineRow() {
-            contractMachines.push({ kind:'', spec:'', regnum:'', maker:'' });
-            renderContractMachineRows();
-        }
-        function removeMachineRow(idx) {
-            contractMachines.splice(idx, 1);
-            renderContractMachineRows();
-        }
-
-        /* PDF 파싱 가져오기 */
-        function triggerContractPdfImport() {
-            const _pdfIn=document.getElementById('contract-pdf-input'); if(_pdfIn) _pdfIn.click();
-        }
 
         async function importContractPdf(input) {
             const file = input.files[0];
@@ -8447,7 +8419,7 @@
             }
         }
 
-        /* PDF 텍스트 → 계약서 필드 자동 채우기 */
+        /* PDF 텍스트 → 계약서 필드 자동 채우기 (std-* ID 체계) */
         function parseContractPdfText(text) {
             const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
             const find  = (patterns) => {
@@ -8459,52 +8431,51 @@
                 }
                 return '';
             };
+            const setVal = (id, v) => { const el=document.getElementById(id); if(el && v) { el.value=v; el.dispatchEvent(new Event('input')); } };
 
             // 현장명
             const site = find([/현장명[:\s]+(.+)/, /공사현장[:\s]+(.+)/, /작업현장[:\s]+(.+)/]);
-            if (site) { const _e=document.getElementById('ct-site'); if(_e) _e.value=site; }
+            setVal('std-siteName', site);
 
-            // 날짜
+            // 계약일
             const dateMatch = text.match(/(\d{4})[년.\-]\s*(\d{1,2})[월.\-]\s*(\d{1,2})/);
             if (dateMatch) {
-                const y=dateMatch[1], m=dateMatch[2].padStart(2,'0'), d=dateMatch[3].padStart(2,'0');
-                const _ctD=document.getElementById('ct-date'); if(_ctD) _ctD.value=`${y}-${m}-${d}`;
+                const y=dateMatch[1], mo=dateMatch[2].padStart(2,'0'), d=dateMatch[3].padStart(2,'0');
+                setVal('std-contractDate', `${y}-${mo}-${d}`);
             }
 
             // 임대인 정보
             const lessorCompany = find([/임대인.*상호[:\s]+(.+)/, /임대인[:\s]+(.+)/]);
             const lessorCeo     = find([/임대인.*대표자[:\s]+(.+)/, /대표자.*임대[:\s]+(.+)/]);
             const lessorPhone   = find([/임대인.*전화[:\s]+([\d\-]+)/, /임대인.*연락처[:\s]+([\d\-]+)/]);
-            const lessorBiznum  = find([/임대인.*사업자[:\s]*([\d\-]+)/, /사업자등록번호[:\s]*([\d\-]+)/]);
-            if (lessorCompany) { const _e=document.getElementById('ct-lessor-company'); if(_e) _e.value=lessorCompany; }
-            if (lessorCeo)     { const _e=document.getElementById('ct-lessor-ceo'); if(_e) _e.value=lessorCeo; }
-            if (lessorPhone)   { const _e=document.getElementById('ct-lessor-phone'); if(_e) _e.value=lessorPhone; }
-            if (lessorBiznum)  { const _e=document.getElementById('ct-lessor-biznum'); if(_e) _e.value=lessorBiznum; }
+            const lessorRegNo   = find([/임대인.*사업자[:\s]*([\d\-]+)/, /사업자등록번호[:\s]*([\d\-]+)/]);
+            setVal('std-lessorCompany', lessorCompany);
+            setVal('std-lessorName',    lessorCeo);
+            setVal('std-lessorPhone',   lessorPhone);
+            setVal('std-lessorRegNo',   lessorRegNo);
 
             // 임차인 정보
             const lesseeCompany = find([/임차인.*상호[:\s]+(.+)/, /임차인[:\s]+(.+)/]);
             const lesseeCeo     = find([/임차인.*대표자[:\s]+(.+)/]);
             const lesseePhone   = find([/임차인.*전화[:\s]+([\d\-]+)/, /임차인.*연락처[:\s]+([\d\-]+)/]);
-            if (lesseeCompany) { const _e=document.getElementById('ct-lessee-company'); if(_e) _e.value=lesseeCompany; }
-            if (lesseeCeo)     { const _e=document.getElementById('ct-lessee-ceo'); if(_e) _e.value=lesseeCeo; }
-            if (lesseePhone)   { const _e=document.getElementById('ct-lessee-phone'); if(_e) _e.value=lesseePhone; }
+            setVal('std-lesseeCompany', lesseeCompany);
+            setVal('std-lesseeName',    lesseeCeo);
+            setVal('std-lesseePhone',   lesseePhone);
 
             // 금액
             const amtMatch = text.match(/계약금액[^\d]*([\d,]+)/);
             if (amtMatch) {
                 const total  = Number(amtMatch[1].replace(/,/g,''));
                 const supply = Math.round(total / 1.1);
-                const vat    = total - supply;
-                const _eS=document.getElementById('ct-supply'); if(_eS) _eS.value=supply.toLocaleString('ko-KR');
-                const _eV=document.getElementById('ct-vat'); if(_eV) _eV.value=vat.toLocaleString('ko-KR');
-                updateContractTotal(supply, vat);
+                setVal('std-rentAmount', String(supply));
+                setVal('std-totalAmount', String(total));
             }
 
             // 기계 종류
             const machineKind = find([/기계종류[:\s]+(.+)/, /건설기계[:\s]+(.+)/]);
-            if (machineKind) { contractMachines[0].kind = machineKind; renderContractMachineRows(); }
+            setVal('std-machineName', machineKind);
 
-            updateContractSignature();
+            if (typeof stdUpdateContract === 'function') stdUpdateContract();
             showToast('PDF 파싱 완료! 내용을 확인 후 수정해 주세요.');
         }
 
@@ -11286,49 +11257,5 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         // ===== 끝: 건설기계임대차 표준계약서 =====
     </script>
-
-        <!-- ══ 운전원 DB 모달 ══ -->
-        <div id="driver-db-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);">
-            <div class="modal-card w-full max-w-md max-h-[80vh] flex flex-col">
-                <div class="modal-header flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <div class="p-1.5 bg-teal-600 rounded-lg"><i data-lucide="users" class="w-4 h-4 text-white"></i></div>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">운전원 DB 관리</h3>
-                    </div>
-                    <button onclick="closeDriverDbModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div>
-                <div class="p-4 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                    테이블에서 「DB저장」을 누르면 자동 등록됩니다. 「추가」를 누르면 현재 특고 대장에 즉시 삽입됩니다.
-                </div>
-                <div id="driver-db-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
-                <div class="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                    <button onclick="closeDriverDbModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded-lg text-xs font-bold transition-all">닫기</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══ 전월 불러오기 모달 ══ -->
-        <div id="prev-month-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);">
-            <div class="modal-card w-full max-w-md max-h-[80vh] flex flex-col">
-                <div class="modal-header flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <div class="p-1.5 bg-indigo-600 rounded-lg"><i data-lucide="history" class="w-4 h-4 text-white"></i></div>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">전월 운전원 불러오기</h3>
-                    </div>
-                    <button onclick="closePrevMonthModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div>
-                <div class="p-4 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                    불러올 대장을 선택하세요. 주민번호 기준 중복 운전원은 자동 제외됩니다. 가동일수·금액은 0으로 초기화됩니다.
-                </div>
-                <div id="prev-month-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
-                <div class="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-                    <button onclick="closePrevMonthModal()" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded-lg text-xs font-bold">취소</button>
-                    <button onclick="importFromPrevMonth()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i> 선택 불러오기
-                    </button>
-                </div>
-            </div>
-        </div>
-
 </body>
 </html>
