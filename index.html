@@ -561,11 +561,97 @@
             .flex.flex-grow.overflow-hidden { display: block !important; }
         }
 
-        /* ── 탭바 개선 (기존 — 비활성화 but 남겨둠) ── */
-        .tab-bar {
-            background: rgba(2,6,23,0.6);
-            border-top: 1px solid rgba(255,255,255,0.06);
+        /* ══════════════════════════════════════════════
+           탭 공통 컨트롤 패널 헤더 (통일 디자인)
+        ══════════════════════════════════════════════ */
+        .tab-ctrl-panel {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
+        .dark .tab-ctrl-panel {
+            background: #0f172a;
+            border-color: #1e293b;
+        }
+        .tab-ctrl-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .tab-ctrl-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tab-ctrl-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .tab-ctrl-icon svg { width: 16px; height: 16px; color: #fff; }
+        .tab-ctrl-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.3;
+        }
+        .dark .tab-ctrl-title { color: #f1f5f9; }
+        .tab-ctrl-sub {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .tab-ctrl-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        /* 공통 액션 버튼 */
+        .ctrl-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            transition: opacity 0.15s, transform 0.1s;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .ctrl-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .ctrl-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+        .ctrl-btn-ghost {
+            background: transparent !important;
+            color: #64748b !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .dark .ctrl-btn-ghost {
+            color: #94a3b8 !important;
+            border-color: #334155 !important;
+        }
+        .ctrl-btn-ghost:hover { background: #f1f5f9 !important; }
+        .dark .ctrl-btn-ghost:hover { background: #1e293b !important; }
+        /* 구분선 */
+        .ctrl-divider {
+            width: 1px;
+            height: 20px;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .dark .ctrl-divider { background: #334155; }
         .tab-btn {
             position: relative;
             padding: 9px 16px;
@@ -585,18 +671,7 @@
             border-bottom-color: #3b82f6;
             background: rgba(59,130,246,0.07);
         }
-        .tab-btn.tab-active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
-            border-radius: 2px;
-        }
-        .tab-num {
+        .tab-btn.tab-num {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -884,19 +959,19 @@
 
         /* ── 지불의뢰서 A4 헤더 메타 ── */
         .req-header-section h2,
-        .req-header-section h2 * { font-size: 28px; }
+        .req-header-section h2 * { font-size: 25px; }
         .req-meta-grid { display:flex; flex-direction:column; gap:3px; }
         .req-meta-row  { display:flex; align-items:center; }
         .req-meta-label {
             width: 56px; flex-shrink: 0;
-            font-size: 11px; font-weight: 700;
+            font-size: 12px; font-weight: 700;
             color: #475569; letter-spacing: .04em;
         }
         .dark .req-meta-label { color:#94a3b8; }
         .req-meta-sep  { width:14px; flex-shrink:0; text-align:center; color:#94a3b8; font-weight:700; }
         .req-meta-input {
             flex: 1; min-width: 0;
-            font-size: 11px; font-weight: 700;
+            font-size: 12px; font-weight: 700;
             color: #1e293b; background: transparent;
             border: none; border-bottom: 1px solid #e2e8f0;
             outline: none; padding: 2px 4px;
@@ -908,7 +983,7 @@
             .req-meta-label { color:#334155 !important; }
             .req-meta-input { color:#0f172a !important; border-bottom:1px solid #475569 !important; }
             .req-header-section h2,
-            .req-header-section h2 * { font-size: 28px !important; }
+            .req-header-section h2 * { font-size: 25px !important; }
         }
 
         /* ── 반응형 헤더 압축 ── */
@@ -1097,7 +1172,7 @@
                     class="sidebar-tab-btn sidebar-tab-active group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">1</span>
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
-                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">자금청구명세서</span>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">자금청구<br>명세서</span>
                 </button>
 
                 <button id="tab-btn-request" onclick="switchTab('request')"
@@ -1128,11 +1203,18 @@
                     <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">건설기계<br>임대차계약서</span>
                 </button>
 
+                <button id="tab-btn-corpcard" onclick="switchTab('corpcard')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">6</span>
+                    <i data-lucide="credit-card" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">법인카드<br>경비관리</span>
+                </button>
+
             </div>
 
             <!-- 사이드바 하단 버전 표시 -->
             <div id="sidebar-footer" class="px-3 py-2 text-[9px] font-bold" style="color:#334155;border-top:1px solid rgba(255,255,255,0.06);">
-                <span class="sidebar-tab-label">현장 자금관리 Pro V23</span>
+                <span class="sidebar-tab-label">현장 경비관리 V24</span>
             </div>
         </nav>
 
@@ -1354,17 +1436,15 @@
                 #stmt-toolbar-body { overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; max-height:200px; }
                 #stmt-toolbar-body.collapsed { max-height:0 !important; opacity:0; pointer-events:none; }
             </style>
-            <div class="no-print mb-2 rounded-xl border" style="background:#f8fafc;border-color:#e2e8f0;">
+            <div class="no-print tab-ctrl-panel mb-2" style="padding:0;">
                 <!-- 한줄 헤더 — 항상 표시 -->
-                <div class="flex items-center gap-2 px-3 py-2">
+                <div class="flex items-center gap-2 px-3 py-2.5">
                     <!-- 검색창 (항상 표시) -->
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
                         <input type="text" id="state-search-keyword" oninput="onUnifiedSearch()"
                             placeholder="거래처명·적요 검색..."
-                            class="w-full border text-xs rounded-lg pl-8 pr-7 py-1.5 outline-none font-semibold transition-all"
-                            style="background:#fff;border-color:#e2e8f0;color:#1e293b;"
-                            onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                            class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-lg pl-8 pr-7 py-1.5 outline-none font-semibold transition-all focus:border-blue-500 dark:focus:border-blue-400">
                         <button onclick="clearSearchFilters()" class="absolute right-2 top-1/2 -translate-y-1/2" style="color:#94a3b8;">
                             <i data-lucide="x" class="w-3 h-3"></i>
                         </button>
@@ -1372,8 +1452,7 @@
                     <span id="search-result-count" class="text-[11px] font-bold whitespace-nowrap hidden" style="color:#3b82f6;"></span>
                     <!-- 구분 필터 -->
                     <select id="state-filter-type-select" onchange="renderStatementTable()"
-                        class="border rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0"
-                        style="background:#fff;border-color:#e2e8f0;color:#334155;">
+                        class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0">
                         <option value="ALL">전체 구분</option>
                         <option value="외주비">외주비</option>
                         <option value="자재비">자재비</option>
@@ -1383,8 +1462,7 @@
                     </select>
                     <!-- 상태 필터 -->
                     <select id="state-filter-status-select" onchange="renderStatementTable()"
-                        class="border rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0"
-                        style="background:#fff;border-color:#e2e8f0;color:#334155;">
+                        class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0">
                         <option value="ALL">전체 상태</option>
                         <option value="대기">대기</option>
                         <option value="완료">완료</option>
@@ -1393,14 +1471,14 @@
                     <!-- 툴바 토글 버튼 -->
                     <button onclick="toggleStmtToolbar()" id="stmt-toolbar-toggle"
                         class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all"
-                        style="background:#fff;border-color:#e2e8f0;color:#64748b;" title="상세 옵션">
+                        class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold transition-all" title="상세 옵션">
                         <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
                         <i data-lucide="chevron-down" class="w-3 h-3" id="stmt-toolbar-chevron"></i>
                     </button>
                 </div>
                 <!-- 접이식 상세 옵션 -->
                 <div id="stmt-toolbar-body" class="collapsed">
-                    <div class="px-3 pb-2.5 flex flex-wrap gap-3 items-center border-t" style="border-color:#e2e8f0;padding-top:10px;">
+                    <div class="px-3 pb-2.5 flex flex-wrap gap-3 items-center border-t border-slate-100 dark:border-slate-800" style="padding-top:10px;">
                         <!-- 검색 범위 칩 -->
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[10px] font-bold" style="color:#94a3b8;">검색범위</span>
@@ -1419,7 +1497,7 @@
                                 style="background:#fff;border-color:#e2e8f0;color:#334155;">
                                 <option value="10px">10px</option>
                                 <option value="11px" selected>11px</option>
-                                <option value="12px">12px</option>
+                                <option value="12px" selected>12px</option>
                                 <option value="13px">13px</option>
                                 <option value="14px">14px</option>
                             </select>
@@ -1576,7 +1654,7 @@
                 
                 <!-- 지불의뢰서 실물 A4 portrait 양식 -->
                 <div class="lg:col-span-3">
-                    <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 10px;">
+                    <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 12px;">
                         
                         <!-- 상단 타이틀 -->
                         <div class="req-header-section border-b-2 border-slate-800 dark:border-slate-400 pb-3 mb-4">
@@ -1777,9 +1855,9 @@
                             <span>글자크기</span>
                             <select id="req-font-size-select" onchange="adjustRequestFont(this.value)" class="rounded border border-slate-700 bg-slate-800 text-white text-[10px] px-1 py-0.5 outline-none">
                                 <option value="9px">9px</option>
-                                <option value="10px" selected>10px</option>
+                                <option value="10px">10px</option>
                                 <option value="11px">11px</option>
-                                <option value="12px">12px</option>
+                                <option value="12px" selected>12px</option>
                             </select>
                         </label>
 
@@ -1847,23 +1925,23 @@
         <div id="tab-request-special" class="hidden">
 
             <!-- 특고 제어 헤더 -->
-            <div class="no-print bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-amber-200 dark:border-amber-900 p-5 mb-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="hard-hat" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
+            <div class="no-print tab-ctrl-panel mb-6">
+                <div class="tab-ctrl-header">
+                    <div class="tab-ctrl-title-wrap">
+                        <div class="tab-ctrl-icon" style="background:#d97706;">
+                            <i data-lucide="hard-hat" class="w-4 h-4 text-white"></i>
+                        </div>
                         <div>
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">특고(일용) 인적용역 신고 내역</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                장비비 거래처의 특고(일용직) 운전원별 보수총액·고용보험료·산재보험료·실지급액을 관리합니다. 지불의뢰서에서 장비비 거래처를 선택하면 자동으로 연동됩니다.
-                            </p>
+                            <div class="tab-ctrl-title">특고(일용) 인적용역 신고 내역</div>
+                            <div class="tab-ctrl-sub">장비비 거래처 특고(일용직) 운전원별 보수총액·보험료·실지급액 관리 — 지불의뢰서 연동</div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2 shrink-0">
-                        <button onclick="addSpecialItemRow()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
-                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 행 추가
+                    <div class="tab-ctrl-actions">
+                        <button onclick="addSpecialItemRow()" class="ctrl-btn" style="background:#d97706;">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 추가
                         </button>
-                        <button onclick="printSpecialSection()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all">
-                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 특고 대장 인쇄
+                        <button onclick="printSpecialSection()" class="ctrl-btn" style="background:#475569;">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄
                         </button>
                     </div>
                 </div>
@@ -1988,56 +2066,55 @@
 
         <!-- 3. 거래처별 청구 통계 집계표 영역 -->
         <div id="tab-stats" class="hidden font-sans">
-            <div class="no-print bg-slate-900 dark:bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 dark:border-slate-850 p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-700 dark:border-slate-800 pb-3 mb-5 gap-2">
-                    <div class="flex items-center gap-2">
-                        <div class="p-2 bg-emerald-500 rounded-lg text-slate-950">
-                            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+            <!-- 집계표 컨트롤 패널 -->
+            <div class="no-print tab-ctrl-panel">
+                <div class="tab-ctrl-header">
+                    <div class="tab-ctrl-title-wrap">
+                        <div class="tab-ctrl-icon" style="background:#059669;">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-white"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-base tracking-tight text-white">자금청구집계표</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">구분별 거래처 통합액을 파악합니다. 카드를 클릭하면 상세 목록이 표출됩니다.</p>
+                            <div class="tab-ctrl-title">자금청구 집계표</div>
+                            <div class="tab-ctrl-sub">공종별·거래처별 통합 집계 — 카드 클릭 시 상세 목록 표출</div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button onclick="exportStatsToExcel()" class="bg-green-700 hover:bg-green-600 text-white text-xs px-3 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel 내보내기
+                    <div class="tab-ctrl-actions">
+                        <span class="text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" id="stats-total-vendor-count">총 0개 거래처</span>
+                        <div class="ctrl-divider"></div>
+                        <button onclick="exportStatsToExcel()" class="ctrl-btn" style="background:#059669;">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
                         </button>
-                        <button onclick="exportStatsToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded font-semibold flex items-center gap-1 transition-all">
+                        <button onclick="exportStatsToCSV()" class="ctrl-btn" style="background:#0f766e;">
                             <i data-lucide="file-down" class="w-3.5 h-3.5"></i> CSV
                         </button>
-                        <span class="text-xs bg-slate-800 text-slate-300 font-bold px-3 py-1 rounded-full border border-slate-700" id="stats-total-vendor-count">총 0개 거래처 집계 중</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- ▶ 분석 대시보드 (차트 + 랭킹) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" id="stats-dashboard-row">
-                    <!-- 도넛 차트 -->
-                    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex flex-col items-center gap-3">
-                        <p class="text-xs font-bold text-slate-300 self-start">공종별 청구 비율</p>
-                        <svg id="stats-donut-svg" viewBox="0 0 200 200" width="160" height="160"></svg>
-                        <div id="stats-donut-legend" class="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px]"></div>
-                    </div>
-                    <!-- Top 5 랭킹 -->
-                    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex flex-col gap-2">
-                        <p class="text-xs font-bold text-slate-300">Top 5 거래처 (청구합계 기준)</p>
-                        <div id="stats-top5" class="flex flex-col gap-1.5 mt-1"></div>
-                    </div>
-                    <!-- 전월 대비 증감 -->
-                    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex flex-col gap-2">
-                        <div class="flex items-center justify-between">
-                            <p class="text-xs font-bold text-slate-300">전월 대비 공종별 증감</p>
-                            <select id="stats-prev-doc-sel" onchange="renderStatsDelta()" class="text-[10px] bg-slate-700 border border-slate-600 text-slate-200 rounded px-1.5 py-0.5 outline-none max-w-[120px]">
-                                <option value="">전월 선택</option>
-                            </select>
-                        </div>
-                        <div id="stats-delta-list" class="flex flex-col gap-1 mt-1"></div>
-                    </div>
+            <!-- 분석 대시보드 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3" id="stats-dashboard-row">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col items-center gap-3 shadow-sm">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 self-start">공종별 청구 비율</p>
+                    <svg id="stats-donut-svg" viewBox="0 0 200 200" width="160" height="160"></svg>
+                    <div id="stats-donut-legend" class="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px]"></div>
                 </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col gap-2 shadow-sm">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Top 5 거래처 (청구합계 기준)</p>
+                    <div id="stats-top5" class="flex flex-col gap-1.5 mt-1"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col gap-2 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">전월 대비 공종별 증감</p>
+                        <select id="stats-prev-doc-sel" onchange="renderStatsDelta()" class="text-[10px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded px-1.5 py-0.5 outline-none max-w-[120px]">
+                            <option value="">전월 선택</option>
+                        </select>
+                    </div>
+                    <div id="stats-delta-list" class="flex flex-col gap-1 mt-1"></div>
+                </div>
+            </div>
 
-                <!-- 거래처 카드 보드 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="vendor-stats-board">
-                </div>
+            <!-- 거래처 카드 보드 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="vendor-stats-board">
             </div>
         </div>
 
@@ -2060,21 +2137,23 @@
             <div id="ctab-form">
 
             <!-- 컨트롤 패널 (no-print) -->
-            <div class="no-print bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 mb-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-2">
-                        <div class="bg-amber-600 p-1.5 rounded-lg"><i data-lucide="file-signature" class="w-4 h-4 text-white"></i></div>
+            <div class="no-print tab-ctrl-panel mb-4">
+                <div class="tab-ctrl-header">
+                    <div class="tab-ctrl-title-wrap">
+                        <div class="tab-ctrl-icon" style="background:#d97706;">
+                            <i data-lucide="file-signature" class="w-4 h-4 text-white"></i>
+                        </div>
                         <div>
-                            <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">건설기계임대차 표준계약서 <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">공정위 제10059호</span></h4>
-                            <p class="text-[10px] text-slate-400">디지털 서명/도장 내장 · 약관 2면 인쇄 · 다중 계약서 보관함</p>
+                            <div class="tab-ctrl-title">건설기계임대차 표준계약서 <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 8px;border-radius:20px;font-weight:700;margin-left:4px;">공정위 제10059호</span></div>
+                            <div class="tab-ctrl-sub">디지털 서명·도장 내장 · 약관 2면 인쇄 · 다중 보관함</div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button onclick="stdSaveToArchiveAndDb()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all">
-                            <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> 저장 (보관함+DB)
+                    <div class="tab-ctrl-actions">
+                        <button onclick="stdSaveToArchiveAndDb()" class="ctrl-btn" style="background:#d97706;">
+                            <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> 저장
                         </button>
-                        <button onclick="stdShowArchiveModal()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-600 transition-all">
-                            <i data-lucide="layers" class="w-3.5 h-3.5"></i> 보관함 열기
+                        <button onclick="stdShowArchiveModal()" class="ctrl-btn ctrl-btn-ghost">
+                            <i data-lucide="layers" class="w-3.5 h-3.5"></i> 보관함
                         </button>
                         <div class="flex gap-1">
                             <button onclick="stdExportBackup()" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
@@ -2633,7 +2712,180 @@
 
         </div><!-- /tab-contract -->
 
-    </main>
+        <!-- ═══════════════════════════════════════════
+             법인카드 경비관리 탭 (tab-corpcard)
+        ═══════════════════════════════════════════ -->
+        <div id="tab-corpcard" class="hidden">
+
+            <!-- 컨트롤 패널 -->
+            <div class="no-print tab-ctrl-panel mb-4">
+                <div class="tab-ctrl-header">
+                    <div class="tab-ctrl-title-wrap">
+                        <div class="tab-ctrl-icon" style="background:#7c3aed;">
+                            <i data-lucide="credit-card" class="w-4 h-4 text-white"></i>
+                        </div>
+                        <div>
+                            <div class="tab-ctrl-title">법인카드 경비 관리대장</div>
+                            <div class="tab-ctrl-sub">사용일자·카테고리·현장 입력 → 월별·현장별 집계</div>
+                        </div>
+                    </div>
+                    <div class="tab-ctrl-actions">
+                        <button onclick="ccAddRow()" class="ctrl-btn" style="background:#7c3aed;">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
+                        </button>
+                        <button onclick="ccExportExcel()" class="ctrl-btn" style="background:#059669;">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
+                        </button>
+                        <button onclick="ccPrint()" class="ctrl-btn" style="background:#2563eb;">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄
+                        </button>
+                        <div class="ctrl-divider"></div>
+                        <button onclick="ccBackup()" class="ctrl-btn ctrl-btn-ghost">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> 백업
+                        </button>
+                        <button onclick="document.getElementById('cc-restore-input').click()" class="ctrl-btn ctrl-btn-ghost">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> 복원
+                        </button>
+                        <input type="file" id="cc-restore-input" accept=".json" class="hidden" onchange="ccRestore(event)">
+                    </div>
+                </div>
+
+                <!-- 필터 바 -->
+                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 items-center">
+                    <span class="text-[10px] font-bold text-slate-500">필터</span>
+                    <select id="cc-filter-month" onchange="ccRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <option value="">전체 월</option>
+                    </select>
+                    <select id="cc-filter-cat" onchange="ccRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <option value="">전체 카테고리</option>
+                        <option>유류비</option><option>식대</option><option>숙박비</option>
+                        <option>자재구입</option><option>공구/장비</option><option>통신비</option>
+                        <option>교통비</option><option>소모품</option><option>접대비</option><option>기타</option>
+                    </select>
+                    <select id="cc-filter-site" onchange="ccRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <option value="">전체 현장</option>
+                    </select>
+                    <input type="text" id="cc-filter-search" oninput="ccRender()" placeholder="가맹점·메모 검색…" class="px-2.5 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 w-44">
+                    <button onclick="ccClearFilters()" class="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded-lg">초기화</button>
+                    <span class="ml-auto text-[10px] font-bold text-violet-700 dark:text-violet-400" id="cc-filter-summary"></span>
+                </div>
+            </div>
+
+            <!-- 요약 카드 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4" id="cc-summary-cards">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">이번 달 합계</div>
+                    <div id="cc-kpi-month" class="text-lg font-black text-violet-600">0원</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">전체 합계</div>
+                    <div id="cc-kpi-total" class="text-lg font-black text-slate-800 dark:text-slate-100">0원</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">건수</div>
+                    <div id="cc-kpi-count" class="text-lg font-black text-slate-800 dark:text-slate-100">0건</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">최다 카테고리</div>
+                    <div id="cc-kpi-topcat" class="text-lg font-black text-amber-600">-</div>
+                </div>
+            </div>
+
+            <!-- 메인 테이블 -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs border-collapse" id="cc-table">
+                        <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-2 py-2 text-center w-8 font-bold">No</th>
+                                <th class="px-2 py-2 text-center w-28 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('date')">사용일자 ↕</th>
+                                <th class="px-2 py-2 text-center w-24 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('cat')">카테고리 ↕</th>
+                                <th class="px-2 py-2 text-left w-36 font-bold">가맹점명</th>
+                                <th class="px-2 py-2 text-right w-28 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('amount')">금액 ↕</th>
+                                <th class="px-2 py-2 text-center w-28 font-bold">현장 배분</th>
+                                <th class="px-2 py-2 text-left font-bold">메모 (영수증 내용)</th>
+                                <th class="px-2 py-2 text-center w-16 font-bold no-print">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cc-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr><td colspan="8" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
+                        </tbody>
+                        <tfoot id="cc-tfoot" class="bg-slate-50 dark:bg-slate-800/50 font-bold border-t-2 border-slate-300 dark:border-slate-600">
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 현장별 집계 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-violet-500"></i> 현장별 집계
+                    </h3>
+                    <div id="cc-site-chart" class="space-y-2 text-xs"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="tag" class="w-4 h-4 text-amber-500"></i> 카테고리별 집계
+                    </h3>
+                    <div id="cc-cat-chart" class="space-y-2 text-xs"></div>
+                </div>
+            </div>
+
+        </div><!-- /tab-corpcard -->
+
+        <!-- 법인카드 행 편집 모달 -->
+        <div id="cc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="credit-card" class="w-4 h-4 text-violet-500"></i>
+                        <span id="cc-modal-title">법인카드 내역 입력</span>
+                    </h3>
+                    <button onclick="ccCloseModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-5 space-y-3">
+                    <input type="hidden" id="cc-edit-id">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">사용일자 <span class="text-rose-500">*</span></label>
+                            <input type="date" id="cc-edit-date" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">카테고리 <span class="text-rose-500">*</span></label>
+                            <select id="cc-edit-cat" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                                <option>유류비</option><option>식대</option><option>숙박비</option>
+                                <option>자재구입</option><option>공구/장비</option><option>통신비</option>
+                                <option>교통비</option><option>소모품</option><option>접대비</option><option>기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">가맹점명 <span class="text-rose-500">*</span></label>
+                        <input type="text" id="cc-edit-merchant" placeholder="예: GS칼텍스 무실주유소" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">금액 (원) <span class="text-rose-500">*</span></label>
+                        <input type="number" id="cc-edit-amount" placeholder="0" oninput="ccFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <span id="cc-amt-preview" class="text-[10px] text-violet-600 mt-0.5 block font-semibold"></span>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">현장 배분</label>
+                        <input type="text" id="cc-edit-site" list="cc-site-datalist" placeholder="예: 원주 무실동 공사현장" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <datalist id="cc-site-datalist"></datalist>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">메모 (영수증 내용·비고)</label>
+                        <textarea id="cc-edit-memo" rows="3" placeholder="예: 굴착기 연료 보충 / 현장 인원 점심 식사 영수증 첨부" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 font-mono resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="px-5 pb-5 flex justify-end gap-2">
+                    <button onclick="ccCloseModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
+                    <button onclick="ccSaveModal()" class="px-5 py-1.5 text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all">저장</button>
+                </div>
+            </div>
+        </div>
+        <!-- /법인카드 행 편집 모달 -->
     </div><!-- /우측 콘텐츠 -->
     </div><!-- /사이드바+콘텐츠 래퍼 -->
 
@@ -3999,21 +4251,24 @@
             const tabRequestSpecial = document.getElementById('tab-request-special');
             const tabStats = document.getElementById('tab-stats');
             const tabContract = document.getElementById('tab-contract');
+            const tabCorpcard = document.getElementById('tab-corpcard');
 
             const btnStatement = document.getElementById('tab-btn-statement');
             const btnRequest = document.getElementById('tab-btn-request');
             const btnRequestSpecial = document.getElementById('tab-btn-request-special');
             const btnStats = document.getElementById('tab-btn-stats');
             const btnContract = document.getElementById('tab-btn-contract');
+            const btnCorpcard = document.getElementById('tab-btn-corpcard');
 
             tabStatement.classList.add('hidden');
             tabRequest.classList.add('hidden');
             tabRequestSpecial.classList.add('hidden');
             tabStats.classList.add('hidden');
             if (tabContract) tabContract.classList.add('hidden');
+            if (tabCorpcard) tabCorpcard.classList.add('hidden');
 
             // 모든 탭 버튼 비활성화 (상단 탭바 & 사이드바 공용)
-            [btnStatement, btnRequest, btnRequestSpecial, btnStats, btnContract].forEach(b => {
+            [btnStatement, btnRequest, btnRequestSpecial, btnStats, btnContract, btnCorpcard].forEach(b => {
                 if (b) {
                     b.classList.remove('tab-active');
                     b.classList.remove('sidebar-tab-active');
@@ -4041,6 +4296,11 @@
                 if (tabContract) tabContract.classList.remove('hidden');
                 if (btnContract) btnContract.classList.add('tab-active','sidebar-tab-active');
                 stdInitOnTabSwitchExtended();
+            } else if (tabId === 'corpcard') {
+                if (tabCorpcard) tabCorpcard.classList.remove('hidden');
+                if (btnCorpcard) btnCorpcard.classList.add('tab-active','sidebar-tab-active');
+                ccRender();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
         }
 
@@ -5934,9 +6194,7 @@
         function addNewRow() {
             openAddRowModal();
         }
-
-
-        function changePrintScale(value) {
+function changePrintScale(value) {
             const percent = Math.round(value * 100);
             document.getElementById('print-scale-label').textContent = `${percent}%`;
             
@@ -8357,18 +8615,10 @@
                 showToast(`반복 항목 ${inserted}건 자동 삽입!`);
             }
         }
-
-        /* ============================================================
-           건설기계 임대차계약서 (V15)
-        ============================================================ */
-        const CONTRACT_STORE_KEY = 'cons_contracts_v15';
+        /* ── 건설기계 임대차계약서 (V15) ── */
         let currentContractId = null;
         let contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
 
-        function getContracts() {
-            try { return JSON.parse(localStorage.getItem(CONTRACT_STORE_KEY) || '[]'); } catch(e) { return []; }
-        }
-        function setContracts(arr) { localStorage.setItem(CONTRACT_STORE_KEY, JSON.stringify(arr)); }
 
         /* 셀렉터 갱신 */
         function refreshContractSelector() {
@@ -8638,26 +8888,7 @@
         function triggerContractPdfImport() {
             const _pdfIn=document.getElementById('contract-pdf-input'); if(_pdfIn) _pdfIn.click();
         }
-
-        async function importContractPdf(input) {
-            const file = input.files[0];
-            if (!file) return;
-            showToast('PDF 파싱 중…');
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                let fullText = '';
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    fullText += await getPageText(i, pdf) + '\n';
-                }
-                parseContractPdfText(fullText);
-                input.value = '';
-            } catch(e) {
-                showToast('PDF 파싱 오류: ' + e.message);
-            }
-        }
-
-        /* PDF 텍스트 → 계약서 필드 자동 채우기 */
+/* PDF 텍스트 → 계약서 필드 자동 채우기 */
         function parseContractPdfText(text) {
             const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
             const find  = (patterns) => {
@@ -11488,6 +11719,456 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 _vacActiveId = null;
             }
         });
+        // ========================================================
+        // ★ 법인카드 경비 관리 (Corporate Card Manager)
+        // ========================================================
+        const CC_KEY = 'cons_corpcard_v1';
+        let ccData = [];
+        let ccSortKey = 'date';
+        let ccSortAsc = false;
+
+        const CC_CAT_COLORS = {
+            '유류비':   { bg:'#fef3c7', text:'#92400e', border:'#fde68a' },
+            '식대':     { bg:'#d1fae5', text:'#065f46', border:'#a7f3d0' },
+            '숙박비':   { bg:'#e0e7ff', text:'#3730a3', border:'#c7d2fe' },
+            '자재구입': { bg:'#fee2e2', text:'#991b1b', border:'#fca5a5' },
+            '공구/장비':{ bg:'#fce7f3', text:'#9d174d', border:'#f9a8d4' },
+            '통신비':   { bg:'#cffafe', text:'#164e63', border:'#a5f3fc' },
+            '교통비':   { bg:'#f0fdf4', text:'#14532d', border:'#86efac' },
+            '소모품':   { bg:'#faf5ff', text:'#6b21a8', border:'#e9d5ff' },
+            '접대비':   { bg:'#fff1f2', text:'#881337', border:'#fecdd3' },
+            '기타':     { bg:'#f8fafc', text:'#475569', border:'#e2e8f0' },
+        };
+
+        function ccLoad() {
+            try { return JSON.parse(localStorage.getItem(CC_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function ccSave() {
+            localStorage.setItem(CC_KEY, JSON.stringify(ccData));
+        }
+
+        /* 카테고리 뱃지 HTML */
+        function ccCatBadge(cat) {
+            const c = CC_CAT_COLORS[cat] || CC_CAT_COLORS['기타'];
+            return `<span style="background:${c.bg};color:${c.text};border:1px solid ${c.border};padding:1px 7px;border-radius:20px;font-weight:700;font-size:10px;white-space:nowrap;">${cat}</span>`;
+        }
+
+        /* 금액 포맷 */
+        function ccFmt(n) { return Number(n||0).toLocaleString('ko-KR') + '원'; }
+        function ccFmtShort(n) {
+            const v = Number(n||0);
+            if (v >= 100000000) return (v/100000000).toFixed(1) + '억';
+            if (v >= 10000) return Math.round(v/10000) + '만원';
+            return v.toLocaleString('ko-KR') + '원';
+        }
+
+        /* 필터 적용된 데이터 반환 */
+        function ccFiltered() {
+            const month  = document.getElementById('cc-filter-month')?.value || '';
+            const cat    = document.getElementById('cc-filter-cat')?.value   || '';
+            const site   = document.getElementById('cc-filter-site')?.value  || '';
+            const search = (document.getElementById('cc-filter-search')?.value || '').trim().toLowerCase();
+            return ccData.filter(r => {
+                if (month  && !(r.date||'').startsWith(month))  return false;
+                if (cat    && r.cat !== cat)                     return false;
+                if (site   && r.site !== site)                   return false;
+                if (search && !(
+                    (r.merchant||'').toLowerCase().includes(search) ||
+                    (r.memo||'').toLowerCase().includes(search)
+                )) return false;
+                return true;
+            });
+        }
+
+        /* 필터 셀렉트 옵션 재구성 */
+        function ccRefreshFilterOptions() {
+            const months = [...new Set(ccData.map(r => (r.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+            const sites  = [...new Set(ccData.map(r => r.site).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+
+            const mSel = document.getElementById('cc-filter-month');
+            const sSel = document.getElementById('cc-filter-site');
+            const curM = mSel?.value; const curS = sSel?.value;
+
+            if (mSel) {
+                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+                if (curM) mSel.value = curM;
+            }
+            if (sSel) {
+                sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${s}">${s}</option>`).join('');
+                if (curS) sSel.value = curS;
+            }
+
+            // datalist 갱신
+            const dl = document.getElementById('cc-site-datalist');
+            if (dl) dl.innerHTML = sites.map(s=>`<option value="${s}">`).join('');
+        }
+
+        /* KPI 카드 갱신 */
+        function ccUpdateKpi(filtered) {
+            const total = ccData.reduce((s,r)=>s+Number(r.amount||0),0);
+            const thisMonth = new Date().toISOString().slice(0,7);
+            const monthTotal = ccData.filter(r=>(r.date||'').startsWith(thisMonth)).reduce((s,r)=>s+Number(r.amount||0),0);
+            const count = filtered.length;
+            const catCount = {};
+            ccData.forEach(r=>{ catCount[r.cat||'기타']=(catCount[r.cat||'기타']||0)+1; });
+            const topCat = Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
+
+            const el = id => document.getElementById(id);
+            if(el('cc-kpi-month'))  el('cc-kpi-month').textContent  = ccFmt(monthTotal);
+            if(el('cc-kpi-total'))  el('cc-kpi-total').textContent  = ccFmt(total);
+            if(el('cc-kpi-count'))  el('cc-kpi-count').textContent  = count + '건';
+            if(el('cc-kpi-topcat')) el('cc-kpi-topcat').textContent = topCat;
+        }
+
+        /* 현장별 / 카테고리별 집계 차트 */
+        function ccUpdateCharts(filtered) {
+            // 현장별
+            const siteMap = {};
+            filtered.forEach(r => {
+                const k = r.site || '(현장 미배분)';
+                siteMap[k] = (siteMap[k]||0) + Number(r.amount||0);
+            });
+            const siteTotal = Object.values(siteMap).reduce((s,v)=>s+v,0) || 1;
+            const siteEl = document.getElementById('cc-site-chart');
+            if (siteEl) {
+                const sorted = Object.entries(siteMap).sort((a,b)=>b[1]-a[1]);
+                siteEl.innerHTML = sorted.length ? sorted.map(([k,v])=>`
+                    <div>
+                        <div class="flex justify-between text-[10px] font-semibold mb-0.5">
+                            <span class="text-slate-700 dark:text-slate-300 truncate max-w-[60%]">${k}</span>
+                            <span class="text-violet-600 font-bold">${ccFmt(v)}</span>
+                        </div>
+                        <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-violet-500 rounded-full" style="width:${Math.round(v/siteTotal*100)}%"></div>
+                        </div>
+                    </div>`).join('') : '<p class="text-slate-400 text-[10px]">데이터 없음</p>';
+            }
+
+            // 카테고리별
+            const catMap = {};
+            filtered.forEach(r => { const k=r.cat||'기타'; catMap[k]=(catMap[k]||0)+Number(r.amount||0); });
+            const catTotal = Object.values(catMap).reduce((s,v)=>s+v,0) || 1;
+            const catEl = document.getElementById('cc-cat-chart');
+            if (catEl) {
+                const sorted = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+                catEl.innerHTML = sorted.length ? sorted.map(([k,v])=>{
+                    const c = CC_CAT_COLORS[k]||CC_CAT_COLORS['기타'];
+                    return `<div>
+                        <div class="flex justify-between text-[10px] font-semibold mb-0.5">
+                            <span style="color:${c.text}" class="font-bold">${k}</span>
+                            <span class="text-slate-600 dark:text-slate-300">${ccFmt(v)} <span class="text-slate-400">(${Math.round(v/catTotal*100)}%)</span></span>
+                        </div>
+                        <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full" style="width:${Math.round(v/catTotal*100)}%;background:${c.text}"></div>
+                        </div>
+                    </div>`;
+                }).join('') : '<p class="text-slate-400 text-[10px]">데이터 없음</p>';
+            }
+        }
+
+        /* 메인 테이블 렌더 */
+        function ccRender() {
+            ccData = ccLoad();
+            ccRefreshFilterOptions();
+
+            // 정렬
+            const sorted = [...ccData].sort((a,b) => {
+                let av = a[ccSortKey]||'', bv = b[ccSortKey]||'';
+                if (ccSortKey==='amount') { av=Number(av); bv=Number(bv); }
+                if (av < bv) return ccSortAsc ? -1 : 1;
+                if (av > bv) return ccSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const filtered = ccFiltered();
+            // filtered 를 sorted 순서로 정렬
+            const filteredIds = new Set(filtered.map(r=>r.id));
+            const filteredSorted = sorted.filter(r=>filteredIds.has(r.id));
+
+            const tbody = document.getElementById('cc-tbody');
+            const tfoot = document.getElementById('cc-tfoot');
+            if (!tbody) return;
+
+            if (!filteredSorted.length) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
+                if (tfoot) tfoot.innerHTML = '';
+            } else {
+                let totalAmt = 0;
+                tbody.innerHTML = filteredSorted.map((r, idx) => {
+                    totalAmt += Number(r.amount||0);
+                    const rowBg = idx%2===0 ? '' : 'bg-slate-50 dark:bg-slate-800/30';
+                    return `<tr class="${rowBg} hover:bg-violet-50 dark:hover:bg-violet-900/10 transition-colors">
+                        <td class="px-2 py-2 text-center text-slate-400 font-mono text-[10px]">${idx+1}</td>
+                        <td class="px-2 py-2 text-center text-slate-700 dark:text-slate-300 font-mono text-[11px]">${r.date||''}</td>
+                        <td class="px-2 py-2 text-center">${ccCatBadge(r.cat||'기타')}</td>
+                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}</td>
+                        <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
+                        <td class="px-2 py-2 text-center no-print">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="ccEditRow('${r.id}')" class="p-1 rounded text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="수정"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="ccDeleteRow('${r.id}')" class="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                if (tfoot) {
+                    tfoot.innerHTML = `<tr>
+                        <td colspan="4" class="px-2 py-2 text-right text-xs text-slate-600 dark:text-slate-300 font-bold">합계 (${filteredSorted.length}건)</td>
+                        <td class="px-2 py-2 text-right text-sm font-black text-violet-700 dark:text-violet-400">${totalAmt.toLocaleString('ko-KR')}</td>
+                        <td colspan="3" class="px-2 py-2"></td>
+                    </tr>`;
+                }
+            }
+
+            // 필터 요약 텍스트
+            const sumEl = document.getElementById('cc-filter-summary');
+            if (sumEl) {
+                const totalFiltered = filteredSorted.reduce((s,r)=>s+Number(r.amount||0),0);
+                sumEl.textContent = filteredSorted.length ? `조회 ${filteredSorted.length}건 · ${ccFmt(totalFiltered)}` : '';
+            }
+
+            ccUpdateKpi(filteredSorted);
+            ccUpdateCharts(filteredSorted);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 정렬 */
+        function ccSort(key) {
+            if (ccSortKey === key) { ccSortAsc = !ccSortAsc; }
+            else { ccSortKey = key; ccSortAsc = key !== 'date'; }
+            ccRender();
+        }
+
+        /* 행 추가 (모달 열기) */
+        function ccAddRow() {
+            document.getElementById('cc-edit-id').value = '';
+            document.getElementById('cc-modal-title').textContent = '법인카드 내역 추가';
+            document.getElementById('cc-edit-date').value = new Date().toISOString().slice(0,10);
+            document.getElementById('cc-edit-cat').value = '유류비';
+            document.getElementById('cc-edit-merchant').value = '';
+            document.getElementById('cc-edit-amount').value = '';
+            document.getElementById('cc-edit-site').value = '';
+            document.getElementById('cc-edit-memo').value = '';
+            document.getElementById('cc-amt-preview').textContent = '';
+            document.getElementById('cc-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            setTimeout(()=>document.getElementById('cc-edit-merchant').focus(), 100);
+        }
+
+        /* 행 수정 */
+        function ccEditRow(id) {
+            ccData = ccLoad();
+            const r = ccData.find(x=>x.id===id);
+            if (!r) return;
+            document.getElementById('cc-edit-id').value = r.id;
+            document.getElementById('cc-modal-title').textContent = '법인카드 내역 수정';
+            document.getElementById('cc-edit-date').value = r.date||'';
+            document.getElementById('cc-edit-cat').value = r.cat||'기타';
+            document.getElementById('cc-edit-merchant').value = r.merchant||'';
+            document.getElementById('cc-edit-amount').value = r.amount||'';
+            document.getElementById('cc-edit-site').value = r.site||'';
+            document.getElementById('cc-edit-memo').value = r.memo||'';
+            ccFormatAmtPreview();
+            document.getElementById('cc-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 모달 저장 */
+        function ccSaveModal() {
+            const date     = document.getElementById('cc-edit-date').value;
+            const cat      = document.getElementById('cc-edit-cat').value;
+            const merchant = document.getElementById('cc-edit-merchant').value.trim();
+            const amount   = Number(document.getElementById('cc-edit-amount').value) || 0;
+            const site     = document.getElementById('cc-edit-site').value.trim();
+            const memo     = document.getElementById('cc-edit-memo').value.trim();
+
+            if (!date)     { showToast('사용일자를 입력하세요.', 'error'); return; }
+            if (!merchant) { showToast('가맹점명을 입력하세요.', 'error'); return; }
+            if (!amount)   { showToast('금액을 입력하세요.', 'error'); return; }
+
+            ccData = ccLoad();
+            const existingId = document.getElementById('cc-edit-id').value;
+            if (existingId) {
+                const idx = ccData.findIndex(r=>r.id===existingId);
+                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, merchant, amount, site, memo };
+            } else {
+                ccData.push({ id: 'cc-' + Date.now(), date, cat, merchant, amount, site, memo });
+            }
+            // 날짜 정렬
+            ccData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+            ccSave();
+            ccCloseModal();
+            ccRender();
+            showToast('저장 완료!', 'success');
+        }
+
+        /* 모달 닫기 */
+        function ccCloseModal() {
+            document.getElementById('cc-modal').classList.add('hidden');
+        }
+
+        /* 행 삭제 */
+        function ccDeleteRow(id) {
+            if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+            ccData = ccLoad();
+            ccData = ccData.filter(r=>r.id!==id);
+            ccSave();
+            ccRender();
+            showToast('삭제되었습니다.', 'success');
+        }
+
+        /* 금액 미리보기 */
+        function ccFormatAmtPreview() {
+            const v = Number(document.getElementById('cc-edit-amount').value)||0;
+            const el = document.getElementById('cc-amt-preview');
+            if (el) el.textContent = v ? '금 ' + v.toLocaleString('ko-KR') + '원' : '';
+        }
+
+        /* 필터 초기화 */
+        function ccClearFilters() {
+            const ids = ['cc-filter-month','cc-filter-cat','cc-filter-site','cc-filter-search'];
+            ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+            ccRender();
+        }
+
+        /* 엑셀 내보내기 */
+        function ccExportExcel() {
+            if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
+            ccData = ccLoad();
+            if (!ccData.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
+            const rows = ccData.map((r,i) => ({
+                'No': i+1,
+                '사용일자': r.date||'',
+                '카테고리': r.cat||'',
+                '가맹점명': r.merchant||'',
+                '금액': Number(r.amount||0),
+                '현장': r.site||'',
+                '메모': r.memo||''
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [
+                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:40}
+            ];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '법인카드경비');
+
+            // 현장별 시트
+            const siteMap = {};
+            ccData.forEach(r=>{ const k=r.site||'(미배분)'; (siteMap[k]=siteMap[k]||[]).push(r); });
+            Object.entries(siteMap).forEach(([site, list])=>{
+                const srows = list.map((r,i)=>({
+                    'No': i+1, '사용일자': r.date||'', '카테고리': r.cat||'',
+                    '가맹점명': r.merchant||'', '금액': Number(r.amount||0), '메모': r.memo||''
+                }));
+                const total = list.reduce((s,r)=>s+Number(r.amount||0),0);
+                srows.push({'No':'합계','사용일자':'','카테고리':'','가맹점명':'','금액':total,'메모':''});
+                const ws2 = XLSX.utils.json_to_sheet(srows);
+                const sheetName = (site.length>28 ? site.slice(0,28) : site).replace(/[\\/*?:\[\]]/g,'_');
+                XLSX.utils.book_append_sheet(wb, ws2, sheetName);
+            });
+
+            XLSX.writeFile(wb, `법인카드경비_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast('엑셀 내보내기 완료', 'success');
+        }
+
+        /* 인쇄 */
+        function ccPrint() {
+            ccData = ccLoad();
+            const filtered = ccFiltered();
+            if (!filtered.length) { showToast('출력할 데이터가 없습니다.', 'error'); return; }
+
+            const totalAmt = filtered.reduce((s,r)=>s+Number(r.amount||0),0);
+            const rows = filtered.map((r,i)=>`
+                <tr style="background:${i%2?'#f8fafc':'#fff'};">
+                    <td style="text-align:center;color:#94a3b8;font-size:10px;">${i+1}</td>
+                    <td style="text-align:center;font-family:monospace;">${r.date||''}</td>
+                    <td style="text-align:center;">${r.cat||''}</td>
+                    <td>${r.merchant||''}</td>
+                    <td style="text-align:right;font-weight:700;">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
+                    <td style="text-align:center;color:#64748b;">${r.site||''}</td>
+                    <td style="color:#64748b;font-size:10px;">${r.memo||''}</td>
+                </tr>`).join('');
+
+            const win = window.open('','_blank','width=1000,height=800');
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+                <title>법인카드 경비 관리대장</title>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+                <style>
+                    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+                    body{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#1e293b;margin:0;padding:12mm;}
+                    @page{size:A4 landscape;margin:10mm;}
+                    h1{font-size:16px;font-weight:900;text-align:center;margin-bottom:4px;}
+                    .sub{text-align:center;font-size:10px;color:#64748b;margin-bottom:8px;}
+                    table{width:100%;border-collapse:collapse;font-size:10px;}
+                    th{background:#1e293b;color:#fff;padding:5px 4px;text-align:center;font-weight:700;}
+                    td{border:1px solid #e2e8f0;padding:4px;vertical-align:middle;}
+                    tfoot td{background:#f1f5f9;font-weight:900;border-top:2px solid #334155;}
+                    @media print{body{padding:0;}}
+                </style>
+            </head><body>
+            <h1>법인카드 경비 관리대장</h1>
+            <div class="sub">출력일: ${new Date().toLocaleDateString('ko-KR')} · 총 ${filtered.length}건 · 합계 ${totalAmt.toLocaleString('ko-KR')}원</div>
+            <table>
+                <thead><tr>
+                    <th style="width:32px;">No</th><th style="width:88px;">사용일자</th>
+                    <th style="width:72px;">카테고리</th><th style="width:180px;">가맹점명</th>
+                    <th style="width:90px;">금액(원)</th><th style="width:140px;">현장</th>
+                    <th>메모</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+                <tfoot><tr>
+                    <td colspan="4" style="text-align:right;">합 계</td>
+                    <td style="text-align:right;">${totalAmt.toLocaleString('ko-KR')}</td>
+                    <td colspan="2"></td>
+                </tr></tfoot>
+            </table>
+            </body></html>`);
+            win.document.close();
+            setTimeout(()=>{ win.focus(); win.print(); }, 400);
+        }
+
+        /* 백업 */
+        function ccBackup() {
+            ccData = ccLoad();
+            if (!ccData.length) { showToast('백업할 데이터가 없습니다.', 'error'); return; }
+            const blob = new Blob([JSON.stringify(ccData, null, 2)], { type:'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `법인카드경비_백업_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            showToast('백업 파일 다운로드 완료', 'success');
+        }
+
+        /* 복원 */
+        function ccRestore(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const arr = JSON.parse(ev.target.result);
+                    if (!Array.isArray(arr)) throw new Error();
+                    if (!confirm(`${arr.length}건을 복원합니다. 기존 데이터는 덮어씁니다.`)) return;
+                    ccData = arr;
+                    ccSave();
+                    ccRender();
+                    showToast(`${arr.length}건 복원 완료`, 'success');
+                } catch { showToast('유효하지 않은 파일입니다.', 'error'); }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('cc-modal');
+                if (modal && !modal.classList.contains('hidden')) ccCloseModal();
+            }
+        });
+
         // ========================================================
         // ★ 끝: 거래처 계좌 자동완성
         // ========================================================
