@@ -1905,6 +1905,18 @@
                     <button onclick="switchTab('request-special')" class="qbtn" style="--qc:#92400e;">
                         <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i><span>특고 신고</span>
                     </button>
+
+                    <div class="border-t border-slate-700"></div>
+
+                    <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">발행 이력</div>
+                    <button onclick="reqHistSaveModal()" class="qbtn" style="--qc:#7c3aed;">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i><span>현재 저장</span>
+                    </button>
+                    <button onclick="openReqHistModal()" class="qbtn" style="--qc:#4f46e5;">
+                        <i data-lucide="history" class="w-3.5 h-3.5"></i>
+                        <span>이력 조회</span>
+                        <span id="req-hist-badge" class="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold hidden"></span>
+                    </button>
                 </div>
                 <style>
                 .qbtn {
@@ -2783,6 +2795,86 @@
             </div>
 
         </div><!-- /tab-corpcard -->
+
+        <!-- 지불의뢰서 발행 이력 모달 -->
+        <div id="req-hist-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col">
+                <!-- 헤더 -->
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-violet-500"></i>
+                        지불의뢰서 발행 이력
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="rh-search" oninput="rhRender()" placeholder="거래처·현장·메모 검색…"
+                            class="px-2.5 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 w-44">
+                        <select id="rh-filter-month" onchange="rhRender()"
+                            class="px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                            <option value="">전체 월</option>
+                        </select>
+                        <button onclick="closeReqHistModal()" class="text-slate-400 hover:text-slate-600 ml-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- 통계 바 -->
+                <div id="rh-stats" class="px-6 py-2 border-b border-slate-100 dark:border-slate-800 flex flex-wrap gap-4 text-[10px] font-semibold text-slate-500 bg-slate-50 dark:bg-slate-850"></div>
+                <!-- 목록 -->
+                <div class="flex-1 overflow-y-auto px-6 py-3">
+                    <div id="rh-list" class="space-y-2"></div>
+                    <div id="rh-empty" class="hidden py-16 text-center text-slate-400 text-sm">
+                        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+                        저장된 이력이 없습니다.<br>
+                        <span class="text-xs">「현재 저장」 버튼으로 지불의뢰서를 이력에 보관하세요.</span>
+                    </div>
+                </div>
+                <!-- 하단 -->
+                <div class="px-6 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span id="rh-count-label" class="text-[10px] text-slate-400 font-semibold"></span>
+                    <button onclick="rhExportExcel()" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel 전체 내보내기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 발행이력 저장 미니 모달 -->
+        <div id="req-hist-save-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4 text-violet-500"></i> 이력 저장
+                    </h3>
+                    <button onclick="closeReqHistSaveModal()" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="p-5 space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">저장 월 <span class="text-rose-500">*</span></label>
+                        <input type="month" id="rh-save-month"
+                            class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">거래처</label>
+                        <input type="text" id="rh-save-vendor" readonly
+                            class="w-full px-3 py-2 text-xs border border-slate-100 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">메모 (선택)</label>
+                        <input type="text" id="rh-save-memo" placeholder="예: 6월분 자재비 의뢰"
+                            class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    </div>
+                    <div id="rh-save-preview" class="bg-violet-50 dark:bg-violet-950/20 rounded-lg p-3 text-[10px] text-slate-600 dark:text-slate-300 space-y-0.5 border border-violet-100 dark:border-violet-800"></div>
+                </div>
+                <div class="px-5 pb-5 flex gap-2 justify-end">
+                    <button onclick="closeReqHistSaveModal()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition">취소</button>
+                    <button onclick="rhSaveNow()" class="px-4 py-2 text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition flex items-center gap-1.5">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i> 저장
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <div id="cc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg">
@@ -11796,6 +11888,320 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 _vacActiveId = null;
             }
         });
+        // ===== 지불의뢰서 발행 이력 관리 =====
+        const RH_KEY = 'cons_req_history_v1';
+
+        function rhLoad() {
+            try { return JSON.parse(localStorage.getItem(RH_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function rhSaveAll(arr) { localStorage.setItem(RH_KEY, JSON.stringify(arr)); }
+
+        /* 배지 카운터 갱신 */
+        function rhUpdateBadge() {
+            const arr = rhLoad();
+            const badge = document.getElementById('req-hist-badge');
+            if (!badge) return;
+            if (arr.length) { badge.textContent = arr.length; badge.classList.remove('hidden'); }
+            else badge.classList.add('hidden');
+        }
+
+        /* ── 저장 미니 모달 ── */
+        function reqHistSaveModal() {
+            // 현재 지불의뢰서 값 읽기
+            const vendor  = document.getElementById('req-field-vendor')?.value.trim()  || '';
+            const site    = document.getElementById('req-meta-site')?.value.trim()     || '';
+            const period  = document.getElementById('req-meta-period')?.value.trim()   || '';
+            const cat     = document.getElementById('req-title-category')?.textContent.trim() || '';
+            const total   = document.getElementById('req-calc-total')?.value || '0 원';
+            const supply  = document.getElementById('req-calc-supply')?.value || '0';
+            const tax     = document.getElementById('req-calc-tax')?.value    || '0';
+
+            // 저장 월 자동 추정 (기간 첫 연도·월)
+            const mEl = document.getElementById('rh-save-month');
+            if (mEl) {
+                const m = period.match(/(\d{4})년\s*(\d{2})월/);
+                if (m) mEl.value = m[1]+'-'+m[2];
+                else mEl.value = new Date().toISOString().slice(0,7);
+            }
+            if (document.getElementById('rh-save-vendor')) document.getElementById('rh-save-vendor').value = vendor || '(거래처 미입력)';
+            if (document.getElementById('rh-save-memo'))   document.getElementById('rh-save-memo').value = '';
+
+            // 미리보기 패널
+            const prev = document.getElementById('rh-save-preview');
+            if (prev) {
+                // 품목 행 수집
+                const rows = [];
+                document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length >= 5) {
+                        const nm = tds[0]?.querySelector('input')?.value || tds[0]?.textContent.trim();
+                        const am = tds[4]?.querySelector('input')?.value || tds[4]?.textContent.trim();
+                        if (nm) rows.push({name:nm, amount:am});
+                    }
+                });
+                prev.innerHTML = [
+                    `<div class="flex justify-between"><span class="font-semibold">현장</span><span>${site||'-'}</span></div>`,
+                    `<div class="flex justify-between"><span class="font-semibold">거래처</span><span class="font-bold text-blue-600">${vendor||'-'}</span></div>`,
+                    `<div class="flex justify-between"><span class="font-semibold">구분</span><span>${cat||'-'}</span></div>`,
+                    `<div class="flex justify-between"><span class="font-semibold">청구기간</span><span>${period||'-'}</span></div>`,
+                    `<div class="flex justify-between font-bold text-indigo-700 dark:text-indigo-400 pt-1 border-t border-violet-200 dark:border-violet-800 mt-1"><span>청구금액</span><span>${total}</span></div>`,
+                    rows.length ? `<div class="mt-1 text-[9px] text-slate-400">품목 ${rows.length}건: ${rows.map(r=>r.name).join(', ')}</div>` : ''
+                ].join('');
+            }
+
+            document.getElementById('req-hist-save-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeReqHistSaveModal() {
+            document.getElementById('req-hist-save-modal').classList.add('hidden');
+        }
+
+        function rhSaveNow() {
+            const month  = document.getElementById('rh-save-month')?.value;
+            const memo   = document.getElementById('rh-save-memo')?.value.trim() || '';
+            if (!month) { showToast('저장 월을 선택하세요.'); return; }
+
+            // 품목 스냅샷
+            const items = [];
+            document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input');
+                if (inputs.length >= 5) {
+                    items.push({
+                        name:   inputs[0]?.value || '',
+                        spec:   inputs[1]?.value || '',
+                        qty:    inputs[2]?.value || '',
+                        unit:   inputs[3]?.value || '',
+                        amount: inputs[4]?.value || ''
+                    });
+                }
+            });
+
+            const entry = {
+                id:       Date.now(),
+                month,
+                memo,
+                vendor:   document.getElementById('req-field-vendor')?.value.trim()       || '',
+                ceo:      document.getElementById('req-field-ceo')?.value.trim()          || '',
+                site:     document.getElementById('req-meta-site')?.value.trim()          || '',
+                period:   document.getElementById('req-meta-period')?.value.trim()        || '',
+                category: document.getElementById('req-title-category')?.textContent.trim() || '',
+                bizNum:   document.getElementById('req-vendor-num')?.value.trim()         || '',
+                bank:     document.getElementById('req-vendor-bank')?.value.trim()        || '',
+                account:  document.getElementById('req-vendor-account')?.value.trim()     || '',
+                holder:   document.getElementById('req-vendor-holder')?.value.trim()      || '',
+                phone:    document.getElementById('req-vendor-phone')?.value.trim()       || '',
+                supply:   document.getElementById('req-calc-supply')?.value || '0',
+                tax:      document.getElementById('req-calc-tax')?.value    || '0',
+                total:    document.getElementById('req-calc-total')?.value  || '0 원',
+                items,
+                savedAt: new Date().toLocaleString('ko-KR')
+            };
+
+            const arr = rhLoad();
+            arr.unshift(entry);
+            rhSaveAll(arr);
+            rhUpdateBadge();
+            closeReqHistSaveModal();
+            showToast(`[${month} · ${entry.vendor||'거래처미입력'}] 발행 이력이 저장되었습니다.`);
+        }
+
+        /* ── 이력 조회 모달 ── */
+        function openReqHistModal() {
+            rhRender();
+            document.getElementById('req-hist-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeReqHistModal() {
+            document.getElementById('req-hist-modal').classList.add('hidden');
+        }
+
+        function rhRender() {
+            const arr  = rhLoad();
+            const q    = (document.getElementById('rh-search')?.value||'').toLowerCase();
+            const mf   = document.getElementById('rh-filter-month')?.value || '';
+
+            // 월 필터 옵션 재구성
+            const months = [...new Set(arr.map(h=>h.month).filter(Boolean))].sort().reverse();
+            const mSel   = document.getElementById('rh-filter-month');
+            if (mSel) {
+                const cur = mSel.value;
+                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+                if (cur) mSel.value = cur;
+            }
+
+            // 필터 적용
+            const filtered = arr.filter(h => {
+                if (mf && h.month !== mf) return false;
+                if (q && ![ h.vendor||'', h.site||'', h.memo||'', h.category||'' ].join(' ').toLowerCase().includes(q)) return false;
+                return true;
+            });
+
+            // 통계 바
+            const statsEl = document.getElementById('rh-stats');
+            if (statsEl) {
+                const totalAmt = arr.reduce((s,h) => {
+                    const v = parseInt((h.total||'0').replace(/[^0-9]/g,''),10)||0; return s+v;
+                }, 0);
+                const vendors = new Set(arr.map(h=>h.vendor).filter(Boolean));
+                statsEl.innerHTML = [
+                    `<span>전체 <b class="text-slate-700 dark:text-slate-200">${arr.length}</b>건</span>`,
+                    `<span>거래처 <b class="text-slate-700 dark:text-slate-200">${vendors.size}</b>개사</span>`,
+                    `<span>누적 청구 <b class="text-indigo-600 dark:text-indigo-400">${totalAmt.toLocaleString('ko-KR')}원</b></span>`,
+                    filtered.length !== arr.length ? `<span class="text-violet-600 font-bold">필터: ${filtered.length}건</span>` : ''
+                ].join('');
+            }
+
+            const listEl   = document.getElementById('rh-list');
+            const emptyEl  = document.getElementById('rh-empty');
+            const countLbl = document.getElementById('rh-count-label');
+            if (countLbl) countLbl.textContent = `${filtered.length} / ${arr.length}건`;
+
+            if (!listEl) return;
+            if (!filtered.length) {
+                listEl.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                return;
+            }
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            listEl.innerHTML = filtered.map((h, fi) => {
+                const realIdx = arr.indexOf(h);
+                const catColor = {
+                    '자재비':'#10b981','노무비':'#3b82f6','장비비':'#f59e0b',
+                    '외주비':'#8b5cf6','경비':'#64748b'
+                }[h.category] || '#94a3b8';
+                return `
+                <div class="group bg-white dark:bg-slate-800/60 hover:bg-violet-50 dark:hover:bg-violet-950/20 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 transition-all">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-1 min-w-0">
+                            <!-- 헤더 행 -->
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="background:${catColor}22;color:${catColor};">${h.category||'-'}</span>
+                                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100">${h.vendor||'(거래처 미입력)'}</span>
+                                ${h.ceo ? `<span class="text-[10px] text-slate-400">${h.ceo} 대표</span>` : ''}
+                                <span class="ml-auto text-[10px] text-violet-600 font-bold">${h.month}</span>
+                            </div>
+                            <!-- 메타 정보 -->
+                            <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-slate-500 dark:text-slate-400 mb-1.5">
+                                ${h.site ? `<span>📍 ${h.site}</span>` : ''}
+                                ${h.period ? `<span>📅 ${h.period}</span>` : ''}
+                                ${h.memo ? `<span class="text-violet-500 font-semibold">💬 ${h.memo}</span>` : ''}
+                            </div>
+                            <!-- 금액 + 계좌 -->
+                            <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px]">
+                                <span class="font-bold text-indigo-700 dark:text-indigo-400">청구 ${h.total||'0 원'}</span>
+                                ${h.bank ? `<span class="text-slate-400">${h.bank} ${h.account||''} (${h.holder||''})</span>` : ''}
+                            </div>
+                            <!-- 품목 요약 -->
+                            ${(h.items||[]).length ? `<div class="mt-1 text-[9px] text-slate-400 truncate">품목: ${h.items.map(r=>r.name).filter(Boolean).join(' · ')}</div>` : ''}
+                        </div>
+                        <!-- 버튼 -->
+                        <div class="flex flex-col gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="rhApply(${realIdx})"
+                                class="bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition whitespace-nowrap">불러오기</button>
+                            <button onclick="rhDelete(${realIdx})"
+                                class="text-rose-400 hover:text-rose-600 text-[10px] font-bold px-2.5 py-1 rounded-lg transition whitespace-nowrap">삭제</button>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-slate-300 dark:text-slate-600 mt-1.5">저장: ${h.savedAt||''}</div>
+                </div>`;
+            }).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function rhDelete(idx) {
+            const arr = rhLoad();
+            const h   = arr[idx];
+            if (!h) return;
+            if (!confirm(`[${h.month} · ${h.vendor||'거래처미입력'}] 이력을 삭제하시겠습니까?`)) return;
+            arr.splice(idx, 1);
+            rhSaveAll(arr);
+            rhUpdateBadge();
+            rhRender();
+            showToast('이력이 삭제되었습니다.');
+        }
+
+        /* ── 불러오기 — 지불의뢰서 폼에 복원 ── */
+        function rhApply(idx) {
+            const arr = rhLoad();
+            const h   = arr[idx];
+            if (!h) return;
+
+            // 기본 필드 복원
+            const set = (id, v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+            set('req-field-vendor',  h.vendor);
+            set('req-field-ceo',     h.ceo);
+            set('req-field-type',    h.category);
+            set('req-meta-site',     h.site);
+            set('req-meta-period',   h.period);
+            set('req-vendor-num',    h.bizNum);
+            set('req-vendor-bank',   h.bank);
+            set('req-vendor-account',h.account);
+            set('req-vendor-holder', h.holder);
+            set('req-vendor-phone',  h.phone);
+
+            // 카테고리 색상
+            const catEl = document.getElementById('req-title-category');
+            if (catEl && h.category) { catEl.textContent = h.category; if(typeof applyCategoryColor==='function') applyCategoryColor(h.category); }
+
+            // 품목 복원
+            if ((h.items||[]).length) {
+                const tbody = document.getElementById('req-items-tbody');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    h.items.forEach((row, i) => {
+                        if (typeof addRequestItemRow === 'function') addRequestItemRow();
+                        const trs = tbody.querySelectorAll('tr');
+                        const tr  = trs[trs.length-1];
+                        if (!tr) return;
+                        const inputs = tr.querySelectorAll('input');
+                        if (inputs[0]) inputs[0].value = row.name   || '';
+                        if (inputs[1]) inputs[1].value = row.spec   || '';
+                        if (inputs[2]) inputs[2].value = row.qty    || '';
+                        if (inputs[3]) inputs[3].value = row.unit   || '';
+                        if (inputs[4]) inputs[4].value = row.amount || '';
+                    });
+                    if (typeof recalcRequestTotals === 'function') recalcRequestTotals();
+                }
+            }
+
+            closeReqHistModal();
+            showToast(`[${h.month} · ${h.vendor||'거래처'}] 발행 이력을 불러왔습니다.`);
+        }
+
+        /* ── Excel 전체 내보내기 ── */
+        function rhExportExcel() {
+            const arr = rhLoad();
+            if (!arr.length) { showToast('이력이 없습니다.'); return; }
+            const rows = arr.map((h,i) => ({
+                'No': i+1,
+                '저장월': h.month||'',
+                '거래처': h.vendor||'',
+                '대표자': h.ceo||'',
+                '현장명': h.site||'',
+                '청구기간': h.period||'',
+                '구분(카테고리)': h.category||'',
+                '청구금액': h.total||'',
+                '공급가액': h.supply||'',
+                '부가세': h.tax||'',
+                '은행': h.bank||'',
+                '계좌번호': h.account||'',
+                '예금주': h.holder||'',
+                '메모': h.memo||'',
+                '저장일시': h.savedAt||''
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [5,10,18,12,20,28,12,16,14,12,12,18,12,20,20].map(w=>({wch:w}));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '발행이력');
+            XLSX.writeFile(wb, `지불의뢰서_발행이력_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast('Excel 파일이 저장되었습니다.');
+        }
+
+        // 초기 배지 갱신 (앱 로드 시)
+        document.addEventListener('DOMContentLoaded', () => { rhUpdateBadge(); });
+
         // ★ 법인카드 경비 관리 (Corporate Card Manager)
         const CC_KEY = 'cons_corpcard_v1';
         let ccData = [];
