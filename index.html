@@ -1327,7 +1327,7 @@
 
         <div id="tab-statement" class="block">
             <div id="duplicate-alert-banner" class="hidden no-print mb-4 rounded-xl shadow-sm border overflow-hidden transition-all duration-300">
-                <div id="dup-section-claim" class="hidden bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-900 p-3 flex items-start gap-3">
+                <div id="dup-section-claim" class="hidden bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-900 p-3 items-start gap-3">
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 animate-bounce"></i>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-extrabold text-amber-800 dark:text-amber-300">⚠️ 청구 중복 감지</p>
@@ -1335,7 +1335,7 @@
                         <div id="dup-claim-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
-                <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 flex items-start gap-3">
+                <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 items-start gap-3">
                     <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -1348,7 +1348,7 @@
                         <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
-                <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 flex items-start gap-3">
+                <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 items-start gap-3">
                     <i data-lucide="user-x" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -4538,13 +4538,13 @@
             if (hasAny) {
                 banner.classList.remove('hidden');
                 if (claimCount > 0) {
-                    claimSec.classList.remove('hidden');
+                    claimSec.classList.remove('hidden'); claimSec.classList.add('flex');
                     document.getElementById('duplicate-alert-msg').innerHTML = `상호+공급가액 일치 이중청구 의심 <strong>${claimCount}건</strong>`;
                     document.getElementById('dup-claim-detail').innerHTML = claimChips.join('');
-                } else { claimSec.classList.add('hidden'); }
+                } else { claimSec.classList.add('hidden'); claimSec.classList.remove('flex'); }
 
                 if (accDupCount > 0) {
-                    accSec.classList.remove('hidden');
+                    accSec.classList.remove('hidden'); accSec.classList.add('flex');
                     const holderMismatchCount = Object.values(accMap)
                         .filter(rows => new Set(rows.map(r=>r.vendor).filter(Boolean)).size > 1
                             && new Set(rows.map(r=>r.holder).filter(Boolean)).size > 1).length;
@@ -4552,13 +4552,13 @@
                     if (holderMismatchCount > 0) accMsg += ` — 예금주 불일치 <strong class="text-orange-600">${holderMismatchCount}건</strong> 포함`;
                     document.getElementById('dup-account-msg').innerHTML = accMsg;
                     document.getElementById('dup-account-detail').innerHTML = accChips.join('');
-                } else { accSec.classList.add('hidden'); }
+                } else { accSec.classList.add('hidden'); accSec.classList.remove('flex'); }
 
                 if (ceoDupCount > 0) {
-                    ceoSec.classList.remove('hidden');
+                    ceoSec.classList.remove('hidden'); ceoSec.classList.add('flex');
                     document.getElementById('dup-ceo-msg').innerHTML = `동일 거래처 대표자명 불일치 <strong>${ceoDupCount}건</strong> — 명의 도용·오입력 확인 필요`;
                     document.getElementById('dup-ceo-detail').innerHTML = ceoChips.join('');
-                } else { ceoSec.classList.add('hidden'); }
+                } else { ceoSec.classList.add('hidden'); ceoSec.classList.remove('flex'); }
 
                 showToast("⚠️ 중복 의심 항목이 감지되었습니다. 상단 배너를 확인하세요.");
             } else {
