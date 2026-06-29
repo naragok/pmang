@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V24</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // 테마 설정을 위해 Tailwind 다크모드 구성 정의
@@ -12,7 +11,6 @@
             darkMode: 'class'
         }
     </script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1001,9 +999,7 @@
     ══════════════════════════════════════════════════════════ -->
     <header class="no-print app-header text-white sticky top-0 z-40" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#1a2744 100%);border-bottom:1px solid rgba(59,130,246,0.15);box-shadow:0 4px 24px rgba(0,0,0,0.4);">
 
-        <!-- ─── 1행: 로고 + 액션 버튼 ─── -->
         <div class="px-4 py-2 flex items-center justify-between gap-2" style="border-bottom:1px solid rgba(255,255,255,0.07);">
-            <!-- 로고 -->
             <div class="flex items-center gap-2.5 shrink-0">
                 <div class="logo-badge p-1.5 rounded-lg" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 0 14px rgba(99,102,241,0.45);">
                     <i data-lucide="building-2" class="w-4 h-4 text-white"></i>
@@ -1017,9 +1013,7 @@
                 </div>
             </div>
 
-            <!-- 액션 버튼 그룹 -->
             <div class="flex items-center gap-1 flex-wrap justify-end">
-                <!-- 테마 -->
                 <button onclick="toggleDarkMode()" class="hdr-btn hdr-btn-ghost" title="테마 변경">
                     <span id="dark-theme-icon-container"><i data-lucide="moon" class="w-3.5 h-3.5" style="color:#fbbf24;"></i></span>
                     <span id="dark-theme-label" class="hidden sm:inline btn-label">다크모드</span>
@@ -1027,7 +1021,6 @@
 
                 <div class="hdr-divider shrink-0"></div>
 
-                <!-- 가져오기/내보내기 -->
                 <button onclick="triggerPdfImport()" class="hdr-btn hdr-btn-indigo" title="PDF 파싱 가져오기">
                     <i data-lucide="file-text" class="w-3 h-3"></i><span class="hidden md:inline btn-label">PDF 파싱</span>
                 </button>
@@ -1047,7 +1040,6 @@
 
                 <div class="hdr-divider shrink-0"></div>
 
-                <!-- 인쇄 -->
                 <button onclick="openPrintPreviewModal()" class="hdr-btn hdr-btn-preview" title="인쇄 미리보기">
                     <i data-lucide="eye" class="w-3 h-3"></i><span class="hidden sm:inline btn-label">미리보기</span>
                 </button>
@@ -1057,10 +1049,8 @@
             </div>
         </div>
 
-        <!-- ─── 2행: 대시보드 컨트롤 존 ─── -->
         <div class="px-4 py-1.5 flex items-center gap-2.5 flex-wrap dashboard-row">
 
-            <!-- 현장 선택 -->
             <div class="flex items-center gap-1.5 shrink-0">
                 <i data-lucide="map-pin" class="w-3 h-3 shrink-0" style="color:#f87171;"></i>
                 <select id="site-quick-selector" onchange="onSiteQuickSelect(this.value)" class="hdr-select" style="max-width:150px;">
@@ -1072,10 +1062,8 @@
 
             <div class="hdr-divider shrink-0"></div>
 
-            <!-- 대장 선택 영역 -->
             <div class="flex items-center gap-1.5 flex-wrap">
                 <span style="font-size:9px;color:#475569;font-weight:700;letter-spacing:0.05em;">대장</span>
-                <!-- 회사 필터(숨김) — optgroup 방식으로 통합, buildFilterOptions 호환용 -->
                 <select id="filter-company" class="hdr-select" style="display:none;">
                     <option value="ALL">전체 회사</option>
                 </select>
@@ -1087,7 +1075,6 @@
 
                 <div class="hdr-divider shrink-0"></div>
 
-                <!-- 대장 조작 버튼 -->
                 <button onclick="toggleNewDocModal()" class="hdr-btn hdr-btn-blue" style="padding:4px 8px;">
                     <i data-lucide="file-plus-2" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">등록</span>
                 </button>
@@ -1105,7 +1092,6 @@
                 </button>
             </div>
 
-            <!-- 우측: 요약 칩 + 도넛 -->
             <div class="ml-auto flex items-center gap-1.5 flex-wrap">
                 <button onclick="setDashboardFilter('all')"
                     class="summary-chip border text-[10px] font-bold px-2.5 py-1 flex items-center gap-1"
@@ -1131,7 +1117,6 @@
                     <i data-lucide="pause-circle" class="w-2.5 h-2.5"></i>
                     보류 <span id="summary-total" class="font-black">0원</span>
                 </button>
-                <!-- 도넛 차트 -->
                 <div class="relative shrink-0 donut-wrap" style="width:38px;height:38px;" title="구분별 비율">
                     <svg id="donut-svg" viewBox="0 0 36 36" width="38" height="38">
                         <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1e293b" stroke-width="4"/>
@@ -1150,14 +1135,11 @@
 
     </header>
 
-    <!-- ── 사이드바 + 콘텐츠 래퍼 ── -->
     <div class="flex" style="flex:1 1 0%;min-height:0;overflow:hidden;">
 
-        <!-- ═══ 좌측 사이드바 ═══ -->
         <nav id="app-sidebar" class="no-print flex flex-col shrink-0 transition-all duration-300"
              style="width:200px;background:linear-gradient(180deg,#0f172a 0%,#1a2744 100%);border-right:1px solid rgba(59,130,246,0.18);z-index:30;height:100%;overflow-y:auto;overflow-x:hidden;">
 
-            <!-- 사이드바 토글 버튼 -->
             <div class="flex items-center justify-between px-3 py-2.5" style="border-bottom:1px solid rgba(255,255,255,0.07);">
                 <span id="sidebar-label" class="text-[10px] font-bold tracking-widest uppercase" style="color:#475569;">메뉴</span>
                 <button onclick="toggleSidebar()" class="rounded-md p-1 transition-colors hover:bg-white/10" title="메뉴 접기/펼치기" style="color:#64748b;">
@@ -1165,7 +1147,6 @@
                 </button>
             </div>
 
-            <!-- 탭 메뉴 목록 -->
             <div class="flex flex-col py-2 gap-0.5 px-2 flex-grow" id="sidebar-nav-items">
 
                 <button id="tab-btn-statement" onclick="switchTab('statement')"
@@ -1212,18 +1193,14 @@
 
             </div>
 
-            <!-- 사이드바 하단 버전 표시 -->
             <div id="sidebar-footer" class="px-3 py-2 text-[9px] font-bold" style="color:#334155;border-top:1px solid rgba(255,255,255,0.06);">
                 <span class="sidebar-tab-label">현장 경비관리 V24</span>
             </div>
         </nav>
 
-    <!-- ═══ 우측 콘텐츠 영역 ═══ -->
     <div style="flex:1 1 0%;min-width:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;">
-    <!-- 메인 콘텐츠 영역 -->
     <main class="w-full px-4 py-3 tab-content-fade" style="flex:1 1 auto;">
         
-        <!-- 계좌 정보 모달/패널 (no-print) -->
         <div id="account-manager-panel" class="hidden no-print bg-white dark:bg-slate-900 rounded-xl shadow-md border border-blue-200 dark:border-blue-900 p-5 mb-3">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                 <div class="flex items-center gap-2 text-blue-850 dark:text-blue-450">
@@ -1235,7 +1212,6 @@
                 </button>
             </div>
 
-            <!-- 새 예금주 등록 폼 -->
             <div class="bg-blue-50/50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-100 dark:border-blue-900/40 mb-4 text-xs">
                 <h4 class="font-bold text-blue-900 dark:text-blue-400 mb-2.5 flex items-center gap-1">
                     <i data-lucide="plus" class="w-4 h-4"></i> 새 예금주 및 거래처 계좌 정보 마스터 등록
@@ -1290,7 +1266,6 @@
                 </div>
             </div>
 
-            <!-- 테이블 목록형 구조 -->
             <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-[10px] text-slate-400 font-bold shrink-0">정렬:</span>
@@ -1325,11 +1300,8 @@
             </div>
         </div>
 
-        <!-- 1. 자금청구명세서 영역 -->
         <div id="tab-statement" class="block">
-            <!-- 중복 경고 배너 (강화) -->
             <div id="duplicate-alert-banner" class="hidden no-print mb-4 rounded-xl shadow-sm border overflow-hidden transition-all duration-300">
-                <!-- 청구 중복 섹션 -->
                 <div id="dup-section-claim" class="hidden bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-900 p-3 flex items-start gap-3">
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 animate-bounce"></i>
                     <div class="flex-1 min-w-0">
@@ -1338,7 +1310,6 @@
                         <div id="dup-claim-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
-                <!-- 계좌 중복 섹션 -->
                 <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 flex items-start gap-3">
                     <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
@@ -1352,7 +1323,6 @@
                         <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
-                <!-- 대표자 불일치 섹션 -->
                 <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 flex items-start gap-3">
                     <i data-lucide="user-x" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
@@ -1368,7 +1338,6 @@
                 </div>
             </div>
 
-            <!-- 계좌 중복 확인 모달 (저장 시 경고용) -->
             <div id="dup-account-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-rose-200 dark:border-rose-800 max-w-md w-full p-6">
                     <div class="flex items-center gap-3 mb-4">
@@ -1388,7 +1357,6 @@
                 </div>
             </div>
 
-            <!-- 동일 계좌번호 다중 거래처 상세 확인 모달 -->
             <div id="dup-acc-detail-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDupAccDetailModal()">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-rose-200 dark:border-rose-800 w-full max-w-2xl max-h-[88vh] flex flex-col">
                     <div class="flex items-center justify-between px-5 py-4 border-b border-rose-100 dark:border-rose-900 shrink-0">
@@ -1415,7 +1383,6 @@
                 </div>
             </div>
 
-            <!-- 대표자 불일치 상세 모달 -->
             <div id="dup-ceo-detail-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDupCeoDetailModal()">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-purple-200 dark:border-purple-800 w-full max-w-2xl max-h-[88vh] flex flex-col">
                     <div class="flex items-center justify-between px-5 py-4 border-b border-purple-100 dark:border-purple-900 shrink-0">
@@ -1439,7 +1406,6 @@
                 </div>
             </div>
 
-            <!-- ── 통합 툴바 (검색·필터·가독성 접이식) ── -->
             <style>
                 .sf-chip { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
                 .sf-chip.active { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
@@ -1466,9 +1432,7 @@
                 #stmt-toolbar-body.collapsed { max-height:0 !important; opacity:0; pointer-events:none; }
             </style>
             <div class="no-print tab-ctrl-panel mb-2" style="padding:0;">
-                <!-- 한줄 헤더 — 항상 표시 -->
                 <div class="flex items-center gap-2 px-3 py-2.5">
-                    <!-- 검색창 (항상 표시) -->
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
                         <input type="text" id="state-search-keyword" oninput="onUnifiedSearch()"
@@ -1479,7 +1443,6 @@
                         </button>
                     </div>
                     <span id="search-result-count" class="text-[11px] font-bold whitespace-nowrap hidden" style="color:#3b82f6;"></span>
-                    <!-- 구분 필터 -->
                     <select id="state-filter-type-select" onchange="renderStatementTable()"
                         class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0">
                         <option value="ALL">전체 구분</option>
@@ -1489,7 +1452,6 @@
                         <option value="노무비">노무비</option>
                         <option value="관리비">관리비</option>
                     </select>
-                    <!-- 상태 필터 -->
                     <select id="state-filter-status-select" onchange="renderStatementTable()"
                         class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-bold outline-none shrink-0">
                         <option value="ALL">전체 상태</option>
@@ -1497,7 +1459,6 @@
                         <option value="완료">완료</option>
                         <option value="보류">보류</option>
                     </select>
-                    <!-- 툴바 토글 버튼 -->
                     <button onclick="toggleStmtToolbar()" id="stmt-toolbar-toggle"
                         class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all"
                         class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold transition-all" title="상세 옵션">
@@ -1505,10 +1466,8 @@
                         <i data-lucide="chevron-down" class="w-3 h-3" id="stmt-toolbar-chevron"></i>
                     </button>
                 </div>
-                <!-- 접이식 상세 옵션 -->
                 <div id="stmt-toolbar-body" class="collapsed">
                     <div class="px-3 pb-2.5 flex flex-wrap gap-3 items-center border-t border-slate-100 dark:border-slate-800" style="padding-top:10px;">
-                        <!-- 검색 범위 칩 -->
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[10px] font-bold" style="color:#94a3b8;">검색범위</span>
                             <button onclick="toggleSearchField('vendor')" id="sf-chip-vendor" class="sf-chip active text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">거래처명</button>
@@ -1518,7 +1477,6 @@
                             <button onclick="toggleSearchField('note')" id="sf-chip-note" class="sf-chip active text-[10px] px-2 py-0.5 rounded-full border font-bold transition-all">적요</button>
                         </div>
                         <div class="h-4 w-px" style="background:#e2e8f0;"></div>
-                        <!-- 가독성 -->
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-[10px] font-bold" style="color:#94a3b8;">폰트</span>
                             <select id="state-font-size-select" onchange="adjustStatementFont(this.value)"
@@ -1547,7 +1505,6 @@
                 </div>
             </div>
 
-            <!-- 다중선택 일괄 변경 제어 바 -->
             <div id="bulk-action-bar" class="hidden no-print mb-3 text-white rounded-xl shadow-lg p-3 flex items-center justify-between transition-all duration-300" style="background:linear-gradient(135deg,#1e1b4b,#1e3a5f);border:1px solid rgba(99,102,241,0.3);box-shadow:0 4px 20px rgba(99,102,241,0.2);">
                 <div class="flex items-center gap-3 text-xs pl-2">
                     <i data-lucide="check-square" class="w-4 h-4" style="color:#a5b4fc;"></i>
@@ -1577,9 +1534,7 @@
                 </div>
             </div>
 
-            <!-- 명세서 문서 영역 -->
             <div id="statement-print-box" class="print-page print-landscape bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 md:p-8" style="box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-                <!-- 상단 메타 정보 영역 -->
                 <div class="flex flex-col gap-4 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
                     <div class="w-full">
                         <input type="text" id="doc-title" value="(2026년 06월) 자금청구명세서" onchange="syncMetaValues('doc-title', this.value)"
@@ -1603,7 +1558,6 @@
                     </div>
                 </div>
 
-                <!-- 명세서 제어 바 -->
                 <div class="no-print mb-4 flex flex-col sm:flex-row gap-3 justify-between items-center rounded-xl border p-3" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-color:#e2e8f0;">
                     <div class="flex items-center gap-2 text-xs" style="color:#64748b;">
                         <span class="font-bold px-2 py-1 rounded text-[10px]" style="background:#e0e7ff;color:#3730a3;">정렬 우선순위</span>
@@ -1623,7 +1577,6 @@
                     </div>
                 </div>
 
-                <!-- 명세서 실물 테이블 -->
                 <div class="table-scroll-container overflow-x-auto max-h-[500px] border border-slate-200 dark:border-slate-800 rounded-lg relative">
                     <table class="w-full border-collapse text-xs text-left text-gray-750 dark:text-slate-300 min-w-[1300px]" id="statement-master-table" style="font-size: 11px;">
                         <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm text-slate-850 dark:text-slate-100">
@@ -1676,16 +1629,12 @@
             </div>
         </div>
 
-        <!-- 2. 지불의뢰서 영역 -->
         <div id="tab-request" class="hidden">
-            <!-- 의뢰서 바로 출력 지원 레이아웃 -->
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
                 
-                <!-- 지불의뢰서 실물 A4 portrait 양식 -->
                 <div class="lg:col-span-3">
                     <div id="portrait-print-box" class="print-page print-portrait bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[760px] mx-auto transition-all text-slate-850 dark:text-slate-100" style="--print-scale: 1.00; font-size: 12px;">
                         
-                        <!-- 상단 타이틀 -->
                         <div class="req-header-section border-b-2 border-slate-800 dark:border-slate-400 pb-3 mb-4">
                             <div class="flex justify-center mb-5">
                                 <h2 class="font-black text-gray-950 dark:text-slate-100 leading-none flex items-center gap-1.5">
@@ -1707,7 +1656,6 @@
                             </div>
                         </div>
 
-                        <!-- 거래처 상세 및 계약 내용 -->
                         <div class="req-vendor-section grid grid-cols-1 sm:grid-cols-2 border border-slate-300 dark:border-slate-700 text-[10px] mb-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 dark:divide-slate-700 bg-white dark:bg-slate-900">
                             <div class="divide-y divide-slate-300 dark:divide-slate-700">
                                 <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">공종명</span><input type="text" id="req-field-type" value="도소매업" class="px-3 py-1.5 w-full font-semibold text-slate-750 dark:text-slate-200 bg-transparent outline-none"></div>
@@ -1719,7 +1667,6 @@
                             </div>
                         </div>
 
-                        <!-- 청구 품목 정보 -->
                         <div class="req-items-section mb-3">
                             <div class="flex justify-between items-center mb-1 gap-2 flex-wrap">
                                 <p class="text-[10px] font-bold text-slate-800 dark:text-slate-250">● 청구 및 의뢰 품목 내역</p>
@@ -1731,16 +1678,13 @@
                                         <i data-lucide="rotate-ccw" class="w-2.5 h-2.5"></i> 초기화
                                     </button>
                                     <div class="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
-                                    <!-- 명세서 반영 확정 버튼 -->
                                     <button onclick="applyItemsToStatement()"
                                         id="apply-to-statement-btn"
                                         class="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] px-2.5 py-1 rounded font-bold flex items-center gap-0.5 transition-all shadow-sm"
                                         title="현재 품목 합계를 자금청구명세서의 해당 행 공급가액/부가세에 반영합니다">
                                         <i data-lucide="arrow-left-right" class="w-2.5 h-2.5"></i> 명세서에 반영
                                     </button>
-                                    <!-- 품목 자동저장 뱃지 -->
                                     <span id="vendor-items-saved-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded hidden" style="background:rgba(16,185,129,0.12);color:#059669;"></span>
-                                    <!-- 합계 일치 여부 상태 뱃지 -->
                                     <span id="items-sync-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded hidden"></span>
                                 </div>
                             </div>
@@ -1760,10 +1704,8 @@
                             </table>
                         </div>
 
-                        <!-- 산출근거 및 하단 계좌정보 -->
                         <div class="req-calc-section flex flex-col gap-2 text-[10px] mb-3">
                             
-                            <!-- 청구 산출 근거 -->
                             <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-850 w-full">
                                 <p class="font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center">
                                     <span class="print-bullet text-blue-600 dark:text-blue-450 font-black mr-1">●</span> 청구 산출 근거
@@ -1784,7 +1726,6 @@
                                 </div>
                             </div>
 
-                            <!-- 거래처 정보 및 입금 계좌 한줄 가로 배치 레이아웃 -->
                             <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-850 w-full">
                                 <p class="font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center">
                                     <span class="print-bullet text-emerald-600 dark:text-emerald-450 font-black mr-1">●</span> 거래처 및 입금 계좌 정보
@@ -1814,7 +1755,6 @@
                             </div>
                         </div>
 
-                        <!-- 첨부 구비서류 체크리스트 -->
                         <div class="req-checklist-section border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-[10px] mb-2">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
@@ -1850,7 +1790,6 @@
                             </div>
                         </div>
 
-                        <!-- 담당자 메모 (화면 전용 — 인쇄 제외) -->
                         <div class="req-memo-section border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-[10px] mb-2">
                             <div class="flex items-center gap-2 mb-1">
                                 <p class="font-bold text-slate-800 dark:text-slate-200">● 담당자 메모 / 특이사항</p>
@@ -1859,7 +1798,6 @@
                             <textarea id="req-manager-memo" rows="3" oninput="saveRequestMemo(); autoResizeMemo(this)" placeholder="" class="w-full bg-transparent resize-none text-slate-800 dark:text-slate-100 font-semibold focus:outline-none leading-relaxed"></textarea>
                         </div>
 
-                        <!-- 서명란 -->
                         <div class="req-sign-section flex justify-end items-center border-t border-slate-300 dark:border-slate-700 pt-2 mt-auto">
                             <div class="text-right font-semibold">
                                 <span class="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">위의 청구내역이 틀림없음을 확인합니다.</span>
@@ -1869,10 +1807,8 @@
                     </div>
                 </div>
 
-                <!-- 퀵 패널 -->
                 <div class="no-print flex flex-col gap-2 sticky top-6" style="min-width:144px;max-width:152px;">
 
-                    <!-- 거래처 선택 -->
                     <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">거래처</div>
                     <input type="text" id="req-quick-search" oninput="filterRequestSelector()" placeholder="상호 검색..." class="w-full rounded-lg border border-slate-700 bg-slate-800 text-white text-[11px] px-2 py-1.5 outline-none placeholder-slate-500">
                     <select id="request-selector" onchange="loadRequestData(this.value)" class="w-full rounded-lg border border-slate-700 bg-slate-800 text-white text-[11px] px-2 py-1.5 outline-none font-semibold">
@@ -1881,7 +1817,6 @@
 
                     <div class="border-t border-slate-700"></div>
 
-                    <!-- 설정 -->
                     <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">설정</div>
                     <div class="flex flex-col gap-1.5 text-[10px]">
                         <label class="flex items-center justify-between gap-1" style="color:#94a3b8;">
@@ -1908,7 +1843,6 @@
 
                     <div class="border-t border-slate-700"></div>
 
-                    <!-- 출력 -->
                     <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">출력</div>
                     <button onclick="openPrintPreviewModal('request')" class="qbtn" style="--qc:#059669;">
                         <i data-lucide="eye" class="w-3.5 h-3.5"></i><span>미리보기</span>
@@ -1922,7 +1856,6 @@
 
                     <div class="border-t border-slate-700"></div>
 
-                    <!-- 내보내기 -->
                     <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">내보내기</div>
                     <div class="grid grid-cols-2 gap-1">
                         <button onclick="exportRequestToXLSX('current')" class="qbtn" style="--qc:#0f766e;padding:5px 6px;justify-content:center;" title="현재 Excel">
@@ -1941,7 +1874,6 @@
 
                     <div class="border-t border-slate-700"></div>
 
-                    <!-- 바로가기 -->
                     <button onclick="quickRegisterCurrentVendorToDb()" class="qbtn" style="--qc:#334155;">
                         <i data-lucide="database-backup" class="w-3.5 h-3.5" style="color:#34d399;"></i><span>계좌 DB 등록</span>
                     </button>
@@ -1963,10 +1895,8 @@
             </div>
         </div>
 
-        <!-- 특고(일용) 인적용역 신고 내역 — 독립 섹션 (장비비 거래처 선택 시 자동 연동) -->
         <div id="tab-request-special" class="hidden">
 
-            <!-- 특고 제어 헤더 -->
             <div class="no-print tab-ctrl-panel mb-6">
                 <div class="tab-ctrl-header">
                     <div class="tab-ctrl-title-wrap">
@@ -1989,10 +1919,8 @@
                 </div>
             </div>
 
-            <!-- 특고 대장 실물 인쇄 영역 -->
             <div id="special-print-box" class="print-page bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 p-8 max-w-[1000px] mx-auto text-slate-900 dark:text-slate-100" style="font-size: 13px;">
 
-                <!-- 헤더 -->
                 <div class="flex justify-between items-start border-b-2 border-slate-800 dark:border-slate-300 pb-3 mb-4">
                     <div>
                         <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
@@ -2019,7 +1947,6 @@
                     </div>
                 </div>
 
-                <!-- 특고 내역 테이블 -->
                 <div class="mb-4">
                     <table class="w-full border-collapse text-xs text-center" id="special-main-table">
                         <thead>
@@ -2054,7 +1981,6 @@
                     </table>
                 </div>
 
-                <!-- 하단 산출 근거 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-4">
                     <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-3 bg-slate-50 dark:bg-slate-850">
                         <p class="font-bold text-slate-800 dark:text-slate-200 mb-2">● 보험료 산출 근거</p>
@@ -2090,14 +2016,12 @@
                     </div>
                 </div>
 
-                <!-- 서명란 -->
                 <div class="flex justify-end items-center border-t border-slate-300 dark:border-slate-700 pt-3">
                     <span class="text-xs text-slate-700 dark:text-slate-300 font-bold">위의 인적용역 신고 내역이 틀림없음을 확인합니다.</span>
                 </div>
 
             </div>
 
-            <!-- 빈 상태 안내 -->
             <div id="special-empty-guide" class="hidden mt-4 text-center py-12 text-slate-400 dark:text-slate-600">
                 <i data-lucide="hard-hat" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
                 <p class="font-bold text-sm">지불의뢰서 탭에서 <span class="text-amber-600">장비비 거래처</span>를 선택하면 자동으로 특고 내역이 연동됩니다.</p>
@@ -2106,9 +2030,7 @@
 
         </div>
 
-        <!-- 3. 거래처별 청구 통계 집계표 영역 -->
         <div id="tab-stats" class="hidden font-sans">
-            <!-- 집계표 컨트롤 패널 -->
             <div class="no-print tab-ctrl-panel">
                 <div class="tab-ctrl-header">
                     <div class="tab-ctrl-title-wrap">
@@ -2133,7 +2055,6 @@
                 </div>
             </div>
 
-            <!-- 분석 대시보드 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3" id="stats-dashboard-row">
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col items-center gap-3 shadow-sm">
                     <p class="text-xs font-bold text-slate-500 dark:text-slate-400 self-start">공종별 청구 비율</p>
@@ -2155,15 +2076,12 @@
                 </div>
             </div>
 
-            <!-- 거래처 카드 보드 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="vendor-stats-board">
             </div>
         </div>
 
-        <!-- ===== 5. 건설기계 임대차계약서 ===== -->
         <div id="tab-contract" class="hidden">
 
-            <!-- 서브탭 전환 바 (no-print) -->
             <div class="no-print flex items-center gap-1 mb-3 border-b border-slate-200 dark:border-slate-700 pb-0">
                 <button id="ctab-btn-form" onclick="switchContractSubTab('form')"
                     class="ctab-btn px-4 py-2 text-xs font-bold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400 transition-all -mb-px">
@@ -2175,10 +2093,8 @@
                 </button>
             </div>
 
-            <!-- ── 서브탭: 계약서 작성 ── -->
             <div id="ctab-form">
 
-            <!-- 컨트롤 패널 (no-print) -->
             <div class="no-print tab-ctrl-panel mb-4">
                 <div class="tab-ctrl-header">
                     <div class="tab-ctrl-title-wrap">
@@ -2216,7 +2132,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- 보관함 제목 입력 -->
                 <div class="mt-3 flex gap-2">
                     <input type="text" id="std-archive-title" placeholder="계약서 제목 (보관함 저장 시 사용) 예: 원주 무실동 굴착기 계약" class="flex-1 px-3 py-1.5 text-xs border border-amber-200 dark:border-amber-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                     <button onclick="stdSyncFromRequest()" class="bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all" title="지불의뢰서·명세서에서 현장·거래처 정보를 가져옵니다">
@@ -2228,13 +2143,10 @@
                 </div>
             </div>
 
-            <!-- 2단 레이아웃: 왼쪽 입력폼 + 오른쪽 미리보기 -->
             <div id="contract-std-print-wrapper" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-                <!-- 왼쪽: 입력 폼 -->
                 <div class="no-print lg:col-span-5 space-y-4">
 
-                    <!-- 1. 건설기계 정보 -->
                     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
                             <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">1</span>
@@ -2256,7 +2168,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. 현장 정보 -->
                     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
                             <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">2</span>
@@ -2282,7 +2193,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. 사용기간 및 금액 -->
                     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
                             <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">3</span>
@@ -2325,7 +2235,6 @@
                             <div><label class="block text-[10px] font-semibold text-slate-500 mb-1">1개월 이하 시 지급(일)</label>
                                 <input type="number" id="std-payUnder" placeholder="15" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-slate-800 dark:text-slate-200"></div>
                         </div>
-                        <!-- 경비 분담 -->
                         <div class="border-t border-slate-100 dark:border-slate-700 pt-2">
                             <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 block mb-2">제경비 분담 협의</span>
                             <div class="grid grid-cols-2 gap-2 text-[10px]">
@@ -2361,13 +2270,11 @@
                         </div>
                     </div>
 
-                    <!-- 4. 당사자 정보 및 서명 -->
                     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
                             <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">4</span>
                             <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">계약 당사자 및 서명</h2>
                         </div>
-                        <!-- 임대인 -->
                         <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-blue-600">▲ 임대인 (건설기계 사업자)</span>
@@ -2383,7 +2290,6 @@
                             </div>
                             <input type="text" id="std-lessorAddr" placeholder="주소" oninput="stdUpdateContract()" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs focus:outline-none dark:text-slate-200">
                         </div>
-                        <!-- 임차인 -->
                         <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-orange-600">▼ 임차인 (건설업자)</span>
@@ -2401,7 +2307,6 @@
                         </div>
                     </div>
 
-                    <!-- 5. 계약일 및 특약 -->
                     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700">
                             <span class="w-5 h-5 flex items-center justify-center bg-amber-50 text-amber-600 rounded-full font-bold text-xs">5</span>
@@ -2419,13 +2324,11 @@
                     </div>
                 </div>
 
-                <!-- 오른쪽: 실시간 미리보기 (인쇄 타겟) -->
                 <div class="lg:col-span-7 bg-slate-500 p-4 rounded-xl shadow-inner overflow-y-auto" style="max-height:85vh;">
                     <div class="text-center mb-3 no-print flex justify-between items-center bg-slate-800/80 text-white px-4 py-2 rounded-lg text-xs font-semibold">
                         <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>공정위 제10059호 정식 표준 서식</span>
                     </div>
 
-                    <!-- A4 계약서 본문 -->
                     <div class="std-print-container bg-white text-black shadow-2xl mx-auto rounded-sm text-[9.5px] leading-relaxed max-w-[210mm] min-h-[297mm] p-10">
                         <div>
                             <div class="flex justify-between items-end border-b-2 border-black pb-1.5 mb-4">
@@ -2433,7 +2336,6 @@
                                 <span class="text-[8.5px] text-right font-medium text-slate-600">공정거래위원회 표준약관 제10059호<br>(2015. 10. 30. 개정)</span>
                             </div>
 
-                            <!-- 1. 목적물 -->
                             <div class="mb-4">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">1. 목적물의 표시</h3>
                                 <h4 class="font-bold text-[9.5px] mb-1 text-slate-700">가. 건설기계</h4>
@@ -2476,7 +2378,6 @@
                                 </table>
                             </div>
 
-                            <!-- 2. 사용기간 -->
                             <div class="mb-3">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">2. 사용기간</h3>
                                 <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
@@ -2484,7 +2385,6 @@
                                 </div>
                             </div>
 
-                            <!-- 3. 사용금액 -->
                             <div class="mb-3">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">3. 사용금액</h3>
                                 <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
@@ -2494,7 +2394,6 @@
                                 </div>
                             </div>
 
-                            <!-- 4. 가동시간 -->
                             <div class="mb-3">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">4. 가동시간</h3>
                                 <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
@@ -2502,7 +2401,6 @@
                                 </div>
                             </div>
 
-                            <!-- 5. 지급시기 -->
                             <div class="mb-3">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">5. 지급시기</h3>
                                 <div class="border-2 border-black p-2 text-[9.5px] bg-slate-50">
@@ -2513,14 +2411,12 @@
 
                             <p class="mb-3 text-[9px] text-justify text-slate-800">건설기계임대인과 건설기계임차인은 합의에 따라 계약을 체결하고, 신의성실에 따라 의무를 이행할 것을 확약하며, 계약의 증거로 계약서를 2통 작성하여 서명 날인 후 각각 1부씩 보관한다.</p>
 
-                            <!-- 특약 -->
                             <div class="mb-4">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">■ 특약 사항</h3>
                                 <div id="std-vSpecialTerms" class="border-2 border-black p-2 min-h-[50px] bg-slate-50 whitespace-pre-wrap text-[9px] font-mono text-slate-800">- 특약사항이 기재되지 않았습니다.</div>
                             </div>
                         </div>
 
-                        <!-- 하단: 계약일 + 서명란 -->
                         <div class="mt-auto">
                             <div id="std-vContractDate" class="text-center text-[11px] font-black tracking-widest mb-3 text-slate-900">2026년 06월 19일</div>
                             <table class="w-full border-collapse border-2 border-black text-[9.5px]">
@@ -2564,7 +2460,6 @@
                         </div>
                     </div>
 
-                    <!-- 약관 2면 (토글) -->
                     <div id="std-generalConditionsPage" class="std-print-page2 hidden bg-white text-black text-[7.5px] leading-relaxed mt-2 p-10 max-w-[210mm] mx-auto min-h-[297mm]">
                         <div class="flex justify-between items-center border-b-2 border-black pb-1 mb-3">
                             <span class="font-black text-[10px]">건설기계임대차 표준계약 일반조건</span>
@@ -2593,9 +2488,7 @@
 
             </div><!-- /ctab-form -->
 
-            <!-- ── 서브탭: 계약 DB 관리 ── -->
             <div id="ctab-db" class="hidden">
-                <!-- 통계 카드 -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:border-amber-400 transition-all">
                         <p class="text-[10px] text-slate-400 font-bold mb-1">전체 계약</p>
@@ -2619,7 +2512,6 @@
                     </div>
                 </div>
 
-                <!-- 검색·필터 바 -->
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-3 mb-3 shadow-sm">
                     <div class="flex flex-wrap items-center gap-2">
                         <div class="flex items-center gap-2 flex-1 min-w-[160px] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
@@ -2649,7 +2541,6 @@
                     </div>
                 </div>
 
-                <!-- 테이블 -->
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full border-collapse" style="font-size:11px;">
@@ -2679,7 +2570,6 @@
                 </div>
             </div><!-- /ctab-db -->
 
-            <!-- 계약 DB 상세/수정 모달 -->
             <div id="cdb-detail-modal" class="no-print hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700">
@@ -2709,7 +2599,6 @@
                 </div>
             </div>
 
-            <!-- 서명 패드 모달 -->
             <div id="std-sigModal" class="no-print hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-5 space-y-4">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
@@ -2738,7 +2627,6 @@
                 </div>
             </div>
 
-            <!-- 보관함 모달 -->
             <div id="std-archiveModal" class="no-print hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md p-6 space-y-4">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
@@ -2759,7 +2647,6 @@
         ═══════════════════════════════════════════ -->
         <div id="tab-corpcard" class="hidden">
 
-            <!-- 컨트롤 패널 -->
             <div class="no-print tab-ctrl-panel mb-4">
                 <div class="tab-ctrl-header">
                     <div class="tab-ctrl-title-wrap">
@@ -2792,7 +2679,6 @@
                     </div>
                 </div>
 
-                <!-- 필터 바 -->
                 <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 items-center">
                     <span class="text-[10px] font-bold text-slate-500">필터</span>
                     <select id="cc-filter-month" onchange="ccRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
@@ -2813,7 +2699,6 @@
                 </div>
             </div>
 
-            <!-- 요약 카드 -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4" id="cc-summary-cards">
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
                     <div class="text-[10px] text-slate-400 font-semibold mb-1">이번 달 합계</div>
@@ -2833,7 +2718,6 @@
                 </div>
             </div>
 
-            <!-- 메인 테이블 -->
             <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-4">
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs border-collapse" id="cc-table">
@@ -2858,7 +2742,6 @@
                 </div>
             </div>
 
-            <!-- 현장별 집계 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
@@ -2876,7 +2759,6 @@
 
         </div><!-- /tab-corpcard -->
 
-        <!-- 법인카드 행 편집 모달 -->
         <div id="cc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -2927,11 +2809,9 @@
                 </div>
             </div>
         </div>
-        <!-- /법인카드 행 편집 모달 -->
     </div><!-- /우측 콘텐츠 -->
     </div><!-- /사이드바+콘텐츠 래퍼 -->
 
-    <!-- 통계 상세조회 모달 팝업 -->
     <div id="stats-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-850 w-full max-w-4xl p-6 text-slate-900 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
@@ -2965,10 +2845,8 @@
         </div>
     </div>
 
-    <!-- ===== 인쇄 미리보기 모달 ===== -->
     <div id="print-preview-modal" class="no-print hidden fixed inset-0 z-[9999] flex flex-col" style="background:rgba(15,23,42,0.92);">
 
-        <!-- 상단 툴바 -->
         <div class="flex items-center justify-between gap-4 px-5 py-3 bg-slate-900 border-b border-slate-700 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="bg-emerald-600 p-1.5 rounded-lg">
@@ -2981,7 +2859,6 @@
             </div>
 
             <div class="flex items-center gap-4 flex-wrap">
-                <!-- 탭 전환 버튼 -->
                 <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-1 border border-slate-700">
                     <button onclick="openPrintPreviewModal('statement')" class="preview-tab-btn text-[11px] font-bold px-3 py-1.5 rounded text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1">
                         <i data-lucide="file-spreadsheet" class="w-3 h-3"></i> 명세서
@@ -2994,7 +2871,6 @@
                     </button>
                 </div>
 
-                <!-- 배율 슬라이더 -->
                 <div class="flex items-center gap-2">
                     <span class="text-[11px] text-slate-400 font-bold">배율:</span>
                     <input type="range" id="preview-scale-slider" min="0.4" max="1.2" step="0.05" value="1"
@@ -3005,30 +2881,25 @@
 
                 <div class="w-px h-6 bg-slate-700"></div>
 
-                <!-- 인쇄 버튼 -->
                 <button id="preview-print-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow transition-all">
                     <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄
                 </button>
-                <!-- PDF 내보내기 버튼 -->
                 <button id="preview-pdf-btn" onclick="exportPreviewToPdf()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow transition-all">
                     <i data-lucide="file-type-2" class="w-3.5 h-3.5"></i> PDF 저장
                 </button>
 
-                <!-- 닫기 -->
                 <button onclick="closePrintPreviewModal()" class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-700" title="닫기 (ESC)">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
         </div>
 
-        <!-- 미리보기 스크롤 영역 -->
         <div class="flex-1 overflow-auto py-8 px-4" style="background:repeating-linear-gradient(45deg,#0f172a 0px,#0f172a 10px,#131f35 10px,#131f35 20px);">
             <div id="print-preview-inner-wrap" style="transform-origin:top center; transition: transform 0.2s ease;">
                 <div id="print-preview-container" class="mx-auto"></div>
             </div>
         </div>
 
-        <!-- 하단 정보 바 -->
         <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
             <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
             <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
@@ -3036,7 +2907,6 @@
         </div>
     </div>
 
-    <!-- 새 청구서 등록 모달 -->
     <div id="new-doc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 text-slate-900 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
@@ -3099,7 +2969,6 @@
         </div>
     </div>
 
-    <!-- 현재 대장 복사 및 이월 모달 팝업 -->
     <div id="duplicate-doc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 text-slate-900 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
@@ -3163,7 +3032,6 @@
         </div>
     </div>
 
-    <!-- 자금 청구 항목 추가 모달 -->
     <div id="add-row-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl p-6 text-slate-900 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
@@ -3217,7 +3085,6 @@
                     <input type="text" id="modal-note" placeholder="(메모)되신 (품목)을 입력하세요" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 outline-none">
                 </div>
             </div>
-            <!-- 계좌 자동 매핑 결과 미리보기 -->
             <div id="modal-account-preview" class="hidden bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 mb-4 text-xs text-slate-700 dark:text-slate-300">
                 <p class="font-bold text-blue-700 dark:text-blue-400 mb-1 text-[11px] flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> DB에서 계좌 정보가 매핑되었습니다</p>
                 <div class="grid grid-cols-3 gap-2">
@@ -3233,8 +3100,6 @@
         </div>
     </div>
 
-    <!-- 백업/복원 모달 -->
-    <!-- ===== 현장 관리 모달 (V12) ===== -->
     <div id="site-manager-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4 shrink-0">
@@ -3248,13 +3113,11 @@
 
             <div class="flex-1 overflow-auto p-6 space-y-5 text-xs">
 
-                <!-- 현장별 요약 테이블 -->
                 <div>
                     <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                         <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i> 현장별 자금 집행 비교표
                         </h4>
-                        <!-- 회사별 필터 버튼 -->
                         <div class="flex items-center gap-1.5 flex-wrap" id="site-company-filter-bar">
                             <span class="text-[10px] text-slate-400 font-bold shrink-0">회사별:</span>
                             <button onclick="filterSiteByCompany('ALL')" id="site-co-btn-ALL"
@@ -3263,9 +3126,7 @@
                             </button>
                         </div>
                     </div>
-                    <!-- 회사별 그룹 카드 뷰 -->
                     <div id="site-company-group-view" class="hidden space-y-4 mb-3"></div>
-                    <!-- 기존 전체 테이블 -->
                     <div id="site-all-table-wrap" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
                         <table class="w-full border-collapse text-[11px]">
                             <thead>
@@ -3286,7 +3147,6 @@
                     </div>
                 </div>
 
-                <!-- 현장별 월 현황 타임라인 -->
                 <div>
                     <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
                         <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-indigo-500"></i> 현장별 월별 집행 타임라인
@@ -3294,7 +3154,6 @@
                     <div id="site-timeline" class="space-y-3"></div>
                 </div>
 
-                <!-- 현장 예산 등록 -->
                 <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-800 rounded-xl p-4">
                     <h4 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-3">
                         <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> 현장 예산 등록 (집행률 계산용)
@@ -3310,8 +3169,6 @@
         </div>
     </div>
 
-    <!-- ===== 거래처 이력 카드 모달 (V16) ===== -->
-    <!-- 계좌 일괄 동기화 모달 -->
             <div id="bulk-sync-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeBulkSyncModal()">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg flex flex-col max-h-[92vh]">
                     <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -3362,7 +3219,6 @@
                 </div>
             </div>
 
-            <!-- 행 복사/이동 모달 -->
             <div id="row-transfer-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeRowTransferModal()">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md">
                     <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -3397,7 +3253,6 @@
     <div id="vendor-history-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeVendorHistoryModal()">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[92vh] flex flex-col">
 
-            <!-- 헤더 -->
             <div class="flex justify-between items-start px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="bg-blue-600 p-2 rounded-xl shrink-0">
@@ -3413,13 +3268,10 @@
                 </button>
             </div>
 
-            <!-- KPI 카드 4종 -->
             <div id="vh-kpi-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50 dark:bg-slate-900/60"></div>
 
-            <!-- 본문 스크롤 -->
             <div class="flex-1 overflow-auto px-6 py-4 space-y-5 text-xs">
 
-                <!-- 월별 지급 추이 바 차트 -->
                 <div>
                     <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
                         <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-indigo-500"></i> 월별 지급요청액 추이
@@ -3427,7 +3279,6 @@
                     <div id="vh-monthly-chart" class="space-y-1.5"></div>
                 </div>
 
-                <!-- 대장별 거래 내역 테이블 -->
                 <div>
                     <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
                         <i data-lucide="scroll-text" class="w-3.5 h-3.5 text-blue-500"></i> 전체 대장 거래 내역
@@ -3451,7 +3302,6 @@
                     </div>
                 </div>
 
-                <!-- 계좌 정보 + 중복 경고 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4">
                         <h4 class="font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5 mb-2 text-[11px]">
@@ -3481,7 +3331,6 @@
         </div>
     </div>
 
-    <!-- ===== 행 메모 모달 (V14) ===== -->
     <div id="memo-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-amber-200 dark:border-amber-800 w-full max-w-md">
             <div class="flex justify-between items-center px-5 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -3497,7 +3346,6 @@
                 <p class="text-slate-500 dark:text-slate-400">분쟁 이력, 협의 내용, 특이사항 등 내부 메모를 자유롭게 기록합니다.<br>메모는 화면에만 표시되며 인쇄 시 출력되지 않습니다.</p>
                 <textarea id="memo-textarea" rows="5" placeholder="메모 내용을 입력하세요..."
                     class="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs bg-amber-50 dark:bg-amber-950/10 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-400 resize-none leading-relaxed"></textarea>
-                <!-- 타임스탬프 -->
                 <div id="memo-timestamp" class="text-[10px] text-slate-400 dark:text-slate-500 italic"></div>
             </div>
             <div class="flex justify-between items-center px-5 pb-5 gap-2">
@@ -3514,7 +3362,6 @@
         </div>
     </div>
 
-    <!-- ===== 반복 항목 관리 모달 (V14) ===== -->
     <div id="repeat-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -3529,7 +3376,6 @@
 
             <div class="flex-1 overflow-auto p-6 space-y-5 text-xs">
 
-                <!-- 반복 항목 등록 폼 -->
                 <div class="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4">
                     <p class="font-bold text-indigo-800 dark:text-indigo-400 flex items-center gap-1.5 mb-3">
                         <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 새 반복 항목 등록
@@ -3569,7 +3415,6 @@
                     </div>
                 </div>
 
-                <!-- 등록된 반복 항목 목록 -->
                 <div>
                     <p class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
                         <i data-lucide="list" class="w-3.5 h-3.5 text-indigo-500"></i> 등록된 반복 항목
@@ -3578,7 +3423,6 @@
                     <div id="repeat-item-list" class="space-y-1.5"></div>
                 </div>
 
-                <!-- 현재 대장에 일괄 삽입 -->
                 <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-3 flex items-center justify-between gap-3">
                     <div>
                         <p class="font-bold text-emerald-800 dark:text-emerald-400 text-[11px] flex items-center gap-1.5">
@@ -3598,11 +3442,9 @@
         </div>
     </div>
 
-    <!-- ===== 강화된 백업/복원 모달 (V12) ===== -->
     <div id="backup-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl">
 
-            <!-- 헤더 -->
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4">
                 <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
                     <i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i> 데이터 백업 / 복원 센터
@@ -3614,7 +3456,6 @@
 
             <div class="p-6 space-y-4 text-xs">
 
-                <!-- 현재 데이터 현황 요약 -->
                 <div id="backup-stats-bar" class="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700">
                     <div class="text-center">
                         <div class="text-lg font-black text-blue-600 dark:text-blue-400" id="backup-stat-docs">-</div>
@@ -3631,7 +3472,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- 백업 섹션 -->
                     <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/60 rounded-xl p-4 flex flex-col gap-3">
                         <div>
                             <p class="font-extrabold text-blue-800 dark:text-blue-400 mb-1 flex items-center gap-1.5">
@@ -3650,7 +3490,6 @@
                         <div id="backup-last-time" class="text-[10px] text-blue-700 dark:text-blue-500 font-semibold text-center pt-1 border-t border-blue-100 dark:border-blue-900"></div>
                     </div>
 
-                    <!-- 복원 섹션 -->
                     <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/60 rounded-xl p-4 flex flex-col gap-3">
                         <div>
                             <p class="font-extrabold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center gap-1.5">
@@ -3668,7 +3507,6 @@
                                 <i data-lucide="upload" class="w-3.5 h-3.5"></i> 선택한 파일로 복원
                             </button>
                         </div>
-                        <!-- 복원 미리보기 정보 -->
                         <div id="restore-preview" class="hidden text-[10px] bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 space-y-0.5">
                             <p class="font-bold text-emerald-700 dark:text-emerald-400 mb-1">📋 파일 내 데이터 미리보기</p>
                             <div id="restore-preview-content" class="text-slate-600 dark:text-slate-300 space-y-0.5"></div>
@@ -3676,7 +3514,6 @@
                     </div>
                 </div>
 
-                <!-- 자동 백업 현황 -->
                 <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-xl p-3">
                     <p class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-2">
                         <i data-lucide="history" class="w-3.5 h-3.5"></i> 자동 스냅샷 (최근 3회 자동 저장)
@@ -3692,7 +3529,6 @@
         </div>
     </div>
 
-    <!-- 커스텀 컨펌/알림 모달 -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm p-6">
             <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-2 font-semibold" id="confirm-title">확인</h3>
@@ -3704,7 +3540,6 @@
         </div>
     </div>
 
-    <!-- 특고(일용) 인적용역 정보 입력 모달 -->
     <div id="special-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
@@ -3756,13 +3591,11 @@
         </div>
     </div>
 
-    <!-- 토스트 메시지 안내창 -->
     <div id="toast" class="opacity-0 pointer-events-none fixed bottom-5 right-5 bg-slate-950 text-white text-xs py-2.5 px-4 rounded-lg shadow-lg z-50 flex items-center gap-2 transition-all duration-300">
         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
         <span id="toast-msg">처리 완료</span>
     </div>
 
-    <!-- 로직 자바스크립트 -->
     <script>
         const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
 
@@ -4369,7 +4202,6 @@
             syncSpecialMetaFromRequest();
             window.print();
         }
-
 
         function triggerPdfImport() {
             document.getElementById('pdf-import-input').click();
@@ -6580,7 +6412,6 @@ function changePrintScale(value) {
                 const colors = colorMap[firstItem.type] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-300", printClass: "print-badge-slate" };
 
                 page.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; gap:0;">
-                    <!-- 헤더 -->
                     <div style="flex:0 0 auto;" class="border-b border-slate-300 pb-2 mb-2">
                         <h2 class="text-xl font-black tracking-tight text-gray-900 pb-1 flex items-center">
                             (<span class="font-extrabold px-2 py-0.5 rounded-md border text-center inline-block ${colors.bg} ${colors.text} ${colors.border} ${colors.printClass}">${firstItem.type}</span>)
@@ -6592,7 +6423,6 @@ function changePrintScale(value) {
                         </div>
                     </div>
 
-                    <!-- 거래처 정보 -->
                     <div style="flex:0 0 auto;" class="grid grid-cols-2 border border-slate-300 text-[10px] mb-2 divide-x divide-slate-300 bg-white">
                         <div class="divide-y divide-slate-300">
                             <div class="flex items-center"><span class="bg-slate-100 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200">공종명</span><span class="px-3 py-1.5 w-full font-medium text-slate-800">${firstItem.type}</span></div>
@@ -6604,7 +6434,6 @@ function changePrintScale(value) {
                         </div>
                     </div>
 
-                    <!-- 품목 테이블 — 남은 공간 꽉 채움 -->
                     <div style="flex:1 1 auto; display:flex; flex-direction:column; min-height:0; margin-bottom:8px;">
                         <p class="text-[10px] font-bold text-slate-800 mb-1">● 청구 및 의뢰 품목 내역</p>
                         <table style="width:100%; height:100%; border-collapse:collapse; border:1px solid #94a3b8; font-size:10px; text-align:center;">
@@ -6623,7 +6452,6 @@ function changePrintScale(value) {
                         </table>
                     </div>
 
-                    <!-- 산출근거 + 계좌정보 -->
                     <div style="flex:0 0 auto;" class="flex flex-col gap-2 text-[10px] mb-2">
                         <div class="border border-slate-300 rounded p-2 bg-slate-50 w-full">
                             <p class="font-bold text-slate-800 mb-1">● 청구 산출 근거</p>
@@ -6656,7 +6484,6 @@ function changePrintScale(value) {
 
                     ${specialSectionHtml}
 
-                    <!-- 체크리스트 -->
                     <div style="flex:0 0 auto;" class="border border-slate-300 rounded p-2 text-[10px] mb-2">
                         <p class="font-bold text-slate-800 mb-1">● 구비 서류 체크리스트</p>
                         <div class="grid grid-cols-3 gap-1 font-bold text-slate-800">
@@ -6669,7 +6496,6 @@ function changePrintScale(value) {
                         </div>
                     </div>
 
-                    <!-- 서명란 -->
                     <div style="flex:0 0 auto; margin-top:auto;" class="flex justify-end items-center border-t border-slate-300 pt-2">
                         <span class="text-[11px] text-slate-700 font-black">위의 청구내역이 틀림없음을 확인합니다.</span>
                     </div>
@@ -7088,7 +6914,6 @@ function changePrintScale(value) {
                 });
             });
         }
-
 
         function renderRequestItemsTable() {
             const tbody = document.getElementById('req-items-tbody');
@@ -7538,7 +7363,8 @@ function changePrintScale(value) {
             const selectedMonthVal = filterMonth.value || "ALL";
 
             const companies = [...new Set(savedDocuments.map(doc => doc.company))].filter(Boolean);
-            const months = [...new Set(savedDocuments.map(doc => doc.month))].filter(Boolean);
+            const months = [...new Set(savedDocuments.map(doc => doc.month))].filter(Boolean)
+                .sort((a, b) => parseMonthToNum(a) - parseMonthToNum(b));
 
             filterCompany.innerHTML = `<option value="ALL">전체 회사</option>`;
             companies.forEach(comp => {
@@ -7601,9 +7427,9 @@ function changePrintScale(value) {
                 const group = document.createElement('optgroup');
                 group.label = `▶ ${company}`;
 
-                // 같은 회사 내: 년월 내림차순(최신 먼저) → 현장명 오름차순
+                // 같은 회사 내: 년월 오름차순 → 현장명 오름차순
                 const docs = [...companyMap[company]].sort((a, b) => {
-                    const monthCmp = parseMonthToNum(b.month) - parseMonthToNum(a.month);
+                    const monthCmp = parseMonthToNum(a.month) - parseMonthToNum(b.month);
                     if (monthCmp !== 0) return monthCmp;
                     return (a.site || '').localeCompare(b.site || '', 'ko-KR');
                 });
@@ -8847,7 +8673,6 @@ function changePrintScale(value) {
         /* ── 건설기계 임대차계약서 (V15) ── */
         let currentContractId = null;
         let contractMachines  = [{ kind:'', spec:'', regnum:'', maker:'' }];
-
 
         /* 셀렉터 갱신 */
         function refreshContractSelector() {
@@ -11817,9 +11642,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             cdbUpdateStats();
         }
 
-        // ========================================================
         // ★ 거래처 계좌 자동완성 (Vendor Account Autocomplete)
-        // ========================================================
         let _vacActiveId = null;   // 현재 열린 dropdown의 rowId
         let _vacSelIdx   = -1;     // 키보드 선택 인덱스
 
@@ -11948,9 +11771,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 _vacActiveId = null;
             }
         });
-        // ========================================================
         // ★ 법인카드 경비 관리 (Corporate Card Manager)
-        // ========================================================
         const CC_KEY = 'cons_corpcard_v1';
         let ccData = [];
         let ccSortKey = 'date';
@@ -12398,13 +12219,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
         });
 
-        // ========================================================
-        // ★ 끝: 거래처 계좌 자동완성
-        // ========================================================
 
-        // ===== 끝: 계약 DB 관리 =====
 
-        // ===== 끝: 건설기계임대차 표준계약서 =====
     </script>
 </body>
 </html>
