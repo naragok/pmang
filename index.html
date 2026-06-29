@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V24</title>
+    <meta name="viewport" content="width=1280">
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // 테마 설정을 위해 Tailwind 다크모드 구성 정의
@@ -487,6 +487,33 @@
         /* 메인 콘텐츠 최대 폭 없애고 전체 사용 */
         main > div { max-width: none !important; }
 
+        /* ── PC 특화: 커서·마우스 UX ── */
+        * { cursor: default; }
+        button, select, [onclick], [role="button"], .sidebar-tab-btn,
+        .acct-sort-btn, .ctrl-btn, .hdr-btn, th[onclick] { cursor: pointer !important; }
+        input[type="text"], input[type="number"], input[type="date"],
+        input[type="email"], textarea { cursor: text; }
+        select { cursor: pointer !important; }
+
+        /* 테이블 행 hover 강화 */
+        tbody tr { transition: background 0.1s ease; }
+        tbody tr:hover td { background: rgba(59,130,246,0.06) !important; }
+        .dark tbody tr:hover td { background: rgba(59,130,246,0.1) !important; }
+
+        /* 버튼 hover/active transition 통일 */
+        button { transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+        button:active { transform: scale(0.97); }
+
+        /* 포커스 링 개선 */
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid rgba(59,130,246,0.5) !important;
+            outline-offset: 1px;
+        }
+
+        /* 사이드바 탭 버튼 PC 여유 높이 */
+        .sidebar-tab-btn { padding-top: 10px !important; padding-bottom: 10px !important; }
+        #app-sidebar.sidebar-collapsed .sidebar-tab-btn { padding: 12px 0 !important; }
+
         /* 인쇄 시 원복 */
         @media print {
             html { height: auto; overflow: visible; }
@@ -535,7 +562,7 @@
 
         /* ── 사이드바 접힘 상태 ── */
         #app-sidebar.sidebar-collapsed {
-            width: 52px !important;
+            width: 56px !important;
         }
         #app-sidebar.sidebar-collapsed .sidebar-tab-label,
         #app-sidebar.sidebar-collapsed #sidebar-label,
@@ -984,9 +1011,7 @@
             .req-header-section h2 * { font-size: 25px !important; }
         }
 
-        /* ── 반응형 헤더 압축 ── */
-        @media (max-width: 768px) {
-            .hdr-btn .btn-label { display: none; }
+        
             .tab-btn { padding: 8px 10px; font-size: 10px; }
         }
     </style>
@@ -1007,44 +1032,44 @@
                 <div class="leading-tight">
                     <h1 class="font-extrabold tracking-tight flex items-center gap-1.5" style="font-size:13px;letter-spacing:-0.01em;">
                         현장 자금관리 마스터
-                        <span class="text-white font-black px-1.5 py-0.5 rounded" style="font-size:8px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);letter-spacing:0.05em;">PRO V24</span>
+                        <span class="text-white font-black px-1.5 py-0.5 rounded" style="font-size:8px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);letter-spacing:0.05em;">PRO V1.0</span>
                     </h1>
-                    <p class="hidden sm:block" style="font-size:9px;color:#64748b;">백업강화 · 현장별 관리 · 인쇄 미리보기</p>
+                    <p class="block" style="font-size:9px;color:#64748b;">백업강화 · 현장별 관리 · 인쇄 미리보기</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-1 flex-wrap justify-end">
                 <button onclick="toggleDarkMode()" class="hdr-btn hdr-btn-ghost" title="테마 변경">
                     <span id="dark-theme-icon-container"><i data-lucide="moon" class="w-3.5 h-3.5" style="color:#fbbf24;"></i></span>
-                    <span id="dark-theme-label" class="hidden sm:inline btn-label">다크모드</span>
+                    <span id="dark-theme-label" class="inline btn-label">다크모드</span>
                 </button>
 
                 <div class="hdr-divider shrink-0"></div>
 
                 <button onclick="triggerPdfImport()" class="hdr-btn hdr-btn-indigo" title="PDF 파싱 가져오기">
-                    <i data-lucide="file-text" class="w-3 h-3"></i><span class="hidden md:inline btn-label">PDF 파싱</span>
+                    <i data-lucide="file-text" class="w-3 h-3"></i><span class="inline btn-label">PDF 파싱</span>
                 </button>
                 <input type="file" id="pdf-import-input" accept=".pdf" class="hidden" onchange="importPdfBill(this)">
                 <button onclick="exportToXLSX()" class="hdr-btn hdr-btn-emerald" title="Excel 내보내기">
-                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="hidden md:inline btn-label">Excel</span>
+                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="inline btn-label">Excel</span>
                 </button>
                 <button onclick="exportToCSV()" class="hdr-btn hdr-btn-slate" title="CSV 내보내기">
-                    <i data-lucide="file-down" class="w-3 h-3"></i><span class="hidden md:inline btn-label">CSV</span>
+                    <i data-lucide="file-down" class="w-3 h-3"></i><span class="inline btn-label">CSV</span>
                 </button>
                 <button onclick="openBackupModal()" class="hdr-btn hdr-btn-slate" title="백업 / 복원">
-                    <i data-lucide="database" class="w-3 h-3"></i><span class="hidden md:inline btn-label">백업/복원</span>
+                    <i data-lucide="database" class="w-3 h-3"></i><span class="inline btn-label">백업/복원</span>
                 </button>
                 <button onclick="showResetConfirm()" class="hdr-btn hdr-btn-rose" title="전체 초기화">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i><span class="hidden lg:inline btn-label">초기화</span>
+                    <i data-lucide="trash-2" class="w-3 h-3"></i><span class="inline btn-label">초기화</span>
                 </button>
 
                 <div class="hdr-divider shrink-0"></div>
 
                 <button onclick="openPrintPreviewModal()" class="hdr-btn hdr-btn-preview" title="인쇄 미리보기">
-                    <i data-lucide="eye" class="w-3 h-3"></i><span class="hidden sm:inline btn-label">미리보기</span>
+                    <i data-lucide="eye" class="w-3 h-3"></i><span class="inline btn-label">미리보기</span>
                 </button>
                 <button onclick="window.print()" class="hdr-btn hdr-btn-blue" title="인쇄 / PDF 저장">
-                    <i data-lucide="printer" class="w-3 h-3"></i><span class="hidden sm:inline btn-label">인쇄/PDF</span>
+                    <i data-lucide="printer" class="w-3 h-3"></i><span class="inline btn-label">인쇄/PDF</span>
                 </button>
             </div>
         </div>
@@ -1138,7 +1163,7 @@
     <div class="flex" style="flex:1 1 0%;min-height:0;overflow:hidden;">
 
         <nav id="app-sidebar" class="no-print flex flex-col shrink-0 transition-all duration-300"
-             style="width:200px;background:linear-gradient(180deg,#0f172a 0%,#1a2744 100%);border-right:1px solid rgba(59,130,246,0.18);z-index:30;height:100%;overflow-y:auto;overflow-x:hidden;">
+             style="width:220px;background:linear-gradient(180deg,#0f172a 0%,#1a2744 100%);border-right:1px solid rgba(59,130,246,0.18);z-index:30;height:100%;overflow-y:auto;overflow-x:hidden;">
 
             <div class="flex items-center justify-between px-3 py-2.5" style="border-bottom:1px solid rgba(255,255,255,0.07);">
                 <span id="sidebar-label" class="text-[10px] font-bold tracking-widest uppercase" style="color:#475569;">메뉴</span>
@@ -1194,7 +1219,7 @@
             </div>
 
             <div id="sidebar-footer" class="px-3 py-2 text-[9px] font-bold" style="color:#334155;border-top:1px solid rgba(255,255,255,0.06);">
-                <span class="sidebar-tab-label">현장 경비관리 V24</span>
+                <span class="sidebar-tab-label">현장 경비관리 V1.0</span>
             </div>
         </nav>
 
@@ -2903,7 +2928,7 @@
         <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
             <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
             <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
-            <span class="text-emerald-400 font-semibold">현장 경비관리 마스터 Pro V24</span>
+            <span class="text-emerald-400 font-semibold">현장 경비관리 마스터 Pro V1.0</span>
         </div>
     </div>
 
@@ -4996,7 +5021,7 @@
 
                 // legend
                 const li = document.createElement('span');
-                li.className = 'flex items-center gap-1 text-slate-300';
+                li.className = 'flex items-center gap-1 text-slate-700 dark:text-slate-300';
                 li.innerHTML = `<span class="inline-block w-2.5 h-2.5 rounded-sm shrink-0" style="background:${STATS_CAT_COLORS[cat].fill}"></span>${cat}`;
                 legend.appendChild(li);
             });
@@ -5005,12 +5030,12 @@
             const ct = document.createElementNS('http://www.w3.org/2000/svg','text');
             ct.setAttribute('x','100'); ct.setAttribute('y','96');
             ct.setAttribute('text-anchor','middle'); ct.setAttribute('font-size','10');
-            ct.setAttribute('fill','#94a3b8'); ct.textContent = '총 청구';
+            ct.setAttribute('fill','#475569'); ct.textContent = '총 청구';
             svg.appendChild(ct);
             const cv = document.createElementNS('http://www.w3.org/2000/svg','text');
             cv.setAttribute('x','100'); cv.setAttribute('y','113');
             cv.setAttribute('text-anchor','middle'); cv.setAttribute('font-size','11');
-            cv.setAttribute('font-weight','bold'); cv.setAttribute('fill','#e2e8f0');
+            cv.setAttribute('font-weight','bold'); cv.setAttribute('fill','#1e293b');
             cv.textContent = (grand/10000/10000).toFixed(1) + '억원';
             svg.appendChild(cv);
         }
@@ -5042,13 +5067,13 @@
                 const color = STATS_CAT_COLORS[cat]?.fill || '#64748b';
                 return `<div>
                     <div class="flex items-center justify-between mb-0.5">
-                        <span class="text-[10px] font-bold text-slate-200 flex items-center gap-1">
+                        <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
                             <span class="text-[11px]">${medals[i]}</span>${vendor}
                             ${cat ? `<span class="text-[8px] px-1 py-0.5 rounded" style="background:${color}22;color:${color};border:1px solid ${color}44">${cat}</span>` : ''}
                         </span>
-                        <span class="text-[10px] font-bold text-slate-300">${formatNumber(amt)}원</span>
+                        <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300">${formatNumber(amt)}원</span>
                     </div>
-                    <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%;background:${color}"></div>
                     </div>
                 </div>`;
@@ -5096,9 +5121,9 @@
                 const color = up ? '#34d399' : '#f87171';
                 const arrow = up ? '▲' : '▼';
                 return `<div class="flex items-center justify-between text-[10px]">
-                    <span class="text-slate-300 font-semibold" style="border-left:3px solid ${STATS_CAT_COLORS[cat].fill};padding-left:6px">${cat}</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-semibold" style="border-left:3px solid ${STATS_CAT_COLORS[cat].fill};padding-left:6px">${cat}</span>
                     <span class="font-bold" style="color:${color}">${arrow} ${Math.abs(pct)}%</span>
-                    <span class="text-slate-400">${diff>=0?'+':''}${formatNumber(diff)}원</span>
+                    <span class="text-slate-600 dark:text-slate-400">${diff>=0?'+':''}${formatNumber(diff)}원</span>
                 </div>`;
             }).join('');
             if (!el.innerHTML.trim()) el.innerHTML = '<p class="text-[10px] text-slate-500 text-center py-4">공통 항목 없음</p>';
