@@ -78,7 +78,7 @@
             /* ── A4 세로, 브라우저 기본 여백(10mm) 유지 ── */
             @page {
                 size: A4 portrait;
-                margin: 10mm;
+                margin: 8mm 10mm;  /* 상하 8mm, 좌우 10mm */
             }
 
             /* 다크모드 인쇄 참사 방지 — 흰 배경 · 검정 글자 강제 */
@@ -118,30 +118,29 @@
                 page-break-after: always;
             }
 
-            /* 지불의뢰서(세로) — A4 한 페이지를 정확히 꽉 채움 */
+            /* 지불의뢰서(세로) — @page margin(8/10mm) 안쪽 인쇄 영역만 사용 */
             .print-portrait {
-                width: 210mm !important;
-                height: 277mm !important;
+                width: 100% !important;
                 max-width: 100% !important;
+                min-height: 0 !important;
+                height: auto !important;
                 margin: 0 !important;
-                padding: 6mm 8mm !important;
+                padding: 4mm 6mm !important;
                 box-sizing: border-box !important;
                 page-break-inside: avoid !important;
                 transform: none !important;
                 display: flex !important;
                 flex-direction: column !important;
-                overflow: hidden !important;
+                overflow: visible !important;
             }
 
-            /* 품목 내역 섹션이 남은 세로 공간을 모두 차지 */
+            /* 품목 내역 섹션 — 자연 높이 사용 (잘림 방지) */
             .print-portrait .req-items-section {
-                flex: 1 1 auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-                min-height: 0 !important;
+                flex: 0 0 auto !important;
+                display: block !important;
             }
             .print-portrait .req-items-section table {
-                flex: 1 1 auto !important;
+                width: 100% !important;
             }
             /* 나머지 섹션은 내용만큼만 */
             .print-portrait .req-header-section,
@@ -152,6 +151,32 @@
             .print-portrait .req-sign-section {
                 flex: 0 0 auto !important;
             }
+
+            /* 특고 전용 인쇄 — special-printing 클래스 시 특고 탭만 출력 */
+            body.special-printing > *:not(#tab-request-special) {
+                display: none !important;
+            }
+            body.special-printing #tab-request-special {
+                display: block !important;
+            }
+            body.special-printing .no-print {
+                display: none !important;
+            }
+            body.special-printing #special-print-box {
+                display: block !important;
+                margin: 0 !important;
+                padding: 6mm 8mm !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                font-size: 9px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body.special-printing #special-empty-guide { display: none !important; }
+            body.special-printing #insur-rate-panel    { display: none !important; }
 
             /* 특고 대장 독립 인쇄 — 가로 A4 최적화 */
             #special-print-box {
@@ -292,7 +317,7 @@
             }
             body.batch-printing .print-page {
                 margin: 0 !important;
-                padding: 0 !important;
+                padding: 4mm 6mm !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 page-break-after: always !important;
@@ -1112,8 +1137,9 @@
                 <button onclick="openRepeatModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;" title="반복 항목 관리">
                     <i data-lucide="repeat" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">반복</span>
                 </button>
-                <button onclick="toggleAccountModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;">
-                    <i data-lucide="folder-key" class="w-2.5 h-2.5"></i> <span style="font-size:9px;">계좌DB</span>
+                <button onclick="toggleAccountModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;position:relative;border:1px solid rgba(56,189,248,0.4);">
+                    <i data-lucide="building-2" class="w-2.5 h-2.5" style="color:#38bdf8;"></i> <span style="font-size:9px;font-weight:700;">거래처DB</span>
+                    <span id="vendor-master-badge-hdr" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#0ea5e9;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
                 </button>
             </div>
 
@@ -1316,6 +1342,7 @@
                             <th class="py-2 px-2 w-32 bg-slate-100 dark:bg-slate-850">거래처</th>
                             <th class="py-2 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 select-none" onclick="sortAccountDbBy('biznum')">사업자등록번호</th>
                             <th class="py-2 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 select-none" onclick="sortAccountDbBy('phone')">연락처</th>
+                            <th class="py-2 px-2 w-16 bg-slate-100 dark:bg-slate-850">사용현황</th>
                             <th class="py-2 px-2 w-16 bg-slate-100 dark:bg-slate-850">작업</th>
                         </tr>
                     </thead>
@@ -1917,6 +1944,13 @@
                         <span>이력 조회</span>
                         <span id="req-hist-badge" class="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold hidden"></span>
                     </button>
+
+                    <div class="border-t border-slate-700"></div>
+
+                    <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">거래처</div>
+                    <button onclick="toggleAccountModal()" class="qbtn" style="--qc:#0369a1;">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5"></i><span>거래처DB</span>
+                    </button>
                 </div>
                 <style>
                 .qbtn {
@@ -1949,8 +1983,60 @@
                         <button onclick="addSpecialItemRow()" class="ctrl-btn" style="background:#d97706;">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 추가
                         </button>
-                        <button onclick="printSpecialSection()" class="ctrl-btn" style="background:#475569;">
+                        <button onclick="openDriverDbModal()" class="ctrl-btn" style="background:#0369a1;">
+                            <i data-lucide="database" class="w-3.5 h-3.5"></i> 운전원 DB
+                        </button>
+                        <button onclick="openSpecialHistoryModal()" class="ctrl-btn" style="background:#7c3aed;">
+                            <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> 월별 이력
+                        </button>
+                        <button onclick="openInsurRatePanel()" class="ctrl-btn" style="background:#059669;">
+                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i> 보험료율
+                        </button>
+                        <button onclick="exportSpecialExcel()" class="ctrl-btn" style="background:#16a34a;">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
+                        </button>
+                        <div class="ctrl-divider"></div>
+                        <button onclick="printSpecialFormal()" class="ctrl-btn" style="background:#475569;">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보험료율 설정 패널 (접이식) -->
+            <div id="insur-rate-panel" class="hidden no-print mb-4 bg-white dark:bg-slate-900 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> 보험료율 설정
+                        <span class="text-[10px] font-normal text-slate-400">(자동계산 시 적용 요율 — 직접 수정 가능)</span>
+                    </h4>
+                    <button onclick="closeInsurRatePanel()" class="text-slate-400 hover:text-slate-600 text-xs">✕ 닫기</button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                        <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">고용보험료율 (%)</div>
+                        <div class="text-[10px] text-slate-400 mb-2">특고·일용 근로자 기준</div>
+                        <input type="number" id="rate-emp" step="0.01" min="0" max="10" value="0.9"
+                            class="w-full px-2 py-1.5 border border-emerald-300 dark:border-emerald-700 rounded-lg text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-right">
+                        <div class="text-[10px] text-slate-400 mt-1">현재: <span id="rate-emp-preview">0.9%</span></div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
+                        <div class="font-bold text-orange-800 dark:text-orange-300 mb-1">산재보험료율 (%)</div>
+                        <div class="text-[10px] text-slate-400 mb-2">건설기계 운전원 기준</div>
+                        <input type="number" id="rate-acc" step="0.01" min="0" max="30" value="1.8"
+                            class="w-full px-2 py-1.5 border border-orange-300 dark:border-orange-700 rounded-lg text-sm font-bold text-orange-700 dark:text-orange-300 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-orange-500 text-right">
+                        <div class="text-[10px] text-slate-400 mt-1">현재: <span id="rate-acc-preview">1.8%</span></div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 sm:col-span-2">
+                        <div class="font-bold text-slate-700 dark:text-slate-300 mb-2">참고 요율 (2024년 기준)</div>
+                        <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+                            <span>• 고용보험 (특고): <b class="text-slate-700 dark:text-slate-200">0.9%</b></span>
+                            <span>• 고용보험 (일용): <b class="text-slate-700 dark:text-slate-200">0.9%</b></span>
+                            <span>• 산재보험 (건설기계): <b class="text-slate-700 dark:text-slate-200">1.8%</b></span>
+                            <span>• 산재보험 (굴착기): <b class="text-slate-700 dark:text-slate-200">1.8%</b></span>
+                        </div>
+                        <button onclick="applyInsurRates()" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-1.5 rounded-lg transition">
+                            ✓ 요율 저장 · 적용
                         </button>
                     </div>
                 </div>
@@ -2794,7 +2880,108 @@
                 </div>
             </div>
 
+            <!-- 월별 지출 추이 차트 -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-violet-500"></i> 월별 지출 추이
+                    </h3>
+                    <div class="flex gap-1">
+                        <button id="cc-monthly-bar-btn" onclick="ccSetMonthlyChartType('bar')"
+                            class="text-[10px] px-2 py-1 rounded-lg font-bold bg-violet-600 text-white transition">막대</button>
+                        <button id="cc-monthly-line-btn" onclick="ccSetMonthlyChartType('line')"
+                            class="text-[10px] px-2 py-1 rounded-lg font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 transition">꺾은선</button>
+                    </div>
+                </div>
+                <div style="position:relative;height:220px;">
+                    <canvas id="cc-monthly-chart" style="width:100%;height:100%;"></canvas>
+                </div>
+                <div id="cc-monthly-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-500"></div>
+            </div>
         </div><!-- /tab-corpcard -->
+
+        <!-- 운전원 DB 모달 -->
+        <div id="driver-db-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="database" class="w-4 h-4 text-sky-500"></i> 운전원 DB 관리
+                    </h3>
+                    <button onclick="closeDriverDbModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <!-- 입력 폼 -->
+                <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">운전원 이름 <span class="text-rose-500">*</span></label>
+                            <input type="text" id="ddb-name" placeholder="홍길동" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">주민등록번호</label>
+                            <input type="text" id="ddb-rrn" placeholder="000000-0000000" maxlength="14" oninput="formatSpecialRrn(this)"
+                                class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-sky-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">연락처</label>
+                            <input type="text" id="ddb-phone" placeholder="010-0000-0000" oninput="formatPhoneNumberHelper(this)"
+                                class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="ddbAddEntry()" class="w-full bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> 등록
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- DB 목록 -->
+                <div class="flex-1 overflow-y-auto px-5 py-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <input type="text" id="ddb-search" oninput="ddbRender()" placeholder="이름·주민번호 검색…"
+                            class="flex-1 px-2.5 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500">
+                        <span id="ddb-count" class="text-[10px] text-slate-400 font-semibold whitespace-nowrap"></span>
+                    </div>
+                    <table class="w-full text-xs border-collapse" id="ddb-table">
+                        <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            <tr>
+                                <th class="px-2 py-1.5 text-left font-bold">이름</th>
+                                <th class="px-2 py-1.5 text-center font-bold">주민등록번호</th>
+                                <th class="px-2 py-1.5 text-center font-bold">연락처</th>
+                                <th class="px-2 py-1.5 text-center font-bold w-24">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ddb-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr><td colspan="4" class="py-8 text-center text-slate-400">등록된 운전원이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 월별 신고 이력 모달 -->
+        <div id="special-history-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="calendar-clock" class="w-4 h-4 text-violet-500"></i> 월별 신고 이력
+                    </h3>
+                    <button onclick="closeSpecialHistoryModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <!-- 저장 컨트롤 -->
+                <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex flex-wrap gap-2 items-center">
+                    <input type="month" id="sh-save-month" class="px-2.5 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    <input type="text" id="sh-save-label" placeholder="메모 (예: 원주현장 6월분)" class="flex-1 min-w-[160px] px-2.5 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    <button onclick="shSaveCurrentMonth()" class="bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition flex items-center gap-1">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i> 현재 내역 저장
+                    </button>
+                    <span class="text-[10px] text-slate-400">저장 후 이력에서 불러오기·인쇄 가능</span>
+                </div>
+                <!-- 이력 목록 -->
+                <div class="flex-1 overflow-y-auto px-5 py-3">
+                    <div id="sh-list" class="space-y-2"></div>
+                    <div id="sh-empty" class="hidden py-12 text-center text-slate-400 text-sm">저장된 이력이 없습니다.</div>
+                </div>
+            </div>
+        </div>
 
         <!-- 지불의뢰서 발행 이력 모달 -->
         <div id="req-hist-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -2876,6 +3063,27 @@
             </div>
         </div>
 
+        <!-- 거래처 사용 현황 조회 모달 -->
+        <div id="vendor-usage-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="building-2" class="w-4 h-4 text-sky-500"></i>
+                        <span id="vu-title">거래처 사용 현황</span>
+                    </h3>
+                    <button onclick="closeVendorUsageModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div id="vu-summary" class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex flex-wrap gap-4 text-[10px] font-semibold text-slate-500"></div>
+                <div class="flex-1 overflow-y-auto px-5 py-3">
+                    <div id="vu-list" class="space-y-2"></div>
+                    <div id="vu-empty" class="hidden py-12 text-center text-slate-400 text-sm">
+                        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+                        이 거래처를 사용한 기록이 없습니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="cc-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -2903,7 +3111,8 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">가맹점명 <span class="text-rose-500">*</span></label>
-                        <input type="text" id="cc-edit-merchant" placeholder="예: GS칼텍스 무실주유소" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <input type="text" id="cc-edit-merchant" list="cc-vendor-datalist" placeholder="예: GS칼텍스 무실주유소" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <datalist id="cc-vendor-datalist"></datalist>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">금액 (원) <span class="text-rose-500">*</span></label>
@@ -4004,7 +4213,10 @@
             localStorage.setItem('cons_accounts_v3', JSON.stringify(accountDb));
             localStorage.setItem('cons_saved_docs_v3', JSON.stringify(savedDocuments));
             localStorage.setItem('cons_current_doc_id_v3', currentDocId);
-            
+
+            if (typeof refreshVendorDatalist === 'function') refreshVendorDatalist();
+            if (typeof updateVendorMasterBadge === 'function') updateVendorMasterBadge();
+
             renderVendorStatistics();
             renderSiteDashboard();
         }
@@ -4314,10 +4526,9 @@
             if (elType)   elType.textContent   = type;
         }
 
-        // 특고 대장 별도 인쇄
+        // 특고 대장 별도 인쇄 (구버전 호환 → 신규 함수로 위임)
         function printSpecialSection() {
-            syncSpecialMetaFromRequest();
-            window.print();
+            printSpecialFormal();
         }
 
         function triggerPdfImport() {
@@ -4507,10 +4718,12 @@
             const seen = {};
             const duplicateGroups = {};
 
-            // 1) 청구 중복: 동일 거래처 + 동일 공급가액
+            // 1) 청구 중복: 동일 거래처 + 동일 대표자 + 동일 공급가액
+            //    (거래처명이 같아도 대표자가 다르면 별개 업체로 간주 → 중복 의심 제외)
+            const normCeo = s => (s || '').replace(/\s+/g, '').trim();
             dataset.forEach(row => {
                 if (!row.vendor || !row.supply) return;
-                const key = `${row.vendor.trim()}_${row.supply}`;
+                const key = `${row.vendor.trim()}_${normCeo(row.ceo)}_${row.supply}`;
                 if (seen[key]) { seen[key].push(row.id); duplicateGroups[key] = seen[key]; }
                 else { seen[key] = [row.id]; }
             });
@@ -4520,7 +4733,7 @@
             Object.keys(duplicateGroups).forEach(key => {
                 if (duplicateGroups[key].length > 1) {
                     duplicateGroups[key].forEach(id => { duplicateItemIds.add(id); claimCount++; });
-                    const [vendor, supply] = key.split('_');
+                    const [vendor, , supply] = key.split('_');
                     claimChips.push(`<span class="inline-block bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full">${vendor} (${Number(supply).toLocaleString('ko-KR')}원)</span>`);
                 }
             });
@@ -4576,49 +4789,12 @@
                 rows.forEach(r => { if (r.id !== null) duplicateItemIds.add(r.id); });
             });
 
-            // 3) 대표자 불일치: 현재 대장 + 계좌DB + 저장 대장 통합 비교
-            // vendor → { entries: [{ceo, src, docLabel}] }
-            const ceoMap = {};
-            const addCeoEntry = (vendor, ceo, src) => {
-                const v = (vendor || '').trim(); const c = (ceo || '').replace(/\s+/g, '');
-                if (!v || !c) return;
-                if (!ceoMap[v]) ceoMap[v] = { entries: [] };
-                if (!ceoMap[v].entries.find(e => e.ceo === c && e.src === src))
-                    ceoMap[v].entries.push({ ceo: c, src });
-            };
-
-            accountDb.forEach(acc => addCeoEntry(acc.vendor, acc.ceo, '계좌DB'));
-            dataset.forEach(row => addCeoEntry(row.vendor, row.ceo, '현재대장'));
-            savedDocuments.forEach(doc => {
-                const label = doc.site ? `[${doc.site}] ${doc.month||''}` : '저장대장';
-                (doc.dataset || []).forEach(row => addCeoEntry(row.vendor, row.ceo, label));
-            });
-
+            // 3) 대표자 불일치 검사 비활성화됨
+            //    거래처명이 같더라도 대표자(ceo)가 다르면 별개의 거래처로 간주하여
+            //    더 이상 중복 의심으로 플래그하지 않습니다.
             let ceoDupCount = 0;
             const ceoChips = [];
             _dupCeoGroups = [];
-
-            Object.entries(ceoMap).forEach(([vendor, info]) => {
-                const uniqueCeos = [...new Set(info.entries.map(e => e.ceo))];
-                if (uniqueCeos.length < 2) return;
-
-                // 계좌DB 기준값과 현재대장 간 비교: DB에 등록된 값이 있으면 그것과 다른 것만 이슈
-                const dbEntry = info.entries.find(e => e.src === '계좌DB');
-                const nonDbEntries = info.entries.filter(e => e.src !== '계좌DB');
-                if (dbEntry) {
-                    const conflicts = nonDbEntries.filter(e => e.ceo !== dbEntry.ceo);
-                    if (conflicts.length === 0) return; // DB값과 동일 → 정상
-                }
-
-                ceoDupCount++;
-                const names = uniqueCeos.join(' / ');
-                ceoChips.push(
-                    `<span class="inline-block bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help"
-                        title="${vendor}: ${names}">${vendor} → ${names}</span>`
-                );
-                _dupCeoGroups.push({ vendor, entries: info.entries, uniqueCeos });
-                dataset.forEach(row => { if ((row.vendor||'').trim() === vendor) duplicateItemIds.add(row.id); });
-            });
 
             // ── 배너 렌더링 ──
             const banner   = document.getElementById('duplicate-alert-banner');
@@ -5387,6 +5563,325 @@
                 refreshRequestSelector();
                 showToast(`공급가액의 3.3% 원천세(${formatNumber(dataset[index].deduction)}원)를 공제액에 자동 반영했습니다.`);
             }
+        }
+
+        // ===== 특고 확장 기능 =====
+
+        /* ── 보험료율 저장소 ── */
+        const INSUR_RATE_KEY = 'cons_insur_rates_v1';
+        function getInsurRates() {
+            try { return JSON.parse(localStorage.getItem(INSUR_RATE_KEY) || '{"emp":0.9,"acc":1.8}'); }
+            catch(e) { return {emp:0.9, acc:1.8}; }
+        }
+        function saveInsurRates(emp, acc) {
+            localStorage.setItem(INSUR_RATE_KEY, JSON.stringify({emp, acc}));
+        }
+
+        function openInsurRatePanel() {
+            const rates = getInsurRates();
+            const empEl = document.getElementById('rate-emp');
+            const accEl = document.getElementById('rate-acc');
+            if (empEl) { empEl.value = rates.emp; updateRatePreview(); }
+            if (accEl) { accEl.value = rates.acc; updateRatePreview(); }
+            document.getElementById('insur-rate-panel').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeInsurRatePanel() {
+            document.getElementById('insur-rate-panel').classList.add('hidden');
+        }
+        function updateRatePreview() {
+            const emp = parseFloat(document.getElementById('rate-emp')?.value||0);
+            const acc = parseFloat(document.getElementById('rate-acc')?.value||0);
+            const ep = document.getElementById('rate-emp-preview');
+            const ap = document.getElementById('rate-acc-preview');
+            if(ep) ep.textContent = emp.toFixed(2)+'%';
+            if(ap) ap.textContent = acc.toFixed(2)+'%';
+        }
+        function applyInsurRates() {
+            const emp = parseFloat(document.getElementById('rate-emp')?.value||0.9);
+            const acc = parseFloat(document.getElementById('rate-acc')?.value||1.8);
+            saveInsurRates(emp, acc);
+            closeInsurRatePanel();
+            showToast(`보험료율 저장 완료: 고용 ${emp}% / 산재 ${acc}%`);
+        }
+        // rate-emp, rate-acc 입력 시 미리보기 갱신
+        document.addEventListener('DOMContentLoaded', () => {
+            ['rate-emp','rate-acc'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', updateRatePreview);
+            });
+        });
+
+        /* ── 운전원 DB ── */
+        const DDB_KEY = 'cons_driver_db_v1';
+        function ddbLoad() {
+            try { return JSON.parse(localStorage.getItem(DDB_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function ddbSave(arr) { localStorage.setItem(DDB_KEY, JSON.stringify(arr)); }
+
+        function openDriverDbModal() {
+            ddbRender();
+            document.getElementById('driver-db-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeDriverDbModal() {
+            document.getElementById('driver-db-modal').classList.add('hidden');
+        }
+        function ddbRender() {
+            const db = ddbLoad();
+            const q = (document.getElementById('ddb-search')?.value||'').toLowerCase();
+            const filtered = q ? db.filter(d=>(d.name||'').toLowerCase().includes(q)||(d.rrn||'').includes(q)) : db;
+            const tbody = document.getElementById('ddb-tbody');
+            const countEl = document.getElementById('ddb-count');
+            if (countEl) countEl.textContent = `총 ${db.length}명`;
+            if (!tbody) return;
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-slate-400 text-xs">'+
+                    (q?'검색 결과 없음':'등록된 운전원이 없습니다.')+'</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map((d,i) => `
+                <tr class="hover:bg-sky-50 dark:hover:bg-sky-950/20 transition">
+                    <td class="px-2 py-2 font-bold text-slate-800 dark:text-slate-100 text-xs">${d.name||''}</td>
+                    <td class="px-2 py-2 text-center font-mono text-xs text-slate-600 dark:text-slate-300">${d.rrn||'-'}</td>
+                    <td class="px-2 py-2 text-center text-xs text-slate-500 dark:text-slate-400">${d.phone||'-'}</td>
+                    <td class="px-2 py-2 text-center">
+                        <div class="flex gap-1 justify-center">
+                            <button onclick="ddbApplyToRow(${db.indexOf(d)})"
+                                class="bg-sky-100 hover:bg-sky-200 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded border border-sky-300 dark:border-sky-700 transition">불러오기</button>
+                            <button onclick="ddbDelete(${db.indexOf(d)})"
+                                class="text-rose-400 hover:text-rose-600 text-[10px] font-bold px-1.5 py-0.5 rounded transition">삭제</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+        function ddbAddEntry() {
+            const name  = document.getElementById('ddb-name')?.value.trim();
+            const rrn   = document.getElementById('ddb-rrn')?.value.trim();
+            const phone = document.getElementById('ddb-phone')?.value.trim();
+            if (!name) { showToast('이름을 입력하세요.'); return; }
+            const db = ddbLoad();
+            if (db.some(d=>d.name===name && d.rrn===rrn)) { showToast('동일한 운전원이 이미 등록되어 있습니다.'); return; }
+            db.push({name, rrn, phone, regDate: new Date().toISOString().slice(0,10)});
+            ddbSave(db);
+            document.getElementById('ddb-name').value = '';
+            document.getElementById('ddb-rrn').value = '';
+            document.getElementById('ddb-phone').value = '';
+            ddbRender();
+            showToast(`[${name}] 운전원 DB에 등록되었습니다.`);
+        }
+        function ddbDelete(idx) {
+            const db = ddbLoad();
+            const name = db[idx]?.name || '';
+            db.splice(idx,1);
+            ddbSave(db);
+            ddbRender();
+            showToast(`[${name}] 삭제되었습니다.`);
+        }
+        // 운전원 DB → 현재 특고 마지막 빈 행에 적용 (또는 새 행 추가)
+        function ddbApplyToRow(dbIdx) {
+            const db = ddbLoad();
+            const d = db[dbIdx];
+            if (!d) return;
+            // 빈 이름 행 찾기, 없으면 새 행
+            let target = requestSpecialItems.findIndex(r => !r.empName);
+            if (target === -1) {
+                requestSpecialItems.push({ datasetId: null, empName: '', empRrn: '', workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0 });
+                target = requestSpecialItems.length - 1;
+            }
+            requestSpecialItems[target].empName = d.name || '';
+            requestSpecialItems[target].empRrn  = d.rrn  || '';
+            renderRequestSpecialTable();
+            closeDriverDbModal();
+            showToast(`[${d.name}] 특고 신고 내역에 추가되었습니다.`);
+        }
+
+        /* ── 월별 신고 이력 ── */
+        const SH_KEY = 'cons_special_history_v1';
+        function shLoad() {
+            try { return JSON.parse(localStorage.getItem(SH_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function shSaveAll(arr) { localStorage.setItem(SH_KEY, JSON.stringify(arr)); }
+
+        function openSpecialHistoryModal() {
+            // 기본 월 = 이번 달
+            const mEl = document.getElementById('sh-save-month');
+            if (mEl && !mEl.value) mEl.value = new Date().toISOString().slice(0,7);
+            shRenderList();
+            document.getElementById('special-history-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeSpecialHistoryModal() {
+            document.getElementById('special-history-modal').classList.add('hidden');
+        }
+        function shSaveCurrentMonth() {
+            const month = document.getElementById('sh-save-month')?.value;
+            const label = document.getElementById('sh-save-label')?.value.trim() || '';
+            if (!month) { showToast('저장할 월을 선택하세요.'); return; }
+            if (!requestSpecialItems.length) { showToast('저장할 내역이 없습니다.'); return; }
+            const arr = shLoad();
+            // 동일 월+레이블 중복 확인
+            const exists = arr.findIndex(h => h.month === month && h.label === label);
+            const entry = {
+                id: Date.now(),
+                month,
+                label,
+                site:   document.getElementById('special-meta-site')?.textContent   || '',
+                vendor: document.getElementById('special-meta-vendor')?.textContent || '',
+                period: document.getElementById('special-meta-period')?.textContent || '',
+                items:  JSON.parse(JSON.stringify(requestSpecialItems)),
+                savedAt: new Date().toLocaleString('ko-KR')
+            };
+            if (exists >= 0) {
+                if (!confirm(`[${month} ${label}] 이미 저장된 이력이 있습니다. 덮어쓰시겠습니까?`)) return;
+                arr[exists] = entry;
+            } else {
+                arr.unshift(entry);
+            }
+            shSaveAll(arr);
+            shRenderList();
+            showToast(`[${month}${label?' · '+label:''}] 이력이 저장되었습니다.`);
+        }
+        function shRenderList() {
+            const arr = shLoad();
+            const listEl = document.getElementById('sh-list');
+            const emptyEl = document.getElementById('sh-empty');
+            if (!listEl) return;
+            if (!arr.length) {
+                listEl.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                return;
+            }
+            if (emptyEl) emptyEl.classList.add('hidden');
+            listEl.innerHTML = arr.map((h,i) => {
+                const totalNet = (h.items||[]).reduce((s,r)=>s+(r.supply||0)-(r.empInsur||0)-(r.accInsur||0)-(r.extra||0),0);
+                const cnt = (h.items||[]).length;
+                return `<div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 gap-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-xs font-extrabold text-violet-700 dark:text-violet-400">${h.month}</span>
+                            ${h.label ? `<span class="text-[10px] bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 px-2 py-0.5 rounded-full font-semibold">${h.label}</span>` : ''}
+                        </div>
+                        <div class="text-[10px] text-slate-400 truncate">${h.site||''} ${h.vendor?'· '+h.vendor:''} · ${cnt}명 · 실지급 ${Number(totalNet).toLocaleString('ko-KR')}원</div>
+                        <div class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">저장: ${h.savedAt||''}</div>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="shLoad_apply(${i})"
+                            class="bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition">불러오기</button>
+                        <button onclick="shPrint(${i})"
+                            class="bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-lg transition">인쇄</button>
+                        <button onclick="shDelete(${i})"
+                            class="text-rose-400 hover:text-rose-600 text-[10px] font-bold px-2 py-1 rounded-lg transition">삭제</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function shLoad_apply(idx) {
+            const arr = shLoad();
+            const h = arr[idx];
+            if (!h) return;
+            requestSpecialItems = JSON.parse(JSON.stringify(h.items||[]));
+            renderRequestSpecialTable();
+            closeSpecialHistoryModal();
+            showToast(`[${h.month}${h.label?' · '+h.label:''}] 이력을 불러왔습니다.`);
+        }
+        function shDelete(idx) {
+            const arr = shLoad();
+            const label = arr[idx]?.month + (arr[idx]?.label?' · '+arr[idx].label:'');
+            if (!confirm(`[${label}] 이력을 삭제하시겠습니까?`)) return;
+            arr.splice(idx,1);
+            shSaveAll(arr);
+            shRenderList();
+            showToast('이력이 삭제되었습니다.');
+        }
+        function shPrint(idx) {
+            const arr = shLoad();
+            const h = arr[idx];
+            if (!h) return;
+            // 임시로 requestSpecialItems 교체 후 인쇄
+            const backup = JSON.parse(JSON.stringify(requestSpecialItems));
+            requestSpecialItems = JSON.parse(JSON.stringify(h.items||[]));
+            // 메타 임시 교체
+            const setTxt = (id,val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+            setTxt('special-meta-site', h.site||'');
+            setTxt('special-meta-vendor', h.vendor||'');
+            setTxt('special-meta-period', h.period||'');
+            renderRequestSpecialTable();
+            setTimeout(() => {
+                printSpecialFormal();
+                setTimeout(() => {
+                    requestSpecialItems = backup;
+                    renderRequestSpecialTable();
+                    syncSpecialMetaFromRequest();
+                }, 800);
+            }, 150);
+        }
+
+        /* ── Excel 내보내기 ── */
+        function exportSpecialExcel() {
+            if (!requestSpecialItems.length) { showToast('내역이 없습니다.'); return; }
+            const site   = document.getElementById('special-meta-site')?.textContent   || '';
+            const period = document.getElementById('special-meta-period')?.textContent || '';
+            const vendor = document.getElementById('special-meta-vendor')?.textContent || '';
+            const rates  = getInsurRates();
+            const rows = requestSpecialItems.map((r,i) => {
+                const supply   = r.supply   || 0;
+                const remun    = r.remun    || supply;
+                const empInsur = r.empInsur || 0;
+                const accInsur = r.accInsur || 0;
+                const extra    = r.extra    || 0;
+                const netPay   = supply - empInsur - accInsur - extra;
+                return {
+                    'No': i+1,
+                    '운전원명': r.empName||'',
+                    '주민등록번호': r.empRrn||'',
+                    '가동일수': r.workDays||0,
+                    '장비대금(공급가액)': supply,
+                    '보수총액': remun,
+                    '고용보험료': empInsur,
+                    '산재보험료': accInsur,
+                    '기타공제': extra,
+                    '실지급액': netPay
+                };
+            });
+            // 합계 행
+            const sum = f => rows.reduce((s,r)=>s+(r[f]||0),0);
+            rows.push({
+                'No':'합계','운전원명':'','주민등록번호':'','가동일수':sum('가동일수'),
+                '장비대금(공급가액)':sum('장비대금(공급가액)'),'보수총액':sum('보수총액'),
+                '고용보험료':sum('고용보험료'),'산재보험료':sum('산재보험료'),
+                '기타공제':sum('기타공제'),'실지급액':sum('실지급액')
+            });
+            const ws = XLSX.utils.json_to_sheet(rows);
+            // 열 너비
+            ws['!cols'] = [6,14,18,9,18,18,14,14,12,16].map(w=>({wch:w}));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '특고신고내역');
+            // 메타 시트
+            const meta = XLSX.utils.aoa_to_sheet([
+                ['현장명', site], ['청구기간', period], ['거래처', vendor],
+                ['고용보험료율', rates.emp+'%'], ['산재보험료율', rates.acc+'%']
+            ]);
+            XLSX.utils.book_append_sheet(wb, meta, '기본정보');
+            const fname = `특고신고_${site||'현장'}_${period?.slice(0,7)||new Date().toISOString().slice(0,7)}.xlsx`;
+            XLSX.writeFile(wb, fname);
+            showToast('Excel 파일이 저장되었습니다.');
+        }
+
+        /* ── 인쇄 개선 (전용 양식) ── */
+        function printSpecialFormal() {
+            syncSpecialMetaFromRequest();
+            // 인쇄 전 특고 탭 보이게
+            const tabEl = document.getElementById('tab-request-special');
+            const wasHidden = tabEl && tabEl.classList.contains('hidden');
+            if (wasHidden) tabEl.classList.remove('hidden');
+            // 인쇄 클래스 추가
+            document.body.classList.add('special-printing');
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('special-printing');
+                if (wasHidden && tabEl) tabEl.classList.add('hidden');
+            }, 800);
         }
 
         // ===== 특고(일용) 인적용역 정보 모달 =====
@@ -7424,11 +7919,12 @@ function changePrintScale(value) {
         function calcSpecialInsurAutoByIndex(index) {
             if (!requestSpecialItems[index]) return;
             const supply = requestSpecialItems[index].supply || 0;
-            requestSpecialItems[index].empInsur = Math.floor(supply * 0.009);
-            requestSpecialItems[index].accInsur = Math.floor(supply * 0.018);
+            const rates  = getInsurRates();
+            requestSpecialItems[index].empInsur = Math.floor(supply * rates.emp / 100);
+            requestSpecialItems[index].accInsur = Math.floor(supply * rates.acc / 100);
             renderRequestSpecialTable();
             syncSpecialItemToDataset(index);
-            showToast(`[${requestSpecialItems[index].empName || (index+1)+'번'}] 고용 0.9% / 산재 1.8% 자동계산 완료 — 실제 요율로 수정해 주세요.`);
+            showToast(`[${requestSpecialItems[index].empName || (index+1)+'번'}] 고용 ${rates.emp}% / 산재 ${rates.acc}% 자동계산 완료`);
         }
 
         function updateSpecialItem(index, field, value) {
@@ -7799,6 +8295,9 @@ function changePrintScale(value) {
                     </td>
                     <td class="py-1 px-1">
                         <input type="text" value="${acc.phone || ''}" oninput="formatPhoneNumberHelper(this)" onchange="updateAccountDB(${acc.id}, 'phone', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs">
+                    </td>
+                    <td class="py-1 px-1">
+                        <button onclick="showVendorUsage('${(acc.vendor||acc.holder||'').replace(/'/g,"\\'")}')" class="text-sky-500 hover:text-sky-700 font-bold text-[10px] shrink-0 underline decoration-dotted">조회</button>
                     </td>
                     <td class="py-1 px-1">
                         <button onclick="deleteAccountFromDb(${acc.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs shrink-0">삭제</button>
@@ -10650,6 +11149,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         function toggleAccountModal() {
             const panel = document.getElementById('account-manager-panel');
             panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden') && typeof renderAccountDBList === 'function') {
+                renderAccountDBList();
+            }
         }
 
         function showConfirmModal(title, msg, onConfirm) {
@@ -11888,6 +12390,155 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 _vacActiveId = null;
             }
         });
+        // ===== 거래처 마스터 통합 =====
+
+        /* ── 법인카드 모달 열릴 때 거래처DB 자동완성 채우기 ── */
+        function refreshVendorDatalist() {
+            const dl = document.getElementById('cc-vendor-datalist');
+            if (!dl) return;
+            const names = [...new Set(accountDb.map(a => a.vendor).filter(Boolean))].sort();
+            dl.innerHTML = names.map(n => `<option value="${n}">`).join('');
+        }
+        document.addEventListener('DOMContentLoaded', refreshVendorDatalist);
+
+        /* ── 사이드바 배지: 거래처DB 등록 수 표시 ── */
+        function updateVendorMasterBadge() {
+            const badge = document.getElementById('vendor-master-badge-hdr');
+            if (!badge) return;
+            if (accountDb.length) { badge.textContent = accountDb.length; badge.classList.remove('hidden'); }
+            else badge.classList.add('hidden');
+        }
+        document.addEventListener('DOMContentLoaded', updateVendorMasterBadge);
+
+        /* ── 거래처 사용 현황 조회 ── */
+        function showVendorUsage(vendorName) {
+            if (!vendorName) { showToast('거래처명이 비어 있습니다.'); return; }
+            const v = vendorName.trim();
+            document.getElementById('vu-title').textContent = `「${v}」 사용 현황`;
+
+            const records = []; // {source, label, date, amount, detail}
+
+            // 1) 현재 자금청구명세서 dataset
+            (typeof dataset !== 'undefined' ? dataset : []).forEach(row => {
+                if ((row.vendor||'').trim() === v) {
+                    records.push({
+                        source: '자금청구명세서', color: '#0ea5e9',
+                        label: row.item || row.note || '품목 미기재',
+                        date: row.date || (currentDoc?.month || ''),
+                        amount: Number(row.supply||0) + Number(row.tax||0),
+                        detail: `대표자: ${row.ceo||'-'} · 계좌: ${row.account||'-'}`
+                    });
+                }
+            });
+
+            // 2) 저장된 자금청구 문서들 (savedDocuments)
+            (typeof savedDocuments !== 'undefined' ? savedDocuments : []).forEach(doc => {
+                (doc.dataset||[]).forEach(row => {
+                    if ((row.vendor||'').trim() === v) {
+                        records.push({
+                            source: '저장 대장', color: '#6366f1',
+                            label: `${doc.site||''} ${doc.month||''}`.trim() || '저장 문서',
+                            date: doc.month || '',
+                            amount: Number(row.supply||0) + Number(row.tax||0),
+                            detail: `대표자: ${row.ceo||'-'}`
+                        });
+                    }
+                });
+            });
+
+            // 3) 지불의뢰서 발행 이력 (rhLoad)
+            if (typeof rhLoad === 'function') {
+                rhLoad().forEach(h => {
+                    if ((h.vendor||'').trim() === v) {
+                        const amt = parseInt((h.total||'0').replace(/[^0-9]/g,''),10) || 0;
+                        records.push({
+                            source: '지불의뢰서', color: '#7c3aed',
+                            label: h.memo || h.category || '지불의뢰',
+                            date: h.month || '',
+                            amount: amt,
+                            detail: `현장: ${h.site||'-'}`
+                        });
+                    }
+                });
+            }
+
+            // 4) 법인카드 경비 (ccData)
+            if (typeof ccData !== 'undefined') {
+                ccData.forEach(r => {
+                    if ((r.merchant||'').trim() === v) {
+                        records.push({
+                            source: '법인카드', color: '#f59e0b',
+                            label: r.cat || '경비',
+                            date: r.date || '',
+                            amount: Number(r.amount||0),
+                            detail: r.site ? `현장: ${r.site}` : ''
+                        });
+                    }
+                });
+            }
+
+            // 5) 특고 신고 이력 (운전원명 매칭 — 거래처와 무관할 수 있으나 보강)
+            if (typeof shLoad === 'function') {
+                shLoad().forEach(h => {
+                    if ((h.vendor||'').trim() === v) {
+                        const cnt = (h.items||[]).length;
+                        const sum = (h.items||[]).reduce((s,r)=>s+(r.supply||0),0);
+                        records.push({
+                            source: '특고 신고', color: '#d97706',
+                            label: `운전원 ${cnt}명`,
+                            date: h.month || '',
+                            amount: sum,
+                            detail: h.site ? `현장: ${h.site}` : ''
+                        });
+                    }
+                });
+            }
+
+            records.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+            const summaryEl = document.getElementById('vu-summary');
+            const listEl    = document.getElementById('vu-list');
+            const emptyEl   = document.getElementById('vu-empty');
+
+            if (summaryEl) {
+                const totalAmt = records.reduce((s,r)=>s+(r.amount||0),0);
+                const bySrc = {};
+                records.forEach(r => { bySrc[r.source] = (bySrc[r.source]||0)+1; });
+                summaryEl.innerHTML = [
+                    `<span>전체 <b class="text-slate-700 dark:text-slate-200">${records.length}</b>건</span>`,
+                    `<span>누적 금액 <b class="text-sky-600 dark:text-sky-400">${totalAmt.toLocaleString('ko-KR')}원</b></span>`,
+                    ...Object.entries(bySrc).map(([k,v])=>`<span>${k} <b>${v}</b>건</span>`)
+                ].join('');
+            }
+
+            if (!records.length) {
+                if (listEl) listEl.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
+            } else {
+                if (emptyEl) emptyEl.classList.add('hidden');
+                if (listEl) {
+                    listEl.innerHTML = records.map(r => `
+                        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2.5 gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="background:${r.color}22;color:${r.color};">${r.source}</span>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">${r.label}</span>
+                                    <span class="ml-auto text-[10px] text-slate-400 font-semibold whitespace-nowrap">${r.date||''}</span>
+                                </div>
+                                ${r.detail ? `<div class="text-[10px] text-slate-400">${r.detail}</div>` : ''}
+                            </div>
+                            <div class="text-xs font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">${(r.amount||0).toLocaleString('ko-KR')}원</div>
+                        </div>`).join('');
+                }
+            }
+
+            document.getElementById('vendor-usage-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeVendorUsageModal() {
+            document.getElementById('vendor-usage-modal').classList.add('hidden');
+        }
+
         // ===== 지불의뢰서 발행 이력 관리 =====
         const RH_KEY = 'cons_req_history_v1';
 
@@ -12347,6 +12998,185 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
         }
 
+        /* ── 월별 차트 ── */
+        let ccMonthlyChartType = 'bar';
+
+        function ccSetMonthlyChartType(type) {
+            ccMonthlyChartType = type;
+            const barBtn  = document.getElementById('cc-monthly-bar-btn');
+            const lineBtn = document.getElementById('cc-monthly-line-btn');
+            if (barBtn && lineBtn) {
+                if (type === 'bar') {
+                    barBtn.className  = 'text-[10px] px-2 py-1 rounded-lg font-bold transition bg-violet-600 text-white';
+                    lineBtn.className = 'text-[10px] px-2 py-1 rounded-lg font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300';
+                } else {
+                    lineBtn.className = 'text-[10px] px-2 py-1 rounded-lg font-bold transition bg-violet-600 text-white';
+                    barBtn.className  = 'text-[10px] px-2 py-1 rounded-lg font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300';
+                }
+            }
+            ccDrawMonthlyChart(ccData);
+        }
+
+        function ccDrawMonthlyChart(data) {
+            const canvas = document.getElementById('cc-monthly-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const months = [...new Set(data.map(r => (r.date||'').slice(0,7)).filter(Boolean))].sort();
+            const cats   = Object.keys(CC_CAT_COLORS);
+            const catColors = {
+                '유류비':'#f59e0b','식대':'#10b981','숙박비':'#6366f1','자재구입':'#ef4444',
+                '공구/장비':'#ec4899','통신비':'#06b6d4','교통비':'#22c55e',
+                '소모품':'#a855f7','접대비':'#f43f5e','기타':'#94a3b8'
+            };
+            const monthTotals = months.map(m => data.filter(r=>(r.date||'').startsWith(m)).reduce((s,r)=>s+Number(r.amount||0),0));
+            const catSeries = cats.map(cat => ({
+                cat,
+                values: months.map(m => data.filter(r=>(r.date||'').startsWith(m) && r.cat===cat).reduce((s,r)=>s+Number(r.amount||0),0))
+            })).filter(s => s.values.some(v=>v>0));
+
+            const dpr = window.devicePixelRatio || 1;
+            const w   = canvas.parentElement.clientWidth || 600;
+            const h   = 220;
+            canvas.width  = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width  = w + 'px';
+            canvas.style.height = h + 'px';
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, w, h);
+
+            if (!months.length) {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('데이터 없음', w/2, h/2);
+                const leg = document.getElementById('cc-monthly-legend');
+                if (leg) leg.innerHTML = '';
+                return;
+            }
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor  = isDark ? '#94a3b8' : '#64748b';
+            const gridColor  = isDark ? '#1e293b' : '#f1f5f9';
+            const labelColor = isDark ? '#e2e8f0' : '#1e293b';
+
+            const padL=62, padR=16, padT=16, padB=36;
+            const chartW = w - padL - padR;
+            const chartH = h - padT - padB;
+
+            let maxVal = 0;
+            if (ccMonthlyChartType === 'bar') {
+                months.forEach((_,mi) => {
+                    const stacked = catSeries.reduce((s,cs)=>s+cs.values[mi],0);
+                    if (stacked > maxVal) maxVal = stacked;
+                });
+            } else {
+                maxVal = Math.max(...monthTotals, 1);
+            }
+            const yMax = maxVal * 1.15 || 1;
+
+            const yTick = v => padT + chartH * (1 - v/yMax);
+            const xTick = i => padL + (i + 0.5) * (chartW / Math.max(months.length,1));
+
+            /* 그리드 */
+            ctx.strokeStyle = gridColor; ctx.lineWidth = 1;
+            [0,0.25,0.5,0.75,1].forEach(p => {
+                const y = padT + chartH * p;
+                ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+chartW, y); ctx.stroke();
+                const v = yMax * (1-p);
+                ctx.fillStyle = textColor; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+                ctx.fillText(v>=10000 ? Math.round(v/10000)+'만' : Math.round(v)+'', padL-4, y+3);
+            });
+            if (yMax >= 10000) {
+                ctx.fillStyle = textColor; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+                ctx.fillText('(만원)', padL-4, padT-4);
+            }
+
+            if (ccMonthlyChartType === 'bar') {
+                const barW = Math.max(8, Math.min(40, chartW / months.length * 0.65));
+                months.forEach((_, mi) => {
+                    let base = padT + chartH;
+                    catSeries.forEach(cs => {
+                        const v = cs.values[mi];
+                        if (!v) return;
+                        const bh = chartH * v/yMax;
+                        const x = xTick(mi) - barW/2;
+                        ctx.fillStyle = catColors[cs.cat] || '#94a3b8';
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(x, base-bh, barW, bh, [3,3,0,0]);
+                        else { ctx.rect(x, base-bh, barW, bh); }
+                        ctx.fill();
+                        base -= bh;
+                    });
+                    const total = catSeries.reduce((s,cs)=>s+cs.values[mi],0);
+                    if (total > 0) {
+                        ctx.fillStyle = labelColor; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
+                        const lbl = total>=10000 ? Math.round(total/10000)+'만' : total.toLocaleString();
+                        ctx.fillText(lbl, xTick(mi), base-5);
+                    }
+                });
+            } else {
+                ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+                ctx.beginPath();
+                months.forEach((_, i) => {
+                    const x=xTick(i), y=yTick(monthTotals[i]);
+                    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+                });
+                ctx.stroke();
+                ctx.beginPath();
+                months.forEach((_,i) => { const x=xTick(i),y=yTick(monthTotals[i]); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+                ctx.lineTo(xTick(months.length-1), padT+chartH);
+                ctx.lineTo(xTick(0), padT+chartH);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(124,58,237,0.12)'; ctx.fill();
+                months.forEach((_,i) => {
+                    const x=xTick(i), y=yTick(monthTotals[i]);
+                    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+                    ctx.fillStyle='#7c3aed'; ctx.fill();
+                    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+                    if (monthTotals[i]>0) {
+                        ctx.fillStyle=labelColor; ctx.font='bold 9px sans-serif'; ctx.textAlign='center';
+                        const lbl=monthTotals[i]>=10000?Math.round(monthTotals[i]/10000)+'만':monthTotals[i].toLocaleString();
+                        ctx.fillText(lbl, x, y-9);
+                    }
+                });
+            }
+
+            /* x축 레이블 */
+            let prevYear = null;
+            months.forEach((m,i) => {
+                ctx.fillStyle=textColor; ctx.font='10px sans-serif'; ctx.textAlign='center';
+                ctx.fillText(m.slice(5)+'월', xTick(i), padT+chartH+14);
+                const yr = m.slice(0,4);
+                if (yr !== prevYear) {
+                    if (prevYear !== null) {
+                        const x = padL + i*(chartW/months.length);
+                        ctx.strokeStyle=isDark?'#334155':'#cbd5e1'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+                        ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,padT+chartH); ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                    ctx.fillStyle=textColor; ctx.font='bold 9px sans-serif'; ctx.textAlign='left';
+                    ctx.fillText(yr+'년', xTick(i)-10, padT+chartH+26);
+                    prevYear = yr;
+                }
+            });
+
+            /* 범례 */
+            const legendEl = document.getElementById('cc-monthly-legend');
+            if (legendEl) {
+                if (ccMonthlyChartType === 'bar') {
+                    legendEl.innerHTML = catSeries.map(cs =>
+                        '<span style="display:inline-flex;align-items:center;gap:4px;">' +
+                        '<span style="width:10px;height:10px;border-radius:2px;background:' + (catColors[cs.cat]||'#94a3b8') + ';display:inline-block;"></span>' +
+                        cs.cat + '</span>'
+                    ).join('');
+                } else {
+                    legendEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px;">' +
+                        '<span style="width:16px;height:3px;background:#7c3aed;display:inline-block;border-radius:2px;"></span>월별 합계</span>';
+                }
+            }
+        }
+
         /* 메인 테이블 렌더 */
         function ccRender() {
             ccData = ccLoad();
@@ -12413,6 +13243,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             ccUpdateKpi(filteredSorted);
             ccUpdateCharts(filteredSorted);
+            ccDrawMonthlyChart(ccData);
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
