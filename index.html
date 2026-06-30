@@ -1687,6 +1687,10 @@
                         <i data-lucide="folder-input" class="w-3.5 h-3.5"></i> 이동
                     </button>
                     <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
+                    <button onclick="openBulkIssueModal(true)" class="bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
+                        <i data-lucide="layers-3" class="w-3.5 h-3.5"></i> 일괄 발행
+                    </button>
+                    <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
                     <button onclick="applyBulkDelete()" class="bg-red-500 hover:bg-red-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
                     </button>
@@ -1821,7 +1825,7 @@
                                 <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">청구금액</span><input type="text" id="req-field-contract" value="일금 영원정" class="px-3 py-1.5 w-full font-bold text-slate-700 dark:text-slate-300 bg-transparent outline-none"></div>
                             </div>
                             <div class="divide-y divide-slate-300 dark:divide-slate-700">
-                                <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">거래처</span><input type="text" id="req-field-vendor" onchange="syncRequestFormToDbAndDataset()" value="" class="px-3 py-1.5 w-full font-bold text-blue-700 dark:text-blue-400 bg-transparent outline-none"></div>
+                                <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">거래처</span><input type="text" id="req-field-vendor" onchange="syncRequestFormToDbAndDataset(); updateVendorCumulativeBadge();" value="" class="px-3 py-1.5 w-full font-bold text-blue-700 dark:text-blue-400 bg-transparent outline-none"></div>
                                 <div class="flex items-center"><span class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 w-20 font-bold shrink-0 border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">대표자</span><input type="text" id="req-field-ceo" onchange="syncRequestFormToDbAndDataset()" value="" class="px-3 py-1.5 w-full font-semibold text-slate-750 dark:text-slate-200 bg-transparent outline-none"></div>
                             </div>
                         </div>
@@ -1973,6 +1977,7 @@
                     <select id="request-selector" onchange="loadRequestData(this.value)" class="w-full rounded-lg border border-slate-700 bg-slate-800 text-white text-[11px] px-2 py-1.5 outline-none font-semibold">
                     </select>
                     <span id="quick-vendor-name" class="text-indigo-400 font-bold text-[10px] px-0.5 truncate"></span>
+                    <div id="req-vendor-cumulative" class="text-[9px] text-slate-400 px-0.5 leading-snug"></div>
 
                     <div class="border-t border-slate-700"></div>
 
@@ -2045,6 +2050,9 @@
                     <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">발행 이력</div>
                     <button onclick="reqHistSaveModal()" class="qbtn" style="--qc:#7c3aed;">
                         <i data-lucide="save" class="w-3.5 h-3.5"></i><span>현재 저장</span>
+                    </button>
+                    <button onclick="openBulkIssueModal()" class="qbtn" style="--qc:#9333ea;">
+                        <i data-lucide="layers-3" class="w-3.5 h-3.5"></i><span>일괄 발행</span>
                     </button>
                     <button onclick="openReqHistModal()" class="qbtn" style="--qc:#4f46e5;">
                         <i data-lucide="history" class="w-3.5 h-3.5"></i>
@@ -3275,6 +3283,33 @@
                 <div class="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
                     <img id="cc-receipt-view-img" class="hidden max-w-full max-h-full rounded-lg shadow-lg">
                     <iframe id="cc-receipt-view-pdf" class="hidden w-full h-[70vh] rounded-lg border border-slate-200"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- 지불의뢰서 일괄 발행 모달 -->
+        <div id="bulk-issue-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="layers-3" class="w-4 h-4 text-violet-500"></i>
+                        지불의뢰서 일괄 발행
+                    </h3>
+                    <button onclick="closeBulkIssueModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="px-5 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                    <span>거래처별로 묶어 발행 이력에 한 번에 저장합니다. (이미 인쇄/출력하지 않은 건도 이력에는 저장 가능)</span>
+                    <span class="shrink-0 flex items-center gap-2">
+                        <button onclick="bulkIssueToggleAll(true)" class="font-bold text-violet-600 hover:text-violet-800">전체선택</button>
+                        <button onclick="bulkIssueToggleAll(false)" class="font-bold text-slate-400 hover:text-slate-600">전체해제</button>
+                    </span>
+                </div>
+                <div id="bulk-issue-list" class="flex-1 overflow-y-auto px-5 py-3 space-y-1.5"></div>
+                <div class="px-5 pb-5 pt-2 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                    <button onclick="closeBulkIssueModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
+                    <button onclick="confirmBulkIssue()" class="px-5 py-1.5 text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> 선택 거래처 일괄 발행 저장
+                    </button>
                 </div>
             </div>
         </div>
@@ -6583,9 +6618,14 @@
                         </div>
                     </td>
                     <td class="py-1 px-1 no-print">
-                        <button onclick="deleteRow(${row.id})" class="text-rose-600 hover:text-rose-800 p-1 mx-auto block">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
+                        <div class="flex items-center justify-center gap-0.5">
+                            <button onclick="convertRowToRequest(${row.id})" class="text-violet-600 hover:text-violet-800 p-1" title="이 항목을 지불의뢰서로 변환">
+                                <i data-lucide="file-output" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteRow(${row.id})" class="text-rose-600 hover:text-rose-800 p-1" title="삭제">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -7278,6 +7318,171 @@ function changePrintScale(value) {
             }, 600);
         }
 
+        /* ============================================================
+           자금청구명세서 ↔ 지불의뢰서 자동 연동 / 거래처별 지급 누계 / 일괄 발행
+        ============================================================ */
+
+        /* 자금청구명세서 행을 즉시 지불의뢰서로 변환하여 이동 */
+        function convertRowToRequest(rowId) {
+            const row = dataset.find(item => item.id == rowId);
+            if (!row) { showToast('해당 항목을 찾을 수 없습니다.', 'error'); return; }
+            if (!row.vendor) { showToast('거래처가 입력된 항목만 지불의뢰서로 변환할 수 있습니다.', 'error'); return; }
+
+            switchTab('request');
+            setTimeout(() => {
+                const selector = document.getElementById('request-selector');
+                const key = 'row-' + rowId;
+                if (selector && [...selector.options].some(o => o.value === key)) {
+                    selector.value = key;
+                } else if (selector) {
+                    refreshRequestSelector();
+                    if ([...selector.options].some(o => o.value === key)) selector.value = key;
+                }
+                loadRequestData(key);
+                showToast(`[${row.vendor}] 항목을 지불의뢰서로 불러왔습니다.`, 'success');
+            }, 80);
+        }
+
+        /* "YYYY년 MM월" 형식 → "YYYY-MM" 변환 */
+        function docMonthToYYYYMM(monthStr) {
+            if (!monthStr) return new Date().toISOString().slice(0,7);
+            const m = String(monthStr).match(/(\d{4})\s*년?\s*(\d{1,2})\s*월?/);
+            if (m) return `${m[1]}-${m[2].padStart(2,'0')}`;
+            return new Date().toISOString().slice(0,7);
+        }
+
+        /* 거래처별 지급 누계 배지 갱신 (자금청구 현재 문서 + 지불의뢰 발행이력 이번 달 기준) */
+        function updateVendorCumulativeBadge() {
+            const el = document.getElementById('req-vendor-cumulative');
+            if (!el) return;
+            const vendor = (document.getElementById('req-field-vendor')?.value || '').trim();
+            if (!vendor) { el.textContent = ''; return; }
+
+            const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
+            const monthYYYYMM = docMonthToYYYYMM(currentDoc?.month);
+
+            const claimAmt = (typeof dataset !== 'undefined' ? dataset : [])
+                .filter(r => (r.vendor || '') === vendor)
+                .reduce((s, r) => s + (Number(r.supply || 0) + Number(r.tax || 0)), 0);
+
+            const histThisMonth = (typeof rhLoad === 'function' ? rhLoad() : [])
+                .filter(h => h.vendor === vendor && h.month === monthYYYYMM);
+            const histAmt = histThisMonth.reduce((s, h) => s + (parseInt((h.total||'0').replace(/[^0-9]/g,''),10)||0), 0);
+
+            el.innerHTML = `이번달 청구 누계 <b class="text-slate-600 dark:text-slate-300">${claimAmt.toLocaleString('ko-KR')}원</b>` +
+                (histThisMonth.length ? ` · 기발행 <b class="text-violet-600">${histAmt.toLocaleString('ko-KR')}원</b> (${histThisMonth.length}건)` : ' · 발행 이력 없음');
+        }
+
+        /* 거래처 그룹(현재 dataset 기준)으로부터 발행 이력 항목 생성 */
+        function buildHistoryEntryForVendorGroup(vendorName) {
+            const matchedRows = dataset.filter(item => item.vendor === vendorName);
+            if (!matchedRows.length) return null;
+
+            const firstItem = matchedRows[0];
+            const dbRow = accountDb.find(acc => acc.vendor === vendorName)
+                || accountDb.find(acc => acc.ceo === firstItem.ceo && acc.holder === firstItem.holder)
+                || accountDb.find(acc => acc.holder === firstItem.holder);
+
+            const bank    = dbRow ? dbRow.bank    : firstItem.bank;
+            const account = dbRow ? dbRow.account : firstItem.account;
+            const holder  = dbRow ? dbRow.holder  : (firstItem.holder || firstItem.ceo || '');
+            const phone   = dbRow ? dbRow.phone   : firstItem.phone;
+            const bizNum  = dbRow ? dbRow.biznum  : firstItem.biznum;
+
+            const items = matchedRows.map(row => ({
+                name: (row.note && row.note.trim()) ? row.note.trim() : (row.vendor || row.type || '품목 청구'),
+                spec: '', qty: '1.0',
+                amount: String((row.supply||0) + (row.tax||0))
+            }));
+            const supply = matchedRows.reduce((s,r) => s + (r.supply||0), 0);
+            const tax    = matchedRows.reduce((s,r) => s + (r.tax||0), 0);
+            const total  = supply + tax;
+
+            const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
+            const month  = docMonthToYYYYMM(currentDoc?.month);
+            const site   = (currentDoc && currentDoc.site) || document.getElementById('meta-site')?.value || '';
+            const period = (currentDoc && currentDoc.period) || calculateMonthPeriod(currentDoc?.month);
+
+            return {
+                id: Date.now() + Math.floor(Math.random()*1000),
+                month, memo: '일괄 발행',
+                vendor: vendorName,
+                ceo: firstItem.ceo || '',
+                site, period,
+                category: firstItem.type || '',
+                bizNum: bizNum || '',
+                bank: bank ? `${bank}은행` : '',
+                account: account || '',
+                holder: holder || '',
+                phone: phone || '',
+                supply: String(supply),
+                tax: String(tax),
+                total: total.toLocaleString('ko-KR') + ' 원',
+                items,
+                savedAt: new Date().toLocaleString('ko-KR')
+            };
+        }
+
+        /* 일괄 발행 모달 열기. onlySelected=true 면 자금청구 탭에서 체크된 행의 거래처만 노출 */
+        function openBulkIssueModal(onlySelected) {
+            let vendors = [...new Set(dataset.map(item => item.vendor))].filter(Boolean);
+            if (onlySelected) {
+                const selVendors = new Set(dataset.filter(r => selectedRowIds.has(r.id)).map(r => r.vendor).filter(Boolean));
+                if (!selVendors.size) { showToast('선택된 항목에 거래처가 입력되어 있지 않습니다.', 'error'); return; }
+                vendors = vendors.filter(v => selVendors.has(v));
+            }
+            vendors.sort((a,b) => a.localeCompare(b, 'ko-KR'));
+            if (!vendors.length) { showToast('일괄 발행할 거래처 데이터가 없습니다.', 'error'); return; }
+
+            const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
+            const monthYYYYMM = docMonthToYYYYMM(currentDoc?.month);
+            const existing = rhLoad();
+
+            const listEl = document.getElementById('bulk-issue-list');
+            listEl.innerHTML = vendors.map(v => {
+                const rows  = dataset.filter(item => item.vendor === v);
+                const total = rows.reduce((s,r) => s + (r.supply||0) + (r.tax||0), 0);
+                const cat   = rows[0]?.type || '';
+                const already = existing.some(h => h.vendor === v && h.month === monthYYYYMM);
+                return `<label class="flex items-center gap-2 px-3 py-2 rounded-lg border ${already ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-slate-700'} cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                    <input type="checkbox" class="bulk-issue-chk w-4 h-4 shrink-0" value="${v.replace(/"/g,'&quot;')}" ${already ? '' : 'checked'}>
+                    <span class="flex-1 min-w-0">
+                        <span class="block text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${v}</span>
+                        <span class="block text-[10px] text-slate-400">${cat} · ${rows.length}건${already ? ' · <span class="text-amber-600 font-bold">이번달 이미 발행됨</span>' : ''}</span>
+                    </span>
+                    <span class="text-xs font-extrabold text-violet-600 shrink-0">${total.toLocaleString('ko-KR')}원</span>
+                </label>`;
+            }).join('');
+
+            document.getElementById('bulk-issue-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeBulkIssueModal() {
+            document.getElementById('bulk-issue-modal').classList.add('hidden');
+        }
+
+        function bulkIssueToggleAll(checked) {
+            document.querySelectorAll('.bulk-issue-chk').forEach(c => { c.checked = checked; });
+        }
+
+        function confirmBulkIssue() {
+            const checked = [...document.querySelectorAll('.bulk-issue-chk:checked')].map(c => c.value);
+            if (!checked.length) { showToast('선택된 거래처가 없습니다.', 'error'); return; }
+
+            const arr = rhLoad();
+            let count = 0;
+            checked.forEach(v => {
+                const entry = buildHistoryEntryForVendorGroup(v);
+                if (entry) { arr.unshift(entry); count++; }
+            });
+            rhSaveAll(arr);
+            rhUpdateBadge();
+            closeBulkIssueModal();
+            showToast(`${count}개 거래처의 지불의뢰서가 발행 이력에 일괄 저장되었습니다.`, 'success');
+        }
+
+
         // 지불의뢰서 상단 거래처 드롭다운 검색 필터링 로직
         function filterRequestSelector() {
             const searchKeyword = document.getElementById('req-quick-search').value.trim().toLowerCase();
@@ -7641,6 +7846,7 @@ function changePrintScale(value) {
             renderRequestItemsTable();
             renderRequestSpecialTable();
             loadChecklist(valueKey);
+            updateVendorCumulativeBadge();
         }
 
         // 담당자 메모 저장/불러오기
