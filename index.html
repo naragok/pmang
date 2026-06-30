@@ -1433,6 +1433,17 @@
                 </div>
             </div>
 
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 mt-3">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-indigo-500"></i> 최근 활동
+                        <span class="text-[10px] font-normal text-slate-400">자금청구명세서 · 지불의뢰서 · 법인카드 통합</span>
+                    </h3>
+                    <span id="dash-recent-count" class="text-[10px] font-bold text-slate-400"></span>
+                </div>
+                <div id="dash-recent-activity" class="space-y-1"></div>
+            </div>
+
             <style>
             .dash-tab-card {
                 display:flex; flex-direction:column; align-items:flex-start; gap:6px;
@@ -2949,11 +2960,12 @@
                                 <th class="px-2 py-2 text-right w-28 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('amount')">금액 ↕</th>
                                 <th class="px-2 py-2 text-center w-28 font-bold">현장 배분</th>
                                 <th class="px-2 py-2 text-left font-bold">메모 (영수증 내용)</th>
+                                <th class="px-2 py-2 text-center w-16 font-bold">증빙</th>
                                 <th class="px-2 py-2 text-center w-16 font-bold no-print">작업</th>
                             </tr>
                         </thead>
                         <tbody id="cc-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <tr><td colspan="8" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
+                            <tr><td colspan="9" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
                         </tbody>
                         <tfoot id="cc-tfoot" class="bg-slate-50 dark:bg-slate-800/50 font-bold border-t-2 border-slate-300 dark:border-slate-600">
                         </tfoot>
@@ -3224,10 +3236,45 @@
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">메모 (영수증 내용·비고)</label>
                         <textarea id="cc-edit-memo" rows="3" placeholder="예: 굴착기 연료 보충 / 현장 인원 점심 식사 영수증 첨부" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 font-mono resize-none"></textarea>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">지출증빙영수증 (현금영수증)</label>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <input type="file" id="cc-edit-receipt-input" accept="image/*,application/pdf" onchange="ccHandleReceiptUpload(event)" class="hidden">
+                            <button type="button" onclick="document.getElementById('cc-edit-receipt-input').click()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center gap-1">
+                                <i data-lucide="camera" class="w-3.5 h-3.5"></i> 영수증/현금영수증 첨부
+                            </button>
+                            <span id="cc-receipt-filename" class="text-[10px] text-slate-400"></span>
+                            <button type="button" id="cc-receipt-remove-btn" onclick="ccRemoveReceipt()" class="hidden text-[10px] text-rose-500 hover:text-rose-700 font-semibold">제거</button>
+                        </div>
+                        <div id="cc-receipt-preview-wrap" class="hidden mt-2 relative inline-block">
+                            <img id="cc-receipt-preview" class="max-h-32 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <button type="button" onclick="ccRemoveReceipt()" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 shadow" title="삭제"><i data-lucide="x" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>
                 </div>
                 <div class="px-5 pb-5 flex justify-end gap-2">
                     <button onclick="ccCloseModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
                     <button onclick="ccSaveModal()" class="px-5 py-1.5 text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all">저장</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 지출증빙영수증 보기 모달 -->
+        <div id="cc-receipt-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="receipt" class="w-4 h-4 text-emerald-500"></i>
+                        <span id="cc-receipt-modal-title">지출증빙영수증</span>
+                    </h3>
+                    <div class="flex items-center gap-1">
+                        <a id="cc-receipt-download" download class="p-1.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="다운로드"><i data-lucide="download" class="w-4 h-4"></i></a>
+                        <button onclick="closeCcReceiptModal()" class="text-slate-400 hover:text-slate-600 p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                    <img id="cc-receipt-view-img" class="hidden max-w-full max-h-full rounded-lg shadow-lg">
+                    <iframe id="cc-receipt-view-pdf" class="hidden w-full h-[70vh] rounded-lg border border-slate-200"></iframe>
                 </div>
             </div>
         </div>
@@ -12577,10 +12624,103 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 alertsEl.innerHTML = alerts.join('');
             }
 
+            renderDashRecentActivity();
+
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        // ===== 거래처 마스터 통합 =====
+        /* ── 최근 활동: 자금청구명세서 · 지불의뢰서 · 법인카드 통합 타임라인 ── */
+        function dashRecentActivity(limit) {
+            limit = limit || 8;
+            const items = [];
+
+            // 1) 자금청구명세서 — 저장된 문서 목록
+            (typeof savedDocuments !== 'undefined' ? savedDocuments : []).forEach(doc => {
+                const ts = parseInt(String(doc.id||'').replace('doc-',''), 10) || 0;
+                const total = (doc.dataset||[]).reduce((s,r) =>
+                    s + (Number(r.supply||0) + Number(r.tax||0) - Number(r.deduction||0) - Number(r.prepaid||0)), 0);
+                items.push({
+                    id: doc.id, ts, type: 'statement', color: '#0ea5e9', icon: 'file-spreadsheet',
+                    label: `${doc.site || '현장 미입력'} (${doc.company||'-'})`,
+                    dateLabel: doc.month || '', amount: total
+                });
+            });
+
+            // 2) 지불의뢰서 — 발행 이력
+            (typeof rhLoad === 'function' ? rhLoad() : []).forEach(h => {
+                items.push({
+                    id: h.id, ts: Number(h.id)||0, type: 'request', color: '#7c3aed', icon: 'file-check',
+                    label: `${h.vendor || '거래처 미입력'} · ${h.category||''}`,
+                    dateLabel: h.month || '', amount: parseInt((h.total||'0').replace(/[^0-9]/g,''),10)||0
+                });
+            });
+
+            // 3) 법인카드 경비
+            (typeof ccData !== 'undefined' ? ccData : []).forEach(r => {
+                const ts = parseInt(String(r.id||'').replace('cc-',''), 10) || 0;
+                items.push({
+                    id: r.id, ts, type: 'corpcard', color: '#f59e0b', icon: 'credit-card',
+                    label: `${r.merchant || '가맹점 미입력'} · ${r.cat||''}`,
+                    dateLabel: r.date || '', amount: Number(r.amount||0)
+                });
+            });
+
+            items.sort((a,b) => b.ts - a.ts);
+            return items.slice(0, limit);
+        }
+
+        function renderDashRecentActivity() {
+            const el = document.getElementById('dash-recent-activity');
+            const cntEl = document.getElementById('dash-recent-count');
+            if (!el) return;
+
+            const allCount = (typeof savedDocuments!=='undefined'?savedDocuments.length:0)
+                + (typeof rhLoad==='function'?rhLoad().length:0)
+                + (typeof ccData!=='undefined'?ccData.length:0);
+            const items = dashRecentActivity(8);
+            if (cntEl) cntEl.textContent = items.length ? `최근 ${items.length}건 / 전체 ${allCount}건` : '';
+
+            if (!items.length) {
+                el.innerHTML = `<div class="text-center text-slate-400 text-xs py-8">아직 등록된 활동이 없습니다. 자금청구명세서·지불의뢰서·법인카드 경비를 입력해 보세요.</div>`;
+                return;
+            }
+
+            const typeLabel = { statement: '자금청구', request: '지불의뢰', corpcard: '법인카드' };
+            el.innerHTML = items.map(it => `
+                <button onclick="dashGoToActivity('${it.type}', '${String(it.id).replace(/'/g,"\\'")}')"
+                    class="w-full flex items-center gap-2.5 text-left px-2.5 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:${it.color}1a;color:${it.color};">
+                        <i data-lucide="${it.icon}" class="w-3.5 h-3.5"></i>
+                    </span>
+                    <span class="flex-1 min-w-0">
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${it.label}</span>
+                        <span class="block text-[9px] text-slate-400">${typeLabel[it.type]||''} · ${it.dateLabel||''}</span>
+                    </span>
+                    <span class="text-[11px] font-extrabold shrink-0" style="color:${it.color};">${it.amount ? Number(it.amount).toLocaleString('ko-KR')+'원' : ''}</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0"></i>
+                </button>`).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 최근 활동 항목 클릭 → 해당 탭으로 이동 후 해당 레코드 자동 오픈 */
+        function dashGoToActivity(type, id) {
+            if (type === 'statement') {
+                switchTab('statement');
+                if (typeof loadSavedDocument === 'function') loadSavedDocument(id);
+            } else if (type === 'request') {
+                switchTab('request');
+                if (typeof rhLoad === 'function' && typeof rhApply === 'function') {
+                    const arr = rhLoad();
+                    const idx = arr.findIndex(h => String(h.id) === String(id));
+                    if (idx >= 0) rhApply(idx);
+                    else showToast('해당 발행 이력을 찾을 수 없습니다. (삭제됨)', 'error');
+                }
+            } else if (type === 'corpcard') {
+                switchTab('corpcard');
+                if (typeof ccEditRow === 'function') ccEditRow(id);
+            }
+        }
 
         /* ── 법인카드 모달 열릴 때 거래처DB 자동완성 채우기 ── */
         function refreshVendorDatalist() {
@@ -13048,6 +13188,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         let ccData = [];
         let ccSortKey = 'date';
         let ccSortAsc = false;
+        let ccTempReceipt = null; // { dataUrl, type, name } — 첨부 중인 지출증빙영수증(임시)
 
         const CC_CAT_COLORS = {
             '유류비':   { bg:'#fef3c7', text:'#92400e', border:'#fde68a' },
@@ -13391,7 +13532,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!tbody) return;
 
             if (!filteredSorted.length) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
                 if (tfoot) tfoot.innerHTML = '';
             } else {
                 let totalAmt = 0;
@@ -13406,6 +13547,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
                         <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
                         <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
+                        <td class="px-2 py-2 text-center">
+                            ${r.receipt ? `<button onclick="ccViewReceipt('${r.id}')" class="no-print p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30" title="영수증 보기"><i data-lucide="receipt" class="w-4 h-4"></i></button><span class="text-emerald-600 font-bold text-[11px]">✓</span>` : '<span class="text-slate-300 text-[10px]">-</span>'}
+                        </td>
                         <td class="px-2 py-2 text-center no-print">
                             <div class="flex items-center justify-center gap-1">
                                 <button onclick="ccEditRow('${r.id}')" class="p-1 rounded text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="수정"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
@@ -13419,7 +13563,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     tfoot.innerHTML = `<tr>
                         <td colspan="4" class="px-2 py-2 text-right text-xs text-slate-600 dark:text-slate-300 font-bold">합계 (${filteredSorted.length}건)</td>
                         <td class="px-2 py-2 text-right text-sm font-black text-violet-700 dark:text-violet-400">${totalAmt.toLocaleString('ko-KR')}</td>
-                        <td colspan="3" class="px-2 py-2"></td>
+                        <td colspan="4" class="px-2 py-2"></td>
                     </tr>`;
                 }
             }
@@ -13455,6 +13599,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-site').value = '';
             document.getElementById('cc-edit-memo').value = '';
             document.getElementById('cc-amt-preview').textContent = '';
+            ccTempReceipt = null;
+            ccShowReceiptPreview();
             document.getElementById('cc-modal').classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
             setTimeout(()=>document.getElementById('cc-edit-merchant').focus(), 100);
@@ -13474,6 +13620,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-site').value = r.site||'';
             document.getElementById('cc-edit-memo').value = r.memo||'';
             ccFormatAmtPreview();
+            ccTempReceipt = r.receipt ? { dataUrl: r.receipt, type: r.receiptType||'image/jpeg', name: r.receiptName||'' } : null;
+            ccShowReceiptPreview();
             document.getElementById('cc-modal').classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
@@ -13486,6 +13634,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const amount   = Number(document.getElementById('cc-edit-amount').value) || 0;
             const site     = document.getElementById('cc-edit-site').value.trim();
             const memo     = document.getElementById('cc-edit-memo').value.trim();
+            const receipt     = ccTempReceipt ? ccTempReceipt.dataUrl : '';
+            const receiptType = ccTempReceipt ? ccTempReceipt.type    : '';
+            const receiptName = ccTempReceipt ? ccTempReceipt.name    : '';
 
             if (!date)     { showToast('사용일자를 입력하세요.', 'error'); return; }
             if (!merchant) { showToast('가맹점명을 입력하세요.', 'error'); return; }
@@ -13495,9 +13646,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const existingId = document.getElementById('cc-edit-id').value;
             if (existingId) {
                 const idx = ccData.findIndex(r=>r.id===existingId);
-                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, merchant, amount, site, memo };
+                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, merchant, amount, site, memo, receipt, receiptType, receiptName };
             } else {
-                ccData.push({ id: 'cc-' + Date.now(), date, cat, merchant, amount, site, memo });
+                ccData.push({ id: 'cc-' + Date.now(), date, cat, merchant, amount, site, memo, receipt, receiptType, receiptName });
             }
             // 날짜 정렬
             ccData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -13520,6 +13671,121 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             ccSave();
             ccRender();
             showToast('삭제되었습니다.', 'success');
+        }
+
+        /* ── 지출증빙영수증(현금영수증) 첨부 ── */
+
+        /* 파일 선택 → 압축(이미지) 또는 그대로(PDF) 인코딩 후 임시 저장 */
+        function ccHandleReceiptUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.type === 'application/pdf') {
+                if (file.size > 8 * 1024 * 1024) { showToast('PDF 파일은 8MB 이하만 첨부할 수 있습니다.', 'error'); e.target.value=''; return; }
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    ccTempReceipt = { dataUrl: ev.target.result, type: 'application/pdf', name: file.name };
+                    ccShowReceiptPreview();
+                    showToast('영수증(PDF)이 첨부되었습니다.', 'success');
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // 용량 절약을 위해 최대 1280px로 리사이즈 후 JPEG로 압축
+                        const MAX = 1280;
+                        let w = img.width, h = img.height;
+                        if (w > MAX || h > MAX) {
+                            const ratio = Math.min(MAX / w, MAX / h);
+                            w = Math.round(w * ratio); h = Math.round(h * ratio);
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                        ccTempReceipt = { dataUrl, type: 'image/jpeg', name: file.name };
+                        ccShowReceiptPreview();
+                        showToast('영수증 사진이 첨부되었습니다.', 'success');
+                    };
+                    img.onerror = () => showToast('이미지를 불러올 수 없습니다.', 'error');
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showToast('이미지 또는 PDF 파일만 첨부할 수 있습니다.', 'error');
+            }
+            e.target.value = '';
+        }
+
+        /* 모달 내 첨부 미리보기 갱신 */
+        function ccShowReceiptPreview() {
+            const wrap = document.getElementById('cc-receipt-preview-wrap');
+            const img  = document.getElementById('cc-receipt-preview');
+            const fn   = document.getElementById('cc-receipt-filename');
+            const rmBtn = document.getElementById('cc-receipt-remove-btn');
+            if (!wrap || !img || !fn) return;
+
+            if (!ccTempReceipt) {
+                wrap.classList.add('hidden');
+                img.src = '';
+                fn.textContent = '';
+                if (rmBtn) rmBtn.classList.add('hidden');
+                return;
+            }
+
+            if (rmBtn) rmBtn.classList.remove('hidden');
+
+            if (ccTempReceipt.type === 'application/pdf') {
+                wrap.classList.add('hidden');
+                fn.textContent = '📄 ' + (ccTempReceipt.name || 'PDF 파일') + ' 첨부됨';
+            } else {
+                img.src = ccTempReceipt.dataUrl;
+                wrap.classList.remove('hidden');
+                fn.textContent = ccTempReceipt.name || '';
+            }
+        }
+
+        /* 첨부 제거 */
+        function ccRemoveReceipt() {
+            ccTempReceipt = null;
+            ccShowReceiptPreview();
+            const input = document.getElementById('cc-edit-receipt-input');
+            if (input) input.value = '';
+        }
+
+        /* 저장된 영수증 보기 (목록에서 클릭) */
+        function ccViewReceipt(id) {
+            ccData = ccLoad();
+            const r = ccData.find(x => x.id === id);
+            if (!r || !r.receipt) return;
+
+            const img = document.getElementById('cc-receipt-view-img');
+            const pdf = document.getElementById('cc-receipt-view-pdf');
+            const dl  = document.getElementById('cc-receipt-download');
+            const titleEl = document.getElementById('cc-receipt-modal-title');
+            if (titleEl) titleEl.textContent = `${r.merchant || '지출증빙'} · ${r.date || ''}`;
+
+            if ((r.receiptType || '').includes('pdf')) {
+                if (img) { img.classList.add('hidden'); img.src = ''; }
+                if (pdf) { pdf.classList.remove('hidden'); pdf.src = r.receipt; }
+            } else {
+                if (pdf) { pdf.classList.add('hidden'); pdf.src = ''; }
+                if (img) { img.classList.remove('hidden'); img.src = r.receipt; }
+            }
+            if (dl) {
+                dl.href = r.receipt;
+                dl.download = r.receiptName || `영수증_${r.date || ''}_${r.merchant || ''}.jpg`;
+            }
+            document.getElementById('cc-receipt-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeCcReceiptModal() {
+            const pdf = document.getElementById('cc-receipt-view-pdf');
+            if (pdf) pdf.src = '';
+            document.getElementById('cc-receipt-modal').classList.add('hidden');
         }
 
         /* 금액 미리보기 */
@@ -13548,11 +13814,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 '가맹점명': r.merchant||'',
                 '금액': Number(r.amount||0),
                 '현장': r.site||'',
-                '메모': r.memo||''
+                '메모': r.memo||'',
+                '증빙영수증': r.receipt ? '첨부됨' : ''
             }));
             const ws = XLSX.utils.json_to_sheet(rows);
             ws['!cols'] = [
-                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:40}
+                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:40},{wch:10}
             ];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '법인카드경비');
@@ -13592,6 +13859,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     <td style="text-align:right;font-weight:700;">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
                     <td style="text-align:center;color:#64748b;">${r.site||''}</td>
                     <td style="color:#64748b;font-size:10px;">${r.memo||''}</td>
+                    <td style="text-align:center;">${r.receipt ? ((r.receiptType||'').includes('pdf') ? '<span style="font-size:9px;color:#475569;">PDF 첨부</span>' : `<img src="${r.receipt}" style="max-width:46px;max-height:46px;border:1px solid #e2e8f0;border-radius:4px;">`) : '<span style="color:#cbd5e1;">-</span>'}</td>
                 </tr>`).join('');
 
             const win = window.open('','_blank','width=1000,height=800');
@@ -13618,13 +13886,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     <th style="width:32px;">No</th><th style="width:88px;">사용일자</th>
                     <th style="width:72px;">카테고리</th><th style="width:180px;">가맹점명</th>
                     <th style="width:90px;">금액(원)</th><th style="width:140px;">현장</th>
-                    <th>메모</th>
+                    <th>메모</th><th style="width:60px;">증빙</th>
                 </tr></thead>
                 <tbody>${rows}</tbody>
                 <tfoot><tr>
                     <td colspan="4" style="text-align:right;">합 계</td>
                     <td style="text-align:right;">${totalAmt.toLocaleString('ko-KR')}</td>
-                    <td colspan="2"></td>
+                    <td colspan="3"></td>
                 </tr></tfoot>
             </table>
             </body></html>`);
@@ -13666,6 +13934,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         // ESC 키로 모달 닫기
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                const rmodal = document.getElementById('cc-receipt-modal');
+                if (rmodal && !rmodal.classList.contains('hidden')) { closeCcReceiptModal(); return; }
                 const modal = document.getElementById('cc-modal');
                 if (modal && !modal.classList.contains('hidden')) ccCloseModal();
             }
