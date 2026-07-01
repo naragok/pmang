@@ -1081,6 +1081,9 @@
                 <button onclick="exportToCSV()" class="hdr-btn hdr-btn-slate" title="CSV 내보내기">
                     <i data-lucide="file-down" class="w-3 h-3"></i><span class="inline btn-label">CSV</span>
                 </button>
+                <button onclick="openGlobalSearchModal()" class="hdr-btn hdr-btn-slate" title="전체 검색 (Ctrl+K)">
+                    <i data-lucide="search" class="w-3 h-3"></i><span class="inline btn-label">검색</span>
+                </button>
                 <button onclick="openBackupModal()" class="hdr-btn hdr-btn-slate" title="백업 / 복원">
                     <i data-lucide="database" class="w-3 h-3"></i><span class="inline btn-label">백업/복원</span>
                 </button>
@@ -3320,6 +3323,22 @@
                     <button onclick="confirmBulkIssue()" class="px-5 py-1.5 text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-all flex items-center gap-1.5">
                         <i data-lucide="check" class="w-3.5 h-3.5"></i> 선택 거래처 일괄 발행 저장
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 전체 검색 (거래처/금액 통합 검색) -->
+        <div id="global-search-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-start justify-center p-4 pt-[10vh]">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl max-h-[70vh] flex flex-col">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                    <input type="text" id="global-search-input" oninput="runGlobalSearch(this.value)"
+                        placeholder="거래처명, 금액, 메모로 전체 문서·지불의뢰·법인카드 검색..."
+                        class="flex-1 bg-transparent outline-none text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400">
+                    <button onclick="closeGlobalSearchModal()" class="text-slate-400 hover:text-slate-600 shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="global-search-results" class="flex-1 overflow-y-auto p-2">
+                    <div class="text-center text-slate-400 text-xs py-10">거래처명, 금액, 메모 등을 입력해 자금청구명세서·지불의뢰서·법인카드 경비를 한 번에 검색하세요.</div>
                 </div>
             </div>
         </div>
@@ -9055,6 +9074,7 @@ function changePrintScale(value) {
         ============================================================ */
         const SNAPSHOT_KEY = 'cons_snapshots_v3';
         const BACKUP_LAST_KEY = 'cons_backup_last_v3';
+        const BACKUP_LAST_ISO_KEY = 'cons_backup_last_iso_v1'; // 백업 알림 계산용 ISO 타임스탬프
         const SITE_BUDGET_KEY = 'cons_site_budgets_v3';
 
         function openBackupModal() {
@@ -9101,6 +9121,7 @@ function changePrintScale(value) {
             // 최근 백업 시각 기록
             const now = new Date().toLocaleString('ko-KR');
             localStorage.setItem(BACKUP_LAST_KEY, now);
+            localStorage.setItem(BACKUP_LAST_ISO_KEY, new Date().toISOString());
             updateLastBackupLabel();
             showToast('JSON 백업 파일 다운로드 완료!');
         }
@@ -10601,6 +10622,13 @@ ${para(`현 장 명: ${d.site||''}`,{size:20})}
 ${para(`청구기간: ${d.period||''}`,{size:20})}
 <w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="4" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>
 ${para('',{size:8})}
+${para('● 공종 및 거래처 정보',{bold:true,size:20})}
+<w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
+<w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+${infoRow('공종명',d.type||'','청구금액',d.contract||'')}
+${infoRow('거래처',d.vendor||'','대표자',d.ceo||'')}
+</w:tbl>
+${para('',{size:6})}
 ${para('● 청구 및 의뢰 품목 내역',{bold:true,size:20})}
 ${para('',{size:6})}
 <w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
@@ -10614,13 +10642,6 @@ ${para('● 청구 산출 근거',{bold:true,size:20})}
 ${row(cell('공급가액계',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(d.calcSupply||'0',{width:4819,align:'right',size:18,bold:true}))}
 ${row(cell('부가가치세',{bold:true,width:4819,bg:'E8ECEF',align:'left',size:18}),cell(d.calcTax||'0',{width:4819,align:'right',size:18}))}
 ${row(cell('청구 금액 계',{bold:true,width:4819,bg:'D1E4F5',align:'left',size:20,color:'1D4ED8'}),cell(d.calcTotal||'0',{width:4819,align:'right',size:20,bold:true,color:'1D4ED8'}))}
-</w:tbl>
-${para('',{size:6})}
-${para('● 공종 및 거래처 정보',{bold:true,size:20})}
-<w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
-<w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
-${infoRow('공종명',d.type||'','청구금액',d.contract||'')}
-${infoRow('거래처',d.vendor||'','대표자',d.ceo||'')}
 </w:tbl>
 ${para('',{size:6})}
 ${para('● 거래처 및 입금 계좌 정보',{bold:true,size:20})}
@@ -11006,77 +11027,47 @@ ${mergeSxml}
         const c = (v, si) => ({v, si});
 
         /* ── 의뢰서 1장 → rows 배열 생성 ── */
+        /* 화면에 표시되는 지불의뢰서 폼과 동일한 섹션 순서로 재구성:
+           제목 → 현장정보 → 공종/거래처정보 → 품목내역표 → 청구산출근거
+           → 거래처및입금계좌정보 → 구비서류 → 메모 → 확인 서명문구 */
         function buildRequestXlsxRows(d) {
             const S = XSI;
-            // 6컬럼 구조: A(레이블1) B(값1-span) C | D(레이블2) E(값2-span) F
-            // 병합: 레이블=A:B, 값=C:D, 레이블2=E, 값2=F  또는 전폭 병합
             const rows = [];
             const merges = [];
-            let r = 0;
 
-            const addRow = (cells) => { rows.push(cells); return r++; };
+            const addRow = (cells) => { rows.push(cells); return rows.length - 1; };
             const addMerge = (r1,c1,r2,c2) => merges.push({r1,c1,r2,c2});
+            const fullMerge = (rIdx) => addMerge(rIdx,0,rIdx,5);
 
-            // ── 제목 (r0) ──
-            addRow([c('지 불 의 뢰 서', S.TITLE),'','','','','']);
-            addMerge(0,0,0,5);
-            addRow([]); // r1 빈줄
+            // ── 제목 ──
+            fullMerge(addRow([c(`(${d.category||d.type||''}) 지 불 의 뢰 서`, S.TITLE),'','','','','']));
+            addRow([]); // 빈줄
 
-            // ── 현장 정보 (r2~r4) ──
-            addRow([c('현 장 정 보', S.SEC_HEAD),'','','','','']);
-            addMerge(2,0,2,5);
-            addRow([c('현장명',S.LABEL),'',c(d.site||'',S.VALUE),'','','']);
-            addMerge(3,0,3,1); addMerge(3,2,3,5);
-            addRow([c('청구기간',S.LABEL),'',c(d.period||'',S.VALUE),'','','']);
-            addMerge(4,0,4,1); addMerge(4,2,4,5);
-            addRow([]); // r5
+            // ── 현장 정보 ──
+            fullMerge(addRow([c('현 장 정 보', S.SEC_HEAD),'','','','','']));
+            let rIdx = addRow([c('현장명',S.LABEL),'',c(d.site||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            rIdx = addRow([c('청구기간',S.LABEL),'',c(d.period||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            addRow([]);
 
-            // ── 거래처 정보 (r6~r10) ──
-            addRow([c('거 래 처 정 보', S.SEC_HEAD),'','','','','']);
-            addMerge(6,0,6,5);
-            //  공종명(A:B) | 값(C:D) | 청구금액레이블(E) | 값(F)
-            addRow([c('공종명',S.LABEL),'',c(d.type||'',S.VALUE),'',c('청구금액',S.LABEL),c(d.contract||'',S.CONTRACT)]);
-            addMerge(7,0,7,1); addMerge(7,2,7,3);
-            //  거래처(A:B) | 값(C:D) | 대표자(E) | 값(F)
-            addRow([c('거래처',S.LABEL),'',c(d.vendor||'',S.VALUE),'',c('대표자',S.LABEL),c(d.ceo||'',S.VALUE)]);
-            addMerge(8,0,8,1); addMerge(8,2,8,3);
-            //  사업자번호(A:B) | 값(C:F)
-            addRow([c('사업자번호',S.LABEL),'',c(d.biznum||'',S.VALUE),'','','']);
-            addMerge(9,0,9,1); addMerge(9,2,9,5);
-            addRow([]); // r10
+            // ── 공종 및 거래처 정보 (화면상 품목표 바로 위 섹션과 동일 순서) ──
+            fullMerge(addRow([c('공 종 및 거 래 처 정 보', S.SEC_HEAD),'','','','','']));
+            rIdx = addRow([c('공종명',S.LABEL),'',c(d.type||'',S.VALUE),'',c('청구금액',S.LABEL),c(d.contract||'',S.CONTRACT)]);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
+            rIdx = addRow([c('거래처',S.LABEL),'',c(d.vendor||'',S.VALUE),'',c('대표자',S.LABEL),c(d.ceo||'',S.VALUE)]);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
+            addRow([]);
 
-            // ── 계좌 정보 (r11~r14) ──
-            addRow([c('입 금 계 좌 정 보', S.SEC_HEAD),'','','','','']);
-            addMerge(11,0,11,5);
-            //  은행(A:B) | 값(C:D) | 예금주(E) | 값(F)
-            addRow([c('은행',S.LABEL),'',c(d.bank||'',S.VALUE),'',c('예금주',S.LABEL),c(d.holder||'',S.VALUE)]);
-            addMerge(12,0,12,1); addMerge(12,2,12,3);
-            //  계좌번호(A:B) | 값(C:D) | 연락처(E) | 값(F)
-            addRow([c('계좌번호',S.LABEL),'',c(d.account||'',S.VALUE),'',c('연락처',S.LABEL),c(d.phone||'',S.VALUE)]);
-            addMerge(13,0,13,1); addMerge(13,2,13,3);
-            addRow([]); // r14
-
-            // ── 첨부 서류 (r15~r16) ──
-            const CHK_LABELS = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
-            const checklist  = d.checklist || CHK_LABELS.map(l=>({label:l,checked:false}));
-            const chkStr = checklist.map(ck=>`${ck.checked?'☑':'☐'} ${ck.label}`).join('  ');
-            addRow([c('구 비 서 류', S.SEC_HEAD),'','','','','']);
-            addMerge(15,0,15,5);
-            addRow([c(chkStr, S.VALUE),'','','','','']);
-            addMerge(16,0,16,5);
-            addRow([]); // r17
-
-            // ── 품목 테이블 (r18~) ──
-            addRow([c('청 구 품 목 내 역', S.SEC_HEAD),'','','','','']);
-            addMerge(18,0,18,5);
+            // ── 청구 및 의뢰 품목 내역 표 (화면과 동일 위치: 거래처 정보 바로 다음) ──
+            fullMerge(addRow([c('청 구 및 의 뢰 품 목 내 역', S.SEC_HEAD),'','','','','']));
             addRow([
                 c('번호',S.TBL_HEAD), c('품목명 / 비고',S.TBL_HEAD),
                 c('수량',S.TBL_HEAD), c('공급가액',S.TBL_HEAD),
                 c('부가세',S.TBL_HEAD), c('합계금액',S.TBL_HEAD),
             ]);
 
-            const itemStartR = rows.length;
-            d.items.forEach((it, i) => {
+            (d.items||[]).forEach((it, i) => {
                 const sup = typeof it.supply==='number'?it.supply:parseInt(String(it.supply).replace(/,/g,''))||0;
                 const tax = typeof it.tax==='number'?it.tax:parseInt(String(it.tax).replace(/,/g,''))||0;
                 addRow([
@@ -11085,27 +11076,50 @@ ${mergeSxml}
                 ]);
             });
 
-            // 합계 행
             const supplyNum = typeof d.supply==='number'?d.supply:parseInt(String(d.supply).replace(/,/g,''))||0;
             const taxNum    = typeof d.tax==='number'?d.tax:parseInt(String(d.tax).replace(/,/g,''))||0;
             const totalNum  = supplyNum + taxNum;
-            const totR = rows.length;
-            addRow([c('합  계',S.TBL_TOTAL),'','',c(supplyNum,S.TBL_TOTAL),c(taxNum,S.TBL_TOTAL),c(totalNum,S.TBL_TOTAL)]);
-            addMerge(totR,0,totR,2);
+            rIdx = addRow([c('합  계',S.TBL_TOTAL),'','',c(supplyNum,S.TBL_TOTAL),c(taxNum,S.TBL_TOTAL),c(totalNum,S.TBL_TOTAL)]);
+            addMerge(rIdx,0,rIdx,2);
             addRow([]);
 
-            // 청구금액 강조행
-            const conR = rows.length;
-            addRow([c('청 구 금 액',S.LABEL),'',c(d.contract||'',S.CONTRACT),'','','']);
-            addMerge(conR,0,conR,1); addMerge(conR,2,conR,5);
+            // ── 청구 산출 근거 (화면과 동일: 품목표 바로 아래) ──
+            fullMerge(addRow([c('청 구 산 출 근 거', S.SEC_HEAD),'','','','','']));
+            rIdx = addRow([c('공급가액계',S.LABEL),'',c(supplyNum,S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            rIdx = addRow([c('부가가치세',S.LABEL),'',c(taxNum,S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            rIdx = addRow([c('청 구 금 액 계',S.LABEL),'',c(d.contract||'',S.CONTRACT),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            addRow([]);
 
-            // 메모
+            // ── 거래처 및 입금계좌 정보 (화면과 동일: 산출근거 바로 아래) ──
+            fullMerge(addRow([c('거 래 처 및 입 금 계 좌 정 보', S.SEC_HEAD),'','','','','']));
+            rIdx = addRow([c('사업자번호',S.LABEL),'',c(d.biznum||'',S.VALUE),'',c('은행',S.LABEL),c(d.bank||'',S.VALUE)]);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
+            rIdx = addRow([c('계좌번호',S.LABEL),'',c(d.account||'',S.VALUE),'',c('예금주',S.LABEL),c(d.holder||'',S.VALUE)]);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
+            rIdx = addRow([c('연락처',S.LABEL),'',c(d.phone||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            addRow([]);
+
+            // ── 구비 서류 체크리스트 ──
+            const CHK_LABELS = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const checklist  = d.checklist || CHK_LABELS.map(l=>({label:l,checked:false}));
+            const chkStr = checklist.map(ck=>`${ck.checked?'☑':'☐'} ${ck.label}`).join('  ');
+            fullMerge(addRow([c('구 비 서 류 체 크 리 스 트', S.SEC_HEAD),'','','','','']));
+            fullMerge(addRow([c(chkStr, S.VALUE),'','','','','']));
+            addRow([]);
+
+            // ── 담당자 메모 ──
             if (d.memo) {
+                fullMerge(addRow([c('담당자 메모 / 특이사항', S.SEC_HEAD),'','','','','']));
+                fullMerge(addRow([c(d.memo, S.VALUE),'','','','','']));
                 addRow([]);
-                const memoR = rows.length;
-                addRow([c('담당자 메모',S.LABEL),'',c(d.memo,S.VALUE),'','','']);
-                addMerge(memoR,0,memoR,1); addMerge(memoR,2,memoR,5);
             }
+
+            // ── 확인 서명 문구 (화면 하단과 동일) ──
+            fullMerge(addRow([c('위의 청구내역이 틀림없음을 확인합니다.', S.CONTRACT),'','','','','']));
 
             return { rows, merges };
         }
@@ -11197,6 +11211,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
                 const d = {
                     site, period,
+                    category: (document.getElementById('req-title-category')||{}).textContent||'',
                     type:     g('req-field-type'),    contract: g('req-field-contract'),
                     vendor:   g('req-field-vendor'),  ceo:      g('req-field-ceo'),
                     biznum:   g('req-vendor-num'),    bank:     g('req-vendor-bank'),
@@ -11249,6 +11264,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
                     const d = {
                         site, period,
+                        category: row.type||'',
                         type:    row.type||'',
                         contract:`일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`,
                         vendor:  row.vendor, ceo: row.ceo||'',
@@ -12965,6 +12981,14 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (specialNoRrn > 0) {
                     alerts.push(`<div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-300 rounded-lg px-3 py-2"><i data-lucide="circle-help" class="w-3.5 h-3.5 shrink-0"></i><span>특고 운전원 주민번호 미입력 <b>${specialNoRrn}명</b></span></div>`);
                 }
+                // ── 백업 알림: 마지막 백업으로부터 7일 이상 경과했거나 백업 기록이 없으면 경고 ──
+                const backupIso = localStorage.getItem(BACKUP_LAST_ISO_KEY);
+                const daysSinceBackup = backupIso ? Math.floor((Date.now() - new Date(backupIso).getTime()) / 86400000) : null;
+                if (daysSinceBackup === null) {
+                    alerts.push(`<button onclick="openBackupModal()" class="w-full flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 rounded-lg px-3 py-2 text-left hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors"><i data-lucide="shield-alert" class="w-3.5 h-3.5 shrink-0"></i><span>백업 기록이 없습니다 — 데이터 유실 방지를 위해 백업을 권장합니다</span></button>`);
+                } else if (daysSinceBackup >= 7) {
+                    alerts.push(`<button onclick="openBackupModal()" class="w-full flex items-center gap-2 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 rounded-lg px-3 py-2 text-left hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-colors"><i data-lucide="shield-alert" class="w-3.5 h-3.5 shrink-0"></i><span>마지막 백업으로부터 <b>${daysSinceBackup}일</b> 경과 — 백업을 권장합니다</span></button>`);
+                }
                 if (!alerts.length) {
                     alerts.push(`<div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg px-3 py-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i><span>확인이 필요한 항목이 없습니다.</span></div>`);
                 }
@@ -13069,7 +13093,126 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
         }
 
-        /* ── 법인카드 모달 열릴 때 거래처DB 자동완성 채우기 ── */
+        /* ══════════════════════════════════════════════
+           전체 검색 (자금청구명세서 全문서 · 지불의뢰서 발행이력 · 법인카드)
+        ══════════════════════════════════════════════ */
+        function openGlobalSearchModal() {
+            document.getElementById('global-search-modal').classList.remove('hidden');
+            document.getElementById('global-search-results').innerHTML =
+                '<div class="text-center text-slate-400 text-xs py-10">거래처명, 금액, 메모 등을 입력해 자금청구명세서·지불의뢰서·법인카드 경비를 한 번에 검색하세요.</div>';
+            const input = document.getElementById('global-search-input');
+            input.value = '';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            setTimeout(() => input.focus(), 30);
+        }
+
+        function closeGlobalSearchModal() {
+            document.getElementById('global-search-modal').classList.add('hidden');
+        }
+
+        function runGlobalSearch(query) {
+            const resultsEl = document.getElementById('global-search-results');
+            const q = query.trim();
+            if (!q) {
+                resultsEl.innerHTML = '<div class="text-center text-slate-400 text-xs py-10">거래처명, 금액, 메모 등을 입력해 자금청구명세서·지불의뢰서·법인카드 경비를 한 번에 검색하세요.</div>';
+                return;
+            }
+            const qLower = q.toLowerCase();
+            const qDigits = q.replace(/[^0-9]/g, '');
+            const results = [];
+
+            // 1) 자금청구명세서 — 저장된 모든 문서를 대상으로 검색
+            (typeof savedDocuments !== 'undefined' ? savedDocuments : []).forEach(doc => {
+                (doc.dataset || []).forEach(row => {
+                    const amtStr = String((row.supply||0) + (row.tax||0));
+                    const hit = (row.vendor||'').toLowerCase().includes(qLower)
+                        || (row.ceo||'').toLowerCase().includes(qLower)
+                        || (row.note||'').toLowerCase().includes(qLower)
+                        || (qDigits && amtStr.includes(qDigits));
+                    if (hit) {
+                        results.push({
+                            type: 'statement', docId: doc.id, rowId: row.id, color: '#0ea5e9', icon: 'file-spreadsheet',
+                            label: `${row.vendor||'(거래처 미입력)'} · ${row.type||''}`,
+                            sub: `${doc.site||'현장 미입력'} / ${doc.month||''}`,
+                            amount: (row.supply||0) + (row.tax||0)
+                        });
+                    }
+                });
+            });
+
+            // 2) 지불의뢰서 발행 이력
+            (typeof rhLoad === 'function' ? rhLoad() : []).forEach(h => {
+                const amtStr = (h.total||'').replace(/[^0-9]/g,'');
+                const hit = (h.vendor||'').toLowerCase().includes(qLower)
+                    || (h.ceo||'').toLowerCase().includes(qLower)
+                    || (h.category||'').toLowerCase().includes(qLower)
+                    || (qDigits && amtStr.includes(qDigits));
+                if (hit) {
+                    results.push({
+                        type: 'request', id: h.id, color: '#7c3aed', icon: 'file-check',
+                        label: `${h.vendor||'(거래처 미입력)'} · ${h.category||''}`,
+                        sub: `발행이력 / ${h.month||''}`,
+                        amount: parseInt(amtStr,10) || 0
+                    });
+                }
+            });
+
+            // 3) 법인카드 경비
+            (typeof ccData !== 'undefined' ? ccData : []).forEach(r => {
+                const hit = (r.merchant||'').toLowerCase().includes(qLower)
+                    || (r.memo||'').toLowerCase().includes(qLower)
+                    || (r.site||'').toLowerCase().includes(qLower)
+                    || (qDigits && String(r.amount||0).includes(qDigits));
+                if (hit) {
+                    results.push({
+                        type: 'corpcard', id: r.id, color: '#f59e0b', icon: 'credit-card',
+                        label: `${r.merchant||'(가맹점 미입력)'} · ${r.cat||''}`,
+                        sub: `법인카드 / ${r.date||''}`,
+                        amount: r.amount || 0
+                    });
+                }
+            });
+
+            if (!results.length) {
+                resultsEl.innerHTML = `<div class="text-center text-slate-400 text-xs py-10">"${q}"에 대한 검색 결과가 없습니다.</div>`;
+                return;
+            }
+
+            const shown = results.slice(0, 50);
+            resultsEl.innerHTML = shown.map(r => `
+                <button onclick="goToGlobalSearchResult('${r.type}', '${String(r.docId||'').replace(/'/g,"\\'")}', '${String(r.rowId||r.id||'').replace(/'/g,"\\'")}')"
+                    class="w-full flex items-center gap-2.5 text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:${r.color}1a;color:${r.color};">
+                        <i data-lucide="${r.icon}" class="w-3.5 h-3.5"></i>
+                    </span>
+                    <span class="flex-1 min-w-0">
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${r.label}</span>
+                        <span class="block text-[9px] text-slate-400">${r.sub}</span>
+                    </span>
+                    <span class="text-[11px] font-extrabold shrink-0" style="color:${r.color};">${r.amount ? Number(r.amount).toLocaleString('ko-KR')+'원' : ''}</span>
+                </button>`).join('') +
+                (results.length > 50 ? `<div class="text-center text-slate-400 text-[10px] py-2">외 ${results.length-50}건 더 있습니다. 검색어를 좁혀보세요.</div>` : '');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function goToGlobalSearchResult(type, docId, id) {
+            closeGlobalSearchModal();
+            if (type === 'statement') {
+                switchTab('statement');
+                if (typeof loadSavedDocument === 'function') loadSavedDocument(docId);
+            } else if (type === 'request') {
+                switchTab('request');
+                if (typeof rhLoad === 'function' && typeof rhApply === 'function') {
+                    const arr = rhLoad();
+                    const idx = arr.findIndex(h => String(h.id) === String(id));
+                    if (idx >= 0) rhApply(idx);
+                }
+            } else if (type === 'corpcard') {
+                switchTab('corpcard');
+                if (typeof ccEditRow === 'function') ccEditRow(id);
+            }
+        }
         function refreshVendorDatalist() {
             const dl = document.getElementById('cc-vendor-datalist');
             if (!dl) return;
@@ -14285,6 +14428,63 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (rmodal && !rmodal.classList.contains('hidden')) { closeCcReceiptModal(); return; }
                 const modal = document.getElementById('cc-modal');
                 if (modal && !modal.classList.contains('hidden')) ccCloseModal();
+            }
+        });
+
+        /* ══════════════════════════════════════════════
+           단축키 지원: Ctrl/Cmd+K 전체검색, Ctrl/Cmd+S 저장,
+           Ctrl/Cmd+N 새 항목, Esc 열려있는 모달 닫기(공용)
+        ══════════════════════════════════════════════ */
+        const SHORTCUT_MODAL_CLOSERS = {
+            'global-search-modal': closeGlobalSearchModal,
+            'backup-modal':        closeBackupModal,
+            'add-row-modal':       closeAddRowModal,
+            'bulk-issue-modal':    closeBulkIssueModal,
+            'cc-receipt-modal':    closeCcReceiptModal,
+            'cc-modal':            ccCloseModal,
+            'print-preview-modal': closePrintPreviewModal,
+            'vendor-history-modal':closeVendorHistoryModal,
+            'bulk-sync-modal':     closeBulkSyncModal,
+            'stats-detail-modal':  () => document.getElementById('stats-detail-modal').classList.add('hidden'),
+        };
+
+        document.addEventListener('keydown', function(e) {
+            const typingInField = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName) && document.activeElement.id !== 'global-search-input';
+
+            // Ctrl/Cmd + K → 전체 검색 열기
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                openGlobalSearchModal();
+                return;
+            }
+
+            // Ctrl/Cmd + S → 현재 데이터 저장 (브라우저 기본 저장창 방지)
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                saveToLocalStorage();
+                showToast('현재 데이터가 저장되었습니다. (Ctrl+S)', 'success');
+                return;
+            }
+
+            // Ctrl/Cmd + N → 새 청구 항목 (자금청구명세서 탭일 때만 동작)
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+                const statementTab = document.getElementById('tab-statement');
+                if (statementTab && !statementTab.classList.contains('hidden')) {
+                    e.preventDefault();
+                    openAddRowModal();
+                }
+                return;
+            }
+
+            // Esc → 열려있는 모달 중 하나를 닫음 (공용 처리, 개별 모달별 핸들러와 병행)
+            if (e.key === 'Escape' && !typingInField) {
+                for (const id in SHORTCUT_MODAL_CLOSERS) {
+                    const el = document.getElementById(id);
+                    if (el && !el.classList.contains('hidden')) {
+                        SHORTCUT_MODAL_CLOSERS[id]();
+                        return;
+                    }
+                }
             }
         });
 
