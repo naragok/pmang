@@ -4132,6 +4132,74 @@
         let _ceoEditingRowId = null; // 자금청구명세서: 더블클릭으로 진입한 대표자 인라인 수정 행 id
         let dashboardFilterStatus = "all";
 
+        /* ============================================================
+           계좌 자동 매칭 — 공통 유틸리티 (보완)
+           기존에는 ~20여 곳에서 accountDb.find(acc => acc.vendor === x) 같은
+           완전 일치 비교만 반복 사용하여, 공백·법인 접두/접미사(주식회사/㈜)·
+           대소문자 차이만 있어도 매칭에 실패하는 문제가 있었음.
+           아래 normBizName/normDigits로 값을 정규화하고,
+           findAccountMatch()로 우선순위에 따라 단계적으로 매칭한다.
+        ============================================================ */
+
+        /* 거래처/대표자/예금주 이름 정규화: 공백 제거 + 법인 접두/접미사 제거 + 소문자화(영문) */
+        function normBizName(s) {
+            return (s || '')
+                .toString()
+                .trim()
+                .replace(/\s+/g, '')
+                .replace(/^(주식회사|㈜|\(주\)|유한회사|㈲|\(유\))/, '')
+                .replace(/(주식회사|㈜|\(주\)|유한회사|㈲|\(유\))$/, '')
+                .toLowerCase();
+        }
+
+        /* 숫자만 추출 (계좌번호·사업자번호·전화번호 비교용) */
+        function normDigits(s) {
+            return (s || '').toString().replace(/[^0-9]/g, '');
+        }
+
+        // findAccountMatch: accountDb에서 가장 신뢰도 높은 계좌 정보를 단계적으로 탐색.
+        // 기본 우선순위: 거래처명 → 대표자명 → 예금주 (각각 정확일치 → 정규화일치),
+        //               마지막으로 사업자번호/연락처(숫자만 비교) 순서.
+        // 호출부마다 더 신뢰할 만한 필드가 다를 수 있어 order로 우선순위를 바꿀 수 있다.
+        // @param c { vendor, ceo, holder, bizNum, phone }
+        // @param order 비교할 필드 우선순위 (기본 vendor, ceo, holder 순)
+        // @returns 매칭된 accountDb row 또는 null
+        function findAccountMatch(c, order) {
+            c = c || {};
+            order = order || ['vendor', 'ceo', 'holder'];
+
+            const raw  = { vendor: (c.vendor||'').trim(), ceo: (c.ceo||'').trim(), holder: (c.holder||'').trim() };
+            const norm = { vendor: normBizName(raw.vendor), ceo: normBizName(raw.ceo), holder: normBizName(raw.holder) };
+            const bizNum = normDigits(c.bizNum);
+            const phone  = normDigits(c.phone);
+
+            // 1차: 지정된 우선순위로 완전 일치 탐색
+            for (const field of order) {
+                if (raw[field]) {
+                    const acc = accountDb.find(a => a[field] === raw[field]);
+                    if (acc) return acc;
+                }
+            }
+            // 2차: 동일 우선순위로 정규화(공백·법인접미사 제거) 일치 탐색
+            for (const field of order) {
+                if (norm[field]) {
+                    const acc = accountDb.find(a => normBizName(a[field]) === norm[field]);
+                    if (acc) return acc;
+                }
+            }
+            // 3차: 사업자번호 / 연락처(숫자만 비교)
+            if (bizNum && bizNum.length >= 8) {
+                const acc = accountDb.find(a => normDigits(a.biznum) === bizNum);
+                if (acc) return acc;
+            }
+            if (phone && phone.length >= 9) {
+                const acc = accountDb.find(a => normDigits(a.phone) === phone);
+                if (acc) return acc;
+            }
+            return null;
+        }
+
+
         // PDF.js 워커 세팅
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -4199,7 +4267,7 @@
             const phoneVal   = document.getElementById('req-vendor-phone').value.trim();
             const biznumVal  = document.getElementById('req-vendor-num').value.trim();
 
-            const dbEntry = accountDb.find(acc => acc.vendor === vendorName);
+            const dbEntry = findAccountMatch({ vendor: vendorName }, ['vendor']);
             if (dbEntry) {
                 if (bankVal)    dbEntry.bank    = bankVal;
                 if (accountVal) dbEntry.account = accountVal;
@@ -6211,18 +6279,9 @@
             if (index !== -1) {
                 dataset[index].vendor = name;
 
-                // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위 → holder 3순위
+                // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위 → holder 3순위 (공백/법인접미사 정규화 포함)
                 const currentCeo = dataset[index].ceo || "";
-                let matchedAcc = null;
-                if (currentCeo) {
-                    matchedAcc = accountDb.find(acc => acc.ceo === currentCeo);
-                }
-                if (!matchedAcc) {
-                    matchedAcc = accountDb.find(acc => acc.vendor === name);
-                }
-                if (!matchedAcc) {
-                    matchedAcc = accountDb.find(acc => acc.holder === name);
-                }
+                const matchedAcc = findAccountMatch({ ceo: currentCeo, vendor: name, holder: name });
 
                 if (matchedAcc) {
                     dataset[index].holder  = matchedAcc.holder;
@@ -6254,11 +6313,8 @@
                 // 계좌 정보가 아직 없을 때만 자동 채우기 (기존 정보 덮어쓰기 방지)
                 const hasAccount = dataset[index].account && dataset[index].account !== "";
                 if (!hasAccount) {
-                    // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위
-                    let matchedAcc = accountDb.find(acc => acc.ceo === name);
-                    if (!matchedAcc && dataset[index].vendor) {
-                        matchedAcc = accountDb.find(acc => acc.vendor === dataset[index].vendor);
-                    }
+                    // ★ 대표자명 1순위 → 거래처명 2순위 (정규화 포함)
+                    const matchedAcc = findAccountMatch({ ceo: name, vendor: dataset[index].vendor }, ['ceo', 'vendor']);
                     if (matchedAcc) {
                         dataset[index].holder  = matchedAcc.holder;
                         dataset[index].bank    = matchedAcc.bank;
@@ -6327,8 +6383,8 @@
         }
 
         function proceedSyncRequestForm(vendorName, ceoName, bizNumVal, bankVal, accountVal, holderVal, phoneVal) {
-            // vendor 1순위 매칭 (holder 우연 일치로 인한 오염 방지)
-            let matchedAcc = accountDb.find(acc => acc.vendor === vendorName);
+            // vendor 1순위 매칭 → 정규화 일치까지 포함
+            let matchedAcc = findAccountMatch({ vendor: vendorName, ceo: ceoName }, ['vendor', 'ceo']);
 
             if (matchedAcc) {
                 // 빈 값으로 DB를 덮어쓰지 않음 — 입력된 값이 있을 때만 업데이트
@@ -6953,18 +7009,9 @@
                 return;
             }
             
-            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위
+            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위 (정규화 포함)
             const ceoVal = document.getElementById('modal-ceo').value.trim();
-            let matched = null;
-            if (ceoVal) {
-                matched = accountDb.find(acc => acc.ceo === ceoVal);
-            }
-            if (!matched) {
-                matched = accountDb.find(acc => acc.vendor === vendorVal);
-            }
-            if (!matched) {
-                matched = accountDb.find(acc => acc.holder === vendorVal);
-            }
+            const matched = findAccountMatch({ ceo: ceoVal, vendor: vendorVal, holder: vendorVal }, ['ceo', 'vendor', 'holder']);
             
             if (matched) {
                 document.getElementById('modal-ceo').value = matched.ceo || "";
@@ -6980,9 +7027,8 @@
         function handleModalCeoInput() {
             const ceoVal    = document.getElementById('modal-ceo').value.trim();
             const vendorVal = document.getElementById('modal-vendor').value.trim();
-            // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위
-            const matched = accountDb.find(acc => acc.ceo === ceoVal)
-                || (vendorVal ? accountDb.find(acc => acc.vendor === vendorVal) : null);
+            // ★ 대표자명(ceo) 1순위 매칭 → vendor 2순위 (정규화 포함)
+            const matched = findAccountMatch({ ceo: ceoVal, vendor: vendorVal }, ['ceo', 'vendor']);
             if (matched) {
                 document.getElementById('modal-preview-bank').textContent    = (matched.bank || '') + '은행';
                 document.getElementById('modal-preview-account').textContent = matched.account || '';
@@ -7022,17 +7068,8 @@
                 return;
             }
 
-            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위
-            let matchedAcc = null;
-            if (ceo) {
-                matchedAcc = accountDb.find(acc => acc.ceo === ceo);
-            }
-            if (!matchedAcc) {
-                matchedAcc = accountDb.find(acc => acc.vendor === vendor);
-            }
-            if (!matchedAcc) {
-                matchedAcc = accountDb.find(acc => acc.holder === vendor);
-            }
+            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위 (정규화 포함)
+            const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
 
             const bank    = matchedAcc ? matchedAcc.bank    : "";
             const account = matchedAcc ? matchedAcc.account : "";
@@ -7208,10 +7245,7 @@ function changePrintScale(value) {
                 }
 
                 // vendor 1순위 → ceo+holder 조합 → holder 단독 순으로 엄격 매칭
-                const matchedAcc = accountDb.find(acc => acc.vendor === vendorName)
-                    || accountDb.find(acc => acc.ceo === (firstItem.ceo || "") && acc.holder === (firstItem.holder || ""))
-                    || accountDb.find(acc => acc.holder === (firstItem.holder || ""))
-                    || {};
+                const matchedAcc = findAccountMatch({ vendor: vendorName, ceo: firstItem.ceo||'', holder: firstItem.holder||'' }, ['vendor', 'ceo', 'holder']) || {};
                 const bankLabel   = matchedAcc.bank    ? `${matchedAcc.bank}은행`  : (firstItem.bank    ? `${firstItem.bank}은행`  : "");
                 const accountNum  = matchedAcc.account || firstItem.account || "";
                 const phoneNum    = matchedAcc.phone   || firstItem.phone   || "";
@@ -7371,7 +7405,7 @@ function changePrintScale(value) {
             }, 80);
         }
 
-        /* "YYYY년 MM월" 형식 → "YYYY-MM" 변환 */
+        // YYYY년 MM월 형식 → YYYY-MM 변환
         function docMonthToYYYYMM(monthStr) {
             if (!monthStr) return new Date().toISOString().slice(0,7);
             const m = String(monthStr).match(/(\d{4})\s*년?\s*(\d{1,2})\s*월?/);
@@ -7407,9 +7441,7 @@ function changePrintScale(value) {
             if (!matchedRows.length) return null;
 
             const firstItem = matchedRows[0];
-            const dbRow = accountDb.find(acc => acc.vendor === vendorName)
-                || accountDb.find(acc => acc.ceo === firstItem.ceo && acc.holder === firstItem.holder)
-                || accountDb.find(acc => acc.holder === firstItem.holder);
+            const dbRow = findAccountMatch({ vendor: vendorName, ceo: firstItem.ceo||'', holder: firstItem.holder||'' }, ['vendor', 'ceo', 'holder']);
 
             const bank    = dbRow ? dbRow.bank    : firstItem.bank;
             const account = dbRow ? dbRow.account : firstItem.account;
@@ -7768,10 +7800,8 @@ function changePrintScale(value) {
                 document.getElementById('req-field-vendor').value = target.vendor || "";
                 document.getElementById('req-field-ceo').value    = target.ceo    || "";
 
-                // ★ DB 1순위: vendor로 찾은 DB 레코드 우선, 없으면 dataset 값 사용
-                const dbRow = accountDb.find(acc => acc.vendor === target.vendor)
-                    || accountDb.find(acc => acc.ceo === target.ceo && acc.holder === target.holder)
-                    || accountDb.find(acc => acc.holder === target.holder);
+                // ★ DB 1순위: vendor → ceo+holder → holder 순 (정규화 포함)
+                const dbRow = findAccountMatch({ vendor: target.vendor, ceo: target.ceo, holder: target.holder }, ['vendor', 'ceo', 'holder']);
 
                 const resolvedBank    = dbRow ? dbRow.bank    : target.bank;
                 const resolvedAccount = dbRow ? dbRow.account : target.account;
@@ -7824,10 +7854,8 @@ function changePrintScale(value) {
                 document.getElementById('req-field-vendor').value = targetVendor;
                 document.getElementById('req-field-ceo').value    = firstItem.ceo || "";
 
-                // ★ DB 1순위
-                const dbRowC = accountDb.find(acc => acc.vendor === targetVendor)
-                    || accountDb.find(acc => acc.ceo === firstItem.ceo && acc.holder === firstItem.holder)
-                    || accountDb.find(acc => acc.holder === firstItem.holder);
+                // ★ DB 1순위 (정규화 포함)
+                const dbRowC = findAccountMatch({ vendor: targetVendor, ceo: firstItem.ceo, holder: firstItem.holder }, ['vendor', 'ceo', 'holder']);
 
                 const rBank    = dbRowC ? dbRowC.bank    : firstItem.bank;
                 const rAccount = dbRowC ? dbRowC.account : firstItem.account;
@@ -9615,9 +9643,7 @@ function changePrintScale(value) {
                     r.vendor === it.vendor && r.type === it.type
                 );
                 if (alreadyExists) return;
-                const matched = accountDb.find(a =>
-                    a.vendor === it.vendor || a.ceo === it.ceo || a.holder === it.vendor
-                );
+                const matched = findAccountMatch({ vendor: it.vendor, ceo: it.ceo, holder: it.vendor }, ['vendor', 'ceo', 'holder']);
                 dataset.push({
                     id: genDatasetId(),
                     type: it.type, vendor: it.vendor, ceo: it.ceo,
@@ -9649,9 +9675,7 @@ function changePrintScale(value) {
             items.forEach(it => {
                 const alreadyExists = dataset.some(r => r.vendor === it.vendor && r.type === it.type);
                 if (alreadyExists) return;
-                const matched = accountDb.find(a =>
-                    a.vendor === it.vendor || a.ceo === it.ceo || a.holder === it.vendor
-                );
+                const matched = findAccountMatch({ vendor: it.vendor, ceo: it.ceo, holder: it.vendor }, ['vendor', 'ceo', 'holder']);
                 dataset.push({
                     id: genDatasetId(),
                     type: it.type, vendor: it.vendor, ceo: it.ceo,
@@ -10050,9 +10074,7 @@ function changePrintScale(value) {
             const docCount = new Set(allRows.map(a => a.doc.id)).size;
 
             // ── 헤더 ──
-            const accMatch = accountDb.find(a =>
-                a.vendor === vendorName || a.holder === vendorName
-            );
+            const accMatch = findAccountMatch({ vendor: vendorName, holder: vendorName }, ['vendor', 'holder']);
             document.getElementById('vh-vendor-name').textContent = vendorName;
             document.getElementById('vh-vendor-meta').textContent =
                 [accMatch?.ceo && `대표자: ${accMatch.ceo}`,
@@ -10193,7 +10215,7 @@ function changePrintScale(value) {
             if (holdCnt >= 2) anomalies.push({ level:'warn', msg: `보류 상태 ${holdCnt}건 — 미결 사항 확인 필요` });
 
             // 4) 계좌 DB 미등록
-            const accMatch = accountDb.find(a => a.vendor === vendorName || a.holder === vendorName);
+            const accMatch = findAccountMatch({ vendor: vendorName, holder: vendorName }, ['vendor', 'holder']);
             if (!accMatch) anomalies.push({ level:'warn', msg: '계좌 마스터 DB에 미등록 거래처 — 오지급 위험' });
 
             // 5) 공제/선급 비정상 (공급가의 50% 초과 공제)
@@ -10686,8 +10708,7 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
                     - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
                     - vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
 
-                const accMatch = accountDb.find(a=>a.vendor===row.vendor && (a.ceo||'')===(row.ceo||''))
-                              || accountDb.find(a=>a.vendor===row.vendor);
+                const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                 const bank    = accMatch?.bank    || row.bank    || '';
                 const account = accMatch?.account || row.account || '';
                 const holder  = accMatch?.holder  || row.holder  || '';
@@ -11125,8 +11146,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         -vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
                         -vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
 
-                    const accMatch = accountDb.find(a=>a.vendor===row.vendor&&(a.ceo||'')===(row.ceo||''))
-                                  || accountDb.find(a=>a.vendor===row.vendor);
+                    const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                     const bank    = accMatch?.bank    || row.bank    || '';
                     const account = accMatch?.account || row.account || '';
                     const holder  = accMatch?.holder  || row.holder  || '';
