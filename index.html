@@ -1766,7 +1766,6 @@
                                 <th class="py-2.5 px-1 w-20 no-print bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('status')" id="th-col-status"><span class="flex items-center justify-center gap-0.5">상태<span id="si-status" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-2 w-20 bg-slate-100 dark:bg-slate-850">비고</th>
                                 <th class="py-2.5 px-1 w-8 no-print bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" title="행 단위 내부 메모">📝</th>
-                                <th class="py-2.5 px-1 w-10 no-print bg-slate-100 dark:bg-slate-850">태그</th>
                                 <th class="py-2.5 px-1 w-12 no-print bg-slate-100 dark:bg-slate-850">작업</th>
                             </tr>
                         </thead>
@@ -2291,6 +2290,17 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <div id="stats-grand-total-banner" class="hidden bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl px-5 py-3.5 mb-3 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <i data-lucide="hash" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">전체 청구합계 (한글금액)</div>
+                        <div id="stats-grand-total-korean" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm truncate"></div>
+                    </div>
+                </div>
+                <div id="stats-grand-total-number" class="text-lg font-black text-emerald-700 dark:text-emerald-400 shrink-0"></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3" id="stats-dashboard-row">
@@ -3539,8 +3549,8 @@
     <div id="add-row-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl p-6 text-slate-900 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-1.5">
-                    <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> 자금 청구 항목 신규 등록
+                <h3 id="add-row-modal-title" class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-1.5">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> <span id="add-row-modal-title-text">자금 청구 항목 신규 등록</span>
                 </h3>
                 <button onclick="closeAddRowModal()" class="text-slate-400 hover:text-slate-655"><i data-lucide="x"></i></button>
             </div>
@@ -3566,28 +3576,33 @@
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">공급가액 (원) <span class="text-rose-500">*</span></label>
-                    <input type="number" id="modal-supply" placeholder="0" oninput="calcModalVatOnInput()" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
+                    <input type="text" inputmode="numeric" id="modal-supply" placeholder="0" oninput="formatModalAmount(this); calcModalVatOnInput(); updateModalKoreanAmount();" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">부가세 (원)</label>
                     <div class="flex items-center gap-2">
-                        <input type="number" id="modal-tax" placeholder="0" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
+                        <input type="text" inputmode="numeric" id="modal-tax" placeholder="0" oninput="formatModalAmount(this); updateModalKoreanAmount();" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
                         <button onclick="calcModalVat()" class="shrink-0 bg-blue-50 dark:bg-blue-950/40 text-blue-750 dark:text-blue-400 border border-blue-200 dark:border-blue-900 px-2 py-2 rounded text-[10px] font-bold hover:bg-blue-100">10%</button>
                         <button onclick="clearModalVat()" class="shrink-0 bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-2 py-2 rounded text-[10px] font-bold hover:bg-slate-100">면세</button>
                     </div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">공제금액 (원)</label>
-                    <input type="number" id="modal-deduction" placeholder="0" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
+                    <input type="text" inputmode="numeric" id="modal-deduction" placeholder="0" oninput="formatModalAmount(this); updateModalKoreanAmount();" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">선지급 (원)</label>
-                    <input type="number" id="modal-prepaid" placeholder="0" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
+                    <input type="text" inputmode="numeric" id="modal-prepaid" placeholder="0" oninput="formatModalAmount(this); updateModalKoreanAmount();" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">비고 (메모)</label>
                     <input type="text" id="modal-note" placeholder="(메모)되신 (품목)을 입력하세요" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 outline-none">
                 </div>
+            </div>
+            <div id="modal-korean-amount-preview" class="hidden bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-3 mb-4 text-xs text-slate-700 dark:text-slate-300">
+                <p class="font-bold text-amber-700 dark:text-amber-400 mb-1 text-[11px] flex items-center gap-1"><i data-lucide="hash" class="w-3.5 h-3.5"></i> 한글 금액</p>
+                <div id="modal-korean-amount-text" class="font-extrabold text-slate-800 dark:text-slate-100 text-[13px]"></div>
+                <div id="modal-korean-amount-sub" class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5"></div>
             </div>
             <div id="modal-account-preview" class="hidden bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 mb-4 text-xs text-slate-700 dark:text-slate-300">
                 <p class="font-bold text-blue-700 dark:text-blue-400 mb-1 text-[11px] flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> DB에서 계좌 정보가 매핑되었습니다</p>
@@ -3599,7 +3614,7 @@
             </div>
             <div class="flex justify-end gap-2 text-xs mt-2">
                 <button onclick="closeAddRowModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
-                <button onclick="confirmAddRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold transition-all">표에 추가</button>
+                <button onclick="confirmAddRow()" id="add-row-modal-submit-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold transition-all">표에 추가</button>
             </div>
         </div>
     </div>
@@ -4129,7 +4144,8 @@
         let currentMoneyUnit = 'won';
         
         let selectedRowIds = new Set();
-        let _ceoEditingRowId = null; // 자금청구명세서: 더블클릭으로 진입한 대표자 인라인 수정 행 id
+        let _ceoEditingRowId = null; // (미사용 — 더블클릭 시 openEditRowModal로 대체됨)
+        let _editRowModalId = null;  // null=신규 등록 모드, 값이 있으면 해당 id의 청구 항목 수정 모드
         let dashboardFilterStatus = "all";
 
         /* ============================================================
@@ -5388,6 +5404,21 @@
             const labelCount = document.getElementById('stats-total-vendor-count');
             if (labelCount) labelCount.textContent = `총 ${totalVendorSet.size}개 거래처`;
 
+            // ── 전체 청구합계 한글 금액 배너 ──
+            const grandBanner = document.getElementById('stats-grand-total-banner');
+            const grandKorean = document.getElementById('stats-grand-total-korean');
+            const grandNumber = document.getElementById('stats-grand-total-number');
+            if (grandBanner && grandKorean && grandNumber) {
+                const grandTotal = dataset.reduce((s, r) => s + (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0), 0);
+                if (grandTotal > 0) {
+                    grandKorean.textContent = `일금 ${getKoreanNumber(grandTotal)} 원정`;
+                    grandNumber.textContent = `₩${formatNumber(grandTotal)}`;
+                    grandBanner.classList.remove('hidden');
+                } else {
+                    grandBanner.classList.add('hidden');
+                }
+            }
+
             if (dataset.length === 0) {
                 board.innerHTML = `<div class="col-span-full text-center text-xs text-slate-400 py-12 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700">등록된 청구 항목이 없습니다.</div>`;
                 return;
@@ -6331,25 +6362,7 @@
             }
         }
 
-        /* ── 자금청구명세서: 대표자 더블클릭 인라인 수정모드 ── */
-        function startCeoEdit(rowId) {
-            _ceoEditingRowId = rowId;
-            renderStatementTable();
-            setTimeout(() => {
-                const input = document.getElementById('ceo-edit-input-' + rowId);
-                if (input) { input.focus(); input.select(); }
-            }, 0);
-        }
-
-        function finishCeoEdit(rowId, value) {
-            _ceoEditingRowId = null;
-            handleCeoNameChange(rowId, value.trim()); // 내부에서 저장 + renderStatementTable() 재호출
-        }
-
-        function cancelCeoEdit() {
-            _ceoEditingRowId = null;
-            renderStatementTable();
-        }
+        // (이전 대표자 인라인 수정 함수는 openEditRowModal()로 대체되어 제거됨)
 
         function syncRequestFormToDbAndDataset() {
             const vendorName = document.getElementById('req-field-vendor').value.trim();
@@ -6564,14 +6577,6 @@
                 if (row.status === "보류") statusBg = "bg-rose-100 text-rose-850 dark:bg-rose-950/40 dark:text-rose-450 font-semibold";
 
                 const isDup = duplicateItemIds.has(row.id);
-                const TAG_BG = {
-                    red:    'rgba(255,228,230,0.7)',
-                    yellow: 'rgba(254,249,195,0.7)',
-                    green:  'rgba(209,250,229,0.7)',
-                    blue:   'rgba(219,234,254,0.7)',
-                    purple: 'rgba(243,232,255,0.7)',
-                };
-                const tagBg = (row.colorTag && TAG_BG[row.colorTag]) ? TAG_BG[row.colorTag] : '';
                 const rowStyleClass = isDup 
                     ? "divide-x divide-slate-200 dark:divide-slate-800 bg-amber-50/70 dark:bg-amber-950/10 hover:bg-amber-100 dark:hover:bg-amber-900/20 text-center border-y border-amber-350 dark:border-amber-800 text-slate-900 dark:text-slate-100"
                     : "divide-x divide-slate-200 dark:divide-slate-800 transition-all text-center text-slate-850 dark:text-slate-100";
@@ -6591,7 +6596,6 @@
                 tr.className = rowStyleClass;
                 tr.dataset.rowId = row.id;
                 tr.draggable = true;
-                if (tagBg && !isDup) tr.style.backgroundColor = tagBg;
                 tr.innerHTML = `
                     <td class="py-2 px-1 no-print w-6 cursor-grab active:cursor-grabbing drag-handle" title="드래그로 순서 변경">
                         <i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 mx-auto pointer-events-none"></i>
@@ -6626,14 +6630,8 @@
                         </div>
                     </td>
                     <td class="py-1 px-1">
-                        ${_ceoEditingRowId === row.id
-                            ? `<input type="text" id="ceo-edit-input-${row.id}" value="${(row.ceo || '').replace(/"/g,'&quot;')}"
-                                    onblur="finishCeoEdit(${row.id}, this.value)"
-                                    onkeydown="if(event.key==='Enter'){ event.preventDefault(); this.blur(); } if(event.key==='Escape'){ cancelCeoEdit(); }"
-                                    class="w-full bg-white dark:bg-slate-900 text-center ring-2 ring-violet-400 dark:ring-violet-600 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">`
-                            : `<span ondblclick="startCeoEdit(${row.id})" title="더블클릭하여 대표자명 수정"
-                                    class="block w-full text-center p-1 rounded cursor-pointer select-none text-slate-800 dark:text-slate-100 font-semibold hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:ring-1 hover:ring-violet-300 dark:hover:ring-violet-700 transition-colors">${row.ceo ? row.ceo : '<span class="text-slate-300 dark:text-slate-600">기입</span>'}</span>`
-                        }
+                        <span ondblclick="openEditRowModal(${row.id})" title="더블클릭하여 이 청구 항목 전체 수정"
+                                class="block w-full text-center p-1 rounded cursor-pointer select-none text-slate-800 dark:text-slate-100 font-semibold hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:ring-1 hover:ring-violet-300 dark:hover:ring-violet-700 transition-colors">${row.ceo ? row.ceo : '<span class="text-slate-300 dark:text-slate-600">기입</span>'}</span>
                     </td>
                     <td class="py-1 px-1">
                         <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateSupplyAndAutoVat(${row.id}, Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
@@ -6652,12 +6650,12 @@
                     </td>
                     <td class="py-1 px-1">
                         <div class="flex items-center gap-1">
-                            <input type="number" value="${row.deduction}" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'deduction', Number(this.value) || 0)" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                            <input type="text" value="${Number(row.deduction || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'deduction', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
                             ${row.type === '노무비' ? `<button onclick="calcLaborWithholdingTax(${row.id})" class="shrink-0 bg-purple-50 dark:bg-purple-950/40 text-[9px] text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 font-extrabold px-1 py-0.5 rounded transition-all shadow-sm" title="공급가액의 3.3% 원천징수 자동 입력">3.3%</button>` : ''}
                         </div>
                     </td>
                     <td class="py-1 px-1">
-                        <input type="number" value="${row.prepaid}" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'prepaid', Number(this.value) || 0)" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                        <input type="text" value="${Number(row.prepaid || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'prepaid', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
                     </td>
                     <td class="py-2 px-2 text-right font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20">
                         ${formatMoneyByUnit(requestAmt)}
@@ -6695,11 +6693,6 @@
                             title="${row.memo ? '메모 있음: ' + row.memo.substring(0, 30) + (row.memo.length > 30 ? '…' : '') : '메모 추가'}">
                             <i data-lucide="${row.memo ? 'message-square' : 'message-square-plus'}" class="w-3.5 h-3.5"></i>
                         </button>
-                    </td>
-                    <td class="py-1 px-1 no-print">
-                        <div class="flex items-center justify-center gap-0.5" id="color-tag-cell-${row.id}">
-                            ${renderColorTagButtons(row.id, row.colorTag)}
-                        </div>
                     </td>
                     <td class="py-1 px-1 no-print">
                         <div class="flex items-center justify-center gap-0.5">
@@ -6844,31 +6837,6 @@
             }
         }
 
-        function renderColorTagButtons(rowId, currentTag) {
-            const tags = [
-                { c: '',       dot: 'background:#e2e8f0;border:1px solid #94a3b8;',  title: '태그없음' },
-                { c: 'red',    dot: 'background:#fb7185;',  title: '빨강' },
-                { c: 'yellow', dot: 'background:#fbbf24;',  title: '노랑' },
-                { c: 'green',  dot: 'background:#34d399;',  title: '초록' },
-                { c: 'blue',   dot: 'background:#60a5fa;',  title: '파랑' },
-                { c: 'purple', dot: 'background:#c084fc;',  title: '보라' },
-            ];
-            return tags.map(t => {
-                const active = currentTag === t.c || (!currentTag && t.c === '');
-                const ring = active ? 'outline:2px solid #64748b;outline-offset:2px;' : 'opacity:0.45;';
-                return '<button onclick="setRowColorTag(' + rowId + ', \'' + t.c + '\')" title="' + t.title + '" style="width:14px;height:14px;border-radius:50%;cursor:pointer;border:none;flex-shrink:0;' + t.dot + ring + '"></button>';
-            }).join('');
-        }
-
-        function setRowColorTag(id, color) {
-            const row = dataset.find(r => r.id === id);
-            if (row) {
-                row.colorTag = color;
-                saveToLocalStorage();
-                renderStatementTable();
-            }
-        }
-
         function updateCell(id, field, value) {
             const index = dataset.findIndex(item => item.id === id);
             if (index !== -1) {
@@ -6888,6 +6856,7 @@
         }
 
         function openAddRowModal() {
+            _editRowModalId = null; // 신규 등록 모드
             const datalist = document.getElementById('modal-vendor-list');
             datalist.innerHTML = "";
             accountDb.forEach(acc => {
@@ -6896,6 +6865,8 @@
                 opt.dataset.ceo = acc.ceo || '';
                 datalist.appendChild(opt);
             });
+            document.getElementById('add-row-modal-title-text').textContent = '자금 청구 항목 신규 등록';
+            document.getElementById('add-row-modal-submit-btn').textContent = '표에 추가';
             document.getElementById('modal-type').value = "자재비";
             document.getElementById('modal-vendor').value = "";
             document.getElementById('modal-ceo').value = "";
@@ -6905,11 +6876,58 @@
             document.getElementById('modal-prepaid').value = "";
             document.getElementById('modal-note').value = "";
             document.getElementById('modal-account-preview').classList.add('hidden');
+            document.getElementById('modal-korean-amount-preview').classList.add('hidden');
             document.getElementById('add-row-modal').classList.remove('hidden');
             lucide.createIcons();
         }
 
+        /* 자금청구명세서: 대표자명 더블클릭 → 해당 청구 항목(행) 전체 수정 모달 */
+        function openEditRowModal(rowId) {
+            const row = dataset.find(r => r.id === rowId);
+            if (!row) { showToast('해당 청구 항목을 찾을 수 없습니다.', 'error'); return; }
+
+            _editRowModalId = rowId; // 수정 모드로 전환
+
+            const datalist = document.getElementById('modal-vendor-list');
+            datalist.innerHTML = "";
+            accountDb.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc.vendor || acc.holder;
+                opt.dataset.ceo = acc.ceo || '';
+                datalist.appendChild(opt);
+            });
+
+            document.getElementById('add-row-modal-title-text').textContent = '자금 청구 항목 수정';
+            document.getElementById('add-row-modal-submit-btn').textContent = '수정 완료';
+            document.getElementById('modal-type').value      = row.type || "자재비";
+            document.getElementById('modal-vendor').value    = row.vendor || "";
+            document.getElementById('modal-ceo').value       = row.ceo || "";
+            document.getElementById('modal-supply').value    = row.supply ? Number(row.supply).toLocaleString('ko-KR') : "";
+            document.getElementById('modal-tax').value       = row.tax ? Number(row.tax).toLocaleString('ko-KR') : "";
+            document.getElementById('modal-deduction').value = row.deduction ? Number(row.deduction).toLocaleString('ko-KR') : "";
+            document.getElementById('modal-prepaid').value   = row.prepaid ? Number(row.prepaid).toLocaleString('ko-KR') : "";
+            document.getElementById('modal-note').value      = row.note || "";
+
+            if (row.account) {
+                document.getElementById('modal-preview-bank').textContent    = (row.bank || '') + '은행';
+                document.getElementById('modal-preview-account').textContent = row.account || '';
+                document.getElementById('modal-preview-holder').textContent  = row.holder || '';
+                document.getElementById('modal-account-preview').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-account-preview').classList.add('hidden');
+            }
+
+            document.getElementById('add-row-modal').classList.remove('hidden');
+            updateModalKoreanAmount();
+            lucide.createIcons();
+            setTimeout(() => {
+                const ceoInput = document.getElementById('modal-ceo');
+                if (ceoInput) { ceoInput.focus(); ceoInput.select(); }
+            }, 0);
+        }
+
         function closeAddRowModal() {
+            _editRowModalId = null;
             document.getElementById('add-row-modal').classList.add('hidden');
         }
 
@@ -7039,28 +7057,67 @@
             }
         }
 
+        /* 모달 금액 입력 필드: 입력 중 천단위 콤마 자동 표시 */
+        function formatModalAmount(el) {
+            const raw = el.value.replace(/[^0-9]/g, '');
+            el.value = raw ? Number(raw).toLocaleString('ko-KR') : '';
+        }
+
+        function getModalAmountValue(id) {
+            const el = document.getElementById(id);
+            return el ? (Number(el.value.replace(/,/g, '')) || 0) : 0;
+        }
+
         function calcModalVatOnInput() {
-            const supplyVal = Number(document.getElementById('modal-supply').value) || 0;
-            document.getElementById('modal-tax').value = Math.floor(supplyVal * 0.1);
+            const supplyVal = getModalAmountValue('modal-supply');
+            document.getElementById('modal-tax').value = Math.floor(supplyVal * 0.1).toLocaleString('ko-KR');
         }
 
         function calcModalVat() {
-            const supply = Number(document.getElementById('modal-supply').value) || 0;
-            document.getElementById('modal-tax').value = Math.floor(supply * 0.1);
+            const supply = getModalAmountValue('modal-supply');
+            document.getElementById('modal-tax').value = Math.floor(supply * 0.1).toLocaleString('ko-KR');
+            updateModalKoreanAmount();
         }
 
         function clearModalVat() {
-            document.getElementById('modal-tax').value = 0;
+            document.getElementById('modal-tax').value = '0';
+            updateModalKoreanAmount();
+        }
+
+        /* 자금 청구 항목 모달: 금액 입력 시 한글 금액 실시간 표시 */
+        function updateModalKoreanAmount() {
+            const box  = document.getElementById('modal-korean-amount-preview');
+            const text = document.getElementById('modal-korean-amount-text');
+            const sub  = document.getElementById('modal-korean-amount-sub');
+            if (!box || !text || !sub) return;
+
+            const supply    = getModalAmountValue('modal-supply');
+            const tax       = getModalAmountValue('modal-tax');
+            const deduction = getModalAmountValue('modal-deduction');
+            const prepaid   = getModalAmountValue('modal-prepaid');
+            const total     = supply + tax;
+            const request   = total - deduction - prepaid;
+
+            if (total <= 0) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            box.classList.remove('hidden');
+            text.textContent = `일금 ${getKoreanNumber(total)} 원정 (₩${formatNumber(total)})`;
+            sub.textContent = (deduction || prepaid)
+                ? `공제/선지급 반영 후 지급요청금액: 일금 ${getKoreanNumber(Math.max(request,0))} 원정 (₩${formatNumber(Math.max(request,0))})`
+                : '';
         }
 
         function confirmAddRow() {
             const type      = document.getElementById('modal-type').value;
             const vendor    = document.getElementById('modal-vendor').value.trim();
             const ceo       = document.getElementById('modal-ceo').value.trim();
-            const supply    = Number(document.getElementById('modal-supply').value) || 0;
-            const tax       = Number(document.getElementById('modal-tax').value)    || 0;
-            const deduction = Number(document.getElementById('modal-deduction').value) || 0;
-            const prepaid   = Number(document.getElementById('modal-prepaid').value)   || 0;
+            const supply    = getModalAmountValue('modal-supply');
+            const tax       = getModalAmountValue('modal-tax');
+            const deduction = getModalAmountValue('modal-deduction');
+            const prepaid   = getModalAmountValue('modal-prepaid');
             const note      = document.getElementById('modal-note').value.trim();
 
             if (!vendor) {
@@ -7068,6 +7125,35 @@
                 return;
             }
 
+            if (_editRowModalId !== null) {
+                // ── 수정 모드: 기존 청구 항목(행)을 갱신 ──
+                const idx = dataset.findIndex(r => r.id === _editRowModalId);
+                if (idx < 0) { showToast('수정할 항목을 찾을 수 없습니다.', 'error'); closeAddRowModal(); return; }
+                const existing = dataset[idx];
+
+                // 거래처/대표자가 바뀌었거나 계좌 정보가 비어있을 때만 재매칭 (기존 수기 입력값 보존)
+                let bank = existing.bank, account = existing.account, holder = existing.holder,
+                    phone = existing.phone, biznum = existing.biznum;
+                const infoChanged = (existing.vendor !== vendor) || (existing.ceo !== ceo);
+                if (infoChanged || !account) {
+                    const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
+                    if (matchedAcc) {
+                        bank = matchedAcc.bank; account = matchedAcc.account; holder = matchedAcc.holder;
+                        phone = matchedAcc.phone; biznum = matchedAcc.biznum;
+                    }
+                }
+
+                dataset[idx] = { ...existing, type, vendor, ceo, supply, tax, deduction, prepaid, note, bank, account, holder, phone, biznum };
+
+                closeAddRowModal();
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+                showToast(`[${vendor}] 청구 항목이 수정되었습니다.`, 'success');
+                return;
+            }
+
+            // ── 신규 등록 모드 ──
             // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위 (정규화 포함)
             const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
 
@@ -11383,8 +11469,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             selectedRows.forEach((row, i) => {
                 const newRow = Object.assign({}, row, {
                     id: maxId + i + 1,
-                    status: resetStatus ? '대기' : (row.status || '대기'),
-                    colorTag: row.colorTag || ''
+                    status: resetStatus ? '대기' : (row.status || '대기')
                 });
                 targetDoc.dataset.push(newRow);
             });
