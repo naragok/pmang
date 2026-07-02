@@ -1355,6 +1355,7 @@
                 <table class="w-full border-collapse text-xs text-left text-slate-700 dark:text-slate-300">
                     <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm">
                         <tr class="divide-x divide-slate-200 dark:divide-slate-700 text-center font-bold text-slate-800 dark:text-slate-100">
+                            <th class="py-2 px-2 w-16 bg-slate-100 dark:bg-slate-850">구분</th>
                             <th class="py-2 px-2 w-24 bg-slate-100 dark:bg-slate-850 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 select-none" onclick="sortAccountDbBy('holder')">예금주</th>
                             <th class="py-2 px-2 w-20 bg-slate-100 dark:bg-slate-850">은행</th>
                             <th class="py-2 px-2 w-40 bg-slate-100 dark:bg-slate-850 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 select-none" onclick="sortAccountDbBy('account')">계좌번호</th>
@@ -1408,6 +1409,12 @@
                 </div>
             </div>
 
+            <button onclick="openGlobalSearchModal()" class="w-full flex items-center gap-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 mb-4 text-left hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all group">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 group-hover:text-indigo-500 shrink-0"></i>
+                <span class="text-xs text-slate-400 flex-1">거래처명, 금액, 메모로 전체 문서·지불의뢰·법인카드 검색...</span>
+                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded shrink-0">Ctrl+K</span>
+            </button>
+
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                 <button onclick="switchTab('statement')" class="dash-tab-card group" style="--dc:#0ea5e9;">
                     <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
@@ -1431,7 +1438,7 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
                         <i data-lucide="info" class="w-4 h-4 text-sky-500"></i> 현재 현장 정보
@@ -1443,6 +1450,46 @@
                         <i data-lucide="bell" class="w-4 h-4 text-rose-500"></i> 확인 필요 사항
                     </h3>
                     <div id="dash-alerts" class="space-y-1.5 text-xs"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="database" class="w-4 h-4 text-emerald-500"></i> 거래처마스터 DB 현황
+                    </h3>
+                    <div id="dash-vendor-master-stats" class="space-y-2 text-xs text-slate-600 dark:text-slate-300"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
+                <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-500"></i> 월별 자금 흐름 (최근 6개월)
+                        <span class="text-[10px] font-normal text-slate-400">청구+발행+카드 합산</span>
+                    </h3>
+                    <div id="dash-monthly-chart" class="flex items-end gap-2 h-32"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="receipt" class="w-4 h-4 text-amber-500"></i> 증빙영수증 첨부율
+                    </h3>
+                    <div id="dash-receipt-rate" class="text-xs text-slate-600 dark:text-slate-300"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-teal-500"></i> 현장별 현황 (이번달)
+                    </h3>
+                    <div id="dash-site-stats" class="space-y-1.5 text-xs"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i> 즐겨찾기 거래처
+                        </h3>
+                        <button onclick="openPinVendorPrompt()" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5"><i data-lucide="plus" class="w-3 h-3"></i>추가</button>
+                    </div>
+                    <div id="dash-pinned-vendors" class="space-y-1"></div>
                 </div>
             </div>
 
@@ -4051,13 +4098,18 @@
                                 <span id="backup-file-label" class="text-emerald-700 dark:text-emerald-400 font-semibold block">파일을 클릭해 선택하세요</span>
                                 <input type="file" id="backup-file-input" accept=".json" class="hidden" onchange="onBackupFileSelected(this)">
                             </label>
-                            <button onclick="importBackupJSON()" id="restore-btn" class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 shadow-sm" disabled>
-                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> 선택한 파일로 복원
+                            <button onclick="importBackupJSON('merge')" id="restore-btn-merge" class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 shadow-sm" disabled>
+                                <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 병합 (현재 데이터에 추가)
                             </button>
+                            <button onclick="importBackupJSON('overwrite')" id="restore-btn-overwrite" class="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900 px-4 py-2 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 text-xs" disabled>
+                                <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i> 전체 덮어쓰기 (현재 데이터 대체)
+                            </button>
+                            <p class="text-[9px] text-slate-400 text-center leading-relaxed">작성자가 다른 백업(다른 담당자 PC 등)이라면 <b class="text-emerald-600 dark:text-emerald-400">병합</b>을 권장합니다. 완전히 같은 작업자·같은 파일 기준으로 되돌릴 때만 덮어쓰기를 사용하세요.</p>
                         </div>
                         <div id="restore-preview" class="hidden text-[10px] bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 space-y-0.5">
                             <p class="font-bold text-emerald-700 dark:text-emerald-400 mb-1">📋 파일 내 데이터 미리보기</p>
                             <div id="restore-preview-content" class="text-slate-600 dark:text-slate-300 space-y-0.5"></div>
+                            <div id="restore-merge-preview" class="hidden mt-1.5 pt-1.5 border-t border-emerald-100 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400 font-semibold"></div>
                         </div>
                     </div>
                 </div>
@@ -4173,7 +4225,6 @@
         let currentMoneyUnit = 'won';
         
         let selectedRowIds = new Set();
-        let _ceoEditingRowId = null; // (미사용 — 더블클릭 시 openEditRowModal로 대체됨)
         let _editRowModalId = null;  // null=신규 등록 모드, 값이 있으면 해당 id의 청구 항목 수정 모드
         let dashboardFilterStatus = "all";
 
@@ -4470,6 +4521,8 @@
 
             sortAccountDbByName();
             sortDatasetByPriority();
+
+            migrateDriverDbIntoAccountDb(); // ★ DB 통합: 운전원DB → 거래처마스터(accountDb) 1회 이관
 
             if (currentDoc) {
                 document.getElementById('doc-title').value = `(${currentDoc.month}) 자금청구명세서`;
@@ -5928,11 +5981,40 @@
         });
 
         /* ── 운전원 DB ── */
+        /* ══════════════════════════════════════════════
+           DB 통합: 운전원(특고) DB를 거래처 계좌 마스터(accountDb)에 통합
+           - 기존 별도 저장소(cons_driver_db_v1)는 최초 1회만 accountDb로 이관하고 이후 미사용
+           - accountDb 각 항목에 type:'driver' 를 부여해 거래처(법인)와 구분
+           - 운전원 DB 모달(UI)은 그대로 유지하되, 내부적으로는 accountDb를 조회/저장
+        ══════════════════════════════════════════════ */
         const DDB_KEY = 'cons_driver_db_v1';
-        function ddbLoad() {
-            try { return JSON.parse(localStorage.getItem(DDB_KEY) || '[]'); } catch(e) { return []; }
+        const DDB_MIGRATED_KEY = 'cons_driver_db_migrated_v1';
+
+        function migrateDriverDbIntoAccountDb() {
+            if (localStorage.getItem(DDB_MIGRATED_KEY)) return; // 이미 이관 완료
+            let legacy = [];
+            try { legacy = JSON.parse(localStorage.getItem(DDB_KEY) || '[]'); } catch(e) { legacy = []; }
+
+            legacy.forEach(d => {
+                const already = accountDb.some(a => a.type === 'driver' && a.vendor === d.name && a.rrn === (d.rrn||''));
+                if (!already && d.name) {
+                    accountDb.push({
+                        id: genAccountDbId(), type: 'driver',
+                        vendor: d.name, holder: d.name, ceo: '',
+                        bank: '', account: '', biznum: '',
+                        phone: d.phone || '', rrn: d.rrn || '',
+                    });
+                }
+            });
+
+            localStorage.setItem(DDB_MIGRATED_KEY, '1');
+            if (legacy.length) saveToLocalStorage();
         }
-        function ddbSave(arr) { localStorage.setItem(DDB_KEY, JSON.stringify(arr)); }
+
+        /* 운전원 목록 조회 (accountDb 중 type==='driver' 만 필터) */
+        function ddbLoad() {
+            return accountDb.filter(a => a.type === 'driver');
+        }
 
         function openDriverDbModal() {
             ddbRender();
@@ -5945,7 +6027,7 @@
         function ddbRender() {
             const db = ddbLoad();
             const q = (document.getElementById('ddb-search')?.value||'').toLowerCase();
-            const filtered = q ? db.filter(d=>(d.name||'').toLowerCase().includes(q)||(d.rrn||'').includes(q)) : db;
+            const filtered = q ? db.filter(d=>(d.vendor||'').toLowerCase().includes(q)||(d.rrn||'').includes(q)) : db;
             const tbody = document.getElementById('ddb-tbody');
             const countEl = document.getElementById('ddb-count');
             if (countEl) countEl.textContent = `총 ${db.length}명`;
@@ -5955,16 +6037,16 @@
                     (q?'검색 결과 없음':'등록된 운전원이 없습니다.')+'</td></tr>';
                 return;
             }
-            tbody.innerHTML = filtered.map((d,i) => `
+            tbody.innerHTML = filtered.map((d) => `
                 <tr class="hover:bg-sky-50 dark:hover:bg-sky-950/20 transition">
-                    <td class="px-2 py-2 font-bold text-slate-800 dark:text-slate-100 text-xs">${d.name||''}</td>
+                    <td class="px-2 py-2 font-bold text-slate-800 dark:text-slate-100 text-xs">${d.vendor||''}</td>
                     <td class="px-2 py-2 text-center font-mono text-xs text-slate-600 dark:text-slate-300">${d.rrn||'-'}</td>
                     <td class="px-2 py-2 text-center text-xs text-slate-500 dark:text-slate-400">${d.phone||'-'}</td>
                     <td class="px-2 py-2 text-center">
                         <div class="flex gap-1 justify-center">
-                            <button onclick="ddbApplyToRow(${db.indexOf(d)})"
+                            <button onclick="ddbApplyToRow(${d.id})"
                                 class="bg-sky-100 hover:bg-sky-200 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded border border-sky-300 dark:border-sky-700 transition">불러오기</button>
-                            <button onclick="ddbDelete(${db.indexOf(d)})"
+                            <button onclick="ddbDelete(${d.id})"
                                 class="text-rose-400 hover:text-rose-600 text-[10px] font-bold px-1.5 py-0.5 rounded transition">삭제</button>
                         </div>
                     </td>
@@ -5975,28 +6057,31 @@
             const rrn   = document.getElementById('ddb-rrn')?.value.trim();
             const phone = document.getElementById('ddb-phone')?.value.trim();
             if (!name) { showToast('이름을 입력하세요.'); return; }
-            const db = ddbLoad();
-            if (db.some(d=>d.name===name && d.rrn===rrn)) { showToast('동일한 운전원이 이미 등록되어 있습니다.'); return; }
-            db.push({name, rrn, phone, regDate: new Date().toISOString().slice(0,10)});
-            ddbSave(db);
+            if (ddbLoad().some(d=>d.vendor===name && d.rrn===rrn)) { showToast('동일한 운전원이 이미 등록되어 있습니다.'); return; }
+            accountDb.push({
+                id: genAccountDbId(), type: 'driver',
+                vendor: name, holder: name, ceo: '',
+                bank: '', account: '', biznum: '',
+                phone, rrn,
+            });
+            saveToLocalStorage();
             document.getElementById('ddb-name').value = '';
             document.getElementById('ddb-rrn').value = '';
             document.getElementById('ddb-phone').value = '';
             ddbRender();
-            showToast(`[${name}] 운전원 DB에 등록되었습니다.`);
+            showToast(`[${name}] 운전원이 거래처마스터DB에 등록되었습니다.`);
         }
-        function ddbDelete(idx) {
-            const db = ddbLoad();
-            const name = db[idx]?.name || '';
-            db.splice(idx,1);
-            ddbSave(db);
+        function ddbDelete(id) {
+            const target = accountDb.find(a => a.id === id && a.type === 'driver');
+            const name = target?.vendor || '';
+            accountDb = accountDb.filter(a => !(a.id === id && a.type === 'driver'));
+            saveToLocalStorage();
             ddbRender();
             showToast(`[${name}] 삭제되었습니다.`);
         }
         // 운전원 DB → 현재 특고 마지막 빈 행에 적용 (또는 새 행 추가)
-        function ddbApplyToRow(dbIdx) {
-            const db = ddbLoad();
-            const d = db[dbIdx];
+        function ddbApplyToRow(id) {
+            const d = accountDb.find(a => a.id === id && a.type === 'driver');
             if (!d) return;
             // 빈 이름 행 찾기, 없으면 새 행
             let target = requestSpecialItems.findIndex(r => !r.empName);
@@ -6004,11 +6089,11 @@
                 requestSpecialItems.push({ datasetId: null, empName: '', empRrn: '', workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0 });
                 target = requestSpecialItems.length - 1;
             }
-            requestSpecialItems[target].empName = d.name || '';
-            requestSpecialItems[target].empRrn  = d.rrn  || '';
+            requestSpecialItems[target].empName = d.vendor || '';
+            requestSpecialItems[target].empRrn  = d.rrn    || '';
             renderRequestSpecialTable();
             closeDriverDbModal();
-            showToast(`[${d.name}] 특고 신고 내역에 추가되었습니다.`);
+            showToast(`[${d.vendor}] 특고 신고 내역에 추가되었습니다.`);
         }
 
         /* ── 월별 신고 이력 ── */
@@ -8805,6 +8890,11 @@ function changePrintScale(value) {
                 const tr = document.createElement('tr');
                 tr.className = rowClass;
                 tr.innerHTML = `
+                    <td class="py-1 px-1 text-center">
+                        ${acc.type === 'driver'
+                            ? '<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300">운전원</span>'
+                            : '<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">거래처</span>'}
+                    </td>
                     <td class="py-1 px-2 font-bold text-slate-900 dark:text-slate-100 text-left">${acc.holder}${dupIcon}</td>
                     <td class="py-1 px-1">
                         <input type="text" value="${acc.bank || ''}" onchange="updateAccountDB(${acc.id}, 'bank', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
@@ -9169,10 +9259,30 @@ function changePrintScale(value) {
                             <div>🏗️ 현장: <strong>${sites.join(' / ') || '-'}</strong></div>
                             ${parsed.exportedAt ? `<div>📅 백업 일시: <strong>${parsed.exportedAt}</strong></div>` : ''}
                         `;
+
+                        // ★ 작성자(기기)가 다른 백업인지 판단: 문서 id / 계좌DB 겹치는 정도로 추정
+                        const localDocIds = new Set(savedDocuments.map(d => d.id));
+                        const newDocs = parsed.savedDocuments.filter(d => !localDocIds.has(d.id));
+                        const overlapDocs = parsed.savedDocuments.length - newDocs.length;
+
+                        const newAccounts = parsed.accountDb.filter(a => !accountDb.some(local =>
+                            normBizName(local.vendor||local.holder) === normBizName(a.vendor||a.holder) &&
+                            normDigits(local.account) === normDigits(a.account) && normDigits(a.account)
+                        ));
+
+                        const mergeEl = document.getElementById('restore-merge-preview');
+                        const looksLikeDifferentAuthor = overlapDocs < parsed.savedDocuments.length; // 완전히 동일한 문서 집합이 아니면 다른 작성자 가능성
+                        mergeEl.classList.remove('hidden');
+                        mergeEl.innerHTML = looksLikeDifferentAuthor
+                            ? `병합 시 새 대장 <b>${newDocs.length}개</b>, 새 거래처 <b>${newAccounts.length}개</b> 추가됨 (겹치는 대장 ${overlapDocs}개는 건너뜀) — 작성자가 다른 백업으로 보입니다.`
+                            : `현재 데이터와 거의 동일한 백업입니다. 병합해도 추가되는 내용이 적습니다.`;
+
                         document.getElementById('restore-preview').classList.remove('hidden');
-                        const btn = document.getElementById('restore-btn');
-                        btn.removeAttribute('disabled');
-                        btn.classList.remove('disabled:bg-slate-300', 'dark:disabled:bg-slate-700');
+                        ['restore-btn-merge','restore-btn-overwrite'].forEach(id => {
+                            const btn = document.getElementById(id);
+                            btn.removeAttribute('disabled');
+                            btn.classList.remove('disabled:bg-slate-300','dark:disabled:bg-slate-700','disabled:bg-slate-100','dark:disabled:bg-slate-800');
+                        });
                     } else {
                         showToast('유효하지 않은 백업 파일입니다.');
                     }
@@ -9183,45 +9293,90 @@ function changePrintScale(value) {
             reader.readAsText(file);
         }
 
-        function importBackupJSON() {
+        function importBackupJSON(mode) {
+            mode = mode || 'overwrite';
             const fileInput = document.getElementById('backup-file-input');
             if (fileInput.files.length === 0) { showToast('불러올 JSON 파일을 선택해 주세요.'); return; }
 
+            if (mode === 'overwrite' && !confirm('전체 덮어쓰기를 진행하면 현재 데이터가 백업 파일 내용으로 완전히 대체됩니다.\n(복원 전 자동 스냅샷은 남습니다) 계속하시겠습니까?')) {
+                return;
+            }
+
             // 복원 전 현재 데이터를 스냅샷으로 자동 저장
-            saveSnapshot('복원 전 자동 스냅샷');
+            saveSnapshot(mode === 'merge' ? '병합 전 자동 스냅샷' : '덮어쓰기 전 자동 스냅샷');
 
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function(event) {
                 try {
                     const parsed = JSON.parse(event.target.result);
-                    if (parsed.savedDocuments && parsed.accountDb) {
+                    if (!(parsed.savedDocuments && parsed.accountDb)) {
+                        showToast('유효하지 않은 백업 규격 파일입니다.');
+                        return;
+                    }
+
+                    if (mode === 'overwrite') {
                         savedDocuments = parsed.savedDocuments;
                         accountDb      = parsed.accountDb;
                         currentDocId   = parsed.currentDocId || savedDocuments[0].id;
-                        const curDoc   = savedDocuments.find(d => d.id === currentDocId);
-                        dataset        = curDoc ? curDoc.dataset : [];
-                        saveToLocalStorage();
-                        buildFilterOptions();
-                        updateSavedSheetsSelector();
-                        renderStatementTable();
-                        renderAccountDBList();
-                        refreshRequestSelector();
-                        renderSiteDashboard();
-                        // ★ 복원 후 현장명·년월 화면 필드 동기화
-                        if (curDoc) {
-                            document.getElementById('doc-title').value = `(${curDoc.month}) 자금청구명세서`;
-                            document.getElementById('meta-site').value = curDoc.site || '';
-                            document.getElementById('meta-month').value = curDoc.month || '';
-                            if (document.getElementById('meta-company')) document.getElementById('meta-company').value = curDoc.company || '';
-                            if (!curDoc.period) curDoc.period = calculateMonthPeriod(curDoc.month);
-                            document.getElementById('req-meta-period').value = curDoc.period || '';
-                            document.getElementById('req-meta-site').value = curDoc.site || '';
-                        }
-                        closeBackupModal();
-                        showToast('데이터 복원 완료! (이전 데이터는 스냅샷에 보관됨)');
                     } else {
-                        showToast('유효하지 않은 백업 규격 파일입니다.');
+                        // ── 병합 모드: 작성자가 다른 백업일 수 있으므로 기존 데이터는 유지하고 새 항목만 추가 ──
+                        let addedDocs = 0, skippedDocs = 0, addedAccounts = 0, skippedAccounts = 0;
+
+                        const localDocIds = new Set(savedDocuments.map(d => d.id));
+                        parsed.savedDocuments.forEach(doc => {
+                            // 동일 id가 이미 있으면(같은 작성자거나 우연히 id 충돌) 내용까지 같은지 확인
+                            if (localDocIds.has(doc.id)) {
+                                const local = savedDocuments.find(d => d.id === doc.id);
+                                const sameContent = local && local.site === doc.site && local.month === doc.month
+                                    && (local.dataset||[]).length === (doc.dataset||[]).length;
+                                if (sameContent) { skippedDocs++; return; } // 완전 동일 → 건너뜀
+                                doc = { ...doc, id: 'doc-' + Date.now() + '-' + Math.floor(Math.random()*10000) }; // id 충돌 → 새 id 부여 후 추가
+                            }
+                            savedDocuments.push(doc);
+                            localDocIds.add(doc.id);
+                            addedDocs++;
+                        });
+
+                        parsed.accountDb.forEach(a => {
+                            const dup = accountDb.some(local =>
+                                normBizName(local.vendor||local.holder) === normBizName(a.vendor||a.holder) &&
+                                (!normDigits(a.account) || normDigits(local.account) === normDigits(a.account))
+                            );
+                            if (dup) { skippedAccounts++; return; }
+                            accountDb.push({ ...a, id: genAccountDbId() });
+                            addedAccounts++;
+                        });
+
+                        // 병합 모드는 현재 열려있던 문서를 그대로 유지 (savedDocuments가 비어있었을 때만 새로 지정)
+                        if (!currentDocId && savedDocuments.length) currentDocId = savedDocuments[0].id;
+                    }
+
+                    const curDoc = savedDocuments.find(d => d.id === currentDocId);
+                    dataset       = curDoc ? curDoc.dataset : [];
+                    saveToLocalStorage();
+                    buildFilterOptions();
+                    updateSavedSheetsSelector();
+                    renderStatementTable();
+                    renderAccountDBList();
+                    refreshRequestSelector();
+                    renderSiteDashboard();
+                    // ★ 복원 후 현장명·년월 화면 필드 동기화
+                    if (curDoc) {
+                        document.getElementById('doc-title').value = `(${curDoc.month}) 자금청구명세서`;
+                        document.getElementById('meta-site').value = curDoc.site || '';
+                        document.getElementById('meta-month').value = curDoc.month || '';
+                        if (document.getElementById('meta-company')) document.getElementById('meta-company').value = curDoc.company || '';
+                        if (!curDoc.period) curDoc.period = calculateMonthPeriod(curDoc.month);
+                        document.getElementById('req-meta-period').value = curDoc.period || '';
+                        document.getElementById('req-meta-site').value = curDoc.site || '';
+                    }
+                    closeBackupModal();
+
+                    if (mode === 'merge') {
+                        showToast(`병합 완료! 새 대장 ${addedDocs}개, 새 거래처 ${addedAccounts}개 추가 (중복 대장 ${skippedDocs}개, 중복 거래처 ${skippedAccounts}개는 건너뜀)`, 'success');
+                    } else {
+                        showToast('데이터 복원 완료! (이전 데이터는 스냅샷에 보관됨)');
                     }
                 } catch(e) {
                     showToast('파일을 읽는 도중 오류가 발생했습니다.');
@@ -12999,14 +13154,176 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 } else if (daysSinceBackup >= 7) {
                     alerts.push(`<button onclick="openBackupModal()" class="w-full flex items-center gap-2 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 rounded-lg px-3 py-2 text-left hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-colors"><i data-lucide="shield-alert" class="w-3.5 h-3.5 shrink-0"></i><span>마지막 백업으로부터 <b>${daysSinceBackup}일</b> 경과 — 백업을 권장합니다</span></button>`);
                 }
+                // ── 이번달 미발행 거래처: 자금청구에는 있는데 지불의뢰서 발행이력엔 없는 거래처 ──
+                const claimVendorsThisMonth = [...new Set(claimRows.filter(r=>r.vendor).map(r=>r.vendor))];
+                const reqVendorsThisMonth   = new Set(reqThisMonth.map(h=>h.vendor));
+                const unissuedVendors = claimVendorsThisMonth.filter(v => !reqVendorsThisMonth.has(v));
+                if (unissuedVendors.length > 0) {
+                    alerts.push(`<button onclick="switchTab('request')" class="w-full flex items-center gap-2 bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-300 rounded-lg px-3 py-2 text-left hover:bg-violet-100 dark:hover:bg-violet-950/40 transition-colors"><i data-lucide="file-x" class="w-3.5 h-3.5 shrink-0"></i><span>이번달 지불의뢰서 미발행 거래처 <b>${unissuedVendors.length}개사</b></span></button>`);
+                }
+                // ── 계좌 마스터 DB 미등록 거래처 사용중 ──
+                const unregisteredVendors = claimVendorsThisMonth.filter(v => {
+                    const row = claimRows.find(r=>r.vendor===v);
+                    return !findAccountMatch({ vendor: v, ceo: row?.ceo, holder: row?.holder });
+                });
+                if (unregisteredVendors.length > 0) {
+                    alerts.push(`<button onclick="switchTab('statement')" class="w-full flex items-center gap-2 bg-sky-50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300 rounded-lg px-3 py-2 text-left hover:bg-sky-100 dark:hover:bg-sky-950/40 transition-colors"><i data-lucide="user-x" class="w-3.5 h-3.5 shrink-0"></i><span>계좌 마스터 DB 미등록 거래처 <b>${unregisteredVendors.length}개사</b> 사용중</span></button>`);
+                }
                 if (!alerts.length) {
                     alerts.push(`<div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg px-3 py-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i><span>확인이 필요한 항목이 없습니다.</span></div>`);
                 }
                 alertsEl.innerHTML = alerts.join('');
             }
 
+            // 8) 거래처마스터 DB 현황
+            const vmsEl = document.getElementById('dash-vendor-master-stats');
+            if (vmsEl) {
+                const vendorCnt = accountDb.filter(a => a.type !== 'driver').length;
+                const driverCnt = accountDb.filter(a => a.type === 'driver').length;
+                const noAccountCnt = accountDb.filter(a => a.type !== 'driver' && !a.account).length;
+                vmsEl.innerHTML = [
+                    `<div class="flex justify-between"><span class="text-slate-400">등록 거래처(법인)</span><b class="text-emerald-600 dark:text-emerald-400">${vendorCnt}개사</b></div>`,
+                    `<div class="flex justify-between"><span class="text-slate-400">등록 운전원(특고)</span><b class="text-sky-600 dark:text-sky-400">${driverCnt}명</b></div>`,
+                    `<div class="flex justify-between"><span class="text-slate-400">계좌정보 미입력</span><b class="${noAccountCnt>0?'text-rose-500':''}">${noAccountCnt}건</b></div>`,
+                    `<button onclick="switchTab('statement')" class="w-full text-center mt-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-800 border border-emerald-200 dark:border-emerald-900 rounded-lg py-1.5">DB 관리 열기</button>`,
+                ].join('');
+            }
+
+            // 9) 월별 자금 흐름 (최근 6개월, 청구+발행+카드 합산)
+            const chartEl = document.getElementById('dash-monthly-chart');
+            if (chartEl) {
+                const months = [];
+                const now = new Date();
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    months.push(d.toISOString().slice(0,7));
+                }
+                const monthTotals = {};
+                months.forEach(m => monthTotals[m] = 0);
+                allSavedDocs.forEach(doc => {
+                    const m = docMonthToYYYYMM(doc.month);
+                    if (monthTotals[m] !== undefined) {
+                        monthTotals[m] += (doc.dataset||[]).reduce((s,r)=>s+(Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)),0);
+                    }
+                });
+                reqHist.forEach(h => {
+                    if (monthTotals[h.month] !== undefined) monthTotals[h.month] += parseInt((h.total||'0').replace(/[^0-9]/g,''),10)||0;
+                });
+                cardRows.forEach(r => {
+                    const m = (r.date||'').slice(0,7);
+                    if (monthTotals[m] !== undefined) monthTotals[m] += Number(r.amount||0);
+                });
+                const maxVal = Math.max(...months.map(m=>monthTotals[m]), 1);
+                chartEl.innerHTML = months.map(m => {
+                    const val = monthTotals[m];
+                    const pct = Math.max(Math.round((val/maxVal)*100), val>0?4:0);
+                    const label = m.slice(5,7) + '월';
+                    return `<div class="flex-1 flex flex-col items-center justify-end h-full group">
+                        <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">${val.toLocaleString('ko-KR')}</span>
+                        <div class="w-full rounded-t-md bg-gradient-to-t from-indigo-500 to-indigo-400 dark:from-indigo-600 dark:to-indigo-500 transition-all" style="height:${pct}%; min-height:${val>0?'4px':'0'};" title="${m}: ${val.toLocaleString('ko-KR')}원"></div>
+                        <span class="text-[9px] text-slate-400 mt-1">${label}</span>
+                    </div>`;
+                }).join('');
+            }
+
+            // 10) 증빙영수증 첨부율 (법인카드, 이번달 기준)
+            const receiptEl = document.getElementById('dash-receipt-rate');
+            if (receiptEl) {
+                const totalCards = cardThisMonth.length;
+                const withReceipt = cardThisMonth.filter(r=>r.receipt).length;
+                const rate = totalCards > 0 ? Math.round((withReceipt/totalCards)*100) : 0;
+                const barColor = rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#f43f5e';
+                receiptEl.innerHTML = totalCards > 0 ? `
+                    <div class="flex items-end justify-between mb-1.5">
+                        <span class="text-2xl font-black" style="color:${barColor};">${rate}%</span>
+                        <span class="text-[10px] text-slate-400">${withReceipt}/${totalCards}건 첨부</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div class="h-full rounded-full transition-all" style="width:${rate}%; background:${barColor};"></div>
+                    </div>
+                    <button onclick="switchTab('corpcard')" class="w-full text-center mt-3 text-[10px] font-bold text-amber-600 hover:text-amber-800 border border-amber-200 dark:border-amber-900 rounded-lg py-1.5">법인카드 탭 열기</button>
+                ` : `<div class="text-center text-slate-400 text-xs py-6">이번달 법인카드 내역이 없습니다.</div>`;
+            }
+
+            // 11) 현장별 현황 (이번달)
+            const siteStatsEl = document.getElementById('dash-site-stats');
+            if (siteStatsEl) {
+                const siteMap = {};
+                allSavedDocs.filter(d => docMonthToYYYYMM(d.month) === thisMonth).forEach(doc => {
+                    const site = doc.site || '(현장 미입력)';
+                    const amt = (doc.dataset||[]).reduce((s,r)=>s+(Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)),0);
+                    siteMap[site] = siteMap[site] || { claim: 0, card: 0 };
+                    siteMap[site].claim += amt;
+                });
+                cardThisMonth.forEach(r => {
+                    const site = r.site || '(현장 미입력)';
+                    siteMap[site] = siteMap[site] || { claim: 0, card: 0 };
+                    siteMap[site].card += Number(r.amount||0);
+                });
+                const siteList = Object.entries(siteMap)
+                    .map(([site, v]) => ({ site, total: v.claim + v.card, claim: v.claim, card: v.card }))
+                    .sort((a,b) => b.total - a.total)
+                    .slice(0, 6);
+                siteStatsEl.innerHTML = siteList.length ? siteList.map(s => `
+                    <div class="flex items-center justify-between px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate">${s.site}</span>
+                        <span class="text-right shrink-0 ml-2">
+                            <span class="block font-extrabold text-teal-600 dark:text-teal-400">${s.total.toLocaleString('ko-KR')}원</span>
+                            <span class="block text-[9px] text-slate-400">청구 ${s.claim.toLocaleString('ko-KR')} · 카드 ${s.card.toLocaleString('ko-KR')}</span>
+                        </span>
+                    </div>`).join('') : `<div class="text-center text-slate-400 text-xs py-6">이번달 데이터가 없습니다.</div>`;
+            }
+
+            renderPinnedVendors();
+
             renderDashRecentActivity();
 
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* ── 즐겨찾기 거래처 (대시보드 고정) ── */
+        const PINNED_VENDORS_KEY = 'cons_pinned_vendors_v1';
+        function pinnedVendorsLoad() {
+            try { return JSON.parse(localStorage.getItem(PINNED_VENDORS_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function pinnedVendorsSave(arr) { localStorage.setItem(PINNED_VENDORS_KEY, JSON.stringify(arr)); }
+
+        function openPinVendorPrompt() {
+            const name = prompt('즐겨찾기에 추가할 거래처명을 입력하세요:');
+            if (!name || !name.trim()) return;
+            const arr = pinnedVendorsLoad();
+            if (arr.includes(name.trim())) { showToast('이미 즐겨찾기에 등록된 거래처입니다.'); return; }
+            arr.push(name.trim());
+            pinnedVendorsSave(arr);
+            renderPinnedVendors();
+            showToast(`[${name.trim()}] 즐겨찾기에 추가되었습니다.`);
+        }
+
+        function unpinVendor(name) {
+            const arr = pinnedVendorsLoad().filter(v => v !== name);
+            pinnedVendorsSave(arr);
+            renderPinnedVendors();
+        }
+
+        function renderPinnedVendors() {
+            const el = document.getElementById('dash-pinned-vendors');
+            if (!el) return;
+            const pinned = pinnedVendorsLoad();
+            if (!pinned.length) {
+                el.innerHTML = `<div class="text-center text-slate-400 text-xs py-6">우측 상단 "추가" 버튼으로 자주 쓰는 거래처를 즐겨찾기에 등록하세요.</div>`;
+                return;
+            }
+            el.innerHTML = pinned.map(name => {
+                const acc = findAccountMatch({ vendor: name, holder: name });
+                return `<div class="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                    <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-500 shrink-0"></i>
+                    <button onclick="showVendorUsage('${name.replace(/'/g,"\\'")}')" class="flex-1 min-w-0 text-left">
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${name}</span>
+                        <span class="block text-[9px] text-slate-400 truncate">${acc ? `${acc.bank||''} ${acc.account||''}` : '계좌 마스터 DB 미등록'}</span>
+                    </button>
+                    <button onclick="unpinVendor('${name.replace(/'/g,"\\'")}')" class="text-slate-300 hover:text-rose-500 shrink-0" title="즐겨찾기 해제"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                </div>`;
+            }).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
