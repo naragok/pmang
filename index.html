@@ -4242,9 +4242,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '1.3';
+        const APP_VERSION = '1.4';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '지불의뢰서 등 다크모드 흰 배경 근본 원인(존재하지 않는 Tailwind shade) 수정';
+        const APP_VERSION_NOTE = '지불의뢰서 등 인쇄/PDF 출력 시 다크모드 자동 해제 기능 추가';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -4253,6 +4253,24 @@
             if (headerBadge) { headerBadge.textContent = label; headerBadge.title = `버전 ${APP_VERSION} (${APP_VERSION_DATE}) — ${APP_VERSION_NOTE}`; }
         }
         document.addEventListener('DOMContentLoaded', applyAppVersionBadges);
+
+        // ══════════════════════════════════════════════════════
+        // 인쇄/PDF 출력 시 다크모드 강제 해제
+        // dark: 클래스 기반 스타일은 <html class="dark"> 조상이 남아있으면
+        // 미리보기·PDF 캡처(html2canvas)에서도 계속 적용되어 버리므로,
+        // 실제 인쇄(window.print / Ctrl+P)뿐 아니라 미리보기 모달·PDF 저장 시에도
+        // 일시적으로 dark 클래스를 떼어냈다가 완료 후 원래 상태로 복원한다.
+        // ══════════════════════════════════════════════════════
+        let _wasDarkBeforePrint = false;
+        function suspendDarkModeForOutput() {
+            _wasDarkBeforePrint = document.documentElement.classList.contains('dark');
+            document.documentElement.classList.remove('dark');
+        }
+        function restoreDarkModeAfterOutput() {
+            if (_wasDarkBeforePrint) document.documentElement.classList.add('dark');
+        }
+        window.addEventListener('beforeprint', suspendDarkModeForOutput);
+        window.addEventListener('afterprint', restoreDarkModeAfterOutput);
 
         const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
 
@@ -12007,6 +12025,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         ============================================================ */
 
         function openPrintPreviewModal(mode) {
+            suspendDarkModeForOutput();
             // 모드 자동 판단
             if (!mode) {
                 const activeStatement = document.getElementById('tab-statement');
@@ -12150,6 +12169,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         }
 
         function closePrintPreviewModal() {
+            restoreDarkModeAfterOutput();
             document.getElementById('print-preview-modal').classList.add('hidden');
             document.body.style.overflow = '';
         }
