@@ -4277,9 +4277,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '1.6';
+        const APP_VERSION = '1.7';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = 'GitHub 저장소를 이용한 여러 PC 데이터 동기화 기능 추가 (백업/복원 센터 내)';
+        const APP_VERSION_NOTE = '전체 백업/복원 및 GitHub 동기화에 법인카드 경비 데이터 포함';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -9315,11 +9315,12 @@ function changePrintScale(value) {
 
         function downloadBackupJSON() {
             const dataToBackup = {
-                version: 'v12',
+                version: 'v13',
                 exportedAt: new Date().toLocaleString('ko-KR'),
                 savedDocuments,
                 accountDb,
-                currentDocId
+                currentDocId,
+                ccData: ccLoad()
             };
             const blob = new Blob([JSON.stringify(dataToBackup, null, 2)], { type: 'application/json' });
             const url  = URL.createObjectURL(blob);
@@ -9406,12 +9407,13 @@ function changePrintScale(value) {
 
         /* 백업/타 PC 파일의 데이터를 실제로 반영 (모달 복원, 헤더 빠른 가져오기 공용) */
         function applyRestoredData(parsed, mode) {
-            let stats = { addedDocs: 0, skippedDocs: 0, addedAccounts: 0, skippedAccounts: 0 };
+            let stats = { addedDocs: 0, skippedDocs: 0, addedAccounts: 0, skippedAccounts: 0, addedCc: 0, skippedCc: 0 };
 
             if (mode === 'overwrite') {
                 savedDocuments = parsed.savedDocuments;
                 accountDb      = parsed.accountDb;
                 currentDocId   = parsed.currentDocId || savedDocuments[0].id;
+                if (Array.isArray(parsed.ccData)) { ccData = parsed.ccData; ccSave(); }
             } else {
                 // ── 병합 모드: 작성자(다른 PC)가 다른 파일일 수 있으므로 기존 데이터는 유지하고 새 항목만 추가 ──
                 const localDocIds = new Set(savedDocuments.map(d => d.id));
@@ -9439,6 +9441,20 @@ function changePrintScale(value) {
                     stats.addedAccounts++;
                 });
 
+                if (Array.isArray(parsed.ccData)) {
+                    ccData = ccLoad();
+                    const localCcIds = new Set(ccData.map(r => r.id));
+                    parsed.ccData.forEach(row => {
+                        const dup = ccData.some(local => local.date === row.date && local.merchant === row.merchant && Number(local.amount) === Number(row.amount));
+                        if (dup) { stats.skippedCc++; return; }
+                        if (localCcIds.has(row.id)) row = { ...row, id: 'cc-' + Date.now() + '-' + Math.floor(Math.random()*10000) };
+                        ccData.push(row);
+                        localCcIds.add(row.id);
+                        stats.addedCc++;
+                    });
+                    ccSave();
+                }
+
                 // 병합 모드는 현재 열려있던 문서를 그대로 유지 (savedDocuments가 비어있었을 때만 새로 지정)
                 if (!currentDocId && savedDocuments.length) currentDocId = savedDocuments[0].id;
             }
@@ -9452,7 +9468,7 @@ function changePrintScale(value) {
             renderAccountDBList();
             refreshRequestSelector();
             renderSiteDashboard();
-            // ★ 복원 후 현장명·년월 화면 필드 동기화
+            if (typeof ccRender === 'function') ccRender();
             if (curDoc) {
                 document.getElementById('doc-title').value = `(${curDoc.month}) 자금청구명세서`;
                 document.getElementById('meta-site').value = curDoc.site || '';
@@ -9531,9 +9547,9 @@ function changePrintScale(value) {
             try {
                 const existing = await ghSyncApiGet(cfg);
                 const dataToBackup = {
-                    version: 'v12',
+                    version: 'v13',
                     exportedAt: new Date().toLocaleString('ko-KR'),
-                    savedDocuments, accountDb, currentDocId
+                    savedDocuments, accountDb, currentDocId, ccData: ccLoad()
                 };
                 const url = `https://api.github.com/repos/${cfg.repo}/contents/${encodeURIComponent(cfg.path).replace(/%2F/g,'/')}`;
                 const res = await fetch(url, {
@@ -9570,7 +9586,7 @@ function changePrintScale(value) {
                 if (!parsed.savedDocuments || !parsed.accountDb) throw new Error('백업 파일 형식이 올바르지 않습니다.');
                 saveSnapshot('GitHub 동기화 불러오기 전 자동 스냅샷');
                 const stats = applyRestoredData(parsed, mode);
-                ghSyncSetStatus(`불러오기 완료! 추가 ${stats.addedDocs}건 / 건너뜀 ${stats.skippedDocs}건 (계좌 추가 ${stats.addedAccounts}건)`);
+                ghSyncSetStatus(`불러오기 완료! 추가 ${stats.addedDocs}건 / 건너뜀 ${stats.skippedDocs}건 (계좌 추가 ${stats.addedAccounts}건, 법인카드 추가 ${stats.addedCc||0}건)`);
                 showToast('GitHub 데이터 불러오기 완료!');
                 closeBackupModal();
             } catch (e) {
