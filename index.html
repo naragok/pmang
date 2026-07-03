@@ -1455,7 +1455,12 @@
                 <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded shrink-0">Ctrl+K</span>
             </button>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+                <button onclick="switchTab('stats')" class="dash-tab-card group" style="--dc:#0891b2;">
+                    <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                    <div class="dash-tab-card-label">집계표</div>
+                    <div class="dash-tab-card-count" id="dash-cnt-stats">&nbsp;</div>
+                </button>
                 <button onclick="switchTab('statement')" class="dash-tab-card group" style="--dc:#0ea5e9;">
                     <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
                     <div class="dash-tab-card-label">자금청구명세서</div>
@@ -1475,6 +1480,11 @@
                     <i data-lucide="hard-hat" class="w-5 h-5"></i>
                     <div class="dash-tab-card-label">특고 신고</div>
                     <div class="dash-tab-card-count" id="dash-cnt-special">0건</div>
+                </button>
+                <button onclick="switchTab('contract')" class="dash-tab-card group" style="--dc:#be123c;">
+                    <i data-lucide="file-signature" class="w-5 h-5"></i>
+                    <div class="dash-tab-card-label">건설기계임대차</div>
+                    <div class="dash-tab-card-count" id="dash-cnt-contract">0건</div>
                 </button>
             </div>
 
@@ -1580,6 +1590,14 @@
                         </div>
                         <p class="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5" id="dup-account-msg"></p>
                         <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+                <div id="dup-section-amount" class="hidden bg-orange-50 dark:bg-orange-950/20 border-b border-orange-200 dark:border-orange-900 p-3 items-start gap-3">
+                    <i data-lucide="copy-x" class="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5 animate-pulse"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-extrabold text-orange-800 dark:text-orange-300">🟠 동일 금액 중복 입력 의심</p>
+                        <p class="text-[11px] text-orange-700 dark:text-orange-400 mt-0.5" id="dup-amount-msg"></p>
+                        <div id="dup-amount-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
                 <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 items-start gap-3">
@@ -3042,6 +3060,14 @@
                         <option value="">전체 현장</option>
                     </select>
                     <input type="text" id="cc-filter-search" oninput="ccRender()" placeholder="가맹점·메모 검색…" class="px-2.5 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 w-44">
+                    <label class="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400 cursor-pointer px-2 py-1 border border-rose-200 dark:border-rose-900 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20">
+                        <input type="checkbox" id="cc-filter-noreceipt" onchange="ccRender()" class="accent-rose-600">
+                        <i data-lucide="receipt-text" class="w-3 h-3"></i> 미첨부만
+                    </label>
+                    <label class="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 cursor-pointer px-2 py-1 border border-indigo-200 dark:border-indigo-900 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/20">
+                        <input type="checkbox" id="cc-filter-noproof" onchange="ccRender()" class="accent-indigo-600">
+                        <i data-lucide="file-warning" class="w-3 h-3"></i> 적격증빙 미확인만
+                    </label>
                     <button onclick="ccClearFilters()" class="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded-lg">초기화</button>
                     <span class="ml-auto text-[10px] font-bold text-violet-700 dark:text-violet-400" id="cc-filter-summary"></span>
                 </div>
@@ -3078,12 +3104,13 @@
                                 <th class="px-2 py-2 text-right w-28 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('amount')">금액 ↕</th>
                                 <th class="px-2 py-2 text-center w-28 font-bold">현장 배분</th>
                                 <th class="px-2 py-2 text-left font-bold">메모 (영수증 내용)</th>
-                                <th class="px-2 py-2 text-center w-16 font-bold">증빙</th>
+                                <th class="px-2 py-2 text-center w-20 font-bold">적격증빙</th>
+                                <th class="px-2 py-2 text-center w-16 font-bold">첨부</th>
                                 <th class="px-2 py-2 text-center w-16 font-bold no-print">작업</th>
                             </tr>
                         </thead>
                         <tbody id="cc-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <tr><td colspan="9" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
+                            <tr><td colspan="10" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
                         </tbody>
                         <tfoot id="cc-tfoot" class="bg-slate-50 dark:bg-slate-800/50 font-bold border-t-2 border-slate-300 dark:border-slate-600">
                         </tfoot>
@@ -3345,10 +3372,23 @@
                         <input type="number" id="cc-edit-amount" placeholder="0" oninput="ccFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                         <span id="cc-amt-preview" class="text-[10px] text-violet-600 mt-0.5 block font-semibold"></span>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1">현장 배분</label>
-                        <input type="text" id="cc-edit-site" list="cc-site-datalist" placeholder="예: 원주 무실동 공사현장" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                        <datalist id="cc-site-datalist"></datalist>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">적격증빙 구분</label>
+                            <select id="cc-edit-prooftype" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                                <option value="">미확인 (선택 안 함)</option>
+                                <option value="taxinvoice">세금계산서 (공제 가능)</option>
+                                <option value="cashreceipt">현금영수증-지출증빙용 (공제 가능)</option>
+                                <option value="cardslip">신용카드매출전표 (공제 가능)</option>
+                                <option value="simple">간이영수증 (공제 불가)</option>
+                                <option value="none">증빙 없음</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">현장 배분</label>
+                            <input type="text" id="cc-edit-site" list="cc-site-datalist" placeholder="예: 원주 무실동 공사현장" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                            <datalist id="cc-site-datalist"></datalist>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">메모 (영수증 내용·비고)</label>
@@ -4078,127 +4118,93 @@
     </div>
 
     <div id="backup-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-6xl">
 
-            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4">
-                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i> 데이터 백업 / 복원 센터
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-5 py-3">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i> 데이터 백업 / 복원 센터
                 </h3>
+                <div id="backup-mini-stats" class="hidden md:flex items-center gap-3 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                    <span>청구대장 <b id="backup-stat-docs" class="text-blue-600 dark:text-blue-400">-</b></span>
+                    <span>청구항목 <b id="backup-stat-rows" class="text-emerald-600 dark:text-emerald-400">-</b></span>
+                    <span>계좌 <b id="backup-stat-accounts" class="text-indigo-600 dark:text-indigo-400">-</b></span>
+                </div>
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
 
-            <div class="p-6 space-y-4 text-xs">
+            <div class="p-4 text-xs">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
 
-                <div id="backup-stats-bar" class="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700">
-                    <div class="text-center">
-                        <div class="text-lg font-black text-blue-600 dark:text-blue-400" id="backup-stat-docs">-</div>
-                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">청구 대장 수</div>
-                    </div>
-                    <div class="text-center border-x border-slate-200 dark:border-slate-700">
-                        <div class="text-lg font-black text-emerald-600 dark:text-emerald-400" id="backup-stat-rows">-</div>
-                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">총 청구 항목</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-lg font-black text-indigo-600 dark:text-indigo-400" id="backup-stat-accounts">-</div>
-                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">계좌 마스터 수</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/60 rounded-xl p-4 flex flex-col gap-3">
-                        <div>
-                            <p class="font-extrabold text-blue-800 dark:text-blue-400 mb-1 flex items-center gap-1.5">
-                                <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> 백업 (내보내기)
+                    <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/60 rounded-xl p-3 flex flex-col gap-2">
+                        <p class="font-extrabold text-blue-800 dark:text-blue-400 flex items-center gap-1.5">
+                            <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> 백업 (내보내기)
+                        </p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">청구 대장·계좌 DB·법인카드 내역을 JSON 파일로 저장합니다.</p>
+                        <button onclick="downloadBackupJSON()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-1.5 shadow-sm text-[11px]">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> 전체 데이터 JSON 백업
+                        </button>
+                        <button onclick="downloadAccountDbCSV()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-1.5 text-[11px]">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 계좌 DB만 CSV
+                        </button>
+                        <div id="backup-last-time" class="text-[9px] text-blue-700 dark:text-blue-500 font-semibold text-center pt-1 border-t border-blue-100 dark:border-blue-900"></div>
+                        <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-lg p-2 mt-auto">
+                            <p class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-1 text-[10px]">
+                                <i data-lucide="history" class="w-3 h-3"></i> 자동 스냅샷 (최근 3회)
                             </p>
-                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">모든 청구 대장·현장 정보·계좌 DB를 JSON 파일로 저장합니다. 기기 교체·브라우저 초기화 전 반드시 백업하세요.</p>
+                            <div id="snapshot-list" class="space-y-1"></div>
                         </div>
-                        <div class="mt-auto space-y-2">
-                            <button onclick="downloadBackupJSON()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 shadow-sm">
-                                <i data-lucide="download" class="w-3.5 h-3.5"></i> 전체 데이터 JSON 백업
-                            </button>
-                            <button onclick="downloadAccountDbCSV()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 계좌 DB만 CSV 백업
-                            </button>
-                        </div>
-                        <div id="backup-last-time" class="text-[10px] text-blue-700 dark:text-blue-500 font-semibold text-center pt-1 border-t border-blue-100 dark:border-blue-900"></div>
                     </div>
 
-                    <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/60 rounded-xl p-4 flex flex-col gap-3">
-                        <div>
-                            <p class="font-extrabold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center gap-1.5">
-                                <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> 복원 (가져오기)
-                            </p>
-                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">이전 백업 JSON 파일을 선택해 복원합니다. 복원 전 현재 데이터는 자동으로 임시 백업됩니다.</p>
-                        </div>
-                        <div class="mt-auto space-y-2">
-                            <label class="block w-full border-2 border-dashed border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-3 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all">
-                                <i data-lucide="file-up" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 mx-auto mb-1"></i>
-                                <span id="backup-file-label" class="text-emerald-700 dark:text-emerald-400 font-semibold block">파일을 클릭해 선택하세요</span>
-                                <input type="file" id="backup-file-input" accept=".json" class="hidden" onchange="onBackupFileSelected(this)">
-                            </label>
-                            <button onclick="importBackupJSON('merge')" id="restore-btn-merge" class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 shadow-sm" disabled>
-                                <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 병합 (현재 데이터에 추가)
-                            </button>
-                            <button onclick="importBackupJSON('overwrite')" id="restore-btn-overwrite" class="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900 px-4 py-2 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-2 text-xs" disabled>
-                                <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i> 전체 덮어쓰기 (현재 데이터 대체)
-                            </button>
-                            <p class="text-[9px] text-slate-400 text-center leading-relaxed">작성자가 다른 백업(다른 담당자 PC 등)이라면 <b class="text-emerald-600 dark:text-emerald-400">병합</b>을 권장합니다. 완전히 같은 작업자·같은 파일 기준으로 되돌릴 때만 덮어쓰기를 사용하세요.</p>
-                        </div>
-                        <div id="restore-preview" class="hidden text-[10px] bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 space-y-0.5">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/60 rounded-xl p-3 flex flex-col gap-2">
+                        <p class="font-extrabold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
+                            <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> 복원 (가져오기)
+                        </p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">백업 JSON 선택 시 현재 데이터는 자동 스냅샷으로 보관됩니다.</p>
+                        <label class="block w-full border-2 border-dashed border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all">
+                            <i data-lucide="file-up" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mx-auto mb-0.5"></i>
+                            <span id="backup-file-label" class="text-emerald-700 dark:text-emerald-400 font-semibold block text-[11px]">파일을 클릭해 선택하세요</span>
+                            <input type="file" id="backup-file-input" accept=".json" class="hidden" onchange="onBackupFileSelected(this)">
+                        </label>
+                        <button onclick="importBackupJSON('merge')" id="restore-btn-merge" class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-1.5 shadow-sm text-[11px]" disabled>
+                            <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 병합 (추가)
+                        </button>
+                        <button onclick="importBackupJSON('overwrite')" id="restore-btn-overwrite" class="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900 px-3 py-1.5 rounded-lg font-bold w-full transition-all flex items-center justify-center gap-1.5 text-[11px]" disabled>
+                            <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i> 전체 덮어쓰기
+                        </button>
+                        <p class="text-[9px] text-slate-400 leading-snug">다른 담당자 PC 백업은 <b class="text-emerald-600 dark:text-emerald-400">병합</b> 권장.</p>
+                        <div id="restore-preview" class="hidden text-[9px] bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 space-y-0.5">
                             <p class="font-bold text-emerald-700 dark:text-emerald-400 mb-1">📋 파일 내 데이터 미리보기</p>
                             <div id="restore-preview-content" class="text-slate-600 dark:text-slate-300 space-y-0.5"></div>
                             <div id="restore-merge-preview" class="hidden mt-1.5 pt-1.5 border-t border-emerald-100 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400 font-semibold"></div>
                         </div>
                     </div>
-                </div>
 
-                <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-xl p-3">
-                    <p class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-2">
-                        <i data-lucide="history" class="w-3.5 h-3.5"></i> 자동 스냅샷 (최근 3회 자동 저장)
-                        <span class="ml-auto font-normal text-[10px] text-amber-600 dark:text-amber-500">복원 시 현재 데이터를 자동 스냅샷으로 보관</span>
-                    </p>
-                    <div id="snapshot-list" class="space-y-1"></div>
-                </div>
+                    <div class="bg-slate-900 dark:bg-black/30 border border-slate-700 dark:border-slate-700 rounded-xl p-3 text-slate-100 flex flex-col gap-2">
+                        <p class="font-extrabold flex items-center gap-1.5">
+                            <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub 동기화 <span class="text-[9px] font-normal bg-slate-700 px-1.5 py-0.5 rounded">여러 PC</span>
+                        </p>
+                        <p class="text-[10px] text-slate-400 leading-snug">GitHub 저장소(비공개 권장)를 온라인 저장 공간으로 사용합니다. 토큰은 이 브라우저에만 저장됩니다.</p>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="gh-sync-repo" placeholder="owner/repo" class="col-span-2 border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <input type="text" id="gh-sync-branch" placeholder="브랜치(main)" class="border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <input type="text" id="gh-sync-path" placeholder="data/backup.json" class="border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <input type="password" id="gh-sync-token" placeholder="Personal Access Token" class="col-span-2 border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                        </div>
+                        <button onclick="ghSyncTestConnection()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="plug-zap" class="w-3 h-3"></i> 연결 테스트/저장</button>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button onclick="ghSyncUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="cloud-upload" class="w-3 h-3"></i> 업로드</button>
+                            <button onclick="ghSyncDownload('merge')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="git-merge" class="w-3 h-3"></i> 병합 불러오기</button>
+                        </div>
+                        <button onclick="ghSyncDownload('overwrite')" class="bg-rose-900 hover:bg-rose-800 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="triangle-alert" class="w-3 h-3"></i> 덮어쓰기 불러오기</button>
+                        <div id="gh-sync-status" class="text-[9px] text-slate-400 min-h-[1.2em] leading-snug">토큰: <a href="https://github.com/settings/tokens" target="_blank" class="underline text-blue-400">발급 페이지</a></div>
+                    </div>
 
-                <div class="bg-slate-900 dark:bg-black/30 border border-slate-700 dark:border-slate-700 rounded-xl p-4 text-slate-100">
-                    <p class="font-extrabold flex items-center gap-1.5 mb-1">
-                        <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub 동기화 <span class="text-[9px] font-normal bg-slate-700 px-1.5 py-0.5 rounded">여러 PC 데이터 공유</span>
-                    </p>
-                    <p class="text-slate-400 leading-relaxed mb-3">GitHub 저장소를 온라인 저장 공간으로 사용해 여러 PC에서 같은 데이터를 봅니다. 개인 저장소(비공개) 사용을 권장합니다. 토큰은 이 브라우저에만 저장되며 외부로 전송되지 않습니다.</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                        <div>
-                            <label class="block text-[10px] font-semibold text-slate-400 mb-1">저장소 (owner/repo)</label>
-                            <input type="text" id="gh-sync-repo" placeholder="예: naragok/pmang-data" class="w-full border border-slate-700 rounded px-2.5 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-semibold text-slate-400 mb-1">브랜치</label>
-                            <input type="text" id="gh-sync-branch" placeholder="main" class="w-full border border-slate-700 rounded px-2.5 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-semibold text-slate-400 mb-1">파일 경로</label>
-                            <input type="text" id="gh-sync-path" placeholder="data/backup.json" class="w-full border border-slate-700 rounded px-2.5 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-semibold text-slate-400 mb-1">Personal Access Token</label>
-                            <input type="password" id="gh-sync-token" placeholder="ghp_..." class="w-full border border-slate-700 rounded px-2.5 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500">
-                        </div>
-                    </div>
-                    <p class="text-[9px] text-slate-500 mb-3">토큰은 <a href="https://github.com/settings/tokens" target="_blank" class="underline text-blue-400">github.com/settings/tokens</a>에서 "Fine-grained token" 발급 → 해당 저장소에 Contents 읽기/쓰기 권한만 부여하면 됩니다.</p>
-                    <div class="grid grid-cols-2 gap-2 mb-2">
-                        <button onclick="ghSyncTestConnection()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5"><i data-lucide="plug-zap" class="w-3.5 h-3.5"></i> 연결 테스트 / 설정 저장</button>
-                        <button onclick="ghSyncUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5"><i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> GitHub로 업로드</button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="ghSyncDownload('merge')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5"><i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 불러오기 (병합)</button>
-                        <button onclick="ghSyncDownload('overwrite')" class="bg-rose-900 hover:bg-rose-800 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5"><i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i> 불러오기 (덮어쓰기)</button>
-                    </div>
-                    <div id="gh-sync-status" class="text-[10px] text-slate-400 mt-2 min-h-[1.2em]"></div>
                 </div>
             </div>
 
-            <div class="flex justify-end px-6 pb-5">
+            <div class="flex justify-end px-5 pb-4">
                 <button onclick="closeBackupModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
             </div>
         </div>
@@ -4277,9 +4283,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '1.7';
+        const APP_VERSION = '2.1';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '전체 백업/복원 및 GitHub 동기화에 법인카드 경비 데이터 포함';
+        const APP_VERSION_NOTE = '법인카드: 미첨부 영수증만 보기 필터, 적격증빙(세금계산서 등) 구분·공제가능 표시 추가';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -5252,7 +5258,34 @@
                 rows.forEach(r => { if (r.id !== null) duplicateItemIds.add(r.id); });
             });
 
-            // 3) 대표자 불일치 검사 비활성화됨
+            // 3) 동일 금액 중복 입력 의심: 거래처/대표자가 달라도 공급가액이 완전히 같으면
+            //    복붙 실수·중복 입력 가능성으로 별도 경고 (0원 및 소액 왜곡 방지 위해 1만원 미만 제외)
+            const amtMap = {};
+            dataset.forEach(row => {
+                const amt = Number(row.supply);
+                if (!amt || amt < 10000) return;
+                if (!amtMap[amt]) amtMap[amt] = [];
+                amtMap[amt].push(row);
+            });
+            let amtDupCount = 0;
+            const amtChips = [];
+            Object.entries(amtMap).forEach(([amt, rows]) => {
+                if (rows.length < 2) return;
+                const vendorSet = new Set(rows.map(r => (r.vendor||'').trim()));
+                // 거래처+대표자까지 완전히 같은 건은 위 1)번 청구중복에서 이미 경고했으므로 제외
+                const ceoSet = new Set(rows.map(r => `${(r.vendor||'').trim()}_${normCeo(r.ceo)}`));
+                if (ceoSet.size === 1) return;
+                amtDupCount++;
+                rows.forEach(r => duplicateItemIds.add(r.id));
+                amtChips.push(
+                    `<span class="inline-block bg-orange-200 dark:bg-orange-900 text-orange-900 dark:text-orange-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help"
+                        title="${rows.map(r=>`${r.vendor||'(거래처 미기입)'} [${r.note||'적요없음'}]`).join(' / ')}">
+                        ${Number(amt).toLocaleString('ko-KR')}원 → ${vendorSet.size}개 거래처 ${rows.length}건
+                    </span>`
+                );
+            });
+
+            // 4) 대표자 불일치 검사 비활성화됨
             //    거래처명이 같더라도 대표자(ceo)가 다르면 별개의 거래처로 간주하여
             //    더 이상 중복 의심으로 플래그하지 않습니다.
             let ceoDupCount = 0;
@@ -5263,8 +5296,9 @@
             const banner   = document.getElementById('duplicate-alert-banner');
             const claimSec = document.getElementById('dup-section-claim');
             const accSec   = document.getElementById('dup-section-account');
+            const amtSec   = document.getElementById('dup-section-amount');
             const ceoSec   = document.getElementById('dup-section-ceo');
-            const hasAny   = claimCount > 0 || accDupCount > 0 || ceoDupCount > 0;
+            const hasAny   = claimCount > 0 || accDupCount > 0 || amtDupCount > 0 || ceoDupCount > 0;
 
             if (hasAny) {
                 banner.classList.remove('hidden');
@@ -5284,6 +5318,12 @@
                     document.getElementById('dup-account-msg').innerHTML = accMsg;
                     document.getElementById('dup-account-detail').innerHTML = accChips.join('');
                 } else { accSec.classList.add('hidden'); accSec.classList.remove('flex'); }
+
+                if (amtDupCount > 0) {
+                    amtSec.classList.remove('hidden'); amtSec.classList.add('flex');
+                    document.getElementById('dup-amount-msg').innerHTML = `동일 공급가액(1만원 이상) 반복 입력 <strong>${amtDupCount}건</strong> — 거래처가 다르더라도 금액이 완전히 같으면 복붙 실수를 의심해보세요.`;
+                    document.getElementById('dup-amount-detail').innerHTML = amtChips.join('');
+                } else { amtSec.classList.add('hidden'); amtSec.classList.remove('flex'); }
 
                 if (ceoDupCount > 0) {
                     ceoSec.classList.remove('hidden'); ceoSec.classList.add('flex');
@@ -13408,6 +13448,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             setCnt('dash-cnt-corpcard', cardRows.length);
             const specialItems = (typeof requestSpecialItems !== 'undefined') ? requestSpecialItems.filter(r=>r.empName) : [];
             setCnt('dash-cnt-special', specialItems.length);
+            try { setCnt('dash-cnt-contract', JSON.parse(localStorage.getItem(STD_ARCHIVE_KEY) || '[]').length); } catch(e) {}
 
             // 6) 현재 현장 정보
             const siteInfoEl = document.getElementById('dash-site-info');
@@ -13464,6 +13505,22 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (unregisteredVendors.length > 0) {
                     alerts.push(`<button onclick="switchTab('statement')" class="w-full flex items-center gap-2 bg-sky-50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300 rounded-lg px-3 py-2 text-left hover:bg-sky-100 dark:hover:bg-sky-950/40 transition-colors"><i data-lucide="user-x" class="w-3.5 h-3.5 shrink-0"></i><span>계좌 마스터 DB 미등록 거래처 <b>${unregisteredVendors.length}개사</b> 사용중</span></button>`);
                 }
+                // ── 건설기계임대차계약서 만료 임박 (D-14 이내, 이미 종료된 계약 제외) ──
+                try {
+                    const stdList = JSON.parse(localStorage.getItem(STD_ARCHIVE_KEY) || '[]');
+                    const todayZ = new Date(); todayZ.setHours(0,0,0,0);
+                    const soon = stdList.filter(item => {
+                        const end = item.form && item.form.leaseEnd ? new Date(item.form.leaseEnd) : null;
+                        if (!end || isNaN(end)) return false;
+                        const dday = Math.ceil((end - todayZ) / 86400000);
+                        return dday >= 0 && dday <= 14;
+                    }).sort((a,b) => new Date(a.form.leaseEnd) - new Date(b.form.leaseEnd));
+                    if (soon.length > 0) {
+                        const nearest = soon[0];
+                        const ddayNum = Math.ceil((new Date(nearest.form.leaseEnd) - todayZ) / 86400000);
+                        alerts.push(`<button onclick="switchTab('contract')" class="w-full flex items-center gap-2 bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 rounded-lg px-3 py-2 text-left hover:bg-orange-100 dark:hover:bg-orange-950/40 transition-colors"><i data-lucide="calendar-clock" class="w-3.5 h-3.5 shrink-0"></i><span>건설기계 임대차계약 만료 임박 <b>${soon.length}건</b> (가장 임박: ${nearest.title} D-${ddayNum})</span></button>`);
+                    }
+                } catch(e) { /* 계약 데이터 없음 — 무시 */ }
                 if (!alerts.length) {
                     alerts.push(`<div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg px-3 py-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i><span>확인이 필요한 항목이 없습니다.</span></div>`);
                 }
@@ -14328,6 +14385,19 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             return `<span style="background:${c.bg};color:${c.text};border:1px solid ${c.border};padding:1px 7px;border-radius:20px;font-weight:700;font-size:10px;white-space:nowrap;">${cat}</span>`;
         }
 
+        /* 적격증빙 구분 배지 — 공제가능/불가/미확인 3단계 색상 */
+        const CC_PROOF_LABELS = {
+            taxinvoice: '세금계산서', cashreceipt: '현금영수증', cardslip: '카드전표', simple: '간이영수증', none: '증빙없음'
+        };
+        function ccProofBadge(type) {
+            if (!type) return `<span class="inline-block bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-[9px] font-bold px-1.5 py-0.5 rounded">미확인</span>`;
+            const deductible = ['taxinvoice','cashreceipt','cardslip'].includes(type);
+            const cls = deductible
+                ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300'
+                : 'bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-300';
+            return `<span class="inline-block ${cls} text-[9px] font-bold px-1.5 py-0.5 rounded" title="${deductible ? '매입세액 공제 가능' : '매입세액 공제 불가'}">${CC_PROOF_LABELS[type]||type}</span>`;
+        }
+
         /* 금액 포맷 */
         function ccFmt(n) { return Number(n||0).toLocaleString('ko-KR') + '원'; }
         function ccFmtShort(n) {
@@ -14343,6 +14413,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const cat    = document.getElementById('cc-filter-cat')?.value   || '';
             const site   = document.getElementById('cc-filter-site')?.value  || '';
             const search = (document.getElementById('cc-filter-search')?.value || '').trim().toLowerCase();
+            const noReceiptOnly = !!document.getElementById('cc-filter-noreceipt')?.checked;
+            const noProofOnly   = !!document.getElementById('cc-filter-noproof')?.checked;
             return ccData.filter(r => {
                 if (month  && !(r.date||'').startsWith(month))  return false;
                 if (cat    && r.cat !== cat)                     return false;
@@ -14351,6 +14423,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     (r.merchant||'').toLowerCase().includes(search) ||
                     (r.memo||'').toLowerCase().includes(search)
                 )) return false;
+                if (noReceiptOnly && r.receipt) return false;
+                if (noProofOnly && r.proofType) return false;
                 return true;
             });
         }
@@ -14644,7 +14718,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!tbody) return;
 
             if (!filteredSorted.length) {
-                tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
                 if (tfoot) tfoot.innerHTML = '';
             } else {
                 let totalAmt = 0;
@@ -14659,6 +14733,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
                         <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
                         <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
+                        <td class="px-2 py-2 text-center">${ccProofBadge(r.proofType)}</td>
                         <td class="px-2 py-2 text-center">
                             ${r.receipt ? `<button onclick="ccViewReceipt('${r.id}')" class="no-print p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30" title="영수증 보기"><i data-lucide="receipt" class="w-4 h-4"></i></button><span class="text-emerald-600 font-bold text-[11px]">✓</span>` : '<span class="text-slate-300 text-[10px]">-</span>'}
                         </td>
@@ -14706,6 +14781,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-modal-title').textContent = '법인카드 내역 추가';
             document.getElementById('cc-edit-date').value = new Date().toISOString().slice(0,10);
             document.getElementById('cc-edit-cat').value = '유류비';
+            document.getElementById('cc-edit-prooftype').value = '';
             document.getElementById('cc-edit-merchant').value = '';
             document.getElementById('cc-edit-amount').value = '';
             document.getElementById('cc-edit-site').value = '';
@@ -14727,6 +14803,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-modal-title').textContent = '법인카드 내역 수정';
             document.getElementById('cc-edit-date').value = r.date||'';
             document.getElementById('cc-edit-cat').value = r.cat||'기타';
+            document.getElementById('cc-edit-prooftype').value = r.proofType||'';
             document.getElementById('cc-edit-merchant').value = r.merchant||'';
             document.getElementById('cc-edit-amount').value = r.amount||'';
             document.getElementById('cc-edit-site').value = r.site||'';
@@ -14742,6 +14819,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         function ccSaveModal() {
             const date     = document.getElementById('cc-edit-date').value;
             const cat      = document.getElementById('cc-edit-cat').value;
+            const proofType = document.getElementById('cc-edit-prooftype').value;
             const merchant = document.getElementById('cc-edit-merchant').value.trim();
             const amount   = Number(document.getElementById('cc-edit-amount').value) || 0;
             const site     = document.getElementById('cc-edit-site').value.trim();
@@ -14758,9 +14836,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const existingId = document.getElementById('cc-edit-id').value;
             if (existingId) {
                 const idx = ccData.findIndex(r=>r.id===existingId);
-                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, merchant, amount, site, memo, receipt, receiptType, receiptName };
+                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName };
             } else {
-                ccData.push({ id: 'cc-' + Date.now(), date, cat, merchant, amount, site, memo, receipt, receiptType, receiptName });
+                ccData.push({ id: 'cc-' + Date.now(), date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName });
             }
             // 날짜 정렬
             ccData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -14911,6 +14989,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         function ccClearFilters() {
             const ids = ['cc-filter-month','cc-filter-cat','cc-filter-site','cc-filter-search'];
             ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+            ['cc-filter-noreceipt','cc-filter-noproof'].forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
             ccRender();
         }
 
@@ -14927,11 +15006,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 '금액': Number(r.amount||0),
                 '현장': r.site||'',
                 '메모': r.memo||'',
+                '적격증빙': CC_PROOF_LABELS[r.proofType] || '미확인',
                 '증빙영수증': r.receipt ? '첨부됨' : ''
             }));
             const ws = XLSX.utils.json_to_sheet(rows);
             ws['!cols'] = [
-                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:40},{wch:10}
+                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:40},{wch:12},{wch:10}
             ];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '법인카드경비');
