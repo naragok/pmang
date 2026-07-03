@@ -1805,17 +1805,17 @@
                             style="font-size:clamp(1.1rem,3vw,1.6rem);">
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border p-3" style="background:#f8fafc;border-color:#e2e8f0;">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded" style="background:#e0e7ff;color:#3730a3;width:50px;text-align:center;">현장명</span>
+                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300" style="width:50px;text-align:center;">현장명</span>
                             <input type="text" id="meta-site" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded" style="background:#dcfce7;color:#166534;width:50px;text-align:center;">작성월</span>
+                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300" style="width:50px;text-align:center;">작성월</span>
                             <input type="text" id="meta-month" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded" style="background:#fef3c7;color:#92400e;width:50px;text-align:center;">회사명</span>
+                            <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300" style="width:50px;text-align:center;">회사명</span>
                             <input type="text" id="meta-company" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
                     </div>
@@ -4242,9 +4242,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '1.4';
+        const APP_VERSION = '1.5';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '지불의뢰서 등 인쇄/PDF 출력 시 다크모드 자동 해제 기능 추가';
+        const APP_VERSION_NOTE = '자금청구명세서 상단 현장명/작성월/회사명 정보 바 다크모드 미적용 수정';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
