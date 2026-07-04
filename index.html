@@ -882,7 +882,6 @@
         .dark [style*="background:#fff;"]                   { background:#1e293b !important; color:#e2e8f0; }
         .dark [style*="background:#f8fafc;"]                { background:#1e293b !important; }
         .dark [style*="background:linear-gradient(135deg,#f8fafc,#f1f5f9)"] { background:linear-gradient(135deg,#1e293b,#243244) !important; }
-        .dark [style*="background:#fff;border-color:#e2e8f0;color:#334155"] { border-color:#334155 !important; color:#e2e8f0 !important; }
         .dark [style*="border-color:#e2e8f0"]               { border-color:#334155 !important; }
 
         /* ── 상태 칩 ── */
@@ -1105,7 +1104,7 @@
                         현장 자금관리 마스터
                         <span id="app-version-badge" class="text-white font-black px-1.5 py-0.5 rounded" style="font-size:8px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);letter-spacing:0.05em;" title="내용 변경 시 자동 반영되는 버전 번호">PRO V1.0</span>
                     </h1>
-                    <p class="block" style="font-size:9px;color:#64748b;">백업강화 · 현장별 관리 · 인쇄 미리보기</p>
+                    <p class="block text-[9px] text-slate-500 dark:text-slate-400">백업강화 · 현장별 관리 · 인쇄 미리보기</p>
                 </div>
             </div>
 
@@ -1246,7 +1245,7 @@
 
             <div class="flex items-center justify-between px-3 py-2.5" style="border-bottom:1px solid rgba(255,255,255,0.07);">
                 <span id="sidebar-label" class="text-[10px] font-bold tracking-widest uppercase" style="color:#475569;">메뉴</span>
-                <button onclick="toggleSidebar()" class="rounded-md p-1 transition-colors hover:bg-white/10" title="메뉴 접기/펼치기" style="color:#64748b;">
+                <button onclick="toggleSidebar()" class="rounded-md p-1 transition-colors hover:bg-white/10 text-slate-500 dark:text-slate-400" title="메뉴 접기/펼치기">
                     <i id="sidebar-toggle-icon" data-lucide="panel-left-close" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -1773,7 +1772,7 @@
                                 <option value="py-2" selected>기본</option>
                                 <option value="py-3">여유</option>
                             </select>
-                            <label class="flex items-center gap-1 text-[10px] font-bold cursor-pointer" style="color:#64748b;">
+                            <label class="flex items-center gap-1 text-[10px] font-bold cursor-pointer text-slate-500 dark:text-slate-400">
                                 <input type="checkbox" id="statement-guide-toggle" onchange="toggleStatementGuide(this.checked)" class="w-3.5 h-3.5 rounded" style="accent-color:#059669;">
                                 인쇄가이드
                             </label>
@@ -1840,14 +1839,14 @@
                 </div>
 
                 <div class="no-print mb-4 flex flex-col sm:flex-row gap-3 justify-between items-center rounded-xl border p-3" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-color:#e2e8f0;">
-                    <div class="flex items-center gap-2 text-xs" style="color:#64748b;">
+                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <span class="font-bold px-2 py-1 rounded text-[10px]" style="background:#e0e7ff;color:#3730a3;">정렬 우선순위</span>
                         <span>외주비 → 자재비 → 장비비 → 노무비 → 관리비</span>
                     </div>
 
                     <div class="flex items-center gap-2">
                         <div class="flex items-center border rounded-lg p-1" style="background:#fff;border-color:#e2e8f0;">
-                            <span class="text-xs font-bold px-2" style="color:#64748b;">표시 단위</span>
+                            <span class="text-xs font-bold px-2 text-slate-500 dark:text-slate-400">표시 단위</span>
                             <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="background:#2563eb;color:#fff;">원</button>
                             <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="color:#64748b;">천원</button>
                         </div>
@@ -4285,7 +4284,7 @@
         // ══════════════════════════════════════════════════════
         const APP_VERSION = '2.1';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '법인카드: 미첨부 영수증만 보기 필터, 적격증빙(세금계산서 등) 구분·공제가능 표시 추가';
+        const APP_VERSION_NOTE = '법인카드: 미첨부 영수증만 보기 필터, 적격증빙(세금계산서 등) 구분·공제가능 표시 추가 (+코드 정리: 중복 CSS 규칙 제거, 정적 다크모드 색상 5곳 클래스 전환)';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
