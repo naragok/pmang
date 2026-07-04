@@ -2157,9 +2157,6 @@
                     <button onclick="quickRegisterCurrentVendorToDb()" class="qbtn" style="--qc:#334155;">
                         <i data-lucide="database-backup" class="w-3.5 h-3.5" style="color:#34d399;"></i><span>계좌 DB 등록</span>
                     </button>
-                    <button onclick="switchTab('request-special')" class="qbtn" style="--qc:#92400e;">
-                        <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i><span>특고 신고</span>
-                    </button>
 
                     <div class="border-t border-slate-700"></div>
 
@@ -2174,13 +2171,6 @@
                         <i data-lucide="history" class="w-3.5 h-3.5"></i>
                         <span>이력 조회</span>
                         <span id="req-hist-badge" class="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold hidden"></span>
-                    </button>
-
-                    <div class="border-t border-slate-700"></div>
-
-                    <div class="text-[9px] font-black tracking-widest uppercase px-0.5" style="color:#475569;">거래처</div>
-                    <button onclick="toggleAccountModal()" class="qbtn" style="--qc:#0369a1;">
-                        <i data-lucide="building-2" class="w-3.5 h-3.5"></i><span>거래처DB</span>
                     </button>
                 </div>
                 <style>
@@ -4282,9 +4272,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '2.1';
+        const APP_VERSION = '2.4';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '법인카드: 미첨부 영수증만 보기 필터, 적격증빙(세금계산서 등) 구분·공제가능 표시 추가 (+코드 정리: 중복 CSS 규칙 제거, 정적 다크모드 색상 5곳 클래스 전환)';
+        const APP_VERSION_NOTE = '특고 신고: "행 추가"로 만든 신규 인원이 저장 안 되던 버그 수정 (dataset 연동), 삭제 시 연동행도 함께 삭제';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -8722,11 +8712,31 @@ function changePrintScale(value) {
         }
 
         function addSpecialItemRow() {
-            requestSpecialItems.push({ datasetId: null, empName: "", empRrn: "", workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0 });
+            // ★ 버그 수정: datasetId 없이 화면에만 추가하면 syncSpecialItemToDataset()이
+            //   아무 것도 못 찾아 저장이 안 되고 새로고침 시 사라졌음.
+            //   dataset에도 실제 행(장비비/특고)을 함께 생성해 즉시 연결한다.
+            const newId = genDatasetId();
+            dataset.push({
+                id: newId, type: '장비비', vendor: '', ceo: '',
+                supply: 0, tax: 0, deduction: 0, prepaid: 0,
+                bank: '', account: '', holder: '', phone: '', biznum: '',
+                status: '대기', note: '특고(일용) 인적용역',
+                empName: '', empRrn: '', workDays: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0
+            });
+            requestSpecialItems.push({ datasetId: newId, empName: "", empRrn: "", workDays: 0, supply: 0, remun: 0, empInsur: 0, accInsur: 0, extra: 0 });
+            saveToLocalStorage();
+            renderStatementTable();
             renderRequestSpecialTable();
         }
 
         function deleteSpecialItemRow(index) {
+            const item = requestSpecialItems[index];
+            if (item && item.datasetId) {
+                if (!confirm('이 특고 인원을 삭제하면 연결된 자금청구명세서 항목도 함께 삭제됩니다.\n계속하시겠습니까?')) return;
+                dataset = dataset.filter(r => r.id !== item.datasetId);
+                saveToLocalStorage();
+                renderStatementTable();
+            }
             requestSpecialItems = requestSpecialItems.filter((_, i) => i !== index);
             renderRequestSpecialTable();
         }
@@ -11484,14 +11494,18 @@ SHEET_OVERRIDES
         /* ── worksheet XML 생성 ── */
         function buildXlsxSheet(rows, ss, merges=[], colWidths=[]) {
             const cells = [];
+            let maxCol = 0;
             rows.forEach((row, ri) => {
                 if (!row || !row.length) return;
                 const rowCells = [];
+                let rowSi = null;
                 row.forEach((cell, ci) => {
                     if (cell === null || cell === undefined || cell === '') return;
                     const ref = xlsxRef(ri, ci);
                     const si  = typeof cell.v === 'number' ? cell.si ?? XSI.DEFAULT : cell.si ?? XSI.DEFAULT;
+                    if (rowSi === null) rowSi = si; // 행의 첫 셀 스타일로 행 높이 결정
                     const val = cell.v ?? cell;
+                    if (ci > maxCol) maxCol = ci;
                     if (typeof val === 'number') {
                         rowCells.push(`<c r="${ref}" s="${si}" t="n"><v>${val}</v></c>`);
                     } else {
@@ -11499,7 +11513,9 @@ SHEET_OVERRIDES
                     }
                 });
                 if (rowCells.length) {
-                    cells.push(`<row r="${ri+1}" customHeight="1" ht="18">${rowCells.join('')}</row>`);
+                    // 제목 행은 크게, 섹션 헤더 행은 중간, 일반 행은 기본 높이로 — 화면 인쇄본과 동일한 시각적 위계
+                    const ht = rowSi === XSI.TITLE ? 32 : (rowSi === XSI.SEC_HEAD ? 22 : 18);
+                    cells.push(`<row r="${ri+1}" customHeight="1" ht="${ht}">${rowCells.join('')}</row>`);
                 }
             });
 
@@ -11509,15 +11525,22 @@ SHEET_OVERRIDES
             const colSxml = colWidths.length
                 ? `<cols>${colWidths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : '';
 
-            return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            const lastRow = rows.length;
+            const lastColRef = xlsxRef(0, maxCol).replace(/\d+$/,'');
+            const printArea = `A1:${lastColRef}${lastRow}`;
+
+            return { xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheetViews><sheetView workbookViewId="0"><selection activeCell="A1"/></sheetView></sheetViews>
+<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+<sheetViews><sheetView workbookViewId="0" showGridLines="0"><selection activeCell="A1"/></sheetView></sheetViews>
 ${colSxml}
 <sheetData>${cells.join('')}</sheetData>
 ${mergeSxml}
-<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
-</worksheet>`;
+<printOptions gridLines="0"/>
+<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>
+<pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0" horizontalDpi="300" verticalDpi="300"/>
+</worksheet>`, printArea };
         }
 
         /* ── c() 헬퍼: 값 + 스타일 인덱스 객체 생성 ── */
@@ -11651,17 +11674,28 @@ ${mergeSxml}
             // sheets: [{name, rows, merges, colWidths}]
             const ss = new SharedStrings();
 
-            const sheetXmls = sheets.map(sh => buildXlsxSheet(sh.rows, ss, sh.merges||[], sh.colWidths||[]));
+            const built = sheets.map(sh => buildXlsxSheet(sh.rows, ss, sh.merges||[], sh.colWidths||[]));
+            const sheetXmls = built.map(b => b.xml);
             const ssXml = ss.xml();
 
             const sheetRels = sheets.map((sh,i) => ({
                 id:`rId${i+1}`, name:sh.name, sheetId:`${i+1}`, target:`sheets/sheet${i+1}.xml`
             }));
 
+            // 시트별 인쇄 영역을 워크북 정의된 이름으로 등록 (Excel에서 바로 인쇄해도 서식이 맞도록)
+            const toAbsRange = (ref) => { // "A1:F34" → "$A$1:$F$34"
+                const m = ref.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/);
+                return m ? `$${m[1]}$${m[2]}:$${m[3]}$${m[4]}` : ref;
+            };
+            const definedNamesXml = built.map((b,i) => b.printArea
+                ? `<definedName name="_xlnm.Print_Area" localSheetId="${i}">'${sheets[i].name.replace(/'/g,"''")}'!${toAbsRange(b.printArea)}</definedName>`
+                : '').join('');
+
             const wbXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <sheets>${sheetRels.map(s=>`<sheet name="${s.name}" sheetId="${s.sheetId}" r:id="${s.id}"/>`).join('')}</sheets>
+${definedNamesXml ? `<definedNames>${definedNamesXml}</definedNames>` : ''}
 </workbook>`;
 
             const wbRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
