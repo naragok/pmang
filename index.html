@@ -3174,6 +3174,16 @@
                             </button>
                         </div>
                     </div>
+                    <details class="mt-2">
+                        <summary class="text-[10px] font-bold text-sky-600 dark:text-sky-400 cursor-pointer select-none">📋 여러 명 한번에 붙여넣기로 등록 (엑셀에서 복사)</summary>
+                        <div class="mt-2 space-y-1.5">
+                            <p class="text-[9px] text-slate-400 leading-relaxed">엑셀에서 <b>이름 / 주민등록번호 / 연락처</b> 순서의 열을 선택해 복사한 뒤 아래에 붙여넣으세요. (탭·쉼표 구분 모두 인식, 이름만 있어도 등록됩니다)</p>
+                            <textarea id="ddb-bulk-paste" rows="4" placeholder="홍길동	900101-1234567	010-1234-5678&#10;김철수	850505-1234567	010-2222-3333" class="w-full px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-sky-500 resize-none"></textarea>
+                            <button onclick="ddbBulkAdd()" class="w-full bg-sky-100 hover:bg-sky-200 dark:bg-sky-900/40 dark:hover:bg-sky-900/70 text-sky-700 dark:text-sky-300 text-xs font-bold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1 border border-sky-300 dark:border-sky-700">
+                                <i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i> 붙여넣은 내용 일괄 등록
+                            </button>
+                        </div>
+                    </details>
                 </div>
                 <!-- DB 목록 -->
                 <div class="flex-1 overflow-y-auto px-5 py-3">
@@ -4272,9 +4282,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '2.4';
+        const APP_VERSION = '2.6';
         const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '특고 신고: "행 추가"로 만든 신규 인원이 저장 안 되던 버그 수정 (dataset 연동), 삭제 시 연동행도 함께 삭제';
+        const APP_VERSION_NOTE = '대시보드 자금청구명세서·지불의뢰서 등 0건 표시 버그 수정 (renderDashboard 내 미선언 변수로 인한 함수 중단)';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -6210,6 +6220,44 @@
             ddbRender();
             showToast(`[${name}] 운전원이 거래처마스터DB에 등록되었습니다.`);
         }
+
+        /* 붙여넣기(엑셀 복사) 일괄 등록 — 줄바꿈으로 인원 구분, 탭/쉼표로 이름·주민번호·연락처 구분 */
+        function ddbBulkAdd() {
+            const raw = document.getElementById('ddb-bulk-paste')?.value || '';
+            const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+            if (!lines.length) { showToast('붙여넣을 내용이 없습니다.'); return; }
+
+            const existing = ddbLoad();
+            let added = 0, skipped = 0, invalid = 0;
+            lines.forEach(line => {
+                const cols = line.split(/\t|,/).map(c => c.trim());
+                const name  = cols[0] || '';
+                const rrn   = cols[1] || '';
+                const phone = cols[2] || '';
+                if (!name) { invalid++; return; }
+                if (existing.some(d => d.vendor === name && d.rrn === rrn) ||
+                    accountDb.some(a => a.type === 'driver' && a.vendor === name && a.rrn === rrn)) {
+                    skipped++; return;
+                }
+                accountDb.push({
+                    id: genAccountDbId(), type: 'driver',
+                    vendor: name, holder: name, ceo: '',
+                    bank: '', account: '', biznum: '',
+                    phone, rrn,
+                });
+                added++;
+            });
+
+            saveToLocalStorage();
+            document.getElementById('ddb-bulk-paste').value = '';
+            ddbRender();
+
+            let msg = `운전원 ${added}명 일괄 등록 완료!`;
+            if (skipped) msg += ` (중복 ${skipped}건 제외)`;
+            if (invalid) msg += ` (이름 없음 ${invalid}건 무시)`;
+            showToast(msg);
+        }
+
         function ddbDelete(id) {
             const target = accountDb.find(a => a.id === id && a.type === 'driver');
             const name = target?.vendor || '';
@@ -13440,6 +13488,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (typeof ccLoad === 'function') { ccData = ccLoad(); }
 
             // 1) 자금청구명세서 — 현재 로드된 문서(dataset) 기준 청구액 합계
+            const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
             const claimRows = (typeof dataset !== 'undefined') ? dataset : [];
             const claimTotal = claimRows.reduce((s,r) => s + (Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)), 0);
             const elClaim = document.getElementById('dash-total-claim');
