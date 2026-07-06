@@ -46,7 +46,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
         body {
             font-family: 'Noto Sans KR', sans-serif;
             background-color: #f8fafc;
@@ -118,6 +118,30 @@
                 text-shadow: none !important;
                 box-shadow: none !important;
             }
+
+            /* ★ 버그 수정: 건설기계임대차계약서는 위 전역 규칙 때문에 화면에서 보이는
+               연한 회색 헤더 배경(bg-slate-50/100/200)과 진한 테두리(border-black)가
+               인쇄 시 전부 흰 배경·회색(#94a3b8) 테두리로 뭉개져서 화면과 다르게 나오고,
+               특히 임대인/임차인 서명란처럼 테두리가 많은 부분은 연한 회색 테두리가
+               얇아 보여 선이 끊긴 것처럼 보였음. #contract-std-print-wrapper 범위에서만
+               원래 화면 색상을 복원한다. (다른 문서의 다크모드 인쇄 방지 효과는 유지)
+            */
+            #contract-std-print-wrapper table,
+            #contract-std-print-wrapper th,
+            #contract-std-print-wrapper td,
+            #contract-std-print-wrapper div,
+            #contract-std-print-wrapper span {
+                border-color: #000000 !important;
+            }
+            #contract-std-print-wrapper .bg-slate-50  { background: #f8fafc !important; }
+            #contract-std-print-wrapper .bg-slate-100 { background: #f1f5f9 !important; }
+            #contract-std-print-wrapper .bg-slate-200 { background: #e2e8f0 !important; }
+            #contract-std-print-wrapper .text-slate-400 { color: #94a3b8 !important; }
+            #contract-std-print-wrapper .text-slate-500 { color: #64748b !important; }
+            #contract-std-print-wrapper .text-slate-600 { color: #475569 !important; }
+            #contract-std-print-wrapper .text-slate-700 { color: #334155 !important; }
+            #contract-std-print-wrapper .text-slate-800 { color: #1e293b !important; }
+            #contract-std-print-wrapper .text-slate-900 { color: #0f172a !important; }
             body {
                 font-size: 11px !important;
                 display: block !important;   /* flex 해제 — 콘텐츠가 페이지 상단에서 시작 */
@@ -483,15 +507,39 @@
             cursor: crosshair;
         }
         @media print {
-            body.contract-std-printing > *:not(#contract-std-print-wrapper) {
-                display: none !important;
+            /* ★ 버그 수정: 기존엔 body 직계 자식만 숨기는 방식이라, 실제 인쇄 대상인
+               #contract-std-print-wrapper가 body 직계 자식이 아니어서(중첩된 하위 요소)
+               조상째로 display:none 처리되어 빈 페이지가 출력되던 문제가 있었음.
+               display 대신 visibility를 사용하면 하위 요소에서 다시 visible로
+               되돌릴 수 있어 안전하게 동작한다. */
+            body.contract-std-printing * {
+                visibility: hidden !important;
+            }
+            body.contract-std-printing #contract-std-print-wrapper,
+            body.contract-std-printing #contract-std-print-wrapper * {
+                visibility: visible !important;
             }
             body.contract-std-printing #contract-std-print-wrapper {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
                 display: block !important;
+            }
+            /* ★ 버그 수정: 문서를 감싸는 화면용 스크롤 래퍼(overflow-y-auto, max-height:85vh)가
+               인쇄 시에도 그대로 남아있어 스크롤바가 PDF/인쇄물에 찍혀 나오던 문제.
+               인쇄 중엔 스크롤 제약을 완전히 풀어준다. */
+            body.contract-std-printing #contract-std-print-wrapper > * {
+                overflow: visible !important;
+                max-height: none !important;
+                background: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
             }
             #contract-std-print-wrapper .std-print-container {
                 display: block !important;
-                width: 210mm !important;
+                width: 100% !important;
                 min-height: 297mm !important;
                 height: 297mm !important;
                 max-height: 297mm !important;
@@ -504,18 +552,25 @@
                 page-break-after: always !important;
                 overflow: hidden !important;
             }
-            #contract-std-print-wrapper .std-print-page2 {
+            /* ★ 버그 수정: 기존엔 hidden 클래스 여부와 무관하게 display:block !important를
+               강제해서 "약관 포함 인쇄" 체크박스를 꺼도 약관 페이지가 항상 인쇄됐음.
+               :not(.hidden)을 붙여 체크박스로 hidden이 걸린 상태에선 그대로 숨겨지게 함. */
+            #contract-std-print-wrapper .std-print-page2:not(.hidden) {
                 display: block !important;
-                width: 210mm !important;
+                width: 100% !important;
                 min-height: 297mm !important;
-                height: 297mm !important;
                 padding: 15mm 18mm !important;
                 margin: 0 auto !important;
                 box-sizing: border-box !important;
                 page-break-before: always !important;
-                page-break-inside: avoid !important;
-                overflow: hidden !important;
                 background: #ffffff !important;
+            }
+            /* ★ 버그 수정: 일반조건 전문(13개 조항)은 1페이지 분량을 넘을 수 있어
+               기존의 height:297mm + overflow:hidden 고정 방식은 뒷부분이 잘려서
+               인쇄되지 않는 문제가 있었음. 자연스럽게 다음 페이지로 흐르도록
+               높이 고정과 overflow 제한을 제거함. */
+            #contract-std-print-wrapper .std-print-page2 p {
+                page-break-inside: avoid !important;
             }
         }
         /* ══════════════════════════════════════════════
@@ -564,7 +619,7 @@
         }
 
         /* 사이드바 탭 버튼 PC 여유 높이 */
-        .sidebar-tab-btn { padding-top: 10px !important; padding-bottom: 10px !important; }
+        .sidebar-tab-btn { padding-top: 7px !important; padding-bottom: 7px !important; }
         #app-sidebar.sidebar-collapsed .sidebar-tab-btn { padding: 12px 0 !important; }
 
         /* 인쇄 시 원복 */
@@ -1270,7 +1325,7 @@
                     class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">2</span>
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
-                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">자금청구<br>명세서</span>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">청구명세서</span>
                 </button>
 
                 <button id="tab-btn-request" onclick="switchTab('request')"
@@ -1284,7 +1339,7 @@
                     class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">4</span>
                     <i data-lucide="credit-card" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
-                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">법인카드<br>경비관리</span>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">법인카드</span>
                 </button>
 
                 <button id="tab-btn-request-special" onclick="switchTab('request-special')"
@@ -1298,7 +1353,7 @@
                     class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">6</span>
                     <i data-lucide="file-signature" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
-                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">건설기계<br>임대차계약서</span>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">임대차계약</span>
                 </button>
 
             </div>
@@ -1487,6 +1542,30 @@
                 </button>
             </div>
 
+            <div id="dash-dup-banner" class="hidden mb-4 rounded-xl shadow-sm border overflow-hidden">
+                <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 items-start gap-3">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <p class="text-xs font-extrabold text-rose-800 dark:text-rose-300">🔴 동일 계좌번호 다중 거래처 감지</p>
+                            <button onclick="openDupAccountDetailModal()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white transition-all">
+                                <i data-lucide="zoom-in" class="w-3 h-3"></i> 상세 확인
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5" id="dup-account-msg"></p>
+                        <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+                <div id="dup-section-amount" class="hidden bg-orange-50 dark:bg-orange-950/20 p-3 items-start gap-3">
+                    <i data-lucide="copy-x" class="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5 animate-pulse"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-extrabold text-orange-800 dark:text-orange-300">🟠 동일 금액 중복 입력 의심</p>
+                        <p class="text-[11px] text-orange-700 dark:text-orange-400 mt-0.5" id="dup-amount-msg"></p>
+                        <div id="dup-amount-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
@@ -1578,26 +1657,13 @@
                         <div id="dup-claim-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
-                <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 items-start gap-3">
-                    <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <p class="text-xs font-extrabold text-rose-800 dark:text-rose-300">🔴 동일 계좌번호 다중 거래처 감지</p>
-                            <button onclick="openDupAccountDetailModal()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white transition-all">
-                                <i data-lucide="zoom-in" class="w-3 h-3"></i> 상세 확인
-                            </button>
-                        </div>
-                        <p class="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5" id="dup-account-msg"></p>
-                        <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
-                    </div>
-                </div>
-                <div id="dup-section-amount" class="hidden bg-orange-50 dark:bg-orange-950/20 border-b border-orange-200 dark:border-orange-900 p-3 items-start gap-3">
-                    <i data-lucide="copy-x" class="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5 animate-pulse"></i>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-xs font-extrabold text-orange-800 dark:text-orange-300">🟠 동일 금액 중복 입력 의심</p>
-                        <p class="text-[11px] text-orange-700 dark:text-orange-400 mt-0.5" id="dup-amount-msg"></p>
-                        <div id="dup-amount-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
-                    </div>
+                <div id="dash-dup-quicklink" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-2.5">
+                    <button onclick="openDupQuickCheckModal()" class="w-full flex items-center justify-between gap-2 text-left">
+                        <span class="text-[11px] font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
+                            <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> 계좌/금액 중복 의심 항목이 있습니다 — 확인
+                        </span>
+                        <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
+                    </button>
                 </div>
                 <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 items-start gap-3">
                     <i data-lucide="user-x" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5 animate-pulse"></i>
@@ -1611,6 +1677,18 @@
                         <p class="text-[11px] text-purple-700 dark:text-purple-400 mt-0.5" id="dup-ceo-msg"></p>
                         <div id="dup-ceo-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
+                </div>
+            </div>
+
+            <div id="dup-quickcheck-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDupQuickCheckModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                        <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-500"></i> 계좌/금액 중복 의심 상세
+                        </p>
+                        <button onclick="closeDupQuickCheckModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="dup-quickcheck-body" class="p-4 max-h-[70vh] overflow-y-auto rounded-b-2xl"></div>
                 </div>
             </div>
 
@@ -2719,7 +2797,7 @@
                                         <td class="border border-black p-1.5 w-[25%]">현장 소재지</td>
                                         <td class="border border-black p-1.5 w-[15%]">발주자(원수급인)</td>
                                         <td class="border border-black p-1.5 w-[15%]">건설업자(임차인)</td>
-                                        <td class="border border-black p-1.5 w-[15%]">대금 지급보증</td>
+                                        <td class="border border-black p-1.5 w-[15%]">건설기계 대여대금<br>지급보증 여부</td>
                                         <td class="border border-black p-1.5 w-[10%]">비고</td>
                                     </tr></thead>
                                     <tbody><tr>
@@ -2745,7 +2823,7 @@
                                 <div class="border-2 border-black p-2 text-[10px] bg-slate-50">
                                     당금 <span id="std-vRentAmtKor" class="font-black text-blue-900 text-[10.5px]">일금 원정</span> <span id="std-vRentAmtNum" class="text-slate-700 font-bold ml-1">(￦)</span> (기준: <span id="std-vRentPayType" class="font-bold">-</span>)
                                     <span id="std-vTotalAmtBox" class="hidden"> / 총 금액: <span id="std-vTotalAmtKor" class="font-black text-emerald-900">일금 원정</span> <span id="std-vTotalAmtNum" class="text-slate-700 font-bold">(￦)</span></span>
-                                    <p class="text-slate-600 text-[8.5px] mt-0.5">(단, 부가가치세는 별도로 한다.)</p>
+                                    <p class="text-slate-600 text-[8.5px] mt-0.5">(단, 대여거래 중 정산요인이 발생한 경우 사후 정산, 부가가치세는 별도로 한다.)</p>
                                 </div>
                             </div>
 
@@ -2757,14 +2835,16 @@
                             </div>
 
                             <div class="mb-3">
-                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">5. 지급시기</h3>
+                                <h3 class="font-bold text-[11px] mb-1 text-slate-900">5. 지급시기(제6조 제2항이 적용되지 않는 경우 적용)</h3>
                                 <div class="border-2 border-black p-2 text-[9.5px] bg-slate-50">
-                                    • 1개월 초과 시: 매월 종료 후 (<span id="std-vPayOver" class="font-bold underline px-0.5">0</span>) 일 이내<br>
-                                    • 1개월 이하 시: 기간 종료 후 (<span id="std-vPayUnder" class="font-bold underline px-0.5">0</span>) 일 이내
+                                    ・대여기간이 1개월 초과하는 경우에는 매월 종료하는 날부터 (<span id="std-vPayOver" class="font-bold underline px-0.5">0</span>)일 이내<br>
+                                    ・대여기간이 1개월 이하인 경우에는 그 기간이 종료하는 날부터 (<span id="std-vPayUnder" class="font-bold underline px-0.5">0</span>)일 이내
                                 </div>
                             </div>
 
-                            <p class="mb-3 text-[9px] text-justify text-slate-800">건설기계임대인과 건설기계임차인은 합의에 따라 계약을 체결하고, 신의성실에 따라 의무를 이행할 것을 확약하며, 계약의 증거로 계약서를 2통 작성하여 서명 날인 후 각각 1부씩 보관한다.</p>
+                            <p class="mb-3 text-[9px] text-justify text-slate-800">건설기계임대인과 건설기계임차인은 합의에 따라 붙임서류에 의하여 계약을 체결하고, 신의에 따라 성실히 계약상의 의무를 이행할 것을 확약하며, 이 계약의 증거로 계약서를 2통 작성하여 서명・날인 후 각 1부씩 보관한다.</p>
+
+                            <p class="mb-3 text-[9px] text-slate-800">붙임서류 : 1. 건설기계임대차 표준계약 일반조건 1부<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. 건설기계임대차 계약 특수조건 1부(필요시)</p>
 
                             <div class="mb-4">
                                 <h3 class="font-bold text-[11px] mb-1 text-slate-900">■ 특약 사항</h3>
@@ -2786,8 +2866,10 @@
                                     <tr class="border-b-2 border-black">
                                         <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">성명(대표자)</td>
                                         <td class="border border-black px-2 relative">
-                                            <span id="std-vLessorName" class="font-black text-slate-900">-</span>
-                                            <span class="float-right text-slate-400 text-[8px] mr-1">(인)</span>
+                                            <div class="flex items-center justify-between">
+                                                <span id="std-vLessorName" class="font-black text-slate-900">-</span>
+                                                <span class="text-slate-400 text-[8px] mr-1">(인)</span>
+                                            </div>
                                             <div id="std-lessorSignOutput" class="absolute right-6 -top-2 w-10 h-10 pointer-events-none flex items-center justify-center"></div>
                                         </td>
                                         <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">주소(전화번호)</td>
@@ -2803,8 +2885,10 @@
                                     <tr class="border-b-2 border-black">
                                         <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">성명(대표자)</td>
                                         <td class="border border-black px-2 relative">
-                                            <span id="std-vLesseeName" class="font-black text-slate-900">-</span>
-                                            <span class="float-right text-slate-400 text-[8px] mr-1">(인)</span>
+                                            <div class="flex items-center justify-between">
+                                                <span id="std-vLesseeName" class="font-black text-slate-900">-</span>
+                                                <span class="text-slate-400 text-[8px] mr-1">(인)</span>
+                                            </div>
                                             <div id="std-lesseeSignOutput" class="absolute right-6 -top-2 w-10 h-10 pointer-events-none flex items-center justify-center"></div>
                                         </td>
                                         <td class="border border-black bg-slate-50 p-1.5 text-center font-bold text-slate-800">주소(전화번호)</td>
@@ -2821,21 +2905,30 @@
                             <span class="text-[7.5px] text-slate-500">제10059호 약관</span>
                         </div>
                         <div class="space-y-2 text-justify">
-                            <p><strong>제1조(총칙)</strong> 건설기계임대인(이하 "갑")과 건설기계임차인(이하 "을")은 대등한 입장에서 신의에 따라 성실히 계약을 이행한다.</p>
-                            <p><strong>제2조(사용기간)</strong> 사용기간은 계약서에 명시된 일자로 한다. 연장 시 "갑"과 "을"이 협의한다.</p>
-                            <p><strong>제3조(건설기계의 가동시간)</strong> ① 가동시간은 1일 8시간, 월 200시간 기준으로 한다. ② "갑" 귀책으로 기준 미달 시 대여대금 공제, "을" 귀책 시 기준시간 가동으로 간주한다. ③ 야간·초과 작업 요율은 관련법령을 적용한다.</p>
-                            <p><strong>제4조(대여대금 등)</strong> ① 대여대금은 계약서에 명시된 금액으로 한다. ② 조종사 급여, 기계손료가 포함된다. ③ 분해·조립 비용은 원칙적으로 "을"이 부담한다. ④ 천재지변 등 월 5일 이상 불가동 시 대여대금에서 차감한다.</p>
-                            <p><strong>제5조(경비 등의 부담)</strong> ① 유류비 및 운반비는 "을" 부담 원칙. ② 조종사 숙식, 소모품, 수선비 등은 상호 협의한다.</p>
-                            <p><strong>제6조(대여대금 지불조건)</strong> ① 1개월 초과 시 매월 종료 후, 1개월 이하 시 종료 후 각각 60일 이내 지불한다. ② "을"이 도급인으로부터 기성금을 받은 때는 수령 후 15일 이내 현금 지불한다. ③ "을" 체불 시 "갑"은 발주자에게 직접지급 요청할 수 있다.</p>
-                            <p><strong>제6조의2(지급보증)</strong> 임대차계약금액이 200만원 초과 시 "을"은 대금 지급보증서를 제공해야 한다.</p>
-                            <p><strong>제7조(전대 및 목적외 사용금지)</strong> "을"은 서면 합의 없이 기계를 전대하거나 계약 외 목적으로 사용할 수 없다.</p>
-                            <p><strong>제8조("갑"의 권리와 의무)</strong> ① "갑"은 장비 정상 가동을 위해 철저히 정비해야 한다. ② 보험증명·면허를 제공해야 한다. ③ 조종사 과실로 지장 초래 시 즉시 교체한다.</p>
-                            <p><strong>제9조("을"의 권리와 의무)</strong> ① "을"은 지하지장물 등 안전 수칙을 충분히 고지해야 한다. ② "갑"의 정기검사 수검을 보장해야 한다.</p>
-                            <p><strong>제10조(계약해제 및 해지)</strong> 일방이 조건 위반 시 서면 최고 후 해제한다. 5일 이상 수리 필요 시 합의 하에 즉시 해지할 수 있다.</p>
-                            <p><strong>제11조(분쟁해결)</strong> 합의 실패 시 건설분쟁조정위원회에 조정을 신청하거나 중재 요청한다.</p>
+                            <p><strong>제1조(총 칙)</strong> 건설기계임대인(이하 "갑"이라 한다)과 건설기계임차인(이하 "을"이라 한다)은 대등한 입장에서 서로 협력하여 신의에 따라 성실히 계약을 이행한다.</p>
+                            <p><strong>제2조(사용기간)</strong> 사용기간은 계약서에 명시된 일자로 한다. 다만, 사용기간을 연장하고자 하는 경우에는 "갑"과 "을"이 협의하여 연장할 수 있다.</p>
+                            <p><strong>제3조(건설기계의 가동시간)</strong> ① 건설기계의 가동시간은 1일 8시간, 월 200시간을 기준으로 한다. ② "갑"의 귀책사유로 인해 제1항의 기준시간에 미달한 경우에는 연장작업을 제공하거나 대여대금에서 이를 공제하고, "을"의 귀책사유로 인해 제1항의 기준시간에 미달하는 경우에는 기준시간을 가동한 것으로 간주한다. ③ 야간작업과 기준시간 초과 작업에 의한 시간당 대여대금은 주간작업에 의한 시간당 대여대금에 관련법령이 정한 시간당 건설기계 손료 및 건설기계조종사(조수 포함, 이하 같다) 임금을 다음의 산식에 적용하여 산출된 율을 곱하여 산정한 금액으로 하되, 별도 정산 처리한다. 다만, 야간작업시간에 대한 건설기계조종사의 인건비는 근로기준법 제56조 규정에 따른다.</p>
+                            <p class="text-center text-[7px] my-1">조정율 = {(시간당기계손료×8)+(건설기계조종사임금×1.5)} ÷ {(시간당기계손료×8)+(건설기계조종사임금×1.0)}</p>
+                            <p class="text-[7px] text-slate-600">* 건설기계의 시간당 손료 : 실적공사비 및 표준품셈 관리규정(국토해양부 훈령)에 따라 산출<br>* 건설기계 조종사 임금 : 통계법 제17조에 따라 대한건설협회가 발표</p>
+                            <p>④ 작업시간은 "갑"과 "을"이 서로 확인한 작업일보에 의한다.</p>
+                            <p><strong>제4조(대여대금 등)</strong> ① 대여대금은 계약서에 명시된 금액으로 한다. ② 제1항의 규정에 의한 대여대금에는 건설기계조종사의 급여액, 기계손료(상각비, 정비비 및 관리비)가 포함된 금액으로 한다. ③ 분해・조립비는 원칙적으로 "을"이 부담하되, 그 금액은 "갑"과 "을"이 합의하여 정한다. 다만, 제9조제2항, 제10조제2항에 규정된 갑의 책임있는 사유로 건설기계를 대체하거나 계약을 해지하는 경우에는 "갑"이 분해・조립비를 부담한다. ④ 1개월 이상 임차하는 경우로서 사용기간 중 건설기계의 고장, 천재지변 등으로 1개월 중 5일 이상 가동하지 못하였을 경우 당월 대여대금에서 공제한다.</p>
+                            <p><strong>제5조(경비 등의 부담)</strong> ① 건설기계 가동에 필요한 유류비 및 운반비는 "을"이 부담하는 것을 원칙으로 하되, 기종별, 현장여건을 고려 "갑"과 "을"이 합의하여 정한다. ② 건설기계조종사의 숙식제공, 소모품, 수선비 등 그 밖의 소요비용은 "갑"과 "을"이 합의하여 정한 바에 의한다.</p>
+                            <p><strong>제6조(대여대금 지불조건)</strong> ① "을"은 건설기계 대여기간이 1개월을 초과하는 경우에는 매월 종료하는 날부터, 대여기간이 1개월 이하인 경우에는 그 기간이 종료하는 날부터 각각 60일 이내의 가능한 짧은 기한으로 정한 지급기일까지 "갑"에게 대여대금을 지급하여야 한다. ② "을"은 "을"에게 건설공사를 도급(하도급을 포함한다)한 자(이하 "병"이라 한다)로부터 준공금을 받은 때에는 대여대금을, 기성금을 받은 때에는 건설기계를 임차하여 시공한 분에 상당하는 대여대금을 각각 지급받은 날(공사대금을 어음으로 받은 때에는 그 어음만기일을 말한다)부터 15일 이내에 "갑"에게 현금으로 지급하여야 한다. ③ "을"이 대여대금을 "갑"에게 지급하지 아니한 다음 각 호의 경우에는 "갑"은 "병"에게 대여대금의 직접지급을 요청할 수 있다.</p>
+                            <p class="pl-2">1. "병"과 "을"이 대여대금을 "갑"에게 직접지급 할 수 있다는 뜻과 그 지급의 방법・절차를 명백히 하여 합의한 경우<br>2. "갑"이 "을"을 상대로 "갑"이 시공한 분에 대한 대여대금의 지급을 명하는 확정 판결을 받은 경우<br>3. 국가・지방자체단체 또는 정부투자기관이 발주한 건설공사 중 "을"이 "갑"이 시공한 분의 대여대금을 1회 이상 지체한 경우<br>4. "을"의 파산 등으로 인하여 "을"이 "갑"의 대여대금을 지급할 수 없는 명백한 사유가 있다고 "병"이 인정하는 경우</p>
+                            <p>④ "병"은 다음 각 호의 경우에는 "갑"에게 대여대금을 직접 지급하여야 한다.</p>
+                            <p class="pl-2">1. "병"이 대여대금을 "갑"에게 직접 지급하기로 "갑", "을" 및 "병"이 그 뜻과 지급의 방법・절차를 명백히 하여 합의한 경우<br>2. "을"이 제2항의 규정에 의한 대여대금의 지급을 2회 이상 지체한 경우로서 "갑"이 "병"에게 대여대금의 직접지급을 요청한 경우<br>3. "을"의 지급정지·파산 그 밖에 이와 유사한 사유가 있거나 건설업의 등록 등이 취소되어 "을"이 대여대금을 지급할 수 없게 된 경우로서 "갑"이 "병"에게 하도급대금의 직접지급을 요청한 경우</p>
+                            <p>⑤ 제2항 내지 제4항에서 규정한 사항 이외의 사항에 대해서는 건설산업기본법 제32조 제4항에 따른다.</p>
+                            <p><strong>제6조의2(건설기계 대여대금 지급보증)</strong> "을"은 건설산업기본법 시행규칙 제34조의4의 규정에 따라 건설기계 대여계약 금액(분할계약 시 합산)이 200만원을 초과할 경우 "갑"에게 그 대금의 지급을 보증하는 보증서를 주어야 한다.</p>
+                            <p><strong>제7조(전대 및 사용목적 이외의 사용금지)</strong> ① "을"은 당해 건설기계를 임대차 목적 외로 사용하거나 타인에게 전대할 수 없다. ② "갑"은 이 계약으로부터 발생하는 권리 또는 의무를 제3자에게 양도하거나 처분할 수 없다. 다만, 상대방의 서면에 의한 승낙을 받았을 때에는 그러하지 아니하다.</p>
+                            <p><strong>제8조("갑"의 권리와 의무)</strong> ① "갑"은 건설기계가 정상적으로 가동될 수 있도록 예방정비를 철저히 하여야 한다. ② "갑"은 "을"의 요구가 있는 경우에는 건설기계등록증・보험(공제)가입증명서・건설기계조종사 면허증 등을 제시하여야 한다. ③ "갑"은 건설기계가 관계법령에 의하여 의무적으로 보험[자동차보험(건설기계공제) 또는 산재보험]에 가입하여야 하거나 정기검사 대상 건설기계인 경우에는 그 사실을 증명할 수 있는 증빙서류를 "을"에게 제시하여야 한다. ④ "갑"의 건설기계조종사는 "을"의 현장책임자의 지휘・감독에 따라 작업을 수행한다. 만일, "갑"의 건설기계조종사가 "을"의 현장책임자의 작업지시에 불응하거나 조종미숙, 태만으로 효율적 작업진행에 지장을 초래된다고 인정되어 "을"이 건설기계조종사 교체를 요구할 경우에는 "갑"은 "을"과 협의하여 교체하여야 한다.</p>
+                            <p><strong>제9조("을"의 권리와 의무)</strong> ① "을"은 현장내 지하매설물, 지상위험물 등에 대하여 건설기계조종사에게 작업전 충분히 고지하여야 하며, 건설기계가 안전하게 작업을 진행할 수 있도록 하여야 한다. ② "을"은 계약기간 중 "갑"의 건설기계가 정기검사 등에 해당하는 경우에는 "갑"이 그 검사 등을 받을 수 있도록 조치하여야 하며, "갑"은 검사기간이 1일을 초과하는 경우 계약조건과 동일한 장비로 대체하여 작업에 지장이 없도록 조치하여야 한다.</p>
+                            <p><strong>제10조(계약해제 및 해지)</strong> ① 당사자 일방이 계약조건을 위반하여 계약의 목적을 달성할 수 없다고 인정되는 경우에는 상대방은 서면으로 상당한 기간을 정하여 이행을 최고하고, 기한 내에 이행하지 아니하는 경우에는 계약을 해제 또는 해지할 수 있다. ② "을"은 "갑"의 건설기계가 5일 이상의 정비를 필요로 하는 경우 "갑"과 합의하여 계약을 해지할 수 있다. 다만, 동일한 건설기계를 대체하였을 경우에는 그러하지 아니한다.</p>
+                            <p><strong>제11조(분쟁의 해결)</strong> ① 이 계약서에 별도로 규정된 것을 제외하고는 계약에서 발생하는 문제에 관한 분쟁은 "갑"과 "을"이 쌍방의 합의에 의하여 해결한다. ② 제1항의 합의가 성립하지 못할 때에는 당사자는 건설산업기본법에 의하여 설치된 건설분쟁조정위원회에 조정을 신청하거나 다른 법령에 의하여 설치된 중재기관에 중재를 요청할 수 있다.</p>
+                            <p><strong>제12조(기타)</strong> 본 계약서에 명시하지 않은 사항에 대하여는 일반 상관례 및 제반 법률규정에 따라 처리하기로 한다.</p>
+                            <p><strong>제13조(특약사항)</strong> 기타 이 계약에서 정하지 아니한 사항에 대하여는 "갑"과 "을"이 합의하여 별도의 특약을 정할 수 있다.</p>
                         </div>
                         <div class="text-center border-t border-black pt-2 mt-4 text-[8px] font-bold text-slate-600">
-                            ※ 상세 일반조건 효력은 공정거래위원회 표준약관 제10059호 규정에 귀속됩니다.
+                            공정거래위원회 표준약관 제10059호 (2015.10.30. 개정)
                         </div>
                     </div>
                 </div>
@@ -4282,9 +4375,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '2.7';
-        const APP_VERSION_DATE = '2026-07-03';
-        const APP_VERSION_NOTE = '법인카드 전체보기 시 월별로 묶어서 소계와 함께 표시 (날짜순 정렬 상태에서만 적용)';
+        const APP_VERSION = '4.1';
+        const APP_VERSION_DATE = '2026-07-06';
+        const APP_VERSION_NOTE = '자금청구명세서의 계좌/금액 중복 확인 버튼이 대시보드 이동 대신 상세 항목을 모달로 바로 표시';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -5292,21 +5385,19 @@
             _dupCeoGroups = [];
 
             // ── 배너 렌더링 ──
-            const banner   = document.getElementById('duplicate-alert-banner');
-            const claimSec = document.getElementById('dup-section-claim');
-            const accSec   = document.getElementById('dup-section-account');
-            const amtSec   = document.getElementById('dup-section-amount');
-            const ceoSec   = document.getElementById('dup-section-ceo');
-            const hasAny   = claimCount > 0 || accDupCount > 0 || amtDupCount > 0 || ceoDupCount > 0;
+            const banner       = document.getElementById('duplicate-alert-banner');
+            const claimSec     = document.getElementById('dup-section-claim');
+            const quicklinkSec = document.getElementById('dash-dup-quicklink');
+            const ceoSec       = document.getElementById('dup-section-ceo');
+            const dashBanner   = document.getElementById('dash-dup-banner');
+            const accSec       = document.getElementById('dup-section-account');
+            const amtSec       = document.getElementById('dup-section-amount');
+            const hasAny       = claimCount > 0 || accDupCount > 0 || amtDupCount > 0 || ceoDupCount > 0;
+            const hasAccOrAmt  = accDupCount > 0 || amtDupCount > 0;
 
-            if (hasAny) {
-                banner.classList.remove('hidden');
-                if (claimCount > 0) {
-                    claimSec.classList.remove('hidden'); claimSec.classList.add('flex');
-                    document.getElementById('duplicate-alert-msg').innerHTML = `상호+공급가액 일치 이중청구 의심 <strong>${claimCount}건</strong>`;
-                    document.getElementById('dup-claim-detail').innerHTML = claimChips.join('');
-                } else { claimSec.classList.add('hidden'); claimSec.classList.remove('flex'); }
-
+            // ── 대시보드로 이동된 두 섹션(계좌/금액 중복) ──
+            if (hasAccOrAmt) {
+                dashBanner.classList.remove('hidden');
                 if (accDupCount > 0) {
                     accSec.classList.remove('hidden'); accSec.classList.add('flex');
                     const holderMismatchCount = Object.values(accMap)
@@ -5323,6 +5414,22 @@
                     document.getElementById('dup-amount-msg').innerHTML = `동일 공급가액(1만원 이상) 반복 입력 <strong>${amtDupCount}건</strong> — 거래처가 다르더라도 금액이 완전히 같으면 복붙 실수를 의심해보세요.`;
                     document.getElementById('dup-amount-detail').innerHTML = amtChips.join('');
                 } else { amtSec.classList.add('hidden'); amtSec.classList.remove('flex'); }
+            } else {
+                dashBanner.classList.add('hidden');
+                accSec.classList.add('hidden'); accSec.classList.remove('flex');
+                amtSec.classList.add('hidden'); amtSec.classList.remove('flex');
+            }
+
+            // ── 자금청구명세서 탭에는 청구중복·대표자불일치만 그대로, 계좌/금액은 안내 버튼만 ──
+            if (hasAny) {
+                banner.classList.remove('hidden');
+                if (claimCount > 0) {
+                    claimSec.classList.remove('hidden'); claimSec.classList.add('flex');
+                    document.getElementById('duplicate-alert-msg').innerHTML = `상호+공급가액 일치 이중청구 의심 <strong>${claimCount}건</strong>`;
+                    document.getElementById('dup-claim-detail').innerHTML = claimChips.join('');
+                } else { claimSec.classList.add('hidden'); claimSec.classList.remove('flex'); }
+
+                quicklinkSec.classList.toggle('hidden', !hasAccOrAmt);
 
                 if (ceoDupCount > 0) {
                     ceoSec.classList.remove('hidden'); ceoSec.classList.add('flex');
@@ -5334,6 +5441,22 @@
             } else {
                 banner.classList.add('hidden');
             }
+        }
+
+        // 자금청구명세서의 "계좌/금액 중복 확인" 버튼 — 대시보드로 이동하지 않고
+        // 대시보드 배너(dash-dup-banner)에 이미 렌더링된 내용을 그대로 복제해 모달로 표시
+        function openDupQuickCheckModal() {
+            const src = document.getElementById('dash-dup-banner');
+            const body = document.getElementById('dup-quickcheck-body');
+            if (!src || !body) return;
+            // 원본과 id가 중복되지 않도록 복제본에서는 id 속성을 제거한다
+            // (모달은 열람 시점의 스냅샷만 보여주면 되므로 id 참조가 필요 없음)
+            body.innerHTML = src.innerHTML.replace(/\sid="[^"]*"/g, '');
+            document.getElementById('dup-quickcheck-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeDupQuickCheckModal() {
+            document.getElementById('dup-quickcheck-modal').classList.add('hidden');
         }
 
         function showDuplicateToast() {
@@ -6862,6 +6985,28 @@
                 return (a.ceo || "").localeCompare(b.ceo || "", 'ko-KR');
             });
 
+            // ★ 구분별 소계 행 삽입 준비 (기본 정렬 - 구분별 그룹 순서일 때만 의미가 있음)
+            const showCatSubtotal = !_sortCol;
+            let gSupply = 0, gTax = 0, gTotal = 0, gDeduction = 0, gPrepaid = 0, gReq = 0, gCount = 0;
+            const flushCatSubtotal = (catLabel) => {
+                if (!showCatSubtotal || gCount === 0) return;
+                const subTr = document.createElement('tr');
+                subTr.className = 'bg-violet-50 dark:bg-violet-950/20 font-bold text-slate-700 dark:text-violet-300 border-y border-violet-200 dark:border-violet-900';
+                subTr.innerHTML = `
+                    <td colspan="6" class="py-1.5 px-2 text-right text-[11px]">${catLabel} 소계 (${gCount}건)</td>
+                    <td class="py-1.5 px-2 text-right">${formatMoneyByUnit(gSupply)}</td>
+                    <td class="py-1.5 px-2 text-right">${formatMoneyByUnit(gTax)}</td>
+                    <td class="py-1.5 px-2 text-right">${formatMoneyByUnit(gTotal)}</td>
+                    <td class="py-1.5 px-2 text-right">${formatMoneyByUnit(gDeduction)}</td>
+                    <td class="py-1.5 px-2 text-right">${formatMoneyByUnit(gPrepaid)}</td>
+                    <td class="py-1.5 px-2 text-right text-blue-700 dark:text-blue-400">${formatMoneyByUnit(gReq)}</td>
+                    <td colspan="7"></td>
+                `;
+                tbody.appendChild(subTr);
+                gSupply = 0; gTax = 0; gTotal = 0; gDeduction = 0; gPrepaid = 0; gReq = 0; gCount = 0;
+            };
+            let prevCatLabel = null;
+
             filteredDataset.forEach((row, index) => {
                 const totalRowAmt = (row.supply || 0) + (row.tax || 0);
                 const requestAmt = totalRowAmt - (row.deduction || 0) - (row.prepaid || 0);
@@ -6872,6 +7017,19 @@
                 totalDeduction += (row.deduction || 0);
                 totalPrepaid += (row.prepaid || 0);
                 totalRequestAmt += requestAmt;
+
+                // 구분이 바뀌는 시점에 이전 그룹 소계를 먼저 출력
+                if (showCatSubtotal && prevCatLabel !== null && row.type !== prevCatLabel) {
+                    flushCatSubtotal(prevCatLabel);
+                }
+                prevCatLabel = row.type;
+                gSupply += (row.supply || 0);
+                gTax += (row.tax || 0);
+                gTotal += totalRowAmt;
+                gDeduction += (row.deduction || 0);
+                gPrepaid += (row.prepaid || 0);
+                gReq += requestAmt;
+                gCount++;
 
                 let statusBg = "bg-slate-100 text-slate-850 dark:bg-slate-800 dark:text-slate-100";
                 if (row.status === "완료") statusBg = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-450 font-semibold";
@@ -7008,6 +7166,8 @@
                 `;
                 tbody.appendChild(tr);
             });
+            // 마지막 그룹의 소계 출력
+            if (showCatSubtotal) flushCatSubtotal(prevCatLabel);
 
             document.getElementById('foot-supply').textContent = formatMoneyByUnit(totalSupply);
             document.getElementById('foot-tax').textContent = formatMoneyByUnit(totalTax);
@@ -12182,6 +12342,24 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 csvContent += `${index + 1},${row.type},${row.vendor || ''},${row.ceo || ''},${row.supply},${row.tax},${total},${row.deduction},${row.prepaid},${reqAmt},${row.bank},${row.account},${row.holder},${row.note || ''}\n`;
             });
 
+            // ★ 구분별(외주비/자재비/장비비/노무비/관리비) 소계 + 전체 합계 추가
+            const csvCatOrder = Object.keys(categoryPriority);
+            const csvSum = { supply: 0, tax: 0, total: 0, deduction: 0, prepaid: 0, reqAmt: 0 };
+            csvContent += "\n구분,,,,공급가액,부가세,결제금액,공제금액,선지급,지급요청금액\n";
+            csvCatOrder.forEach(cat => {
+                const rows = dataset.filter(r => r.type === cat);
+                if (!rows.length) return;
+                const s  = rows.reduce((a,r)=>a+(r.supply||0),0);
+                const t  = rows.reduce((a,r)=>a+(r.tax||0),0);
+                const tt = s + t;
+                const d  = rows.reduce((a,r)=>a+(r.deduction||0),0);
+                const p  = rows.reduce((a,r)=>a+(r.prepaid||0),0);
+                const req = tt - d - p;
+                csvSum.supply += s; csvSum.tax += t; csvSum.total += tt; csvSum.deduction += d; csvSum.prepaid += p; csvSum.reqAmt += req;
+                csvContent += `${cat} 소계(${rows.length}건),,,,${s},${t},${tt},${d},${p},${req}\n`;
+            });
+            csvContent += `전체 합계(${dataset.length}건),,,,${csvSum.supply},${csvSum.tax},${csvSum.total},${csvSum.deduction},${csvSum.prepaid},${csvSum.reqAmt}\n`;
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -12988,6 +13166,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 const label = list[idx].title;
                 list.splice(idx, 1);
                 localStorage.setItem(STD_ARCHIVE_KEY, JSON.stringify(list));
+                // ★ 버그 수정: 계약 DB(CDB_KEY)에도 같은 제목의 항목이 있으면 함께 삭제
+                //   (예전엔 한쪽만 지워져서 반대쪽에 유령 데이터가 남았음)
+                const cdbList = cdbLoad();
+                const cdbFiltered = cdbList.filter(c => c.title !== label);
+                if (cdbFiltered.length !== cdbList.length) cdbSave(cdbFiltered);
                 showToast(`[${label}] 삭제 완료`, 'info');
                 stdShowArchiveModal();
             }
@@ -13260,6 +13443,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const c=list.find(x=>x.id===cdbCurrentDetailId);
             if(!c||!confirm(`[${c.title}]을 삭제하시겠습니까?`)) return;
             cdbSave(list.filter(x=>x.id!==cdbCurrentDetailId));
+            stdRemoveFromArchiveByTitle(c.title); // ★ 버그 수정: 보관함에 남는 유령 데이터 방지
             document.getElementById('cdb-detail-modal').classList.add('hidden');
             cdbCurrentDetailId=null;
             cdbRenderTable(); cdbUpdateStats();
@@ -13271,8 +13455,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const c=list.find(x=>x.id===id);
             if(!c||!confirm(`[${c.title}]을 삭제하시겠습니까?`)) return;
             cdbSave(list.filter(x=>x.id!==id));
+            stdRemoveFromArchiveByTitle(c.title); // ★ 버그 수정: 보관함에 남는 유령 데이터 방지
             cdbRenderTable(); cdbUpdateStats();
             showToast('삭제 완료','info');
+        }
+
+        // 보관함(STD_ARCHIVE_KEY)에서 제목이 일치하는 항목 제거 — 계약 DB와 보관함 간 삭제 동기화용
+        function stdRemoveFromArchiveByTitle(title) {
+            const list = JSON.parse(localStorage.getItem(STD_ARCHIVE_KEY) || '[]');
+            const filtered = list.filter(i => i.title !== title);
+            if (filtered.length !== list.length) localStorage.setItem(STD_ARCHIVE_KEY, JSON.stringify(filtered));
         }
 
         function cdbClearFilters() {
@@ -13480,6 +13672,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         });
         // ===== 대시보드 =====
         function renderDashboard() {
+            if (typeof checkDuplicateContracts === 'function') checkDuplicateContracts();
             const thisMonth = new Date().toISOString().slice(0,7); // YYYY-MM
             const fmt = n => Number(n||0).toLocaleString('ko-KR') + '원';
 
