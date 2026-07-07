@@ -1546,12 +1546,7 @@
                 <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 items-start gap-3">
                     <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <p class="text-xs font-extrabold text-rose-800 dark:text-rose-300">🔴 동일 계좌번호 다중 거래처 감지</p>
-                            <button onclick="openDupAccountDetailModal()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white transition-all">
-                                <i data-lucide="zoom-in" class="w-3 h-3"></i> 상세 확인
-                            </button>
-                        </div>
+                        <p class="text-xs font-extrabold text-rose-800 dark:text-rose-300">🔴 동일 계좌번호 다중 거래처 감지</p>
                         <p class="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5" id="dup-account-msg"></p>
                         <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
@@ -1707,32 +1702,6 @@
                     <div class="flex gap-2">
                         <button onclick="closeDupModal(false)" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">취소 (재확인)</button>
                         <button onclick="closeDupModal(true)" class="flex-1 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all">그래도 저장</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="dup-acc-detail-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDupAccDetailModal()">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-rose-200 dark:border-rose-800 w-full max-w-2xl max-h-[88vh] flex flex-col">
-                    <div class="flex items-center justify-between px-5 py-4 border-b border-rose-100 dark:border-rose-900 shrink-0">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-rose-100 dark:bg-rose-950/40 rounded-xl">
-                                <i data-lucide="shield-alert" class="w-5 h-5 text-rose-600 dark:text-rose-400"></i>
-                            </div>
-                            <div>
-                                <p class="font-extrabold text-rose-700 dark:text-rose-400 text-sm">동일 계좌번호 다중 거래처 상세</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400">현재 대장 · 계좌DB · 전체 저장 대장 통합 검사 결과</p>
-                            </div>
-                        </div>
-                        <button onclick="closeDupAccDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                            <i data-lucide="x" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                    <div id="dup-acc-detail-body" class="flex-1 overflow-auto p-5 space-y-3 text-xs"></div>
-                    <div class="shrink-0 flex items-center justify-between px-5 pb-4 pt-3 border-t border-slate-100 dark:border-slate-800 gap-2 flex-wrap">
-                        <button onclick="goToAccountDbAndHighlight()" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all">
-                            <i data-lucide="database" class="w-3.5 h-3.5"></i> 계좌 DB에서 확인·수정
-                        </button>
-                        <button onclick="closeDupAccDetailModal()" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">닫기</button>
                     </div>
                 </div>
             </div>
@@ -4375,9 +4344,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '4.2';
+        const APP_VERSION = '4.3';
         const APP_VERSION_DATE = '2026-07-06';
-        const APP_VERSION_NOTE = '자금청구명세서 표가 페이지 전체를 계속 밀어내며 늘어나던 버그 수정 (overflow-y-auto 누락) — 표 영역 내부에서만 스크롤되고 상단 툴바·필터는 고정됨. 거래처 상세 조회 모달도 동일 버그 수정';
+        const APP_VERSION_NOTE = '대시보드 동일 계좌번호 다중거래처 감지에서 "상세 확인" 버튼 삭제 (관련 모달·함수 3개도 함께 정리)';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -5475,140 +5444,6 @@
             dupAccountModalCallback = null;
         }
 
-        /* ── 동일 계좌번호 다중 거래처 상세 모달 ── */
-        function openDupAccountDetailModal() {
-            // 중복 계좌 데이터 재수집 (checkDuplicates와 동일 로직)
-            const accMap = {};
-            dataset.forEach(row => {
-                const k = (row.account || '').replace(/[^0-9]/g, '');
-                if (!k) return;
-                if (!accMap[k]) accMap[k] = [];
-                if (!accMap[k].find(r => r.vendor === row.vendor))
-                    accMap[k].push({ vendor: row.vendor, holder: row.holder, ceo: row.ceo || '', src: '현재 대장', srcColor: 'blue' });
-            });
-            accountDb.forEach(acc => {
-                const k = (acc.account || '').replace(/[^0-9]/g, '');
-                if (!k) return;
-                if (!accMap[k]) accMap[k] = [];
-                if (!accMap[k].find(r => r.vendor === acc.vendor))
-                    accMap[k].push({ vendor: acc.vendor, holder: acc.holder, ceo: acc.ceo || '', src: '계좌 DB', srcColor: 'emerald' });
-            });
-            savedDocuments.forEach(doc => {
-                (doc.dataset || []).forEach(row => {
-                    const k = (row.account || '').replace(/[^0-9]/g, '');
-                    if (!k) return;
-                    if (!accMap[k]) accMap[k] = [];
-                    if (!accMap[k].find(r => r.vendor === row.vendor))
-                        accMap[k].push({ vendor: row.vendor, holder: row.holder, ceo: row.ceo || '',
-                            src: doc.site ? `[${doc.site}] ${doc.month||''}` : '저장 대장', srcColor: 'indigo' });
-                });
-            });
-
-            const dupGroups = Object.entries(accMap)
-                .filter(([, rows]) => new Set(rows.map(r => r.vendor).filter(Boolean)).size > 1)
-                .sort((a, b) => b[1].length - a[1].length);
-
-            const body = document.getElementById('dup-acc-detail-body');
-
-            if (!dupGroups.length) {
-                body.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-3">
-                    <i data-lucide="check-circle" class="w-10 h-10 text-emerald-400"></i>
-                    <p class="font-bold text-emerald-600 dark:text-emerald-400">동일 계좌번호 중복 없음</p>
-                    <p class="text-slate-400 text-[11px]">현재 대장 · 계좌DB · 전체 저장 대장에서 이상이 감지되지 않았습니다.</p>
-                </div>`;
-                document.getElementById('dup-acc-detail-modal').classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-                return;
-            }
-
-            // 예금주 불일치 그룹 수 집계 (요약 표시용)
-            const holderMismatchCount = dupGroups.filter(([, rows]) =>
-                new Set(rows.map(r => (r.holder || '').trim()).filter(Boolean)).size > 1
-            ).length;
-
-            body.innerHTML = `<p class="text-[10px] text-slate-500 dark:text-slate-400 mb-1">총 <strong class="text-rose-600">${dupGroups.length}건</strong>의 계좌번호 중복 감지.`
-                + (holderMismatchCount > 0 ? ` 이 중 <strong class="text-orange-600 dark:text-orange-400">예금주 불일치 ${holderMismatchCount}건</strong> — 명의 오매칭 위험이 높습니다.` : '')
-                + `</p>`
-                + dupGroups.map(([acctRaw, rows], idx) => {
-                    const display = acctRaw.replace(/(\d{3,6})(?=\d{3,4}$)/, '$1-').replace(/(\d{3,6}-\d{3,6})(?=\d{4}$)/, '$1-');
-                    const vendors = [...new Set(rows.map(r => r.vendor).filter(Boolean))];
-                    const srcColors = { '현재 대장':'blue', '계좌 DB':'emerald' };
-
-                    // 예금주 불일치 여부 판단
-                    const holderSet = new Set(rows.map(r => (r.holder || '').trim()).filter(Boolean));
-                    const holderMismatch = holderSet.size > 1;
-                    const holderList = [...holderSet];
-
-                    const rowsHtml = rows.map(r => {
-                        const c = srcColors[r.src] || 'indigo';
-                        // 이 행의 예금주가 대표(첫 번째) 예금주와 다른지 확인
-                        const thisHolder = (r.holder || '').trim();
-                        const holderDiff = holderMismatch && thisHolder && thisHolder !== holderList[0];
-                        const holderCell = holderMismatch
-                            ? holderDiff
-                                ? `<td class="py-1.5 px-2 font-bold" style="color:#ea580c;background:rgba(234,88,12,0.07);">
-                                       <span class="flex items-center gap-1">
-                                           <span style="font-size:9px;">⚠</span>${r.holder || '-'}
-                                       </span>
-                                   </td>`
-                                : `<td class="py-1.5 px-2 text-slate-600 dark:text-slate-300">${r.holder || '-'}</td>`
-                            : `<td class="py-1.5 px-2 text-slate-600 dark:text-slate-300">${r.holder || '-'}</td>`;
-                        return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                            <td class="py-1.5 px-2 font-bold text-slate-800 dark:text-slate-100">${r.vendor || '-'}</td>
-                            ${holderCell}
-                            <td class="py-1.5 px-2 text-slate-500 dark:text-slate-400">${r.ceo || '-'}</td>
-                            <td class="py-1.5 px-2 text-center">
-                                <span class="inline-block bg-${c}-100 dark:bg-${c}-900/40 text-${c}-700 dark:text-${c}-300 px-1.5 py-0.5 rounded text-[9px] font-bold">${r.src}</span>
-                            </td>
-                        </tr>`;
-                    }).join('');
-
-                    // 헤더: 예금주 불일치이면 오렌지 강조
-                    const headerBg = holderMismatch
-                        ? 'background:rgba(234,88,12,0.12);border-bottom:2px solid rgba(234,88,12,0.3);'
-                        : '';
-                    const headerBorder = holderMismatch
-                        ? 'border-orange-300 dark:border-orange-700'
-                        : 'border-rose-200 dark:border-rose-800';
-                    const holderWarning = holderMismatch
-                        ? `<span class="text-[9px] font-black px-2 py-0.5 rounded-full" style="background:rgba(234,88,12,0.15);color:#ea580c;">⚠ 예금주 불일치 — ${holderList.join(' / ')}</span>`
-                        : '';
-
-                    return `<div class="border ${headerBorder} rounded-xl overflow-hidden">
-                        <div class="px-3 py-2 flex items-center justify-between gap-2 flex-wrap" style="${headerBg || 'background:rgba(225,29,72,0.07);'}">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-white font-extrabold text-[10px]" style="background:${holderMismatch?'#ea580c':'#e11d48'};">${idx+1}</span>
-                                <span class="font-extrabold text-[12px] font-mono tracking-wide" style="color:${holderMismatch?'#9a3412':'#9f1239'};">${display || acctRaw}</span>
-                                <span class="text-[10px] font-bold" style="color:${holderMismatch?'#ea580c':'#e11d48'};">${vendors.length}개 거래처 공유</span>
-                            </div>
-                            ${holderWarning}
-                        </div>
-                        <table class="w-full border-collapse text-[11px]">
-                            <thead>
-                                <tr class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-center font-bold text-[10px] border-b border-slate-200 dark:border-slate-700">
-                                    <th class="py-1.5 px-2 text-left">거래처명</th>
-                                    <th class="py-1.5 px-2">예금주${holderMismatch ? ' ⚠' : ''}</th>
-                                    <th class="py-1.5 px-2">대표자</th>
-                                    <th class="py-1.5 px-2">출처</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
-                                ${rowsHtml}
-                            </tbody>
-                        </table>
-                    </div>`;
-                }).join('');
-
-            document.getElementById('dup-acc-detail-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function closeDupAccDetailModal() {
-            document.getElementById('dup-acc-detail-modal').classList.add('hidden');
-            document.body.style.overflow = '';
-        }
 
         /* ── 대표자 불일치 상세 모달 ── */
         function openDupCeoDetailModal() {
@@ -5714,21 +5549,6 @@
         function closeDupCeoDetailModal() {
             document.getElementById('dup-ceo-detail-modal').classList.add('hidden');
             document.body.style.overflow = '';
-        }
-
-        function goToAccountDbAndHighlight() {
-            closeDupAccDetailModal();
-            // 계좌DB 패널 열기
-            const panel = document.getElementById('account-manager-panel');
-            if (panel && panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-            }
-            // 중복 확인 실행해서 결과 표시
-            setTimeout(() => {
-                checkAccountDbDuplicates();
-                sortAccountDbBy('account'); // 계좌번호순 정렬로 중복이 나란히 보이도록
-                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
         }
 
         function setDashboardFilter(status) {
