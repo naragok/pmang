@@ -1371,7 +1371,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 mb-2">
                 <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] font-bold opacity-80">이번달 총 청구액</span>
+                        <span class="text-[10px] font-bold opacity-80">선택월 총 청구액</span>
                         <i data-lucide="trending-up" class="w-4 h-4 opacity-70"></i>
                     </div>
                     <div id="dash-total-claim" class="text-xl font-black">0원</div>
@@ -1379,7 +1379,7 @@
                 </div>
                 <div class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] font-bold opacity-80">이번달 지불의뢰 발행액</span>
+                        <span class="text-[10px] font-bold opacity-80">선택월 지불의뢰 발행액</span>
                         <i data-lucide="file-check" class="w-4 h-4 opacity-70"></i>
                     </div>
                     <div id="dash-total-request" class="text-xl font-black">0원</div>
@@ -1387,7 +1387,7 @@
                 </div>
                 <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] font-bold opacity-80">이번달 법인카드 지출</span>
+                        <span class="text-[10px] font-bold opacity-80">선택월 법인카드 지출</span>
                         <i data-lucide="credit-card" class="w-4 h-4 opacity-70"></i>
                     </div>
                     <div id="dash-total-card" class="text-xl font-black">0원</div>
@@ -1395,7 +1395,7 @@
                 </div>
                 <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] font-bold opacity-80">이번달 전체 합산</span>
+                        <span class="text-[10px] font-bold opacity-80">선택월 전체 합산</span>
                         <i data-lucide="wallet" class="w-4 h-4 opacity-70"></i>
                     </div>
                     <div id="dash-total-all" class="text-xl font-black">0원</div>
@@ -3682,9 +3682,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '5.8';
+        const APP_VERSION = '6.0';
         const APP_VERSION_DATE = '2026-07-06';
-        const APP_VERSION_NOTE = 'GitHub 동기화 기본값을 naragok/pmang-data(main, data/backup.json)로 등록 — 처음 열어도 바로 업로드/불러오기 가능';
+        const APP_VERSION_NOTE = '월/현장 문서 전환 시 집계표·특고신고·법인카드(월 필터)도 실시간 갱신되도록 확장 (지불의뢰서 누계·중복발행 체크는 기존에 이미 선택월 기준으로 정상 동작 확인)';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -8195,6 +8195,18 @@ function changePrintScale(value) {
             saveToLocalStorage();
             renderStatementTable();
             refreshRequestSelector();
+            if (typeof renderDashboard === 'function') renderDashboard();
+            // ★ 집계표·특고신고·법인카드도 선택된 월(문서)에 맞춰 실시간 갱신
+            if (typeof renderVendorStatistics === 'function') renderVendorStatistics();
+            if (typeof renderRequestSpecialTable === 'function') renderRequestSpecialTable();
+            if (currentDoc && typeof docMonthToYYYYMM === 'function') {
+                const ym = docMonthToYYYYMM(currentDoc.month);
+                const ccMonthSel = document.getElementById('cc-filter-month');
+                if (ccMonthSel && [...ccMonthSel.options].some(o => o.value === ym)) {
+                    ccMonthSel.value = ym;
+                }
+                if (typeof ccRender === 'function') ccRender();
+            }
             showToast("자금청구명세서 대장이 업데이트되었습니다.");
         }
 
@@ -11648,7 +11660,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         // ===== 대시보드 =====
         function renderDashboard() {
             if (typeof checkDuplicateContracts === 'function') checkDuplicateContracts();
-            const thisMonth = new Date().toISOString().slice(0,7); // YYYY-MM
+            // ★ 버그 수정: 기존엔 실제 오늘 날짜의 달(YYYY-MM)로 고정되어 있어서,
+            //   사용자가 다른 월의 자금청구명세서를 선택해도 지불의뢰서·법인카드
+            //   KPI는 계속 "오늘 기준 이번달" 데이터만 보여주는 불일치가 있었음.
+            //   현재 선택된 문서(currentDoc)의 월을 기준으로 계산한다.
+            const _preDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
+            const thisMonth = _preDoc ? docMonthToYYYYMM(_preDoc.month) : new Date().toISOString().slice(0,7); // YYYY-MM
             const fmt = n => Number(n||0).toLocaleString('ko-KR') + '원';
 
             // ★ 법인카드 데이터는 해당 탭을 열기 전까지 ccData가 비어있을 수 있으므로
@@ -11662,7 +11679,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const elClaim = document.getElementById('dash-total-claim');
             if (elClaim) elClaim.textContent = fmt(claimTotal);
             const elClaimSub = document.getElementById('dash-claim-sub');
-            if (elClaimSub) elClaimSub.textContent = `${(currentDoc && currentDoc.site) ? currentDoc.site : '현재 문서'} · ${claimRows.length}건`;
+            if (elClaimSub) elClaimSub.textContent = `${(currentDoc && currentDoc.month) ? currentDoc.month : thisMonth} · ${(currentDoc && currentDoc.site) ? currentDoc.site : '현재 문서'} · ${claimRows.length}건`;
 
             // 자금청구명세서 — 저장된 전체 문서 기준 총 건수 (바로가기 카드용, 다른 카드와 동일하게 "전체" 합산)
             const allSavedDocs   = (typeof savedDocuments !== 'undefined') ? savedDocuments : [];
@@ -11675,7 +11692,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const elReq = document.getElementById('dash-total-request');
             if (elReq) elReq.textContent = fmt(reqTotal);
             const elReqSub = document.getElementById('dash-request-sub');
-            if (elReqSub) elReqSub.textContent = `이번달 발행 ${reqThisMonth.length}건 (전체 ${reqHist.length}건)`;
+            if (elReqSub) elReqSub.textContent = `${thisMonth} 발행 ${reqThisMonth.length}건 (전체 ${reqHist.length}건)`;
 
             // 3) 법인카드 — 이번 달 필터
             const cardRows = (typeof ccData !== 'undefined') ? ccData : [];
@@ -11684,7 +11701,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const elCard = document.getElementById('dash-total-card');
             if (elCard) elCard.textContent = fmt(cardTotal);
             const elCardSub = document.getElementById('dash-card-sub');
-            if (elCardSub) elCardSub.textContent = `이번달 ${cardThisMonth.length}건 (전체 ${cardRows.length}건)`;
+            if (elCardSub) elCardSub.textContent = `${thisMonth} ${cardThisMonth.length}건 (전체 ${cardRows.length}건)`;
 
             // 4) 전체 합산
             const allTotal = claimTotal + reqTotal + cardTotal;
