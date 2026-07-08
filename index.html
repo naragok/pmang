@@ -2748,9 +2748,28 @@
                         <datalist id="cc-vendor-datalist"></datalist>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1">금액 (원) <span class="text-rose-500">*</span></label>
-                        <input type="number" id="cc-edit-amount" placeholder="0" oninput="ccFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                        <span id="cc-amt-preview" class="text-[10px] text-violet-600 mt-0.5 block font-semibold"></span>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[10px] font-bold text-slate-500">금액 (원) <span class="text-rose-500">*</span></label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-violet-600 dark:text-violet-400 cursor-pointer">
+                                <input type="checkbox" id="cc-edit-vat-toggle" onchange="ccToggleVatInput()" class="accent-violet-600">
+                                부가가치세 별도 입력
+                            </label>
+                        </div>
+                        <div id="cc-amt-simple-wrap">
+                            <input type="number" id="cc-edit-amount" placeholder="0" oninput="ccFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                            <span id="cc-amt-preview" class="text-[10px] text-violet-600 mt-0.5 block font-semibold"></span>
+                        </div>
+                        <div id="cc-amt-vat-wrap" class="hidden grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[9px] text-slate-400 mb-0.5">공급가액</label>
+                                <input type="number" id="cc-edit-supply" placeholder="0" oninput="ccCalcVatTotal()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-400 mb-0.5">부가세</label>
+                                <input type="number" id="cc-edit-tax" placeholder="0" oninput="ccCalcVatTotal()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                            </div>
+                            <span id="cc-vat-total-preview" class="col-span-2 text-[10px] text-violet-600 font-semibold"></span>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -3663,9 +3682,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '5.4';
+        const APP_VERSION = '5.6';
         const APP_VERSION_DATE = '2026-07-06';
-        const APP_VERSION_NOTE = '법인카드 금액 입력 시 공급가액/부가세 자동 역산(1/11) 미리보기 표시 추가 (저장 데이터는 총금액 그대로 유지)';
+        const APP_VERSION_NOTE = '대시보드 "확인 필요 사항"에서 계좌/금액 중복 배너와 겹치던 "중복 의심 항목 N건" 알림 제거';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -11700,10 +11719,6 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const alertsEl = document.getElementById('dash-alerts');
             if (alertsEl) {
                 const alerts = [];
-                const dupCnt = (typeof duplicateItemIds !== 'undefined') ? duplicateItemIds.size : 0;
-                if (dupCnt > 0) {
-                    alerts.push(`<div class="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 rounded-lg px-3 py-2"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i><span>중복 의심 항목 <b>${dupCnt}건</b> — 자금청구명세서 탭 확인</span></div>`);
-                }
                 const noVendorRows = claimRows.filter(r => !r.vendor).length;
                 if (noVendorRows > 0) {
                     alerts.push(`<div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-300 rounded-lg px-3 py-2"><i data-lucide="circle-help" class="w-3.5 h-3.5 shrink-0"></i><span>거래처 미입력 항목 <b>${noVendorRows}건</b></span></div>`);
@@ -13023,6 +13038,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-site').value = '';
             document.getElementById('cc-edit-memo').value = '';
             document.getElementById('cc-amt-preview').textContent = '';
+            document.getElementById('cc-edit-vat-toggle').checked = false;
+            document.getElementById('cc-edit-supply').value = '';
+            document.getElementById('cc-edit-tax').value = '';
+            document.getElementById('cc-vat-total-preview').textContent = '';
+            ccToggleVatInput();
             ccTempReceipt = null;
             ccShowReceiptPreview();
             document.getElementById('cc-modal').classList.remove('hidden');
@@ -13044,6 +13064,10 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-amount').value = r.amount||'';
             document.getElementById('cc-edit-site').value = r.site||'';
             document.getElementById('cc-edit-memo').value = r.memo||'';
+            document.getElementById('cc-edit-vat-toggle').checked = !!r.vatApplied;
+            document.getElementById('cc-edit-supply').value = r.vatApplied ? (r.supply||'') : '';
+            document.getElementById('cc-edit-tax').value = r.vatApplied ? (r.tax||'') : '';
+            ccToggleVatInput();
             ccFormatAmtPreview();
             ccTempReceipt = r.receipt ? { dataUrl: r.receipt, type: r.receiptType||'image/jpeg', name: r.receiptName||'' } : null;
             ccShowReceiptPreview();
@@ -13057,6 +13081,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const cat      = document.getElementById('cc-edit-cat').value;
             const proofType = document.getElementById('cc-edit-prooftype').value;
             const merchant = document.getElementById('cc-edit-merchant').value.trim();
+            const vatApplied = document.getElementById('cc-edit-vat-toggle').checked;
+            const supply   = vatApplied ? (Number(document.getElementById('cc-edit-supply').value) || 0) : null;
+            const tax      = vatApplied ? (Number(document.getElementById('cc-edit-tax').value) || 0) : null;
             const amount   = Number(document.getElementById('cc-edit-amount').value) || 0;
             const site     = document.getElementById('cc-edit-site').value.trim();
             const memo     = document.getElementById('cc-edit-memo').value.trim();
@@ -13072,9 +13099,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const existingId = document.getElementById('cc-edit-id').value;
             if (existingId) {
                 const idx = ccData.findIndex(r=>r.id===existingId);
-                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName };
+                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName, vatApplied, supply, tax };
             } else {
-                ccData.push({ id: 'cc-' + Date.now(), date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName });
+                ccData.push({ id: 'cc-' + Date.now(), date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName, vatApplied, supply, tax });
             }
             // 날짜 정렬
             ccData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -13224,6 +13251,25 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const supply = Math.round(v / 1.1);
             const tax = v - supply;
             el.textContent = `금 ${v.toLocaleString('ko-KR')}원  (공급가액 ${supply.toLocaleString('ko-KR')}원 + 부가세 ${tax.toLocaleString('ko-KR')}원, 부가세 포함 역산 기준)`;
+        }
+
+        // 부가가치세 별도 입력 토글 — 체크 시 금액 한 칸 대신 공급가액/부가세 두 칸으로 직접 입력
+        function ccToggleVatInput() {
+            const on = document.getElementById('cc-edit-vat-toggle').checked;
+            document.getElementById('cc-amt-simple-wrap').classList.toggle('hidden', on);
+            document.getElementById('cc-amt-vat-wrap').classList.toggle('hidden', !on);
+            document.getElementById('cc-amt-vat-wrap').classList.toggle('grid', on);
+            if (on) ccCalcVatTotal();
+        }
+
+        // 공급가액 + 부가세 입력 시 합계금액을 계산해서 미리보기 + 실제 금액 필드에 반영
+        function ccCalcVatTotal() {
+            const supply = Number(document.getElementById('cc-edit-supply').value) || 0;
+            const tax = Number(document.getElementById('cc-edit-tax').value) || 0;
+            const total = supply + tax;
+            document.getElementById('cc-edit-amount').value = total || '';
+            const el = document.getElementById('cc-vat-total-preview');
+            if (el) el.textContent = total ? `합계 금액: ${total.toLocaleString('ko-KR')}원` : '';
         }
 
         /* 필터 초기화 */
