@@ -1368,8 +1368,8 @@
         </div>
 
         <div id="tab-dashboard" class="block">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-4">
-                <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-4 text-white shadow-md">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 mb-2">
+                <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-[10px] font-bold opacity-80">이번달 총 청구액</span>
                         <i data-lucide="trending-up" class="w-4 h-4 opacity-70"></i>
@@ -1377,7 +1377,7 @@
                     <div id="dash-total-claim" class="text-xl font-black">0원</div>
                     <div id="dash-claim-sub" class="text-[10px] opacity-70 mt-1">자금청구명세서 기준</div>
                 </div>
-                <div class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-4 text-white shadow-md">
+                <div class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-[10px] font-bold opacity-80">이번달 지불의뢰 발행액</span>
                         <i data-lucide="file-check" class="w-4 h-4 opacity-70"></i>
@@ -1385,7 +1385,7 @@
                     <div id="dash-total-request" class="text-xl font-black">0원</div>
                     <div id="dash-request-sub" class="text-[10px] opacity-70 mt-1">발행 이력 기준</div>
                 </div>
-                <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white shadow-md">
+                <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-[10px] font-bold opacity-80">이번달 법인카드 지출</span>
                         <i data-lucide="credit-card" class="w-4 h-4 opacity-70"></i>
@@ -1393,7 +1393,7 @@
                     <div id="dash-total-card" class="text-xl font-black">0원</div>
                     <div id="dash-card-sub" class="text-[10px] opacity-70 mt-1">법인카드 경비관리 기준</div>
                 </div>
-                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-md">
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-[10px] font-bold opacity-80">이번달 전체 합산</span>
                         <i data-lucide="wallet" class="w-4 h-4 opacity-70"></i>
@@ -1403,41 +1403,41 @@
                 </div>
             </div>
 
-            <button onclick="openGlobalSearchModal()" class="w-full flex items-center gap-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 mb-4 text-left hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all group">
+            <button onclick="openGlobalSearchModal()" class="w-full flex items-center gap-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 mb-2 text-left hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all group">
                 <i data-lucide="search" class="w-4 h-4 text-slate-400 group-hover:text-indigo-500 shrink-0"></i>
                 <span class="text-xs text-slate-400 flex-1">거래처명, 금액, 메모로 전체 문서·지불의뢰·법인카드 검색...</span>
                 <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded shrink-0">Ctrl+K</span>
             </button>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
                 <button onclick="switchTab('stats')" class="dash-tab-card group" style="--dc:#0891b2;">
-                    <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                    <i data-lucide="pie-chart" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">집계표</div>
                     <div class="dash-tab-card-count" id="dash-cnt-stats">&nbsp;</div>
                 </button>
                 <button onclick="switchTab('statement')" class="dash-tab-card group" style="--dc:#0ea5e9;">
-                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">자금청구명세서</div>
                     <div class="dash-tab-card-count" id="dash-cnt-statement">0건</div>
                 </button>
                 <button onclick="switchTab('request')" class="dash-tab-card group" style="--dc:#7c3aed;">
-                    <i data-lucide="file-check" class="w-5 h-5"></i>
+                    <i data-lucide="file-check" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">지불의뢰서</div>
                     <div class="dash-tab-card-count" id="dash-cnt-request">0건</div>
                 </button>
                 <button onclick="switchTab('corpcard')" class="dash-tab-card group" style="--dc:#f59e0b;">
-                    <i data-lucide="credit-card" class="w-5 h-5"></i>
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">법인카드 경비</div>
                     <div class="dash-tab-card-count" id="dash-cnt-corpcard">0건</div>
                 </button>
                 <button onclick="switchTab('request-special')" class="dash-tab-card group" style="--dc:#d97706;">
-                    <i data-lucide="hard-hat" class="w-5 h-5"></i>
+                    <i data-lucide="hard-hat" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">특고 신고</div>
                     <div class="dash-tab-card-count" id="dash-cnt-special">0건</div>
                 </button>
             </div>
 
-            <div id="dash-dup-banner" class="hidden mb-4 rounded-xl shadow-sm border overflow-hidden">
+            <div id="dash-dup-banner" class="hidden mb-2 rounded-xl shadow-sm border overflow-hidden">
                 <div id="dup-section-account" class="hidden bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-900 p-3 items-start gap-3">
                     <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 animate-pulse"></i>
                     <div class="flex-1 min-w-0">
@@ -1456,76 +1456,76 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="info" class="w-4 h-4 text-sky-500"></i> 현재 현장 정보
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-3.5 h-3.5 text-sky-500"></i> 현재 현장 정보
                     </h3>
-                    <div id="dash-site-info" class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300"></div>
+                    <div id="dash-site-info" class="space-y-1 text-[11px] text-slate-600 dark:text-slate-300"></div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="bell" class="w-4 h-4 text-rose-500"></i> 확인 필요 사항
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="bell" class="w-3.5 h-3.5 text-rose-500"></i> 확인 필요 사항
                     </h3>
-                    <div id="dash-alerts" class="space-y-1.5 text-xs"></div>
+                    <div id="dash-alerts" class="space-y-1 text-[11px] max-h-[130px] overflow-y-auto pr-1"></div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="database" class="w-4 h-4 text-emerald-500"></i> 거래처마스터 DB 현황
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-500"></i> 거래처마스터 DB 현황
                     </h3>
-                    <div id="dash-vendor-master-stats" class="space-y-2 text-xs text-slate-600 dark:text-slate-300"></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
-                <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-500"></i> 월별 자금 흐름 (최근 6개월)
-                        <span class="text-[10px] font-normal text-slate-400">청구+발행+카드 합산</span>
-                    </h3>
-                    <div id="dash-monthly-chart" class="flex items-end gap-2 h-32"></div>
-                </div>
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="receipt" class="w-4 h-4 text-amber-500"></i> 증빙영수증 첨부율
-                    </h3>
-                    <div id="dash-receipt-rate" class="text-xs text-slate-600 dark:text-slate-300"></div>
+                    <div id="dash-vendor-master-stats" class="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-300"></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <i data-lucide="map-pin" class="w-4 h-4 text-teal-500"></i> 현장별 현황 (이번달)
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 mt-2">
+                <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-indigo-500"></i> 월별 자금 흐름 (최근 6개월)
+                        <span class="text-[9px] font-normal text-slate-400">청구+발행+카드 합산</span>
                     </h3>
-                    <div id="dash-site-stats" class="space-y-1.5 text-xs"></div>
+                    <div id="dash-monthly-chart" class="flex items-end gap-2 h-24"></div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i> 즐겨찾기 거래처
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="receipt" class="w-3.5 h-3.5 text-amber-500"></i> 증빙영수증 첨부율
+                    </h3>
+                    <div id="dash-receipt-rate" class="text-[11px] text-slate-600 dark:text-slate-300"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-2">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-teal-500"></i> 현장별 현황 (이번달)
+                    </h3>
+                    <div id="dash-site-stats" class="space-y-1 text-[11px] max-h-[120px] overflow-y-auto pr-1"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-500"></i> 즐겨찾기 거래처
                         </h3>
                         <button onclick="openPinVendorPrompt()" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5"><i data-lucide="plus" class="w-3 h-3"></i>추가</button>
                     </div>
-                    <div id="dash-pinned-vendors" class="space-y-1"></div>
+                    <div id="dash-pinned-vendors" class="space-y-1 max-h-[120px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 mt-3">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <i data-lucide="activity" class="w-4 h-4 text-indigo-500"></i> 최근 활동
-                        <span class="text-[10px] font-normal text-slate-400">자금청구명세서 · 지불의뢰서 · 법인카드 통합</span>
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3 mt-2">
+                <div class="flex items-center justify-between mb-1.5">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-500"></i> 최근 활동
+                        <span class="text-[9px] font-normal text-slate-400">자금청구명세서 · 지불의뢰서 · 법인카드 통합</span>
                     </h3>
                     <span id="dash-recent-count" class="text-[10px] font-bold text-slate-400"></span>
                 </div>
-                <div id="dash-recent-activity" class="space-y-1"></div>
+                <div id="dash-recent-activity" class="space-y-1 max-h-[160px] overflow-y-auto pr-1"></div>
             </div>
 
             <style>
             .dash-tab-card {
-                display:flex; flex-direction:column; align-items:flex-start; gap:6px;
-                background:white; border:1px solid #e2e8f0; border-radius:16px; padding:14px;
+                display:flex; flex-direction:column; align-items:flex-start; gap:4px;
+                background:white; border:1px solid #e2e8f0; border-radius:12px; padding:9px 10px;
                 cursor:pointer; transition:transform .12s, box-shadow .12s;
                 color:var(--dc);
             }
@@ -3682,9 +3682,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '5.6';
+        const APP_VERSION = '5.8';
         const APP_VERSION_DATE = '2026-07-06';
-        const APP_VERSION_NOTE = '대시보드 "확인 필요 사항"에서 계좌/금액 중복 배너와 겹치던 "중복 의심 항목 N건" 알림 제거';
+        const APP_VERSION_NOTE = 'GitHub 동기화 기본값을 naragok/pmang-data(main, data/backup.json)로 등록 — 처음 열어도 바로 업로드/불러오기 가능';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -8869,7 +8869,7 @@ function changePrintScale(value) {
         const GH_SYNC_KEYS = { repo: 'gh_sync_repo', branch: 'gh_sync_branch', path: 'gh_sync_path', token: 'gh_sync_token' };
 
         function ghSyncLoadSettings() {
-            document.getElementById('gh-sync-repo').value   = localStorage.getItem(GH_SYNC_KEYS.repo)   || '';
+            document.getElementById('gh-sync-repo').value   = localStorage.getItem(GH_SYNC_KEYS.repo)   || 'naragok/pmang-data';
             document.getElementById('gh-sync-branch').value = localStorage.getItem(GH_SYNC_KEYS.branch) || 'main';
             document.getElementById('gh-sync-path').value   = localStorage.getItem(GH_SYNC_KEYS.path)   || 'data/backup.json';
             document.getElementById('gh-sync-token').value  = localStorage.getItem(GH_SYNC_KEYS.token)  || '';
