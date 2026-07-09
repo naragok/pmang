@@ -1493,12 +1493,18 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-2">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 mt-2">
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="map-pin" class="w-3.5 h-3.5 text-teal-500"></i> 현장별 현황 (이번달)
                     </h3>
                     <div id="dash-site-stats" class="space-y-1 text-[11px] max-h-[120px] overflow-y-auto pr-1"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-cyan-500"></i> 회사별 현황 (이번달)
+                    </h3>
+                    <div id="dash-company-stats" class="space-y-1 text-[11px] max-h-[120px] overflow-y-auto pr-1"></div>
                 </div>
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
                     <div class="flex items-center justify-between mb-1.5">
@@ -3682,9 +3688,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '6.0';
+        const APP_VERSION = '6.3';
         const APP_VERSION_DATE = '2026-07-06';
-        const APP_VERSION_NOTE = '월/현장 문서 전환 시 집계표·특고신고·법인카드(월 필터)도 실시간 갱신되도록 확장 (지불의뢰서 누계·중복발행 체크는 기존에 이미 선택월 기준으로 정상 동작 확인)';
+        const APP_VERSION_NOTE = '대시보드에 "회사별 현황" 카드 추가 (이번달 청구액을 문서의 회사 필드 기준으로 집계, 현장별 현황 옆에 3열로 배치)';
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -11664,8 +11670,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             //   사용자가 다른 월의 자금청구명세서를 선택해도 지불의뢰서·법인카드
             //   KPI는 계속 "오늘 기준 이번달" 데이터만 보여주는 불일치가 있었음.
             //   현재 선택된 문서(currentDoc)의 월을 기준으로 계산한다.
-            const _preDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
-            const thisMonth = _preDoc ? docMonthToYYYYMM(_preDoc.month) : new Date().toISOString().slice(0,7); // YYYY-MM
+            const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
+            const thisMonth = currentDoc ? docMonthToYYYYMM(currentDoc.month) : new Date().toISOString().slice(0,7); // YYYY-MM
             const fmt = n => Number(n||0).toLocaleString('ko-KR') + '원';
 
             // ★ 법인카드 데이터는 해당 탭을 열기 전까지 ccData가 비어있을 수 있으므로
@@ -11673,7 +11679,6 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (typeof ccLoad === 'function') { ccData = ccLoad(); }
 
             // 1) 자금청구명세서 — 현재 로드된 문서(dataset) 기준 청구액 합계
-            const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
             const claimRows = (typeof dataset !== 'undefined') ? dataset : [];
             const claimTotal = claimRows.reduce((s,r) => s + (Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)), 0);
             const elClaim = document.getElementById('dash-total-claim');
@@ -11681,9 +11686,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const elClaimSub = document.getElementById('dash-claim-sub');
             if (elClaimSub) elClaimSub.textContent = `${(currentDoc && currentDoc.month) ? currentDoc.month : thisMonth} · ${(currentDoc && currentDoc.site) ? currentDoc.site : '현재 문서'} · ${claimRows.length}건`;
 
-            // 자금청구명세서 — 저장된 전체 문서 기준 총 건수 (바로가기 카드용, 다른 카드와 동일하게 "전체" 합산)
-            const allSavedDocs   = (typeof savedDocuments !== 'undefined') ? savedDocuments : [];
-            const totalClaimRows = allSavedDocs.reduce((s,d) => s + ((d.dataset||[]).length || 0), 0);
+            // 자금청구명세서 — 바로가기 카드는 이제 선택월(현재 문서) 기준. allSavedDocs는
+            // 아래 월별 차트·현장별 현황(여러 문서를 넘나드는 집계)에 여전히 필요해 유지.
+            const allSavedDocs = (typeof savedDocuments !== 'undefined') ? savedDocuments : [];
 
             // 2) 지불의뢰서 발행 이력 — 이번 달(YYYY-MM) 필터
             const reqHist = (typeof rhLoad === 'function') ? rhLoad() : [];
@@ -11708,11 +11713,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const elAll = document.getElementById('dash-total-all');
             if (elAll) elAll.textContent = fmt(allTotal);
 
-            // 5) 탭별 건수 카드 (모두 "전체 누적" 기준으로 통일)
+            // 5) 탭별 건수 카드 — KPI 카드와 동일하게 "선택월(현재 문서)" 기준으로 통일
             const setCnt = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = `${n}건`; };
-            setCnt('dash-cnt-statement', totalClaimRows);
-            setCnt('dash-cnt-request', reqHist.length);
-            setCnt('dash-cnt-corpcard', cardRows.length);
+            setCnt('dash-cnt-statement', claimRows.length);
+            setCnt('dash-cnt-request', reqThisMonth.length);
+            setCnt('dash-cnt-corpcard', cardThisMonth.length);
             const specialItems = (typeof requestSpecialItems !== 'undefined') ? requestSpecialItems.filter(r=>r.empName) : [];
             setCnt('dash-cnt-special', specialItems.length);
 
@@ -11868,6 +11873,32 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <span class="text-right shrink-0 ml-2">
                             <span class="block font-extrabold text-teal-600 dark:text-teal-400">${s.total.toLocaleString('ko-KR')}원</span>
                             <span class="block text-[9px] text-slate-400">청구 ${s.claim.toLocaleString('ko-KR')} · 카드 ${s.card.toLocaleString('ko-KR')}</span>
+                        </span>
+                    </div>`).join('') : `<div class="text-center text-slate-400 text-xs py-6">이번달 데이터가 없습니다.</div>`;
+            }
+
+            // 11-1) 회사별 현황 (이번달) — 자금청구명세서 문서의 company 필드 기준
+            // (법인카드 내역엔 회사 필드가 없어 청구액만 집계)
+            const companyStatsEl = document.getElementById('dash-company-stats');
+            if (companyStatsEl) {
+                const companyMap = {};
+                allSavedDocs.filter(d => docMonthToYYYYMM(d.month) === thisMonth).forEach(doc => {
+                    const company = doc.company || '(회사 미입력)';
+                    const amt = (doc.dataset||[]).reduce((s,r)=>s+(Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)),0);
+                    companyMap[company] = companyMap[company] || { claim: 0, docs: 0 };
+                    companyMap[company].claim += amt;
+                    companyMap[company].docs += 1;
+                });
+                const companyList = Object.entries(companyMap)
+                    .map(([company, v]) => ({ company, claim: v.claim, docs: v.docs }))
+                    .sort((a,b) => b.claim - a.claim)
+                    .slice(0, 6);
+                companyStatsEl.innerHTML = companyList.length ? companyList.map(c => `
+                    <div class="flex items-center justify-between px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate">${c.company}</span>
+                        <span class="text-right shrink-0 ml-2">
+                            <span class="block font-extrabold text-cyan-600 dark:text-cyan-400">${c.claim.toLocaleString('ko-KR')}원</span>
+                            <span class="block text-[9px] text-slate-400">문서 ${c.docs}건</span>
                         </span>
                     </div>`).join('') : `<div class="text-center text-slate-400 text-xs py-6">이번달 데이터가 없습니다.</div>`;
             }
