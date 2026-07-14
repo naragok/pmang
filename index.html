@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.2</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1589,6 +1589,18 @@
                 </div>
             </div>
 
+            <div id="row-dup-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeRowDupDetailModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                        <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                            <i data-lucide="triangle-alert" class="w-4 h-4 text-amber-500"></i> 이 항목의 중복 의심 상세
+                        </p>
+                        <button onclick="closeRowDupDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="row-dup-detail-body" class="p-4 space-y-2 max-h-[70vh] overflow-y-auto rounded-b-2xl"></div>
+                </div>
+            </div>
+
             <div id="dup-account-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-rose-200 dark:border-rose-800 max-w-md w-full p-6">
                     <div class="flex items-center gap-3 mb-4">
@@ -1765,10 +1777,22 @@
 
             <div id="statement-print-box" class="print-page print-landscape bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 md:p-8" style="box-shadow:0 2px 12px rgba(0,0,0,0.06);">
                 <div class="flex flex-col gap-4 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
-                    <div class="w-full">
+                    <div class="w-full flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                         <input type="text" id="doc-title" value="(2026년 06월) 자금청구명세서" onchange="syncMetaValues('doc-title', this.value)"
-                            class="font-extrabold text-gray-950 dark:text-slate-100 border-b border-gray-300 dark:border-slate-700 focus:border-blue-600 pb-1.5 w-full bg-transparent outline-none"
+                            class="font-extrabold text-gray-950 dark:text-slate-100 border-b border-gray-300 dark:border-slate-700 focus:border-blue-600 pb-1.5 flex-1 min-w-0 bg-transparent outline-none"
                             style="font-size:clamp(1.1rem,3vw,1.6rem);">
+
+                        <div class="no-print flex items-center gap-2 shrink-0">
+                            <div class="flex items-center border rounded-lg p-1" style="background:#fff;border-color:#e2e8f0;">
+                                <span class="text-xs font-bold px-2 text-slate-500 dark:text-slate-400">표시 단위</span>
+                                <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="background:#2563eb;color:#fff;">원</button>
+                                <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="color:#64748b;">천원</button>
+                            </div>
+
+                            <button onclick="openAddRowModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm transition-all whitespace-nowrap">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> 자금 청구 항목 추가
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
@@ -1784,25 +1808,6 @@
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300" style="width:50px;text-align:center;">회사명</span>
                             <input type="text" id="meta-company" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
                         </div>
-                    </div>
-                </div>
-
-                <div class="no-print mb-4 flex flex-col sm:flex-row gap-3 justify-between items-center rounded-xl border p-3" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-color:#e2e8f0;">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="font-bold px-2 py-1 rounded text-[10px]" style="background:#e0e7ff;color:#3730a3;">정렬 우선순위</span>
-                        <span>외주비 → 자재비 → 장비비 → 노무비 → 관리비</span>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center border rounded-lg p-1" style="background:#fff;border-color:#e2e8f0;">
-                            <span class="text-xs font-bold px-2 text-slate-500 dark:text-slate-400">표시 단위</span>
-                            <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="background:#2563eb;color:#fff;">원</button>
-                            <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="color:#64748b;">천원</button>
-                        </div>
-
-                        <button onclick="openAddRowModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm transition-all">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i> 자금 청구 항목 추가
-                        </button>
                     </div>
                 </div>
 
@@ -3722,6 +3727,18 @@
 
         const categoryPriority = { "외주비": 1, "자재비": 2, "장비비": 3, "노무비": 4, "관리비": 5 };
 
+        // ★ 구분(카테고리)별 색상 단일 기준 — 자금청구명세서·지불의뢰서·대시보드·통계 전체가 이 맵을 참조해 색상을 연동함
+        const CATEGORY_COLORS = {
+            "외주비": { name: "blue",    accent: "#2563eb", bg: "#dbeafe", darkBg: "#1e3a8a", badge: "bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700",       selectBg: "#eff6ff", selectDarkBg: "rgba(37,99,235,0.15)" },
+            "자재비": { name: "emerald", accent: "#059669", bg: "#d1fae5", darkBg: "#064e3b", badge: "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700", selectBg: "#ecfdf5", selectDarkBg: "rgba(5,150,105,0.15)" },
+            "장비비": { name: "amber",   accent: "#d97706", bg: "#fef3c7", darkBg: "#78350f", badge: "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700",     selectBg: "#fffbeb", selectDarkBg: "rgba(217,119,6,0.15)" },
+            "노무비": { name: "purple",  accent: "#7c3aed", bg: "#ede9fe", darkBg: "#3b0764", badge: "bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700",  selectBg: "#f5f3ff", selectDarkBg: "rgba(124,58,237,0.15)" },
+            "관리비": { name: "rose",    accent: "#e11d48", bg: "#ffe4e6", darkBg: "#881337", badge: "bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-700",       selectBg: "#fff1f2", selectDarkBg: "rgba(225,29,72,0.15)" },
+        };
+        function getCategoryColor(cat) {
+            return CATEGORY_COLORS[cat] || { name: "slate", accent: "#64748b", bg: "#f1f5f9", darkBg: "#334155", badge: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600", selectBg: "#f8fafc", selectDarkBg: "rgba(100,116,139,0.15)" };
+        }
+
         // ★ 안전한 ID 생성기 — 삭제 후 재추가 시 충돌 방지 (전체 이력 최댓값 + 1)
         let _datasetIdCounter  = 0;
         let _accountDbIdCounter = 0;
@@ -4634,6 +4651,7 @@
         }
 
         let duplicateItemIds = new Set();
+        let duplicateDetailsByRow = {}; // rowId -> [{type, title, message}] — 경고 아이콘 클릭 시 상세 표시용
         let dupAccountModalCallback = null;
 
         // 대표자 불일치 상세 데이터 전역 보관 (모달에서 재사용)
@@ -4641,6 +4659,12 @@
 
         function checkDuplicateContracts() {
             duplicateItemIds.clear();
+            duplicateDetailsByRow = {};
+            const addDupDetail = (rowId, type, title, message) => {
+                if (rowId === null || rowId === undefined) return;
+                if (!duplicateDetailsByRow[rowId]) duplicateDetailsByRow[rowId] = [];
+                duplicateDetailsByRow[rowId].push({ type, title, message });
+            };
             const seen = {};
             const duplicateGroups = {};
 
@@ -4660,6 +4684,11 @@
                 if (duplicateGroups[key].length > 1) {
                     duplicateGroups[key].forEach(id => { duplicateItemIds.add(id); claimCount++; });
                     const [vendor, , supply] = key.split('_');
+                    const groupIds = duplicateGroups[key];
+                    groupIds.forEach(id => {
+                        addDupDetail(id, 'claim', '이중 청구 의심',
+                            `동일 거래처 「${vendor}」 · 동일 대표자 · 동일 공급가액(${Number(supply).toLocaleString('ko-KR')}원) 항목이 ${groupIds.length - 1}건 더 있습니다.`);
+                    });
                     claimChips.push(`<span class="inline-block bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full">${vendor} (${Number(supply).toLocaleString('ko-KR')}원)</span>`);
                 }
             });
@@ -4712,7 +4741,14 @@
                         ${display} → ${vendors.length}개 거래처${chipExtra}
                     </span>`
                 );
-                rows.forEach(r => { if (r.id !== null) duplicateItemIds.add(r.id); });
+                rows.forEach(r => {
+                    if (r.id !== null) {
+                        duplicateItemIds.add(r.id);
+                        const others = rows.filter(o => o !== r).map(o => `${o.vendor}(예금주:${o.holder||'-'}) [${o.src}]`).join(', ');
+                        addDupDetail(r.id, 'account', '계좌번호 중복' + (holderMismatch ? ' · 예금주 상이' : ''),
+                            `동일 계좌(${display})가 다른 거래처에서도 사용되고 있습니다 — ${others}`);
+                    }
+                });
             });
 
             // 3) 동일 금액 중복 입력 의심: 거래처/대표자가 달라도 공급가액이 완전히 같으면
@@ -4733,7 +4769,12 @@
                 const ceoSet = new Set(rows.map(r => `${(r.vendor||'').trim()}_${normCeo(r.ceo)}`));
                 if (ceoSet.size === 1) return;
                 amtDupCount++;
-                rows.forEach(r => duplicateItemIds.add(r.id));
+                rows.forEach(r => {
+                    duplicateItemIds.add(r.id);
+                    const others = rows.filter(o => o !== r).map(o => `${o.vendor||'(거래처 미기입)'} [${o.note||'적요없음'}]`).join(', ');
+                    addDupDetail(r.id, 'amount', '동일 금액 중복 입력 의심',
+                        `공급가액 ${Number(amt).toLocaleString('ko-KR')}원이 동일한 다른 항목이 있습니다 — ${others}`);
+                });
                 amtChips.push(
                     `<span class="inline-block bg-orange-200 dark:bg-orange-900 text-orange-900 dark:text-orange-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help"
                         title="${rows.map(r=>`${r.vendor||'(거래처 미기입)'} [${r.note||'적요없음'}]`).join(' / ')}">
@@ -4826,6 +4867,29 @@
 
         function showDuplicateToast() {
             showToast("⚠️ 주황색/빨간 음영 항목이 중복 의심 상태입니다. 상단 배너에서 상세 내용을 확인하세요.");
+        }
+
+        /* ── 번호행 경고 아이콘 클릭 → 해당 항목의 중복 상세 내용 표시 ── */
+        function showRowDuplicateDetail(rowId) {
+            const details = duplicateDetailsByRow[rowId] || [];
+            const body = document.getElementById('row-dup-detail-body');
+            if (!body) return;
+            if (!details.length) {
+                body.innerHTML = `<p class="text-slate-400 text-center py-4">이 항목에 대한 중복 상세 정보를 찾을 수 없습니다.</p>`;
+            } else {
+                const typeColor = { claim: 'amber', account: 'rose', amount: 'orange' };
+                body.innerHTML = details.map(d => `
+                    <div class="rounded-lg border border-${typeColor[d.type]||'slate'}-300 dark:border-${typeColor[d.type]||'slate'}-800 bg-${typeColor[d.type]||'slate'}-50 dark:bg-${typeColor[d.type]||'slate'}-950/20 p-3">
+                        <p class="font-extrabold text-${typeColor[d.type]||'slate'}-800 dark:text-${typeColor[d.type]||'slate'}-300 text-xs mb-1">⚠️ ${d.title}</p>
+                        <p class="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">${d.message}</p>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('row-dup-detail-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeRowDupDetailModal() {
+            document.getElementById('row-dup-detail-modal').classList.add('hidden');
         }
 
         function showDupAccountModal(msg, onConfirm) {
@@ -6119,6 +6183,7 @@
 
             const tbody = document.getElementById('statement-tbody');
             tbody.innerHTML = "";
+            const isDark = document.documentElement.classList.contains('dark');
 
             const keyword = document.getElementById('state-search-keyword').value.trim().toLowerCase();
             const filterType = document.getElementById('state-filter-type-select').value;
@@ -6196,6 +6261,7 @@
                 gSupply = 0; gTax = 0; gTotal = 0; gDeduction = 0; gPrepaid = 0; gReq = 0; gCount = 0;
             };
             let prevCatLabel = null;
+            let catRowNum = 0; // 구분이 바뀔 때마다 1부터 다시 세는 번호 카운터 (기본 정렬 시에만 사용)
 
             filteredDataset.forEach((row, index) => {
                 const totalRowAmt = (row.supply || 0) + (row.tax || 0);
@@ -6208,10 +6274,12 @@
                 totalPrepaid += (row.prepaid || 0);
                 totalRequestAmt += requestAmt;
 
-                // 구분이 바뀌는 시점에 이전 그룹 소계를 먼저 출력
+                // 구분이 바뀌는 시점에 이전 그룹 소계를 먼저 출력하고 번호 카운터를 리셋
                 if (showCatSubtotal && prevCatLabel !== null && row.type !== prevCatLabel) {
                     flushCatSubtotal(prevCatLabel);
+                    catRowNum = 0;
                 }
+                catRowNum++;
                 prevCatLabel = row.type;
                 gSupply += (row.supply || 0);
                 gTax += (row.tax || 0);
@@ -6231,7 +6299,7 @@
                     : "divide-x divide-slate-200 dark:divide-slate-800 transition-all text-center text-slate-850 dark:text-slate-100";
 
                 const dupIndicator = isDup 
-                    ? `<span class="inline-block text-amber-600 dark:text-amber-400 font-bold shrink-0 cursor-help animate-pulse" onclick="showDuplicateToast()" title="중복 의심 건">⚠️</span>`
+                    ? `<span class="inline-block text-amber-600 dark:text-amber-400 font-bold shrink-0 cursor-help animate-pulse" onclick="showRowDuplicateDetail(${row.id})" title="중복 의심 건 (클릭 시 상세 확인)">⚠️</span>`
                     : "";
 
                 const isAccInDb = accountDb.some(a => a.account.replace(/[^0-9]/g, '') === (row.account || '').replace(/[^0-9]/g, ''));
@@ -6260,9 +6328,9 @@
                     <td class="py-2 px-1 no-print no-padding-adjust">
                         <input type="checkbox" onchange="toggleRowSelection(${row.id}, this.checked)" ${rowChecked} class="w-3.5 h-3.5 rounded cursor-pointer">
                     </td>
-                    <td class="py-2 px-1 font-bold text-slate-500 flex items-center justify-center gap-1">${dupIndicator} <span>${index + 1}</span></td>
+                    <td class="py-2 px-1 font-bold text-slate-500 flex items-center justify-center gap-1">${dupIndicator} <span>${showCatSubtotal ? catRowNum : index + 1}</span></td>
                     <td class="py-1 px-1">
-                        <select onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'type', this.value)" class="text-center w-full bg-transparent focus:ring-1 focus:ring-blue-500 rounded p-1 font-bold text-slate-800 dark:text-slate-100 dark:bg-slate-900 outline-none">
+                        <select onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'type', this.value)" style="color:${getCategoryColor(row.type).accent};background:${isDark ? getCategoryColor(row.type).selectDarkBg : getCategoryColor(row.type).selectBg};" class="text-center w-full focus:ring-1 focus:ring-blue-500 rounded p-1 font-bold outline-none border border-transparent">
                             <option value="외주비" ${row.type === '외주비' ? 'selected' : ''}>외주비</option>
                             <option value="자재비" ${row.type === '자재비' ? 'selected' : ''}>자재비</option>
                             <option value="장비비" ${row.type === '장비비' ? 'selected' : ''}>장비비</option>
@@ -8673,6 +8741,7 @@ function changePrintScale(value) {
             reader.onload = function(e) {
                 const text = e.target.result;
                 parseCSV(text);
+                input.value = "";
             };
             reader.readAsText(file, 'EUC-KR');
         }
@@ -8741,7 +8810,6 @@ function changePrintScale(value) {
                     showToast("불러올 수 있는 유효한 행을 찾을 수 없었습니다.");
                 }
             }
-            input.value = "";
         }
 
         /* ============================================================
@@ -9338,12 +9406,11 @@ function changePrintScale(value) {
                     ? `<div class="mt-2"><div class="flex justify-between text-[9px] mb-0.5"><span class="text-slate-400">집행률</span><span style="color:${pctColor}" class="font-bold">${pct}%</span></div>
                        <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"><div class="h-1.5 rounded-full" style="width:${pct}%;background:${pctColor}"></div></div></div>`
                     : `<p class="text-[9px] text-slate-400 mt-1">예산 미설정</p>`;
-                const firstDocId = (savedDocuments.find(d => (d.site||'현장 미지정').trim() === site) || {}).id || '';
+                // 이 현장(+이 회사)에 속한 대장을 월별로 조회 (선택 현장의 문서만 대상)
+                const siteDocs = savedDocuments
+                    .filter(d => (d.site||'현장 미지정').trim() === site && (d.company||'') === company)
+                    .sort((a, b) => (a.month||'').localeCompare(b.month||''));
                 const sharePct = totalAmt > 0 ? Math.round(s.requestAmt / totalAmt * 100) : 0;
-                // 이 현장에 속한 월 목록 (이 회사 문서만)
-                const months = [...new Set(
-                    savedDocuments.filter(d => (d.site||'현장 미지정').trim() === site && (d.company||'') === company).map(d => d.month).filter(Boolean)
-                )].sort();
 
                 html += `
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-md transition-all">
@@ -9355,7 +9422,7 @@ function changePrintScale(value) {
                             </p>
                             <p class="text-[10px] text-slate-400 mt-0.5">
                                 대장 ${s.docCount}개 · 청구 ${s.rowCount}건
-                                ${months.length ? '· ' + months.join(', ') : ''}
+                                ${siteDocs.length ? '· ' + siteDocs.map(d => d.month).filter(Boolean).join(', ') : ''}
                             </p>
                         </div>
                         <div class="text-right shrink-0">
@@ -9369,7 +9436,9 @@ function changePrintScale(value) {
                             <span>공급가: <strong class="text-slate-700 dark:text-slate-200">${formatNumber(s.supply)}원</strong></span>
                             ${s.companies.length > 1 ? `<span class="text-amber-600 dark:text-amber-400">+타사 공유</span>` : ''}
                         </div>
-                        ${firstDocId ? `<button onclick="loadSavedDocument('${firstDocId}'); closeSiteManagerModal();" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-[10px] font-bold transition-all">대장 이동 →</button>` : ''}
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            ${siteDocs.map(d => `<button onclick="loadSavedDocument('${d.id}'); closeSiteManagerModal();" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition-all" title="${site} · ${d.month} 대장으로 이동">${d.month||'대장'} 이동</button>`).join('')}
+                        </div>
                     </div>
                 </div>`;
             });
@@ -9423,7 +9492,10 @@ function changePrintScale(value) {
                     ? `<span class="font-bold ${pct >= 90 ? 'text-rose-600' : pct >= 70 ? 'text-amber-600' : 'text-emerald-600'}">${pct}%</span>`
                     : `<span class="text-slate-400 text-[10px]">예산 미설정</span>`;
                 const sharePct = totalAmt > 0 ? Math.round(s.requestAmt / totalAmt * 100) : 0;
-                const firstDocId = (savedDocuments.find(d => (d.site||'현장 미지정').trim() === site) || {}).id || '';
+                // 선택 현장의 대장만 월별로 필터링해 이동 대상으로 제공
+                const siteDocs = savedDocuments
+                    .filter(d => (d.site||'현장 미지정').trim() === site)
+                    .sort((a, b) => (a.month||'').localeCompare(b.month||''));
                 const coTags = s.companies.map(c => `<span class="inline-block bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded px-1.5 py-0.5 text-[9px] font-semibold">${c}</span>`).join(' ');
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-all';
@@ -9438,7 +9510,14 @@ function changePrintScale(value) {
                     </td>
                     <td class="py-2.5 px-3 text-center">${pctBadge}</td>
                     <td class="py-2.5 px-3 text-center">
-                        ${firstDocId ? `<button onclick="loadSavedDocument('${firstDocId}'); closeSiteManagerModal();" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition-all">이동</button>` : '-'}
+                        ${siteDocs.length ? `<select onchange="if(this.value){ loadSavedDocument(this.value); closeSiteManagerModal(); }" class="text-[10px] font-bold border rounded px-1 py-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600" title="${site} 대장으로 이동 (회사 · 월 선택)">
+                            <option value="">이동 (회사 · 월 선택)</option>
+                            ${[...new Set(siteDocs.map(d => d.company || '회사 미지정'))].map(co => `
+                                <optgroup label="${co}">
+                                    ${siteDocs.filter(d => (d.company || '회사 미지정') === co).map(d => `<option value="${d.id}">${d.month||'(월 미지정)'}</option>`).join('')}
+                                </optgroup>
+                            `).join('')}
+                        </select>` : '-'}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -12267,7 +12346,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     records.push({
                         source: '자금청구명세서', color: '#0ea5e9',
                         label: row.item || row.note || '품목 미기재',
-                        date: row.date || (currentDoc?.month || ''),
+                        date: row.date || (savedDocuments.find(d => d.id === currentDocId)?.month || ''),
                         amount: Number(row.supply||0) + Number(row.tax||0),
                         detail: `대표자: ${row.ceo||'-'} · 계좌: ${row.account||'-'}`
                     });
@@ -12455,17 +12534,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const memo   = document.getElementById('rh-save-memo')?.value.trim() || '';
             if (!month) { showToast('저장 월을 선택하세요.'); return; }
 
-            // 품목 스냅샷
+            // 품목 스냅샷 (req-items-tbody 행은 품명·수량·공급가·부가세 input 4개로 구성됨)
             const items = [];
             document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
                 const inputs = tr.querySelectorAll('input');
-                if (inputs.length >= 5) {
+                if (inputs.length >= 4) {
                     items.push({
-                        name:   inputs[0]?.value || '',
-                        spec:   inputs[1]?.value || '',
-                        qty:    inputs[2]?.value || '',
-                        unit:   inputs[3]?.value || '',
-                        amount: inputs[4]?.value || ''
+                        item:   inputs[0]?.value || '',
+                        qty:    inputs[1]?.value || '',
+                        supply: Number((inputs[2]?.value || '0').replace(/,/g, '')) || 0,
+                        tax:    Number((inputs[3]?.value || '0').replace(/,/g, '')) || 0
                     });
                 }
             });
@@ -12639,25 +12717,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const catEl = document.getElementById('req-title-category');
             if (catEl && h.category) { catEl.textContent = h.category; if(typeof applyCategoryColor==='function') applyCategoryColor(h.category); }
 
-            // 품목 복원
+            // 품목 복원 (requestItems 데이터 모델: item/qty/supply/tax)
             if ((h.items||[]).length) {
-                const tbody = document.getElementById('req-items-tbody');
-                if (tbody) {
-                    tbody.innerHTML = '';
-                    h.items.forEach((row, i) => {
-                        if (typeof addRequestItemRow === 'function') addRequestItemRow();
-                        const trs = tbody.querySelectorAll('tr');
-                        const tr  = trs[trs.length-1];
-                        if (!tr) return;
-                        const inputs = tr.querySelectorAll('input');
-                        if (inputs[0]) inputs[0].value = row.name   || '';
-                        if (inputs[1]) inputs[1].value = row.spec   || '';
-                        if (inputs[2]) inputs[2].value = row.qty    || '';
-                        if (inputs[3]) inputs[3].value = row.unit   || '';
-                        if (inputs[4]) inputs[4].value = row.amount || '';
-                    });
-                    if (typeof recalcRequestTotals === 'function') recalcRequestTotals();
-                }
+                requestItems = h.items.map(row => ({
+                    item:   row.item || row.name || '',
+                    qty:    row.qty  || '1.0',
+                    supply: Number(row.supply) || 0,
+                    tax:    Number(row.tax)    || 0
+                }));
+                renderRequestItemsTable();
+                saveVendorItems();
             }
 
             closeReqHistModal();
@@ -13550,6 +13619,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'vendor-history-modal':closeVendorHistoryModal,
             'bulk-sync-modal':     closeBulkSyncModal,
             'stats-detail-modal':  () => document.getElementById('stats-detail-modal').classList.add('hidden'),
+            'row-dup-detail-modal':closeRowDupDetailModal,
         };
 
         document.addEventListener('keydown', function(e) {
