@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.11</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.13</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1992,34 +1992,33 @@
                             <div class="flex items-center justify-between mb-2">
                                 <p class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
                                     <span class="text-violet-500 font-black">●</span> 구비 서류 체크리스트
+                                    <button type="button" onclick="openChecklistManageModal()" class="no-print ml-1 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400" title="체크리스트 항목 관리(등록/수정/삭제)">
+                                        <i data-lucide="settings" class="w-3 h-3"></i>
+                                    </button>
                                 </p>
                                 <span id="chk-summary-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all" style="background:rgba(109,40,217,0.1);color:#7c3aed;">0 / 6</span>
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" id="req-checklist-container">
-                                <label class="chk-card" data-chk="chk-biz">
-                                    <input type="checkbox" id="chk-biz" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                                    <span class="chk-icon">📋</span><span class="chk-label">사업자등록증 사본</span><span class="chk-mark">✓</span>
-                                </label>
-                                <label class="chk-card" data-chk="chk-bank">
-                                    <input type="checkbox" id="chk-bank" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                                    <span class="chk-icon">🏦</span><span class="chk-label">통장사본</span><span class="chk-mark">✓</span>
-                                </label>
-                                <label class="chk-card" data-chk="chk-tax">
-                                    <input type="checkbox" id="chk-tax" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                                    <span class="chk-icon">🧾</span><span class="chk-label">세금계산서</span><span class="chk-mark">✓</span>
-                                </label>
-                                <label class="chk-card" data-chk="chk-trans">
-                                    <input type="checkbox" id="chk-trans" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                                    <span class="chk-icon">📄</span><span class="chk-label">거래명세표</span><span class="chk-mark">✓</span>
-                                </label>
-                                <label class="chk-card" data-chk="chk-lease">
-                                    <input type="checkbox" id="chk-lease" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                                    <span class="chk-icon">🚜</span><span class="chk-label">장비임대차계약서</span><span class="chk-mark">✓</span>
-                                </label>
-                                <label class="chk-card" data-chk="chk-equip">
-                                    <input type="checkbox" id="chk-equip" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                                    <span class="chk-icon">🏗️</span><span class="chk-label">건설기계등록증</span><span class="chk-mark">✓</span>
-                                </label>
+                            </div>
+                        </div>
+
+                        <div id="checklist-manage-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print" onclick="if(event.target===this) closeChecklistManageModal()">
+                            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full">
+                                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                                    <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                                        <i data-lucide="list-checks" class="w-4 h-4 text-violet-500"></i> 구비 서류 체크리스트 항목 관리
+                                    </p>
+                                    <button onclick="closeChecklistManageModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                </div>
+                                <div class="p-4">
+                                    <div id="checklist-manage-list" class="space-y-1.5 max-h-64 overflow-y-auto pr-1 mb-3"></div>
+                                    <div class="flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800 pt-3">
+                                        <input type="text" id="checklist-new-icon" maxlength="2" placeholder="🙂" class="w-11 px-2 py-1.5 text-sm text-center border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                                        <input type="text" id="checklist-new-label" placeholder="새 항목명 입력 (예: 신분증 사본)" class="flex-1 px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}">
+                                        <button onclick="addChecklistItem()" class="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">추가</button>
+                                    </div>
+                                    <button onclick="resetChecklistItemsToDefault()" class="w-full mt-2 text-[10px] text-slate-400 hover:text-rose-500 font-semibold">기본 항목(6개)으로 초기화</button>
+                                </div>
                             </div>
                         </div>
 
@@ -3738,6 +3737,29 @@
         function getCategoryColor(cat) {
             return CATEGORY_COLORS[cat] || { name: "slate", accent: "#64748b", bg: "#f1f5f9", darkBg: "#334155", badge: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600", selectBg: "#f8fafc", selectDarkBg: "rgba(100,116,139,0.15)" };
         }
+
+        /* ── 지불의뢰서 구비 서류 체크리스트 — 사용자가 항목을 등록/수정/삭제할 수 있는 단일 기준 저장소 ── */
+        const CHECKLIST_ITEMS_KEY = 'cons_checklist_items_v1';
+        const DEFAULT_CHECKLIST_ITEMS = [
+            { id: 'chk-biz',   icon: '📋', label: '사업자등록증 사본' },
+            { id: 'chk-bank',  icon: '🏦', label: '통장사본' },
+            { id: 'chk-tax',   icon: '🧾', label: '세금계산서' },
+            { id: 'chk-trans', icon: '📄', label: '거래명세표' },
+            { id: 'chk-lease', icon: '🚜', label: '장비임대차계약서' },
+            { id: 'chk-equip', icon: '🏗️', label: '건설기계등록증' },
+        ];
+        function getChecklistItems() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(CHECKLIST_ITEMS_KEY) || 'null');
+                if (Array.isArray(saved) && saved.length) return saved;
+            } catch (e) { /* 저장값 손상 시 기본값 사용 */ }
+            return DEFAULT_CHECKLIST_ITEMS;
+        }
+        function setChecklistItems(items) {
+            localStorage.setItem(CHECKLIST_ITEMS_KEY, JSON.stringify(items));
+        }
+        function getChecklistIds()    { return getChecklistItems().map(i => i.id); }
+        function getChecklistLabels() { return getChecklistItems().map(i => i.label); }
 
         // ★ 안전한 ID 생성기 — 삭제 후 재추가 시 충돌 방지 (전체 이력 최댓값 + 1)
         let _datasetIdCounter  = 0;
@@ -7490,12 +7512,26 @@ function changePrintScale(value) {
             saveToLocalStorage();
         }
 
+        /* ── 체크리스트 카드 동적 렌더 (등록된 항목 기준) ── */
+        function renderChecklistItems() {
+            const container = document.getElementById('req-checklist-container');
+            if (!container) return;
+            const items = getChecklistItems();
+            container.innerHTML = items.map(it => `
+                <label class="chk-card" data-chk="${it.id}">
+                    <input type="checkbox" id="${it.id}" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
+                    <span class="chk-icon">${it.icon || '📎'}</span><span class="chk-label">${it.label}</span><span class="chk-mark">✓</span>
+                </label>
+            `).join('');
+            refreshChkSummary();
+        }
+
         // 지불의뢰서 서류 체크리스트 실시간 직접 저장 로직 (선택된 의뢰서 고유 Key 조합)
         function saveChecklistStateDirectly() {
             const selectorVal = document.getElementById('request-selector').value;
             if (!selectorVal || selectorVal === 'custom') return;
 
-            const chks = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const chks = getChecklistIds();
             const state = {};
             chks.forEach(id => {
                 const el = document.getElementById(id);
@@ -7514,19 +7550,19 @@ function changePrintScale(value) {
 
         /* ── 배지 카운터 갱신 ── */
         function refreshChkSummary() {
-            const ids = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const ids = getChecklistIds();
             const checked = ids.filter(id => { const el = document.getElementById(id); return el && el.checked; }).length;
             const badge = document.getElementById('chk-summary-badge');
             if (!badge) return;
             badge.textContent = `${checked} / ${ids.length}`;
-            if (checked === ids.length) { badge.style.background='rgba(5,150,105,.12)'; badge.style.color='#059669'; }
+            if (ids.length > 0 && checked === ids.length) { badge.style.background='rgba(5,150,105,.12)'; badge.style.color='#059669'; }
             else if (checked === 0)     { badge.style.background='rgba(109,40,217,.1)';  badge.style.color='#7c3aed'; }
             else                        { badge.style.background='rgba(245,158,11,.12)'; badge.style.color='#b45309'; }
         }
 
         /* ── 전체 카드 상태 동기화 (로드 후 호출) ── */
         function syncAllChkCards() {
-            ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'].forEach(id => {
+            getChecklistIds().forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 const card = el.closest('.chk-card');
@@ -7536,7 +7572,7 @@ function changePrintScale(value) {
         }
 
         function loadChecklist(vendorKey) {
-            const chks = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
+            const chks = getChecklistIds();
             chks.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.checked = false;
@@ -7553,6 +7589,67 @@ function changePrintScale(value) {
                 });
             }
             syncAllChkCards();
+        }
+
+        /* ── 체크리스트 항목 관리 모달 ── */
+        function renderChecklistManageList() {
+            const wrap = document.getElementById('checklist-manage-list');
+            if (!wrap) return;
+            const items = getChecklistItems();
+            wrap.innerHTML = items.map((it, i) => `
+                <div class="flex items-center gap-1.5">
+                    <input type="text" maxlength="2" value="${it.icon || ''}" onchange="updateChecklistItemField(${i}, 'icon', this.value)"
+                        class="w-11 px-2 py-1 text-sm text-center border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    <input type="text" value="${it.label}" onchange="updateChecklistItemField(${i}, 'label', this.value)"
+                        class="flex-1 px-3 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    <button onclick="removeChecklistItemAt(${i})" class="text-slate-400 hover:text-rose-500 px-1.5 shrink-0" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+            `).join('') || `<p class="text-slate-400 text-center text-xs py-3">등록된 항목이 없습니다. 아래에서 추가해주세요.</p>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function openChecklistManageModal() {
+            renderChecklistManageList();
+            document.getElementById('checklist-manage-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeChecklistManageModal() {
+            document.getElementById('checklist-manage-modal').classList.add('hidden');
+        }
+        function addChecklistItem() {
+            const iconEl  = document.getElementById('checklist-new-icon');
+            const labelEl = document.getElementById('checklist-new-label');
+            const label = (labelEl.value || '').trim();
+            if (!label) { showToast('항목명을 입력해주세요.'); return; }
+            const items = getChecklistItems();
+            const newId = `chk-custom-${Date.now()}`;
+            items.push({ id: newId, icon: (iconEl.value || '📎').trim(), label });
+            setChecklistItems(items);
+            iconEl.value = ''; labelEl.value = '';
+            renderChecklistManageList();
+            renderChecklistItems();
+            showToast(`"${label}" 항목이 추가되었습니다.`);
+        }
+        function updateChecklistItemField(index, field, value) {
+            const items = getChecklistItems();
+            if (!items[index]) return;
+            items[index][field] = field === 'label' ? value.trim() : value;
+            setChecklistItems(items);
+            renderChecklistItems();
+        }
+        function removeChecklistItemAt(index) {
+            const items = getChecklistItems();
+            if (!items[index]) return;
+            if (!confirm(`"${items[index].label}" 항목을 삭제하시겠습니까?`)) return;
+            items.splice(index, 1);
+            setChecklistItems(items);
+            renderChecklistManageList();
+            renderChecklistItems();
+        }
+        function resetChecklistItemsToDefault() {
+            if (!confirm('체크리스트 항목을 기본 6개 항목으로 초기화하시겠습니까?')) return;
+            setChecklistItems(JSON.parse(JSON.stringify(DEFAULT_CHECKLIST_ITEMS)));
+            renderChecklistManageList();
+            renderChecklistItems();
         }
 
         function loadRequestData(valueKey) {
@@ -8858,13 +8955,21 @@ function changePrintScale(value) {
         }
 
         function downloadBackupJSON() {
+            // ★ 구비 서류 체크리스트 — 항목 정의 + 문서별 체크 상태(localStorage의 chklist_* 전체) 포함
+            const checklistStates = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('chklist_')) checklistStates[k] = localStorage.getItem(k);
+            }
             const dataToBackup = {
-                version: 'v13',
+                version: 'v14',
                 exportedAt: new Date().toLocaleString('ko-KR'),
                 savedDocuments,
                 accountDb,
                 currentDocId,
-                ccData: ccLoad()
+                ccData: ccLoad(),
+                checklistItems: getChecklistItems(),
+                checklistStates
             };
             const blob = new Blob([JSON.stringify(dataToBackup, null, 2)], { type: 'application/json' });
             const url  = URL.createObjectURL(blob);
@@ -8951,13 +9056,24 @@ function changePrintScale(value) {
 
         /* 백업/타 PC 파일의 데이터를 실제로 반영 (모달 복원, 헤더 빠른 가져오기 공용) */
         function applyRestoredData(parsed, mode) {
-            let stats = { addedDocs: 0, skippedDocs: 0, addedAccounts: 0, skippedAccounts: 0, addedCc: 0, skippedCc: 0 };
+            let stats = { addedDocs: 0, skippedDocs: 0, addedAccounts: 0, skippedAccounts: 0, addedCc: 0, skippedCc: 0, addedChecklistItems: 0 };
+            const docIdRemap = {}; // 병합 모드에서 id 충돌로 새 id를 받은 문서의 이전id→새id 매핑 (체크리스트 상태 키 재매핑용)
 
             if (mode === 'overwrite') {
                 savedDocuments = parsed.savedDocuments;
                 accountDb      = parsed.accountDb;
                 currentDocId   = parsed.currentDocId || savedDocuments[0].id;
                 if (Array.isArray(parsed.ccData)) { ccData = parsed.ccData; ccSave(); }
+
+                // ★ 체크리스트 항목 정의 복원 (있으면 전체 대체)
+                if (Array.isArray(parsed.checklistItems) && parsed.checklistItems.length) {
+                    setChecklistItems(parsed.checklistItems);
+                }
+                // ★ 문서별 체크 상태 복원 — 기존 chklist_* 를 모두 지우고 백업 내용으로 교체
+                if (parsed.checklistStates && typeof parsed.checklistStates === 'object') {
+                    Object.keys(localStorage).filter(k => k.startsWith('chklist_')).forEach(k => localStorage.removeItem(k));
+                    Object.entries(parsed.checklistStates).forEach(([k, v]) => localStorage.setItem(k, v));
+                }
             } else {
                 // ── 병합 모드: 작성자(다른 PC)가 다른 파일일 수 있으므로 기존 데이터는 유지하고 새 항목만 추가 ──
                 const localDocIds = new Set(savedDocuments.map(d => d.id));
@@ -8968,7 +9084,9 @@ function changePrintScale(value) {
                         const sameContent = local && local.site === doc.site && local.month === doc.month
                             && (local.dataset||[]).length === (doc.dataset||[]).length;
                         if (sameContent) { stats.skippedDocs++; return; } // 완전 동일 → 건너뜀
+                        const oldId = doc.id;
                         doc = { ...doc, id: 'doc-' + Date.now() + '-' + Math.floor(Math.random()*10000) }; // id 충돌 → 새 id 부여 후 추가
+                        docIdRemap[oldId] = doc.id;
                     }
                     savedDocuments.push(doc);
                     localDocIds.add(doc.id);
@@ -8999,6 +9117,29 @@ function changePrintScale(value) {
                     ccSave();
                 }
 
+                // ★ 체크리스트 항목 병합 — 이미 있는 라벨은 건너뛰고 새 항목만 추가
+                if (Array.isArray(parsed.checklistItems) && parsed.checklistItems.length) {
+                    const localItems = getChecklistItems();
+                    const localLabels = new Set(localItems.map(i => i.label));
+                    parsed.checklistItems.forEach(it => {
+                        if (localLabels.has(it.label)) return;
+                        localItems.push({ ...it, id: 'chk-custom-' + Date.now() + '-' + Math.floor(Math.random()*10000) });
+                        localLabels.add(it.label);
+                        stats.addedChecklistItems++;
+                    });
+                    setChecklistItems(localItems);
+                }
+                // ★ 문서별 체크 상태 병합 — 병합으로 id가 바뀐 문서는 새 id로 재매핑, 기존에 있는 키는 보존(덮어쓰지 않음)
+                if (parsed.checklistStates && typeof parsed.checklistStates === 'object') {
+                    Object.entries(parsed.checklistStates).forEach(([k, v]) => {
+                        const m = k.match(/^chklist_(.+?)_(.+)$/);
+                        if (!m) return;
+                        const mappedDocId = docIdRemap[m[1]] || m[1];
+                        const newKey = `chklist_${mappedDocId}_${m[2]}`;
+                        if (localStorage.getItem(newKey) === null) localStorage.setItem(newKey, v);
+                    });
+                }
+
                 // 병합 모드는 현재 열려있던 문서를 그대로 유지 (savedDocuments가 비어있었을 때만 새로 지정)
                 if (!currentDocId && savedDocuments.length) currentDocId = savedDocuments[0].id;
             }
@@ -9010,6 +9151,7 @@ function changePrintScale(value) {
             updateSavedSheetsSelector();
             renderStatementTable();
             renderAccountDBList();
+            if (typeof renderChecklistItems === 'function') renderChecklistItems();
             refreshRequestSelector();
             renderSiteDashboard();
             if (typeof ccRender === 'function') ccRender();
@@ -10441,8 +10583,8 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
         async function exportRequestToDocx() {
             if (typeof JSZip === 'undefined') { showToast('JSZip 로딩 중입니다.', 'warn'); return; }
             const g = id => (document.getElementById(id)||{}).value||'';
-            const chkIds    = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
-            const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const chkIds    = getChecklistIds();
+            const chkLabels = getChecklistLabels();
             const itemRows  = [];
             document.querySelectorAll('#req-items-tbody tr').forEach(tr => {
                 const inp = tr.querySelectorAll('input[type=text]');
@@ -10482,8 +10624,8 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
 
             const site   = document.getElementById('req-meta-site')?.value  || '';
             const period = document.getElementById('req-meta-period')?.value || '';
-            const chkIds    = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
-            const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const chkIds    = getChecklistIds();
+            const chkLabels = getChecklistLabels();
             // 전체 내보내기는 체크리스트 미체크 상태로
             const checklist = chkLabels.map(label=>({label,checked:false}));
 
@@ -10812,7 +10954,7 @@ ${mergeSxml}
             addRow([]);
 
             // ── 구비 서류 체크리스트 ──
-            const CHK_LABELS = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+            const CHK_LABELS = getChecklistLabels();
             const checklist  = d.checklist || CHK_LABELS.map(l=>({label:l,checked:false}));
             const chkStr = checklist.map(ck=>`${ck.checked?'☑':'☐'} ${ck.label}`).join('  ');
             fullMerge(addRow([c('구 비 서 류 체 크 리 스 트', S.SEC_HEAD),'','','','','']));
@@ -10926,8 +11068,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             if (mode === 'current') {
                 const g = id => document.getElementById(id)?.value||'';
-                const chkIds    = ['chk-biz','chk-bank','chk-tax','chk-trans','chk-lease','chk-equip'];
-                const chkLabels = ['사업자등록증 사본','통장사본','세금계산서','거래명세표','장비임대차계약서','건설기계등록증'];
+                const chkIds    = getChecklistIds();
+                const chkLabels = getChecklistLabels();
                 const d = {
                     site, period,
                     category: (document.getElementById('req-title-category')||{}).textContent||'',
@@ -11638,6 +11780,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('print-scale-slider').value = "1.00";
             applyCategoryColor("자재비");
             
+            renderChecklistItems();
             const checklistContainer = document.getElementById('req-checklist-container');
             if (checklistContainer) {
                 const checkboxes = checklistContainer.querySelectorAll('input[type="checkbox"]');
@@ -13645,6 +13788,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'bulk-sync-modal':     closeBulkSyncModal,
             'stats-detail-modal':  () => document.getElementById('stats-detail-modal').classList.add('hidden'),
             'row-dup-detail-modal':closeRowDupDetailModal,
+            'checklist-manage-modal': closeChecklistManageModal,
         };
 
         document.addEventListener('keydown', function(e) {
