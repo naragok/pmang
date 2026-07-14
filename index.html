@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.13</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.16</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1083,6 +1083,9 @@
                 <input type="file" id="pdf-import-input" accept=".pdf,image/*" class="hidden" onchange="importPdfBill(this)">
                 <button onclick="exportToXLSX()" class="hdr-btn hdr-btn-emerald" title="Excel 내보내기">
                     <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="inline btn-label">Excel</span>
+                </button>
+                <button onclick="exportHQReportXLSX()" class="hdr-btn hdr-btn-emerald" title="청구명세서·지불의뢰서·법인카드를 한 파일로 묶어 본사 보고용으로 내보냅니다">
+                    <i data-lucide="building-2" class="w-3 h-3"></i><span class="inline btn-label">본사 보고용</span>
                 </button>
                 <button onclick="exportToCSV()" class="hdr-btn hdr-btn-slate" title="CSV 내보내기">
                     <i data-lucide="file-down" class="w-3 h-3"></i><span class="inline btn-label">CSV</span>
@@ -10375,6 +10378,140 @@ function changePrintScale(value) {
             const filename = `${docTitle.replace(/\s/g,'_')}_자금관리.xlsx`;
             XLSX.writeFile(wb, filename);
             showToast(`Excel 파일 저장 완료! (${dataset.length}행 + 계좌DB ${accountDb.length}개)`);
+        }
+
+        /* ============================================================
+           본사 보고용 일괄 내보내기 — 청구명세서 + 지불의뢰서(발행이력) + 법인카드를
+           하나의 xlsx 파일(시트 3개)로 묶어서 내보낸다 (현재 선택된 현장·월 기준)
+        ============================================================ */
+        function exportHQReportXLSX() {
+            if (typeof XLSX === 'undefined') {
+                showToast('Excel 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
+                return;
+            }
+
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const company = currentDoc?.company || '';
+            const site    = currentDoc?.site    || '';
+            const month   = currentDoc?.month   || '';
+            const docTitle = [company, month, site].filter(Boolean).join(' ') || '본사보고';
+
+            const wb = XLSX.utils.book_new();
+
+            /* ── 시트1: 청구명세서 ── */
+            const headers1 = ['번호','구분','거래처','대표자','공급가액','부가세','결제금액','공제금액','선지급','지급요청금액','은행','입금계좌','예금주','비고','상태'];
+            const rows1 = dataset.map((row, i) => {
+                const total  = (row.supply||0) + (row.tax||0);
+                const reqAmt = total - (row.deduction||0) - (row.prepaid||0);
+                return [
+                    i + 1, row.type||'', row.vendor||'', row.ceo||'',
+                    row.supply||0, row.tax||0, total,
+                    row.deduction||0, row.prepaid||0, reqAmt,
+                    row.bank||'', row.account||'', row.holder||'',
+                    row.note||'', row.status||'대기'
+                ];
+            });
+            const t1supply = dataset.reduce((s,r)=>s+(r.supply||0),0);
+            const t1tax    = dataset.reduce((s,r)=>s+(r.tax||0),0);
+            const t1ded    = dataset.reduce((s,r)=>s+(r.deduction||0),0);
+            const t1pre    = dataset.reduce((s,r)=>s+(r.prepaid||0),0);
+            rows1.push(['합계','','','', t1supply, t1tax, t1supply+t1tax, t1ded, t1pre, (t1supply+t1tax)-t1ded-t1pre,'','','','','']);
+            const ws1Data = [[`청구명세서 — ${docTitle}`], [], headers1, ...rows1];
+            const ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
+            ws1['!cols'] = [{wch:5},{wch:8},{wch:18},{wch:10},{wch:13},{wch:11},{wch:13},{wch:11},{wch:10},{wch:14},{wch:8},{wch:16},{wch:10},{wch:16},{wch:7}];
+            ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:14} }];
+            XLSX.utils.book_append_sheet(wb, ws1, '청구명세서');
+
+            /* ── 시트2: 지불의뢰서 (거래처+대표자 조합별로 실제 양식과 유사한 미리보기 형식으로 생성) ── */
+            const vendorMap = {};
+            const vendorOrder = [];
+            dataset.forEach(row => {
+                const vendorName = (row.vendor || '').trim() || '(거래처 미입력)';
+                const ceoName    = (row.ceo || '').trim() || '(대표자 미입력)';
+                const key = `${vendorName}__${ceoName}`; // ★ 같은 거래처라도 대표자가 다르면 별개 건으로 취급
+                if (!vendorMap[key]) {
+                    vendorMap[key] = { vendor: vendorName, ceo: ceoName, type: '', bank: '', account: '', holder: '', bizNum: '', phone: '', supply: 0, tax: 0, deduction: 0, prepaid: 0 };
+                    vendorOrder.push(key);
+                }
+                const v = vendorMap[key];
+                v.supply     += row.supply    || 0;
+                v.tax        += row.tax       || 0;
+                v.deduction  += row.deduction || 0;
+                v.prepaid    += row.prepaid   || 0;
+                if (!v.type   && row.type)    v.type    = row.type;
+                if (!v.bank   && row.bank)    v.bank    = row.bank;
+                if (!v.account&& row.account) v.account = row.account;
+                if (!v.holder && row.holder)  v.holder  = row.holder;
+                if (!v.bizNum && row.bizNum)  v.bizNum  = row.bizNum;
+                if (!v.phone  && row.phone)   v.phone   = row.phone;
+            });
+            const period = currentDoc?.period || '';
+            const ws2Data = [];
+            const ws2Merges = [];
+            vendorOrder.forEach((key) => {
+                const v = vendorMap[key];
+                const total  = v.supply + v.tax;
+                const reqAmt = total - v.deduction - v.prepaid;
+                const r0 = ws2Data.length;
+
+                ws2Data.push([`(${v.type||'-'}) 지불의뢰서`, '', '', '']);
+                ws2Merges.push({ s:{r:r0,c:0}, e:{r:r0,c:3} });
+                ws2Data.push([`현장명: ${site||'-'}`, '', `청구기간: ${period||'-'}`, '']);
+                ws2Data.push(['', '', '', '']);
+
+                ws2Data.push(['● 공종 및 거래처 정보', '', '', '']);
+                ws2Data.push(['공종명', v.type||'-', '거래처', v.vendor]);
+                ws2Data.push(['대표자', v.ceo, '', '']);
+                ws2Data.push(['', '', '', '']);
+
+                ws2Data.push(['● 청구 산출 근거', '', '', '']);
+                ws2Data.push(['공급가액계', v.supply, '', '']);
+                ws2Data.push(['부가가치세', v.tax, '', '']);
+                ws2Data.push(['공제금액', v.deduction, '선지급액', v.prepaid]);
+                ws2Data.push(['청구 금액 계', reqAmt, '', '']);
+                ws2Data.push(['', '', '', '']);
+
+                ws2Data.push(['● 거래처 및 입금 계좌 정보', '', '', '']);
+                ws2Data.push(['사업자번호', v.bizNum||'-', '은행', v.bank||'-']);
+                ws2Data.push(['계좌번호', v.account||'-', '예금주', v.holder||'-']);
+                ws2Data.push(['연락처', v.phone||'-', '', '']);
+                ws2Data.push(['', '', '', '']);
+                ws2Data.push(['', '', '', '']); // 항목 간 여백
+            });
+            const ws2 = ws2Data.length
+                ? XLSX.utils.aoa_to_sheet(ws2Data)
+                : XLSX.utils.aoa_to_sheet([['청구명세서에 등록된 거래처가 없습니다.']]);
+            if (ws2Data.length) {
+                ws2['!cols'] = [{wch:16},{wch:22},{wch:16},{wch:22}];
+                ws2['!merges'] = ws2Merges;
+            }
+            XLSX.utils.book_append_sheet(wb, ws2, '지불의뢰서');
+
+            /* ── 시트3: 법인카드 사용내역 (현재 현장, 해당 월 기준) ── */
+            const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
+            const ymPrefix = ym ? `${ym[1]}-${String(ym[2]).padStart(2,'0')}` : '';
+            const ccAll = (typeof ccLoad === 'function') ? ccLoad() : [];
+            const ccRows = ccAll
+                .filter(r => (!site || (r.site||'') === site) && (!ymPrefix || (r.date||'').startsWith(ymPrefix)))
+                .map((r, i) => ({
+                    'No': i+1,
+                    '사용일자': r.date||'',
+                    '카테고리': r.cat||'',
+                    '가맹점명': r.merchant||'',
+                    '금액': Number(r.amount||0),
+                    '현장': r.site||'',
+                    '메모': r.memo||'',
+                    '적격증빙': (typeof CC_PROOF_LABELS !== 'undefined' ? CC_PROOF_LABELS[r.proofType] : '') || '미확인'
+                }));
+            const ws3 = ccRows.length
+                ? XLSX.utils.json_to_sheet(ccRows)
+                : XLSX.utils.aoa_to_sheet([['해당 현장·월에 해당하는 법인카드 사용 내역이 없습니다.']]);
+            if (ccRows.length) ws3['!cols'] = [{wch:5},{wch:12},{wch:12},{wch:26},{wch:13},{wch:20},{wch:36},{wch:10}];
+            XLSX.utils.book_append_sheet(wb, ws3, '법인카드');
+
+            const filename = `${docTitle.replace(/\s/g,'_')}_본사보고용_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showToast(`본사 보고용 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${vendorOrder.length}건 · 법인카드 ${ccRows.length}건)`);
         }
 
         /* ============================================================
