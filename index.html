@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.9</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.11</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1127,7 +1127,7 @@
 
             <div class="flex items-center gap-1.5 flex-wrap">
                 <span style="font-size:9px;color:#475569;font-weight:700;letter-spacing:0.05em;">대장</span>
-                <select id="filter-company" class="hdr-select" style="display:none;">
+                <select id="filter-company" onchange="applyDocumentFilters()" class="hdr-select">
                     <option value="ALL">전체 회사</option>
                 </select>
                 <select id="filter-month" onchange="applyDocumentFilters()" class="hdr-select">
@@ -8238,6 +8238,7 @@ function changePrintScale(value) {
         }
 
         function applyDocumentFilters() {
+            if (typeof updateSiteQuickSelector === 'function') updateSiteQuickSelector();
             updateSavedSheetsSelector();
         }
 
@@ -8252,6 +8253,8 @@ function changePrintScale(value) {
         function updateSavedSheetsSelector() {
             const selector = document.getElementById('saved-sheets-selector');
             const monthFilter = document.getElementById('filter-month').value;
+            const companyFilter = document.getElementById('filter-company')?.value || 'ALL';
+            const siteFilter = (document.getElementById('site-quick-selector')?.value || '').trim();
 
             selector.innerHTML = "";
 
@@ -8259,6 +8262,14 @@ function changePrintScale(value) {
             let filteredDocs = savedDocuments;
             if (monthFilter !== "ALL") {
                 filteredDocs = filteredDocs.filter(doc => doc.month === monthFilter);
+            }
+            // ★ 회사 선택(filter-company) 필터 적용
+            if (companyFilter !== "ALL") {
+                filteredDocs = filteredDocs.filter(doc => (doc.company || '') === companyFilter);
+            }
+            // ★ 상단 현장 선택(site-quick-selector) 필터 적용 — 선택된 현장의 대장만 표시
+            if (siteFilter) {
+                filteredDocs = filteredDocs.filter(doc => (doc.site || '현장 미지정').trim() === siteFilter);
             }
 
             if (filteredDocs.length === 0) {
@@ -9607,19 +9618,33 @@ function changePrintScale(value) {
             const sel = document.getElementById('site-quick-selector');
             if (!sel) return;
             const cur = sel.value;
+            const companyFilter = document.getElementById('filter-company')?.value || 'ALL';
+            // ★ 회사 필터가 선택돼 있으면 해당 회사 소속 현장만 목록에 표시
+            const siteList = companyFilter !== 'ALL'
+                ? [...new Set(savedDocuments.filter(d => (d.company||'') === companyFilter).map(d => (d.site||'현장 미지정').trim()))].sort((a,b)=>a.localeCompare(b,'ko-KR'))
+                : (sites || Object.keys(getSiteStats()));
             sel.innerHTML = '<option value="">전체 현장</option>';
-            (sites || Object.keys(getSiteStats())).forEach(s => {
+            siteList.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s; opt.textContent = s;
                 if (s === cur) opt.selected = true;
                 sel.appendChild(opt);
             });
+            // 회사 필터 변경으로 현재 선택된 현장이 목록에서 사라졌다면 선택 해제
+            if (cur && !siteList.includes(cur)) sel.value = '';
         }
 
         function onSiteQuickSelect(site) {
-            if (!site) return;
-            const doc = savedDocuments.find(d => (d.site || '현장 미지정').trim() === site);
-            if (doc) { loadSavedDocument(doc.id); showToast(`[${site}] 현장으로 이동`); }
+            if (site) {
+                const companyFilter = document.getElementById('filter-company')?.value || 'ALL';
+                const docs = savedDocuments
+                    .filter(d => (d.site || '현장 미지정').trim() === site && (companyFilter === 'ALL' || (d.company||'') === companyFilter))
+                    .sort((a, b) => parseMonthToNum(b.month) - parseMonthToNum(a.month));
+                const doc = docs[0];
+                if (doc) { loadSavedDocument(doc.id); showToast(`[${site}] 현장으로 이동 (${doc.month||''})`); }
+            }
+            // ★ 현장 선택(또는 "전체 현장" 해제) 후 "대장" 선택 목록을 해당 현장 기준으로 다시 필터링
+            if (typeof updateSavedSheetsSelector === 'function') updateSavedSheetsSelector();
         }
 
         /* ============================================================
