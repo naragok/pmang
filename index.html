@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.16</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.21</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -10381,137 +10381,237 @@ function changePrintScale(value) {
         }
 
         /* ============================================================
-           본사 보고용 일괄 내보내기 — 청구명세서 + 지불의뢰서(발행이력) + 법인카드를
-           하나의 xlsx 파일(시트 3개)로 묶어서 내보낸다 (현재 선택된 현장·월 기준)
+           본사 보고용 일괄 내보내기 — 청구명세서 + 지불의뢰서(전체 거래처+대표자별,
+           지불의뢰서의 'xls전체'와 동일한 서식 엔진) + 법인카드를 한 xlsx 파일로 묶어 내보낸다
         ============================================================ */
-        function exportHQReportXLSX() {
-            if (typeof XLSX === 'undefined') {
-                showToast('Excel 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
-                return;
-            }
+        async function exportHQReportXLSX() {
+            if (typeof JSZip === 'undefined') { showToast('JSZip 로딩 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
 
             const currentDoc = savedDocuments.find(d => d.id === currentDocId);
-            const company = currentDoc?.company || '';
-            const site    = currentDoc?.site    || '';
-            const month   = currentDoc?.month   || '';
+            const company  = currentDoc?.company || '';
+            const site     = document.getElementById('req-meta-site')?.value   || currentDoc?.site   || '';
+            const period   = document.getElementById('req-meta-period')?.value || currentDoc?.period || '';
+            const month    = currentDoc?.month || '';
             const docTitle = [company, month, site].filter(Boolean).join(' ') || '본사보고';
+            const docLabel = currentDoc ? `${company}_${month}` : '본사보고';
 
-            const wb = XLSX.utils.book_new();
+            showToast('본사 보고용 Excel 생성 중...');
+            const sheets = [];
 
-            /* ── 시트1: 청구명세서 ── */
-            const headers1 = ['번호','구분','거래처','대표자','공급가액','부가세','결제금액','공제금액','선지급','지급요청금액','은행','입금계좌','예금주','비고','상태'];
-            const rows1 = dataset.map((row, i) => {
+            /* ── 시트1: 청구명세서 (화면 표와 동일 — 구분별 정렬 + 구분별 소계 행 + 전체 컬럼) ── */
+            const stRows = [];
+            const stMerges = [];
+            const ST_COLS = 15; // 번호,구분,거래처,대표자,공급가액,부가세,결제금액,공제금액,선지급,지급요청금액,은행,입금계좌,예금주,상태,비고
+            stMerges.push({ r1:0, c1:0, r2:0, c2:ST_COLS-1 });
+            stRows.push([c(`청구명세서 — ${docTitle}`, XSI.TITLE)]);
+            stRows.push([]);
+            stRows.push([
+                c('번호',XSI.TBL_HEAD), c('구분',XSI.TBL_HEAD), c('거래처',XSI.TBL_HEAD), c('대표자',XSI.TBL_HEAD),
+                c('공급가액',XSI.TBL_HEAD), c('부가세',XSI.TBL_HEAD), c('결제금액',XSI.TBL_HEAD),
+                c('공제금액',XSI.TBL_HEAD), c('선지급',XSI.TBL_HEAD), c('지급요청금액',XSI.TBL_HEAD),
+                c('은행',XSI.TBL_HEAD), c('입금계좌',XSI.TBL_HEAD), c('예금주',XSI.TBL_HEAD),
+                c('상태',XSI.TBL_HEAD), c('비고',XSI.TBL_HEAD)
+            ]);
+
+            // 화면과 동일한 정렬: 구분(공종) 우선순위 → 거래처명 → 대표자명 순
+            const sortedForExport = [...dataset].sort((a, b) => {
+                const pA = categoryPriority[a.type] || 99;
+                const pB = categoryPriority[b.type] || 99;
+                if (pA !== pB) return pA - pB;
+                const cmp = (a.vendor||'').localeCompare(b.vendor||'', 'ko-KR');
+                if (cmp !== 0) return cmp;
+                return (a.ceo||'').localeCompare(b.ceo||'', 'ko-KR');
+            });
+
+            let gSupply=0, gTax=0, gTotal=0, gDed=0, gPre=0, gReq=0, gCount=0, catRowNum=0, prevCat=null;
+            let catStartRow = null; // 현재 구분 블록의 첫 데이터 행(엑셀 1-based row 번호)
+            const subtotalRowNums = []; // 소계 행들의 엑셀 row 번호 (총합계 수식에서 참조)
+            const pushCatSubtotal = (catLabel) => {
+                if (gCount === 0) return;
+                const idx = stRows.length;
+                const excelIdx = idx + 1;
+                const r1 = catStartRow, r2 = excelIdx - 1; // 방금 끝난 구분 블록의 데이터 행 범위
+                stRows.push([
+                    c(`${catLabel} 소계 (${gCount}건)`, XSI.TBL_TOTAL),'','','',
+                    fc(`SUM(E${r1}:E${r2})`, gSupply, XSI.TBL_TOTAL),
+                    fc(`SUM(F${r1}:F${r2})`, gTax, XSI.TBL_TOTAL),
+                    fc(`SUM(G${r1}:G${r2})`, gTotal, XSI.TBL_TOTAL),
+                    fc(`SUM(H${r1}:H${r2})`, gDed, XSI.TBL_TOTAL),
+                    fc(`SUM(I${r1}:I${r2})`, gPre, XSI.TBL_TOTAL),
+                    fc(`SUM(J${r1}:J${r2})`, gReq, XSI.TBL_TOTAL),
+                    '','','','',''
+                ]);
+                stMerges.push({ r1:idx, c1:0, r2:idx, c2:3 });
+                subtotalRowNums.push(excelIdx);
+                gSupply=0; gTax=0; gTotal=0; gDed=0; gPre=0; gReq=0; gCount=0;
+            };
+            sortedForExport.forEach(row => {
+                if (prevCat !== null && row.type !== prevCat) { pushCatSubtotal(prevCat); catRowNum = 0; catStartRow = null; }
+                catRowNum++;
+                prevCat = row.type;
                 const total  = (row.supply||0) + (row.tax||0);
                 const reqAmt = total - (row.deduction||0) - (row.prepaid||0);
-                return [
-                    i + 1, row.type||'', row.vendor||'', row.ceo||'',
-                    row.supply||0, row.tax||0, total,
-                    row.deduction||0, row.prepaid||0, reqAmt,
-                    row.bank||'', row.account||'', row.holder||'',
-                    row.note||'', row.status||'대기'
-                ];
+                gSupply += row.supply||0; gTax += row.tax||0; gTotal += total;
+                gDed += row.deduction||0; gPre += row.prepaid||0; gReq += reqAmt; gCount++;
+                const excelRow = stRows.length + 1;
+                if (catStartRow === null) catStartRow = excelRow;
+                stRows.push([
+                    c(catRowNum,XSI.TBL_DATA), c(row.type||'',XSI.TBL_DATA), c(row.vendor||'',XSI.TBL_DATA), c(row.ceo||'',XSI.TBL_DATA),
+                    c(row.supply||0,XSI.TBL_NUM), c(row.tax||0,XSI.TBL_NUM),
+                    fc(`E${excelRow}+F${excelRow}`, total, XSI.TBL_NUM),                          // 결제금액 = 공급가액+부가세
+                    c(row.deduction||0,XSI.TBL_NUM), c(row.prepaid||0,XSI.TBL_NUM),
+                    fc(`G${excelRow}-H${excelRow}-I${excelRow}`, reqAmt, XSI.TBL_NUM),             // 지급요청금액 = 결제금액-공제-선지급
+                    c(row.bank||'',XSI.TBL_DATA), c(row.account||'',XSI.TBL_DATA), c(row.holder||'',XSI.TBL_DATA),
+                    c(row.status||'대기',XSI.TBL_DATA), c(row.note||'',XSI.TBL_DATA)
+                ]);
             });
+            pushCatSubtotal(prevCat);
+
             const t1supply = dataset.reduce((s,r)=>s+(r.supply||0),0);
             const t1tax    = dataset.reduce((s,r)=>s+(r.tax||0),0);
             const t1ded    = dataset.reduce((s,r)=>s+(r.deduction||0),0);
             const t1pre    = dataset.reduce((s,r)=>s+(r.prepaid||0),0);
-            rows1.push(['합계','','','', t1supply, t1tax, t1supply+t1tax, t1ded, t1pre, (t1supply+t1tax)-t1ded-t1pre,'','','','','']);
-            const ws1Data = [[`청구명세서 — ${docTitle}`], [], headers1, ...rows1];
-            const ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
-            ws1['!cols'] = [{wch:5},{wch:8},{wch:18},{wch:10},{wch:13},{wch:11},{wch:13},{wch:11},{wch:10},{wch:14},{wch:8},{wch:16},{wch:10},{wch:16},{wch:7}];
-            ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:14} }];
-            XLSX.utils.book_append_sheet(wb, ws1, '청구명세서');
+            const t1Idx = stRows.length;
+            // 총 합계 = 각 구분 소계 행들의 합 (소계 행이 없으면 0)
+            const sumSubtotals = (col) => subtotalRowNums.length ? subtotalRowNums.map(r=>`${col}${r}`).join('+') : '0';
+            stRows.push([
+                c('총 합계',XSI.TBL_TOTAL),'','','',
+                fc(sumSubtotals('E'), t1supply, XSI.TBL_TOTAL),
+                fc(sumSubtotals('F'), t1tax, XSI.TBL_TOTAL),
+                fc(sumSubtotals('G'), t1supply+t1tax, XSI.TBL_TOTAL),
+                fc(sumSubtotals('H'), t1ded, XSI.TBL_TOTAL),
+                fc(sumSubtotals('I'), t1pre, XSI.TBL_TOTAL),
+                fc(sumSubtotals('J'), (t1supply+t1tax)-t1ded-t1pre, XSI.TBL_TOTAL),
+                '','','','',''
+            ]);
+            stMerges.push({ r1:t1Idx, c1:0, r2:t1Idx, c2:3 });
+            sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[6,8,18,10,13,11,13,11,10,14,8,16,10,7,16] });
 
-            /* ── 시트2: 지불의뢰서 (거래처+대표자 조합별로 실제 양식과 유사한 미리보기 형식으로 생성) ── */
-            const vendorMap = {};
-            const vendorOrder = [];
-            dataset.forEach(row => {
-                const vendorName = (row.vendor || '').trim() || '(거래처 미입력)';
-                const ceoName    = (row.ceo || '').trim() || '(대표자 미입력)';
-                const key = `${vendorName}__${ceoName}`; // ★ 같은 거래처라도 대표자가 다르면 별개 건으로 취급
-                if (!vendorMap[key]) {
-                    vendorMap[key] = { vendor: vendorName, ceo: ceoName, type: '', bank: '', account: '', holder: '', bizNum: '', phone: '', supply: 0, tax: 0, deduction: 0, prepaid: 0 };
-                    vendorOrder.push(key);
-                }
-                const v = vendorMap[key];
-                v.supply     += row.supply    || 0;
-                v.tax        += row.tax       || 0;
-                v.deduction  += row.deduction || 0;
-                v.prepaid    += row.prepaid   || 0;
-                if (!v.type   && row.type)    v.type    = row.type;
-                if (!v.bank   && row.bank)    v.bank    = row.bank;
-                if (!v.account&& row.account) v.account = row.account;
-                if (!v.holder && row.holder)  v.holder  = row.holder;
-                if (!v.bizNum && row.bizNum)  v.bizNum  = row.bizNum;
-                if (!v.phone  && row.phone)   v.phone   = row.phone;
-            });
-            const period = currentDoc?.period || '';
-            const ws2Data = [];
-            const ws2Merges = [];
-            vendorOrder.forEach((key) => {
-                const v = vendorMap[key];
-                const total  = v.supply + v.tax;
-                const reqAmt = total - v.deduction - v.prepaid;
-                const r0 = ws2Data.length;
+            /* ── 시트2~N: 지불의뢰서 — 거래처+대표자 조합별로 '전체' 내보내기와 완전히 동일한 방식으로 생성 ── */
+            const COL_W = [6, 18, 8, 14, 14, 14];
+            const processed = new Set();
+            const summaryData = [];
+            const reqSheets = [];
 
-                ws2Data.push([`(${v.type||'-'}) 지불의뢰서`, '', '', '']);
-                ws2Merges.push({ s:{r:r0,c:0}, e:{r:r0,c:3} });
-                ws2Data.push([`현장명: ${site||'-'}`, '', `청구기간: ${period||'-'}`, '']);
-                ws2Data.push(['', '', '', '']);
+            for (const row of [...dataset].filter(r => r.vendor)) {
+                const vendorKey = `${row.vendor}||${row.ceo||''}`;
+                if (processed.has(vendorKey)) continue;
+                processed.add(vendorKey);
 
-                ws2Data.push(['● 공종 및 거래처 정보', '', '', '']);
-                ws2Data.push(['공종명', v.type||'-', '거래처', v.vendor]);
-                ws2Data.push(['대표자', v.ceo, '', '']);
-                ws2Data.push(['', '', '', '']);
+                const vendorRows = dataset.filter(r => r.vendor===row.vendor && (r.ceo||'')===(row.ceo||''));
+                const supplySum  = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
+                const taxSum     = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+                const totalSum   = supplySum+taxSum;
+                const reqAmt     = totalSum
+                    - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
+                    - vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
 
-                ws2Data.push(['● 청구 산출 근거', '', '', '']);
-                ws2Data.push(['공급가액계', v.supply, '', '']);
-                ws2Data.push(['부가가치세', v.tax, '', '']);
-                ws2Data.push(['공제금액', v.deduction, '선지급액', v.prepaid]);
-                ws2Data.push(['청구 금액 계', reqAmt, '', '']);
-                ws2Data.push(['', '', '', '']);
+                const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
+                const bank    = accMatch?.bank    || row.bank    || '';
+                const account = accMatch?.account || row.account || '';
+                const holder  = accMatch?.holder  || row.holder  || '';
+                const phone   = accMatch?.phone   || row.phone   || '';
+                const biznum  = accMatch?.biznum  || row.biznum  || '';
 
-                ws2Data.push(['● 거래처 및 입금 계좌 정보', '', '', '']);
-                ws2Data.push(['사업자번호', v.bizNum||'-', '은행', v.bank||'-']);
-                ws2Data.push(['계좌번호', v.account||'-', '예금주', v.holder||'-']);
-                ws2Data.push(['연락처', v.phone||'-', '', '']);
-                ws2Data.push(['', '', '', '']);
-                ws2Data.push(['', '', '', '']); // 항목 간 여백
-            });
-            const ws2 = ws2Data.length
-                ? XLSX.utils.aoa_to_sheet(ws2Data)
-                : XLSX.utils.aoa_to_sheet([['청구명세서에 등록된 거래처가 없습니다.']]);
-            if (ws2Data.length) {
-                ws2['!cols'] = [{wch:16},{wch:22},{wch:16},{wch:22}];
-                ws2['!merges'] = ws2Merges;
+                const firstRow = vendorRows[0];
+                const items = (firstRow.vendorItems && firstRow.vendorItems.length>0)
+                    ? firstRow.vendorItems
+                    : vendorRows.map(r=>({
+                        item: r.note&&r.note.trim()?r.note.trim():(r.type||'품목 청구'),
+                        qty:'1.0', supply:r.supply||0, tax:r.tax||0,
+                      }));
+
+                const d = {
+                    site, period,
+                    category: row.type||'',
+                    type:    row.type||'',
+                    contract:`일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`,
+                    vendor:  row.vendor, ceo: row.ceo||'',
+                    biznum, bank:bank?`${bank}은행`:bank, account, holder, phone,
+                    supply:  supplySum, tax: taxSum,
+                    memo:'', items,
+                };
+                const { rows, merges } = buildRequestXlsxRows(d);
+                const sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
+                            + (row.ceo?`_${row.ceo.slice(0,4)}`:'');
+                reqSheets.push({ name:sName, rows, merges, colWidths:COL_W });
+                summaryData.push({ vendor:row.vendor, ceo:row.ceo||'', type:row.type||'',
+                    supply:supplySum, tax:taxSum, total:totalSum,
+                    bankInfo:`${bank} ${account} (${holder})` });
             }
-            XLSX.utils.book_append_sheet(wb, ws2, '지불의뢰서');
 
-            /* ── 시트3: 법인카드 사용내역 (현재 현장, 해당 월 기준) ── */
+            // 지불의뢰서 요약 시트를 맨 앞에, 이어서 거래처+대표자별 개별 시트
+            const { rows: sRows, merges: sMerges } = buildSummaryXlsxRows(site, period, summaryData);
+            sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[16,10,10,13,11,13,24] });
+            sheets.push(...reqSheets);
+
+            /* ── 마지막 시트: 법인카드 사용내역 (현재 현장, 해당 월 기준) ── */
             const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
             const ymPrefix = ym ? `${ym[1]}-${String(ym[2]).padStart(2,'0')}` : '';
             const ccAll = (typeof ccLoad === 'function') ? ccLoad() : [];
-            const ccRows = ccAll
-                .filter(r => (!site || (r.site||'') === site) && (!ymPrefix || (r.date||'').startsWith(ymPrefix)))
-                .map((r, i) => ({
-                    'No': i+1,
-                    '사용일자': r.date||'',
-                    '카테고리': r.cat||'',
-                    '가맹점명': r.merchant||'',
-                    '금액': Number(r.amount||0),
-                    '현장': r.site||'',
-                    '메모': r.memo||'',
-                    '적격증빙': (typeof CC_PROOF_LABELS !== 'undefined' ? CC_PROOF_LABELS[r.proofType] : '') || '미확인'
-                }));
-            const ws3 = ccRows.length
-                ? XLSX.utils.json_to_sheet(ccRows)
-                : XLSX.utils.aoa_to_sheet([['해당 현장·월에 해당하는 법인카드 사용 내역이 없습니다.']]);
-            if (ccRows.length) ws3['!cols'] = [{wch:5},{wch:12},{wch:12},{wch:26},{wch:13},{wch:20},{wch:36},{wch:10}];
-            XLSX.utils.book_append_sheet(wb, ws3, '법인카드');
+            const ccList = ccAll.filter(r => (!site || (r.site||'') === site) && (!ymPrefix || (r.date||'').startsWith(ymPrefix)));
+            const ccRows = [];
+            const ccMerges = [{ r1:0, c1:0, r2:0, c2:6 }];
+            ccRows.push([c(`법인카드 사용내역 — ${docTitle}`, XSI.TITLE)]);
+            ccRows.push([]);
+            ccRows.push([
+                c('No',XSI.TBL_HEAD), c('사용일자',XSI.TBL_HEAD), c('카테고리',XSI.TBL_HEAD),
+                c('가맹점명',XSI.TBL_HEAD), c('금액',XSI.TBL_HEAD), c('현장',XSI.TBL_HEAD), c('메모',XSI.TBL_HEAD)
+            ]);
+            ccList.forEach((r, i) => {
+                ccRows.push([
+                    c(i+1,XSI.TBL_DATA), c(r.date||'',XSI.TBL_DATA), c(r.cat||'',XSI.TBL_DATA),
+                    c(r.merchant||'',XSI.TBL_DATA), c(Number(r.amount||0),XSI.TBL_NUM),
+                    c(r.site||'',XSI.TBL_DATA), c(r.memo||'',XSI.TBL_DATA)
+                ]);
+            });
+            const ccTotal = ccList.reduce((s,r)=>s+Number(r.amount||0),0);
+            if (ccList.length) {
+                const ccTotalIdx = ccRows.length;
+                const ccStartRow = 4, ccEndRow = ccRows.length; // 데이터는 4행부터 시작(제목/빈줄/헤더 다음), 소계 직전까지
+                ccRows.push([c('합계',XSI.TBL_TOTAL),'','','',fc(`SUM(E${ccStartRow}:E${ccEndRow})`, ccTotal, XSI.TBL_TOTAL),'','']);
+                ccMerges.push({ r1:ccTotalIdx, c1:0, r2:ccTotalIdx, c2:3 });
+            }
+            sheets.push({ name:'법인카드', rows: ccRows, merges: ccMerges, colWidths:[6,12,12,26,13,16,30] });
 
-            const filename = `${docTitle.replace(/\s/g,'_')}_본사보고용_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(wb, filename);
-            showToast(`본사 보고용 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${vendorOrder.length}건 · 법인카드 ${ccRows.length}건)`);
+            /* ── 최종적으로 맨 앞에 삽입할 집계표 — 전체 요약(청구명세서/지불의뢰서/법인카드 총액) ── */
+            const reqTotalAmt = summaryData.reduce((s,sd)=>s+sd.total,0);
+            const stTotalAmt  = t1supply + t1tax;
+            const stReqAmt    = stTotalAmt - t1ded - t1pre;
+            const catTotals = {};
+            dataset.forEach(r => {
+                const cat = r.type || '기타';
+                if (!catTotals[cat]) catTotals[cat] = { count:0, supply:0, tax:0 };
+                catTotals[cat].count++;
+                catTotals[cat].supply += r.supply||0;
+                catTotals[cat].tax    += r.tax||0;
+            });
+            const sumRows = [];
+            const sumMerges = [{ r1:0, c1:0, r2:0, c2:2 }, { r1:1, c1:0, r2:1, c2:0 }, { r1:1, c1:2, r2:1, c2:2 }];
+            sumRows.push([c(`집계표 — ${docTitle}`, XSI.TITLE)]);
+            sumRows.push([c(`현장: ${site||'-'}`, XSI.LABEL),'',c(`청구기간: ${period||'-'}`, XSI.LABEL)]);
+            sumRows.push([]);
+            sumRows.push([c('구분',XSI.SUM_HEAD), c('건수',XSI.SUM_HEAD), c('금액(원)',XSI.SUM_HEAD)]);
+            sumRows.push([c('청구명세서 합계',XSI.VALUE), c(dataset.length,XSI.SUM_NUM), fc(`'청구명세서'!J${t1Idx+1}`, stReqAmt, XSI.SUM_NUM)]);
+            const reqSummaryTotalRow = summaryData.length ? (5 + summaryData.length) : null; // buildSummaryXlsxRows의 합계 행 위치
+            sumRows.push([c('지불의뢰서 합계',XSI.VALUE), c(summaryData.length,XSI.SUM_NUM),
+                reqSummaryTotalRow ? fc(`'지불의뢰서_요약'!F${reqSummaryTotalRow}`, reqTotalAmt, XSI.SUM_NUM) : c(0, XSI.SUM_NUM)]);
+            sumRows.push([c('법인카드 사용 합계',XSI.VALUE), c(ccList.length,XSI.SUM_NUM),
+                ccList.length ? fc(`'법인카드'!E${ccRows.length}`, ccTotal, XSI.SUM_NUM) : c(0, XSI.SUM_NUM)]);
+            sumRows.push([]);
+            sumRows.push([c('구분(공종)별 청구 내역',XSI.SEC_HEAD),'','']);
+            sumMerges.push({ r1:sumRows.length-1, c1:0, r2:sumRows.length-1, c2:2 });
+            sumRows.push([c('공종',XSI.SUM_HEAD), c('건수',XSI.SUM_HEAD), c('공급가액+부가세',XSI.SUM_HEAD)]);
+            Object.keys(catTotals).forEach(cat => {
+                const ct = catTotals[cat];
+                sumRows.push([c(cat,XSI.VALUE), c(ct.count,XSI.SUM_NUM), c(ct.supply+ct.tax,XSI.SUM_NUM)]);
+            });
+            sheets.unshift({ name:'집계표', rows: sumRows, merges: sumMerges, colWidths:[20,10,18] });
+
+            const blob = await makeXlsxBlob(sheets);
+            const filename = `${docLabel}_본사보고용_${new Date().toISOString().slice(0,10)}.xlsx`;
+            downloadBlob(blob, filename);
+            showToast(`본사 보고용 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${summaryData.length}건 · 법인카드 ${ccList.length}건)`);
         }
 
         /* ============================================================
@@ -10973,7 +11073,11 @@ SHEET_OVERRIDES
                     if (rowSi === null) rowSi = si; // 행의 첫 셀 스타일로 행 높이 결정
                     const val = cell.v ?? cell;
                     if (ci > maxCol) maxCol = ci;
-                    if (typeof val === 'number') {
+                    if (cell && cell.f) {
+                        // ★ 수식 셀 — 엑셀에서 열면 수식이 그대로 살아있고, 캐시값(v)은 미리보기용으로만 사용됨
+                        const cachedVal = typeof val === 'number' ? val : 0;
+                        rowCells.push(`<c r="${ref}" s="${si}" t="n"><f>${cell.f.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</f><v>${cachedVal}</v></c>`);
+                    } else if (typeof val === 'number') {
                         rowCells.push(`<c r="${ref}" s="${si}" t="n"><v>${val}</v></c>`);
                     } else {
                         rowCells.push(`<c r="${ref}" s="${si}" t="s"><v>${ss.idx(String(val))}</v></c>`);
@@ -11012,6 +11116,8 @@ ${mergeSxml}
 
         /* ── c() 헬퍼: 값 + 스타일 인덱스 객체 생성 ── */
         const c = (v, si) => ({v, si});
+        /* ── fc() 헬퍼: 수식 + 캐시값 + 스타일 인덱스 객체 생성 (엑셀에서 열면 수식이 살아있음) ── */
+        const fc = (formula, cachedValue, si) => ({ v: cachedValue, si, f: formula });
 
         /* ── 의뢰서 1장 → rows 배열 생성 ── */
         /* 화면에 표시되는 지불의뢰서 폼과 동일한 섹션 순서로 재구성:
@@ -11054,27 +11160,39 @@ ${mergeSxml}
                 c('부가세',S.TBL_HEAD), c('합계금액',S.TBL_HEAD),
             ]);
 
+            let itemStartRow = null, itemEndRow = null;
             (d.items||[]).forEach((it, i) => {
                 const sup = typeof it.supply==='number'?it.supply:parseInt(String(it.supply).replace(/,/g,''))||0;
                 const tax = typeof it.tax==='number'?it.tax:parseInt(String(it.tax).replace(/,/g,''))||0;
-                addRow([
+                const rowIdx = addRow([
                     c(i+1, S.TBL_DATA), c(it.item||'', S.TBL_DATA), c(it.qty||'1.0', S.TBL_DATA),
-                    c(sup, S.TBL_NUM),  c(tax, S.TBL_NUM),           c(sup+tax, S.TBL_NUM),
+                    c(sup, S.TBL_NUM),  c(tax, S.TBL_NUM),           null,
                 ]);
+                const excelRow = rowIdx + 1;
+                rows[rowIdx][5] = fc(`D${excelRow}+E${excelRow}`, sup+tax, S.TBL_NUM); // 합계금액 = 공급가액+부가세
+                if (itemStartRow === null) itemStartRow = excelRow;
+                itemEndRow = excelRow;
             });
 
             const supplyNum = typeof d.supply==='number'?d.supply:parseInt(String(d.supply).replace(/,/g,''))||0;
             const taxNum    = typeof d.tax==='number'?d.tax:parseInt(String(d.tax).replace(/,/g,''))||0;
             const totalNum  = supplyNum + taxNum;
-            rIdx = addRow([c('합  계',S.TBL_TOTAL),'','',c(supplyNum,S.TBL_TOTAL),c(taxNum,S.TBL_TOTAL),c(totalNum,S.TBL_TOTAL)]);
+            const hasItemRows = itemStartRow !== null;
+            rIdx = addRow([
+                c('합  계',S.TBL_TOTAL),'','',
+                hasItemRows ? fc(`SUM(D${itemStartRow}:D${itemEndRow})`, supplyNum, S.TBL_TOTAL) : c(supplyNum,S.TBL_TOTAL),
+                hasItemRows ? fc(`SUM(E${itemStartRow}:E${itemEndRow})`, taxNum, S.TBL_TOTAL)    : c(taxNum,S.TBL_TOTAL),
+                hasItemRows ? fc(`D${rows.length+1}+E${rows.length+1}`, totalNum, S.TBL_TOTAL)   : c(totalNum,S.TBL_TOTAL),
+            ]);
             addMerge(rIdx,0,rIdx,2);
             addRow([]);
+            const sumRowNum = rIdx + 1; // 합계 행의 엑셀 row 번호 (청구 산출 근거에서 참조)
 
             // ── 청구 산출 근거 (화면과 동일: 품목표 바로 아래) ──
             fullMerge(addRow([c('청 구 산 출 근 거', S.SEC_HEAD),'','','','','']));
-            rIdx = addRow([c('공급가액계',S.LABEL),'',c(supplyNum,S.VALUE),'','','']);
+            rIdx = addRow([c('공급가액계',S.LABEL),'',fc(`D${sumRowNum}`, supplyNum, S.VALUE),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
-            rIdx = addRow([c('부가가치세',S.LABEL),'',c(taxNum,S.VALUE),'','','']);
+            rIdx = addRow([c('부가가치세',S.LABEL),'',fc(`E${sumRowNum}`, taxNum, S.VALUE),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
             rIdx = addRow([c('청 구 금 액 계',S.LABEL),'',c(d.contract||'',S.CONTRACT),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
@@ -11121,6 +11239,7 @@ ${mergeSxml}
                 [c('거래처',S.SUM_HEAD),c('대표자',S.SUM_HEAD),c('공종',S.SUM_HEAD),
                  c('공급가액',S.SUM_HEAD),c('부가세',S.SUM_HEAD),c('합계금액',S.SUM_HEAD),c('은행/계좌',S.SUM_HEAD)],
             ];
+            const dataStartRow = rows.length + 1; // 데이터 첫 행의 엑셀 row 번호
             summaryData.forEach(sd => {
                 rows.push([
                     c(sd.vendor, S.VALUE), c(sd.ceo||'', S.VALUE), c(sd.type||'', S.VALUE),
@@ -11133,6 +11252,21 @@ ${mergeSxml}
                 {r1:1,c1:0,r2:1,c2:1},
                 {r1:1,c1:2,r2:1,c2:6},
             ];
+            if (summaryData.length) {
+                const dataEndRow = rows.length; // 마지막 데이터 행의 엑셀 row 번호
+                const totalIdx = rows.length; // 합계 행의 0-based 배열 인덱스
+                const tSupply = summaryData.reduce((s,sd)=>s+sd.supply,0);
+                const tTax    = summaryData.reduce((s,sd)=>s+sd.tax,0);
+                const tTotal  = summaryData.reduce((s,sd)=>s+sd.total,0);
+                rows.push([
+                    c('합계',S.SUM_HEAD),'','',
+                    fc(`SUM(D${dataStartRow}:D${dataEndRow})`, tSupply, S.SUM_NUM),
+                    fc(`SUM(E${dataStartRow}:E${dataEndRow})`, tTax,    S.SUM_NUM),
+                    fc(`SUM(F${dataStartRow}:F${dataEndRow})`, tTotal,  S.SUM_NUM),
+                    ''
+                ]);
+                merges.push({ r1:totalIdx, c1:0, r2:totalIdx, c2:2 });
+            }
             return { rows, merges };
         }
 
@@ -11163,6 +11297,7 @@ ${mergeSxml}
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <sheets>${sheetRels.map(s=>`<sheet name="${s.name}" sheetId="${s.sheetId}" r:id="${s.id}"/>`).join('')}</sheets>
 ${definedNamesXml ? `<definedNames>${definedNamesXml}</definedNames>` : ''}
+<calcPr calcId="0" fullCalcOnLoad="1"/>
 </workbook>`;
 
             const wbRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
