@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.30</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.31</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -2498,6 +2498,7 @@
                                 <th class="px-2 py-2 text-center w-24 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('cat')">카테고리 ↕</th>
                                 <th class="px-2 py-2 text-left w-36 font-bold">가맹점명</th>
                                 <th class="px-2 py-2 text-right w-28 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="ccSort('amount')">금액 ↕</th>
+                                <th class="px-2 py-2 text-center w-24 font-bold">회사</th>
                                 <th class="px-2 py-2 text-center w-28 font-bold">현장 배분</th>
                                 <th class="px-2 py-2 text-left font-bold">메모 (영수증 내용)</th>
                                 <th class="px-2 py-2 text-center w-20 font-bold">적격증빙</th>
@@ -2506,7 +2507,7 @@
                             </tr>
                         </thead>
                         <tbody id="cc-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <tr><td colspan="10" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
+                            <tr><td colspan="11" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
                         </tbody>
                         <tfoot id="cc-tfoot" class="bg-slate-50 dark:bg-slate-800/50 font-bold border-t-2 border-slate-300 dark:border-slate-600">
                         </tfoot>
@@ -13943,7 +13944,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!tbody) return;
 
             if (!filteredSorted.length) {
-                tbody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="py-12 text-center text-slate-400 text-sm">${ccData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
                 if (tfoot) tfoot.innerHTML = '';
             } else {
                 let totalAmt = 0;
@@ -13958,7 +13959,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     rowsHtml.push(`<tr class="bg-violet-50 dark:bg-violet-950/20">
                         <td colspan="4" class="px-2 py-1.5 text-right text-[10px] text-violet-700 dark:text-violet-400 font-bold">${lastMonth} 소계 (${groupCnt}건)</td>
                         <td class="px-2 py-1.5 text-right text-[11px] font-black text-violet-700 dark:text-violet-400">${groupAmt.toLocaleString('ko-KR')}</td>
-                        <td colspan="4" class="px-2 py-1.5"></td>
+                        <td colspan="5" class="px-2 py-1.5"></td>
                     </tr>`);
                 };
 
@@ -13969,7 +13970,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         if (m !== lastMonth) {
                             flushGroupSubtotal();
                             rowsHtml.push(`<tr class="bg-slate-100 dark:bg-slate-800">
-                                <td colspan="10" class="px-2 py-1.5 text-xs font-extrabold text-slate-600 dark:text-slate-300">📅 ${m}</td>
+                                <td colspan="11" class="px-2 py-1.5 text-xs font-extrabold text-slate-600 dark:text-slate-300">📅 ${m}</td>
                             </tr>`);
                             lastMonth = m; groupAmt = 0; groupCnt = 0;
                         }
@@ -13983,6 +13984,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-center">${ccCatBadge(r.cat||'기타')}</td>
                         <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}</td>
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company||'<span class="text-slate-300">-</span>'}</td>
                         <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
                         <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
                         <td class="px-2 py-2 text-center">${ccProofBadge(r.proofType)}</td>
@@ -14004,7 +14006,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     tfoot.innerHTML = `<tr>
                         <td colspan="4" class="px-2 py-2 text-right text-xs text-slate-600 dark:text-slate-300 font-bold">합계 (${filteredSorted.length}건)</td>
                         <td class="px-2 py-2 text-right text-sm font-black text-violet-700 dark:text-violet-400">${totalAmt.toLocaleString('ko-KR')}</td>
-                        <td colspan="4" class="px-2 py-2"></td>
+                        <td colspan="5" class="px-2 py-2"></td>
                     </tr>`;
                 }
             }
