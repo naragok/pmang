@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.39</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.43</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -2222,24 +2222,24 @@
                     <div class="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
                         <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">고용보험료율 (%)</div>
                         <div class="text-[10px] text-slate-400 mb-2">특고·일용 근로자 기준</div>
-                        <input type="number" id="rate-emp" step="0.01" min="0" max="10" value="0.9"
+                        <input type="number" id="rate-emp" step="0.01" min="0" max="10" value="0.8"
                             class="w-full px-2 py-1.5 border border-emerald-300 dark:border-emerald-700 rounded-lg text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-right">
-                        <div class="text-[10px] text-slate-400 mt-1">현재: <span id="rate-emp-preview">0.9%</span></div>
+                        <div class="text-[10px] text-slate-400 mt-1">현재: <span id="rate-emp-preview">0.8%</span></div>
                     </div>
                     <div class="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
                         <div class="font-bold text-orange-800 dark:text-orange-300 mb-1">산재보험료율 (%)</div>
-                        <div class="text-[10px] text-slate-400 mb-2">건설기계 운전원 기준</div>
+                        <div class="text-[10px] text-slate-400 mb-2">건설기계 운전원 기준 (직종별 상이 — 근로복지공단 고시 확인 필요)</div>
                         <input type="number" id="rate-acc" step="0.01" min="0" max="30" value="1.8"
                             class="w-full px-2 py-1.5 border border-orange-300 dark:border-orange-700 rounded-lg text-sm font-bold text-orange-700 dark:text-orange-300 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-orange-500 text-right">
                         <div class="text-[10px] text-slate-400 mt-1">현재: <span id="rate-acc-preview">1.8%</span></div>
                     </div>
                     <div class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 sm:col-span-2">
-                        <div class="font-bold text-slate-700 dark:text-slate-300 mb-2">참고 요율 (2024년 기준)</div>
+                        <div class="font-bold text-slate-700 dark:text-slate-300 mb-2">참고 요율 (2026년 기준)</div>
                         <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                            <span>• 고용보험 (특고): <b class="text-slate-700 dark:text-slate-200">0.9%</b></span>
+                            <span>• 고용보험 (특고·예술인): <b class="text-slate-700 dark:text-slate-200">0.8%</b></span>
                             <span>• 고용보험 (일용): <b class="text-slate-700 dark:text-slate-200">0.9%</b></span>
-                            <span>• 산재보험 (건설기계): <b class="text-slate-700 dark:text-slate-200">1.8%</b></span>
-                            <span>• 산재보험 (굴착기): <b class="text-slate-700 dark:text-slate-200">1.8%</b></span>
+                            <span>• 산재보험 (건설기계, 참고): <b class="text-slate-700 dark:text-slate-200">1.8%</b></span>
+                            <span>• 산재보험은 노무제공자 직종별 고시요율 확인 필요</span>
                         </div>
                         <button onclick="applyInsurRates()" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-1.5 rounded-lg transition">
                             ✓ 요율 저장 · 적용
@@ -5601,8 +5601,8 @@
         /* ── 보험료율 저장소 ── */
         const INSUR_RATE_KEY = 'cons_insur_rates_v1';
         function getInsurRates() {
-            try { return JSON.parse(localStorage.getItem(INSUR_RATE_KEY) || '{"emp":0.9,"acc":1.8}'); }
-            catch(e) { return {emp:0.9, acc:1.8}; }
+            try { return JSON.parse(localStorage.getItem(INSUR_RATE_KEY) || '{"emp":0.8,"acc":1.8}'); }
+            catch(e) { return {emp:0.8, acc:1.8}; }
         }
         function saveInsurRates(emp, acc) {
             localStorage.setItem(INSUR_RATE_KEY, JSON.stringify({emp, acc}));
@@ -6146,14 +6146,15 @@
             const row = dataset.find(item => item.id === specialModalTargetId);
             if (!row) return;
             const supply = row.supply || 0;
-            // 고용보험료: 보수총액의 0.9% (특고/일용 기준 참고값)
-            const empInsur = Math.floor(supply * 0.009);
-            // 산재보험료: 보수총액의 1.8% (건설기계 운전원 참고값)
+            // 고용보험료(노무제공자/예술인) — 2026년 기준 요율 1.6%(근로자 0.8% + 사업주 0.8%), 근로자 부담분 0.8% 적용
+            const empInsur = Math.floor(supply * 0.008);
+            // 산재보험료: 노무제공자 직종별로 요율이 상이함(근로복지공단 고시). 아래는 건설기계 운전원 참고용 기본값이며,
+            // 실제 신고 전 반드시 근로복지공단 "노무제공자 직종별 산재보험료율표" 최신 고시를 확인해 수정해야 함.
             const accInsur = Math.floor(supply * 0.018);
             document.getElementById('special-emp-insur').value = empInsur;
             document.getElementById('special-acc-insur').value = accInsur;
             previewSpecialNetPay();
-            showToast('고용보험 0.9%, 산재보험 1.8% 기준으로 자동계산되었습니다. 실제 요율에 맞게 수정해 주세요.');
+            showToast('고용보험 0.8%(2026년 노무제공자 요율)로 자동계산되었습니다. 산재보험료율은 직종별로 다르니 근로복지공단 고시를 확인해 수정해 주세요.');
         }
 
         function closeSpecialModal() {
@@ -6656,17 +6657,14 @@
                         </div>
                     </td>
                     <td class="py-1 px-1 no-print">
-                        <select onchange="updateCell(${row.id}, 'status', this.value)" class="text-center w-full rounded p-1 text-[11px] font-bold ${statusBg} dark:bg-slate-900 outline-none">
+                        <select onchange="updateCell(${row.id}, 'status', this.value)" class="text-center w-full rounded p-1 text-[11px] font-bold ${statusBg} outline-none">
                             <option value="대기" ${row.status === '대기' ? 'selected' : ''}>대기</option>
                             <option value="완료" ${row.status === '완료' ? 'selected' : ''}>완료</option>
                             <option value="보류" ${row.status === '보류' ? 'selected' : ''}>보류</option>
                         </select>
                     </td>
                     <td class="py-1 px-1">
-                        <div class="flex items-center gap-1">
-                            <input type="text" value="${row.note || ''}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
-                            ${row.type === '장비비' ? `<button onclick="openSpecialModal(${row.id})" class="no-print shrink-0 ${row.empName ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700'} text-[9px] hover:bg-amber-100 dark:hover:bg-amber-900 border font-extrabold px-1.5 py-0.5 rounded transition-all shadow-sm whitespace-nowrap" title="특고(일용) 운전원 정보 및 4대보험료 입력">특고${row.empName ? '✓' : ''}</button>` : ''}
-                        </div>
+                        <input type="text" value="${row.note || ''}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
                     </td>
                     <td class="py-1 px-1 no-print">
                         <button onclick="openMemoModal(${row.id})"
@@ -6677,6 +6675,9 @@
                     </td>
                     <td class="py-1 px-1 no-print">
                         <div class="flex items-center justify-center gap-0.5">
+                            ${row.type === '장비비' ? `<button onclick="openSpecialModal(${row.id})" class="${row.empName ? 'text-amber-600 hover:text-amber-800' : 'text-slate-400 hover:text-amber-600'} p-1" title="${row.empName ? '특고(일용) 정보 수정 (등록됨)' : '특고(일용) 운전원 정보 등록'}">
+                                <i data-lucide="hard-hat" class="w-4 h-4"></i>
+                            </button>` : ''}
                             <button onclick="convertRowToRequest(${row.id})" class="text-violet-600 hover:text-violet-800 p-1" title="이 항목을 지불의뢰서로 변환">
                                 <i data-lucide="file-output" class="w-4 h-4"></i>
                             </button>
@@ -8559,7 +8560,8 @@ function changePrintScale(value) {
             });
             closeEquipPickerModal();
             renderRequestSpecialTable();
-            showToast(`[${row.vendor || '거래처 미입력'}] 항목을 특고 신고 내역에 등록했습니다.`);
+            // ★ 선택 즉시 특고 상세 정보(이름·주민등록번호·가동일수 등)를 바로 입력할 수 있도록 모달을 곧바로 연다
+            openSpecialModal(row.id);
         }
 
         function addSpecialItemRow() {
