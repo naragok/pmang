@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.38</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.39</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -2183,6 +2183,9 @@
                         </div>
                     </div>
                     <div class="tab-ctrl-actions">
+                        <button onclick="openEquipPickerModal()" class="ctrl-btn" style="background:#b45309;">
+                            <i data-lucide="list-plus" class="w-3.5 h-3.5"></i> 장비비에서 선택
+                        </button>
                         <button onclick="addSpecialItemRow()" class="ctrl-btn" style="background:#d97706;">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 운전원 추가
                         </button>
@@ -3751,6 +3754,20 @@
                 <button onclick="closeWorkHoursQuickPopup()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
                 <button onclick="saveWorkHoursQuickPopup()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded font-bold transition-all">저장</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 청구명세서의 장비비 항목 중 아직 특고 등록되지 않은 것을 골라 바로 등록하는 팝업 -->
+    <div id="equip-picker-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 text-slate-900 dark:text-slate-100" onclick="if(event.target===this) closeEquipPickerModal()">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg p-5 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                    <i data-lucide="list-plus" class="w-4 h-4 text-amber-600"></i> 청구명세서(장비비)에서 선택해 등록
+                </h3>
+                <button onclick="closeEquipPickerModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">청구명세서에 등록된 장비비 거래처 중 아직 특고 신고 내역에 없는 항목만 표시됩니다. 선택하면 새로 만들지 않고 그 항목에 바로 특고 정보를 연결합니다.</p>
+            <div id="equip-picker-list" class="space-y-1.5"></div>
         </div>
     </div>
 
@@ -8499,6 +8516,50 @@ function changePrintScale(value) {
 
             saveToLocalStorage();
             renderStatementTable();
+        }
+
+        /* ══ 청구명세서(장비비)에서 선택해 특고 신고 내역에 바로 등록 ══ */
+        function openEquipPickerModal() {
+            const linkedIds = new Set(requestSpecialItems.filter(it => it.datasetId).map(it => it.datasetId));
+            const candidates = dataset.filter(r => r.type === '장비비' && !linkedIds.has(r.id));
+
+            const list = document.getElementById('equip-picker-list');
+            if (candidates.length === 0) {
+                list.innerHTML = `<p class="text-center text-slate-400 text-xs py-6">청구명세서에 등록된 장비비 중 특고 미등록 항목이 없습니다.<br>"운전원 추가" 버튼으로 새 항목을 만들어 주세요.</p>`;
+            } else {
+                list.innerHTML = candidates.map(r => `
+                    <button onclick="selectEquipForSpecial('${r.id}')" class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 text-left transition-all">
+                        <span class="flex flex-col">
+                            <span class="font-bold text-slate-800 dark:text-slate-100 text-xs">${htmlEsc(r.vendor || '(거래처 미입력)')} ${r.ceo ? `<span class="text-slate-400 font-normal">/ ${htmlEsc(r.ceo)}</span>` : ''}</span>
+                            <span class="text-[10px] text-slate-400">${htmlEsc(r.note || '')}</span>
+                        </span>
+                        <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 shrink-0">${formatNumber(r.supply||0)}원</span>
+                    </button>
+                `).join('');
+            }
+            document.getElementById('equip-picker-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeEquipPickerModal() {
+            document.getElementById('equip-picker-modal').classList.add('hidden');
+        }
+        function selectEquipForSpecial(rowId) {
+            const row = dataset.find(r => r.id === rowId);
+            if (!row) return;
+            requestSpecialItems.push({
+                datasetId: row.id,
+                empName: row.empName || '',
+                empRrn:  row.empRrn  || '',
+                workDays: row.workDays || 0,
+                supply:  row.supply  || 0,
+                remun:   row.remun   || 0,
+                empInsur: row.empInsur || 0,
+                accInsur: row.accInsur || 0,
+                extra:   row.extra   || 0
+            });
+            closeEquipPickerModal();
+            renderRequestSpecialTable();
+            showToast(`[${row.vendor || '거래처 미입력'}] 항목을 특고 신고 내역에 등록했습니다.`);
         }
 
         function addSpecialItemRow() {
@@ -14671,6 +14732,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'row-dup-detail-modal':closeRowDupDetailModal,
             'checklist-manage-modal': closeChecklistManageModal,
             'workhours-quick-modal': closeWorkHoursQuickPopup,
+            'equip-picker-modal': closeEquipPickerModal,
         };
 
         document.addEventListener('keydown', function(e) {
