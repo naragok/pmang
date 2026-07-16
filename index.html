@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.24</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.30</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -2452,6 +2452,9 @@
                     <select id="cc-filter-site" onchange="ccRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                         <option value="">전체 현장</option>
                     </select>
+                    <select id="cc-filter-company" onchange="ccRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        <option value="">전체 회사</option>
+                    </select>
                     <input type="text" id="cc-filter-search" oninput="ccRender()" placeholder="가맹점·메모 검색…" class="px-2.5 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 w-44">
                     <label class="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400 cursor-pointer px-2 py-1 border border-rose-200 dark:border-rose-900 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20">
                         <input type="checkbox" id="cc-filter-noreceipt" onchange="ccRender()" class="accent-rose-600">
@@ -2811,6 +2814,15 @@
                             <input type="text" id="cc-edit-site" list="cc-site-datalist" placeholder="예: 원주 무실동 공사현장" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                             <datalist id="cc-site-datalist"></datalist>
                         </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">회사</label>
+                            <select id="cc-edit-company" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                                <option value="">회사 미지정</option>
+                            </select>
+                        </div>
+                        <div></div>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">메모 (영수증 내용·비고)</label>
@@ -10632,13 +10644,14 @@ function changePrintScale(value) {
         const htmlWon = (n) => `${formatNumber(n||0)}원`;
 
         /* ── 지불의뢰서 카드 HTML (실제 화면 미리보기와 동일한 레이아웃) — 한 거래처+대표자 단위 ── */
-        function buildReqCardHTML(row, vendorRows, site, period) {
+        function buildReqCardHTML(row, site, period, selectorKey) {
             const esc = htmlEsc, won = htmlWon;
-            const supplySum = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
-            const taxSum    = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+            // ★ 더 이상 같은 거래처의 여러 행을 합산하지 않고, 이 카드 하나(row)만의 값을 사용 — 같은 거래처라도 행마다 개별 카드로 취급
+            const supplySum = row.supply||0;
+            const taxSum    = row.tax||0;
             const total     = supplySum+taxSum;
-            const dedSum    = vendorRows.reduce((s,r)=>s+(r.deduction||0),0);
-            const preSum    = vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
+            const dedSum    = row.deduction||0;
+            const preSum    = row.prepaid||0;
             const reqAmt    = total - dedSum - preSum;
             const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor','ceo','holder']);
             const bank    = accMatch?.bank    || row.bank    || '';
@@ -10647,11 +10660,26 @@ function changePrintScale(value) {
             const bizNum  = accMatch?.biznum  || row.biznum  || '';
             const phone   = accMatch?.phone   || row.phone   || '';
 
-            const itemRows = vendorRows.map(r => {
-                const itSup = r.supply||0, itTax = r.tax||0;
-                return `<tr><td>${esc(r.note?.trim() || r.type || '품목 청구')}</td><td class="ctr">1.0</td>
-                    <td class="num">${won(itSup)}</td><td class="num">${won(itTax)}</td><td class="num">${won(itSup+itTax)}</td></tr>`;
-            }).join('');
+            const itemRows = `<tr><td>${esc(row.note?.trim() || row.type || '품목 청구')}</td><td class="ctr">1.0</td>
+                <td class="num">${won(supplySum)}</td><td class="num">${won(taxSum)}</td><td class="num">${won(supplySum+taxSum)}</td></tr>`;
+
+            // ★ 구비 서류 체크리스트 — 등록된 항목 + 이 건(selectorKey)에 저장된 체크 상태
+            let checklistHtml = '';
+            if (selectorKey) {
+                const items = getChecklistItems();
+                let state = {};
+                try { state = JSON.parse(localStorage.getItem(`chklist_${currentDocId}_${selectorKey}`) || '{}'); } catch(e) { /* 무시 */ }
+                checklistHtml = items.map(it => {
+                    const checked = !!state[it.id];
+                    return `<span class="chk ${checked?'on':''}">${checked?'☑':'☐'} ${esc(it.icon||'')} ${esc(it.label)}</span>`;
+                }).join('');
+            }
+
+            // ★ 담당자 메모 / 특이사항
+            let memo = '';
+            if (selectorKey) {
+                try { memo = localStorage.getItem(`req-memo:${currentDocId}:${selectorKey}`) || ''; } catch(e) { /* 무시 */ }
+            }
 
             return { reqAmt, supplySum, taxSum, html: `<div class="page req-page">
                 <div class="req-doc">
@@ -10682,13 +10710,19 @@ function changePrintScale(value) {
                         </div>
                         <div class="req-box">
                             <p class="sec">● 거래처 및 입금 계좌 정보</p>
-                            <div class="kv"><span>사업자번호</span><b>${esc(bizNum||'-')}</b></div>
-                            <div class="kv"><span>은행</span><b>${esc(bank||'-')}</b></div>
-                            <div class="kv"><span>계좌번호</span><b>${esc(account||'-')}</b></div>
-                            <div class="kv"><span>예금주</span><b>${esc(holder||'-')}</b></div>
-                            <div class="kv"><span>연락처</span><b>${esc(phone||'-')}</b></div>
+                            <div class="kv-grid">
+                                <div class="kv"><span>사업자번호</span><b>${esc(bizNum||'-')}</b></div>
+                                <div class="kv"><span>은행</span><b>${esc(bank||'-')}</b></div>
+                                <div class="kv"><span>계좌번호</span><b>${esc(account||'-')}</b></div>
+                                <div class="kv"><span>예금주</span><b>${esc(holder||'-')}</b></div>
+                                <div class="kv"><span>연락처</span><b>${esc(phone||'-')}</b></div>
+                            </div>
                         </div>
                     </div>
+
+                    ${checklistHtml ? `<p class="sec">● 구비 서류 체크리스트</p><div class="chk-list">${checklistHtml}</div>` : ''}
+                    ${memo ? `<p class="sec">● 담당자 메모 / 특이사항</p><div class="memo-box">${esc(memo).replace(/\n/g,'<br>')}</div>` : ''}
+
                     <p class="confirm">위의 청구내역이 틀림없음을 확인합니다.</p>
                 </div>
             </div>` };
@@ -10697,16 +10731,21 @@ function changePrintScale(value) {
         /* ── 지불의뢰서 카드 공통 CSS ── */
         const REQ_CARD_CSS = `
             * { box-sizing:border-box; }
+            @page { size: A4; margin: 10mm; }
             body { font-family:'Malgun Gothic','Pretendard',sans-serif; color:#1e293b; margin:0; font-size:12px; background:#e2e8f0; }
-            .page { background:#fff; max-width:820px; margin:0 auto 24px; padding:28px 32px; page-break-after:always; }
+            .page {
+                background:#fff; width:210mm; min-height:297mm; margin:0 auto 24px; padding:14mm 16mm;
+                page-break-after:always; display:flex; flex-direction:column;
+                box-shadow:0 2px 10px rgba(0,0,0,0.12);
+            }
             .page:last-child { page-break-after:auto; margin-bottom:0; }
             table { width:100%; border-collapse:collapse; margin-bottom:8px; }
             th, td { border:1px solid #cbd5e1; padding:5px 7px; font-size:11px; }
             .num { text-align:right; font-variant-numeric:tabular-nums; }
             .ctr { text-align:center; }
             .strong { font-weight:800; color:#4f46e5; }
-            .req-page { display:flex; align-items:flex-start; justify-content:center; }
-            .req-doc { border:1px solid #cbd5e1; border-radius:10px; padding:28px 32px; width:100%; max-width:700px; }
+            .req-page { align-items:stretch; justify-content:flex-start; }
+            .req-doc { border:1px solid #cbd5e1; border-radius:10px; padding:16mm 14mm; width:100%; height:100%; flex:1; display:flex; flex-direction:column; }
             .req-doc-title { text-align:center; font-size:19px; font-weight:800; letter-spacing:0.15em; border-bottom:2px solid #1e293b; padding-bottom:14px; margin-bottom:12px; }
             .req-doc-title .badge { background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; border-radius:6px; padding:1px 8px; letter-spacing:0; font-size:15px; }
             .req-meta { display:flex; gap:24px; font-size:12px; margin-bottom:14px; }
@@ -10717,12 +10756,17 @@ function changePrintScale(value) {
             table.req-items thead th { background:#f8fafc; color:#1e293b; font-size:10px; }
             table.req-items tfoot th { background:#eef2ff; text-align:right; font-size:11px; }
             table.req-items tfoot th:first-child { text-align:center; }
-            .req-boxes { display:flex; gap:14px; margin-top:14px; }
-            .req-box { flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; }
+            .req-boxes { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+            .req-box { border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; }
+            .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px 20px; }
             .kv { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #e2e8f0; font-size:11px; }
             .kv b { font-weight:700; }
             .kv.total { border-bottom:none; color:#4f46e5; font-weight:800; padding-top:6px; }
-            .confirm { text-align:center; font-size:11px; color:#475569; margin-top:20px; }
+            .chk-list { display:flex; flex-wrap:wrap; gap:6px 14px; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; margin-bottom:8px; }
+            .chk-list .chk { font-size:11px; color:#94a3b8; }
+            .chk-list .chk.on { color:#1e293b; font-weight:700; }
+            .memo-box { border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; font-size:11px; color:#475569; white-space:pre-wrap; min-height:32px; margin-bottom:8px; }
+            .confirm { text-align:center; font-size:11px; color:#475569; margin-top:auto; padding-top:20px; }
             @media print { body { background:#fff; } .page { box-shadow:none; margin:0; max-width:none; } }
         `;
 
@@ -10743,22 +10787,26 @@ function changePrintScale(value) {
             let count = 0;
 
             if (mode === 'current') {
-                const vendor = document.getElementById('req-field-vendor')?.value?.trim() || '';
-                if (!vendor) { showToast('현재 선택된 거래처가 없습니다.'); return; }
-                const ceo = document.getElementById('req-field-ceo')?.value?.trim() || '';
-                const vendorRows = dataset.filter(r => r.vendor===vendor && (r.ceo||'')===ceo);
-                if (!vendorRows.length) { showToast('청구명세서에서 해당 거래처의 항목을 찾을 수 없습니다.'); return; }
-                const { html } = buildReqCardHTML(vendorRows[0], vendorRows, site, period);
+                const selVal = document.getElementById('request-selector')?.value || '';
+                let row = null;
+                if (selVal.startsWith('row-')) {
+                    const rowId = selVal.slice(4);
+                    row = dataset.find(r => String(r.id) === rowId) || null;
+                }
+                if (!row) {
+                    const vendor = document.getElementById('req-field-vendor')?.value?.trim() || '';
+                    if (!vendor) { showToast('현재 선택된 거래처가 없습니다.'); return; }
+                    const ceo = document.getElementById('req-field-ceo')?.value?.trim() || '';
+                    row = dataset.find(r => r.vendor===vendor && (r.ceo||'')===ceo) || null;
+                    if (!row) { showToast('청구명세서에서 해당 거래처의 항목을 찾을 수 없습니다.'); return; }
+                }
+                const { html } = buildReqCardHTML(row, site, period, selVal || `row-${row.id}`);
                 cardsHtml = html;
                 count = 1;
             } else {
-                const processed = new Set();
+                // ★ 같은 거래처라도 청구명세서의 각 행을 개별 지불의뢰서 카드로 각각 내보냄 (그룹핑하지 않음)
                 for (const row of dataset.filter(r => r.vendor)) {
-                    const key = `${row.vendor}||${row.ceo||''}`;
-                    if (processed.has(key)) continue;
-                    processed.add(key);
-                    const vendorRows = dataset.filter(r => r.vendor===row.vendor && (r.ceo||'')===(row.ceo||''));
-                    const { html } = buildReqCardHTML(row, vendorRows, site, period);
+                    const { html } = buildReqCardHTML(row, site, period, `row-${row.id}`);
                     cardsHtml += html;
                     count++;
                 }
@@ -10832,17 +10880,14 @@ function changePrintScale(value) {
                 <td class="num">${won(t1ded)}</td><td class="num">${won(t1pre)}</td><td class="num">${won(t1req)}</td>
                 <td colspan="5"></td></tr>`;
 
-            /* ── 지불의뢰서: 거래처+대표자별 집계 (실제 화면 미리보기와 동일한 레이아웃) ── */
-            const processed = new Set();
+            /* ── 지불의뢰서: 청구명세서의 각 행을 개별 카드로 (같은 거래처라도 그룹핑하지 않음) ── */
             let reqHtml = '';
             const summaryRowsHtml = [];
             let reqTotalAmt = 0;
+            let reqCount = 0;
             for (const row of dataset.filter(r => r.vendor)) {
-                const key = `${row.vendor}||${row.ceo||''}`;
-                if (processed.has(key)) continue;
-                processed.add(key);
-                const vendorRows = dataset.filter(r => r.vendor===row.vendor && (r.ceo||'')===(row.ceo||''));
-                const { html: cardHtml, reqAmt, supplySum, taxSum } = buildReqCardHTML(row, vendorRows, site, period);
+                reqCount++;
+                const { html: cardHtml, reqAmt, supplySum, taxSum } = buildReqCardHTML(row, site, period, `row-${row.id}`);
                 const total = supplySum + taxSum;
                 reqTotalAmt += reqAmt;
                 const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor','ceo','holder']);
@@ -10868,62 +10913,33 @@ function changePrintScale(value) {
             const html = `<!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8"><title>${esc(docTitle)} 본사 제출용</title>
 <style>
-    * { box-sizing:border-box; }
-    body { font-family:'Malgun Gothic','Pretendard',sans-serif; color:#1e293b; margin:0; font-size:12px; background:#e2e8f0; }
-    .page { background:#fff; max-width:820px; margin:0 auto 24px; padding:28px 32px; page-break-after:always; }
-    .page:last-child { page-break-after:auto; margin-bottom:0; }
+${REQ_CARD_CSS}
     h1 { font-size:19px; margin:0 0 4px; } h2 { font-size:15px; margin:0 0 14px; border-bottom:2px solid #1e293b; padding-bottom:6px; }
     .sub-title { color:#64748b; font-size:12px; margin:0 0 20px; }
-    table { width:100%; border-collapse:collapse; margin-bottom:8px; }
-    th, td { border:1px solid #cbd5e1; padding:5px 7px; font-size:11px; }
     thead th { background:#1e293b; color:#fff; text-align:center; }
-    .num { text-align:right; font-variant-numeric:tabular-nums; }
-    .ctr { text-align:center; }
     tr.sub td { background:#eef2ff; font-weight:bold; }
     tr.grand td { background:#1e293b; color:#fff; font-weight:bold; }
     .summary-box { display:flex; gap:16px; margin-bottom:8px; }
     .summary-box div { flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; }
     .summary-box .label { font-size:10px; color:#64748b; } .summary-box .value { font-size:16px; font-weight:800; }
-    .strong { font-weight:800; color:#4f46e5; }
-
-    /* ── 지불의뢰서 페이지: 화면 미리보기와 동일한 스타일 ── */
-    .req-page { display:flex; align-items:flex-start; justify-content:center; }
-    .req-doc { border:1px solid #cbd5e1; border-radius:10px; padding:28px 32px; width:100%; max-width:700px; }
-    .req-doc-title { text-align:center; font-size:19px; font-weight:800; letter-spacing:0.15em; border-bottom:2px solid #1e293b; padding-bottom:14px; margin-bottom:12px; }
-    .req-doc-title .badge { background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; border-radius:6px; padding:1px 8px; letter-spacing:0; font-size:15px; }
-    .req-meta { display:flex; gap:24px; font-size:12px; margin-bottom:14px; }
-    table.req-vendor-box { margin-bottom:14px; }
-    table.req-vendor-box th { background:#f1f5f9; width:80px; text-align:left; color:#1e293b; }
-    table.req-vendor-box td { font-weight:600; }
-    p.sec { font-size:11px; font-weight:800; margin:14px 0 6px; }
-    table.req-items thead th { background:#f8fafc; color:#1e293b; font-size:10px; }
-    table.req-items tfoot th { background:#eef2ff; text-align:right; font-size:11px; }
-    table.req-items tfoot th:first-child { text-align:center; }
-    .req-boxes { display:flex; gap:14px; margin-top:14px; }
-    .req-box { flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; }
-    .kv { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #e2e8f0; font-size:11px; }
-    .kv b { font-weight:700; }
-    .kv.total { border-bottom:none; color:#4f46e5; font-weight:800; padding-top:6px; }
-    .confirm { text-align:center; font-size:11px; color:#475569; margin-top:20px; }
-
-    @media print {
-        body { background:#fff; }
-        .page { box-shadow:none; margin:0; max-width:none; }
-    }
+    .page:not(.req-page) { display:block; }
+    @page landscape { size: A4 landscape; margin: 10mm; }
+    .page.landscape { page: landscape; width:297mm; min-height:210mm; }
+    @media print { .page.landscape { width:auto; min-height:auto; } }
 </style></head>
 <body>
-    <div class="page">
+    <div class="page landscape">
         <h1>본사 제출용 보고서 — ${esc(docTitle)}</h1>
         <p class="sub-title">생성일: ${esc(new Date().toLocaleString('ko-KR'))}</p>
         <h2>집계표</h2>
         <div class="summary-box">
             <div><div class="label">청구명세서 합계</div><div class="value">${won(t1req)}</div><div class="label">${dataset.length}행</div></div>
-            <div><div class="label">지불의뢰서 합계</div><div class="value">${won(reqTotalAmt)}</div><div class="label">${processed.size}건</div></div>
+            <div><div class="label">지불의뢰서 합계</div><div class="value">${won(reqTotalAmt)}</div><div class="label">${reqCount}건</div></div>
             <div><div class="label">법인카드 사용 합계</div><div class="value">${won(ccTotal)}</div><div class="label">${ccList.length}건</div></div>
         </div>
     </div>
 
-    <div class="page">
+    <div class="page landscape">
         <h2>청구명세서</h2>
         <table>
             <thead><tr><th>번호</th><th>구분</th><th>거래처</th><th>대표자</th><th>공급가액</th><th>부가세</th><th>결제금액</th>
@@ -10954,7 +10970,7 @@ function changePrintScale(value) {
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const filename = `${docLabel}_본사제출용_${new Date().toISOString().slice(0,10)}.html`;
             downloadBlob(blob, filename);
-            showToast(`본사 제출용 HTML 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${processed.size}건 · 법인카드 ${ccList.length}건)`);
+            showToast(`본사 제출용 HTML 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${reqCount}건 · 법인카드 ${ccList.length}건)`);
         }
 
         /* ============================================================
@@ -13601,6 +13617,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const month  = document.getElementById('cc-filter-month')?.value || '';
             const cat    = document.getElementById('cc-filter-cat')?.value   || '';
             const site   = document.getElementById('cc-filter-site')?.value  || '';
+            const company = document.getElementById('cc-filter-company')?.value || '';
             const search = (document.getElementById('cc-filter-search')?.value || '').trim().toLowerCase();
             const noReceiptOnly = !!document.getElementById('cc-filter-noreceipt')?.checked;
             const noProofOnly   = !!document.getElementById('cc-filter-noproof')?.checked;
@@ -13608,6 +13625,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (month  && !(r.date||'').startsWith(month))  return false;
                 if (cat    && r.cat !== cat)                     return false;
                 if (site   && r.site !== site)                   return false;
+                if (company && (r.company||'') !== company)       return false;
                 if (search && !(
                     (r.merchant||'').toLowerCase().includes(search) ||
                     (r.memo||'').toLowerCase().includes(search)
@@ -13622,10 +13640,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         function ccRefreshFilterOptions() {
             const months = [...new Set(ccData.map(r => (r.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
             const sites  = [...new Set(ccData.map(r => r.site).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+            // ★ 회사 목록 — 저장된 대장의 회사 + 법인카드 내역에 이미 기록된 회사를 합쳐서 제공
+            const companies = [...new Set([
+                ...savedDocuments.map(d => d.company),
+                ...ccData.map(r => r.company)
+            ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
 
             const mSel = document.getElementById('cc-filter-month');
             const sSel = document.getElementById('cc-filter-site');
-            const curM = mSel?.value; const curS = sSel?.value;
+            const coSel = document.getElementById('cc-filter-company');
+            const curM = mSel?.value; const curS = sSel?.value; const curCo = coSel?.value;
 
             if (mSel) {
                 mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
@@ -13635,10 +13659,22 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${s}">${s}</option>`).join('');
                 if (curS) sSel.value = curS;
             }
+            if (coSel) {
+                coSel.innerHTML = '<option value="">전체 회사</option>' + companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+                if (curCo) coSel.value = curCo;
+            }
 
             // datalist 갱신
             const dl = document.getElementById('cc-site-datalist');
             if (dl) dl.innerHTML = sites.map(s=>`<option value="${s}">`).join('');
+
+            // ★ 법인카드 입력 폼(추가/수정 모달)의 회사 선택 옵션도 함께 갱신
+            const editCoSel = document.getElementById('cc-edit-company');
+            if (editCoSel) {
+                const curEditCo = editCoSel.value;
+                editCoSel.innerHTML = '<option value="">회사 미지정</option>' + companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+                if (curEditCo) editCoSel.value = curEditCo;
+            }
         }
 
         /* KPI 카드 갱신 */
@@ -13995,6 +14031,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* 행 추가 (모달 열기) */
         function ccAddRow() {
+            ccRefreshFilterOptions();
             document.getElementById('cc-edit-id').value = '';
             document.getElementById('cc-modal-title').textContent = '법인카드 내역 추가';
             document.getElementById('cc-edit-date').value = new Date().toISOString().slice(0,10);
@@ -14003,6 +14040,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-merchant').value = '';
             document.getElementById('cc-edit-amount').value = '';
             document.getElementById('cc-edit-site').value = '';
+            const curDocForCc = savedDocuments.find(d => d.id === currentDocId);
+            document.getElementById('cc-edit-company').value = curDocForCc?.company || '';
             document.getElementById('cc-edit-memo').value = '';
             document.getElementById('cc-amt-preview').textContent = '';
             document.getElementById('cc-edit-vat-toggle').checked = false;
@@ -14022,6 +14061,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             ccData = ccLoad();
             const r = ccData.find(x=>x.id===id);
             if (!r) return;
+            ccRefreshFilterOptions();
             document.getElementById('cc-edit-id').value = r.id;
             document.getElementById('cc-modal-title').textContent = '법인카드 내역 수정';
             document.getElementById('cc-edit-date').value = r.date||'';
@@ -14030,6 +14070,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-merchant').value = r.merchant||'';
             document.getElementById('cc-edit-amount').value = r.amount||'';
             document.getElementById('cc-edit-site').value = r.site||'';
+            document.getElementById('cc-edit-company').value = r.company||'';
             document.getElementById('cc-edit-memo').value = r.memo||'';
             document.getElementById('cc-edit-vat-toggle').checked = !!r.vatApplied;
             document.getElementById('cc-edit-supply').value = r.vatApplied ? (r.supply||'') : '';
@@ -14053,6 +14094,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const tax      = vatApplied ? (Number(document.getElementById('cc-edit-tax').value) || 0) : null;
             const amount   = Number(document.getElementById('cc-edit-amount').value) || 0;
             const site     = document.getElementById('cc-edit-site').value.trim();
+            const company  = document.getElementById('cc-edit-company').value.trim();
             const memo     = document.getElementById('cc-edit-memo').value.trim();
             const receipt     = ccTempReceipt ? ccTempReceipt.dataUrl : '';
             const receiptType = ccTempReceipt ? ccTempReceipt.type    : '';
@@ -14066,9 +14108,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const existingId = document.getElementById('cc-edit-id').value;
             if (existingId) {
                 const idx = ccData.findIndex(r=>r.id===existingId);
-                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName, vatApplied, supply, tax };
+                if (idx>=0) ccData[idx] = { ...ccData[idx], date, cat, proofType, merchant, amount, site, company, memo, receipt, receiptType, receiptName, vatApplied, supply, tax };
             } else {
-                ccData.push({ id: 'cc-' + Date.now(), date, cat, proofType, merchant, amount, site, memo, receipt, receiptType, receiptName, vatApplied, supply, tax });
+                ccData.push({ id: 'cc-' + Date.now(), date, cat, proofType, merchant, amount, site, company, memo, receipt, receiptType, receiptName, vatApplied, supply, tax });
             }
             // 날짜 정렬
             ccData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -14241,7 +14283,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* 필터 초기화 */
         function ccClearFilters() {
-            const ids = ['cc-filter-month','cc-filter-cat','cc-filter-site','cc-filter-search'];
+            const ids = ['cc-filter-month','cc-filter-cat','cc-filter-site','cc-filter-company','cc-filter-search'];
             ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
             ['cc-filter-noreceipt','cc-filter-noproof'].forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
             ccRender();
@@ -14259,13 +14301,14 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 '가맹점명': r.merchant||'',
                 '금액': Number(r.amount||0),
                 '현장': r.site||'',
+                '회사': r.company||'',
                 '메모': r.memo||'',
                 '적격증빙': CC_PROOF_LABELS[r.proofType] || '미확인',
                 '증빙영수증': r.receipt ? '첨부됨' : ''
             }));
             const ws = XLSX.utils.json_to_sheet(rows);
             ws['!cols'] = [
-                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:40},{wch:12},{wch:10}
+                {wch:5},{wch:14},{wch:12},{wch:28},{wch:14},{wch:24},{wch:18},{wch:40},{wch:12},{wch:10}
             ];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '법인카드경비');
