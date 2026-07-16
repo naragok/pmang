@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.31</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.36</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1966,8 +1966,9 @@
                             </div>
 
                             <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-850 w-full">
-                                <p class="font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center">
+                                <p class="font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center gap-1.5">
                                     <span class="print-bullet text-emerald-600 dark:text-emerald-450 font-black mr-1">●</span> 거래처 및 입금 계좌 정보
+                                    <span id="req-account-mismatch-badge" class="hidden no-print text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 cursor-help" title="계좌DB 값이 청구명세서에 저장된 값과 달라, 계좌DB 값을 우선 표시하고 있습니다.">⚠ 청구명세서와 다름 (DB 우선)</span>
                                 </p>
                                 <div class="flex flex-col text-[10px] divide-y divide-slate-300 dark:divide-slate-700">
                                     <div class="flex items-center py-1">
@@ -3657,7 +3658,7 @@
     </div>
 
     <div id="special-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
-        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-1.5">
                     <i data-lucide="hard-hat" class="w-5 h-5 text-amber-600"></i> 특고(일용) 인적용역 정보
@@ -3676,9 +3677,18 @@
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">주민등록번호</label>
                     <input type="text" id="special-emp-rrn" placeholder="000000-0000000" oninput="formatSpecialRrn(this)" maxlength="14" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100 outline-none">
                 </div>
+                <div class="col-span-2">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400">일자별 운행시간 (1~31일)</label>
+                        <span class="text-[9px] text-slate-400">시간(h) 입력 시 가동일수 자동 반영</span>
+                    </div>
+                    <div id="special-workhours-grid" class="grid grid-cols-8 sm:grid-cols-10 gap-1 p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-850"></div>
+                </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">가동일수</label>
-                    <input type="number" id="special-work-days" placeholder="0" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 text-right font-semibold text-slate-800 dark:text-slate-100 outline-none">
+                    <input type="number" id="special-work-days" placeholder="0" min="1" max="31"
+                        onchange="this.value = clampWorkDays(this.value) || ''"
+                        class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 bg-white dark:bg-slate-800 text-right font-semibold text-slate-800 dark:text-slate-100 outline-none">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">장비대금(공급가액)</label>
@@ -3703,6 +3713,27 @@
             <div class="flex justify-end gap-2 text-xs mt-2">
                 <button onclick="closeSpecialModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
                 <button onclick="confirmSpecialModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded font-bold transition-all">저장 및 의뢰서 연동</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 특고 신고 내역 표에서 가동일수 더블클릭 시 뜨는 일자별 운행시간 빠른입력 팝업 -->
+    <div id="workhours-quick-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 text-slate-900 dark:text-slate-100" onclick="if(event.target===this) closeWorkHoursQuickPopup()">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl p-5 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                <h3 id="workhours-quick-title" class="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                    <i data-lucide="calendar-clock" class="w-4 h-4 text-amber-600"></i> 일자별 운행시간
+                </h3>
+                <button onclick="closeWorkHoursQuickPopup()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] text-slate-400">시간(h) 입력 시 가동일수 자동 반영</span>
+                <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400">가동일수: <span id="workhours-quick-daycount">0</span>일</span>
+            </div>
+            <div id="workhours-quick-grid" class="grid grid-cols-8 sm:grid-cols-10 gap-1 p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-850"></div>
+            <div class="flex justify-end gap-2 text-xs mt-3">
+                <button onclick="closeWorkHoursQuickPopup()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
+                <button onclick="saveWorkHoursQuickPopup()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded font-bold transition-all">저장</button>
             </div>
         </div>
     </div>
@@ -5923,6 +5954,7 @@
 
         // ===== 특고(일용) 인적용역 정보 모달 =====
         let specialModalTargetId = null;
+        let specialModalWorkHours = new Array(31).fill(0); // 일자별 운행시간(1~31일) 임시 저장 — 모달 저장 시 dataset에 반영
 
         function openSpecialModal(id) {
             const row = dataset.find(item => item.id === id);
@@ -5937,6 +5969,11 @@
             document.getElementById('special-emp-insur').value = row.empInsur || 0;
             document.getElementById('special-acc-insur').value = row.accInsur || 0;
 
+            specialModalWorkHours = (Array.isArray(row.workHours) && row.workHours.length === 31)
+                ? [...row.workHours]
+                : new Array(31).fill(0);
+            renderSpecialWorkHoursGrid(specialModalWorkHours);
+
             previewSpecialNetPay();
 
             document.getElementById('special-modal').classList.remove('hidden');
@@ -5948,6 +5985,108 @@
             let val = input.value.replace(/[^0-9]/g, '').slice(0, 13);
             if (val.length > 6) val = val.slice(0, 6) + '-' + val.slice(6);
             input.value = val;
+        }
+
+        // 가동일수는 한 달 최대 일수를 넘을 수 없으므로 1~31 범위로 보정
+        function clampWorkDays(value) {
+            const n = Math.round(Number(value)) || 0;
+            if (n <= 0) return 0;
+            return Math.min(31, Math.max(1, n));
+        }
+
+        // 일자별(1~31일) 운행시간 입력 그리드 렌더
+        function renderSpecialWorkHoursGrid(hours) {
+            const grid = document.getElementById('special-workhours-grid');
+            if (!grid) return;
+            grid.innerHTML = Array.from({ length: 31 }, (_, i) => {
+                const day = i + 1;
+                const v = hours[i] || '';
+                return `<div class="flex flex-col items-center gap-0.5">
+                    <span class="text-[8px] text-slate-400 dark:text-slate-500">${day}</span>
+                    <input type="number" min="0" max="24" step="0.5" value="${v}" placeholder="-"
+                        oninput="updateSpecialWorkHour(${i}, this.value)"
+                        class="w-full text-center text-[10px] border border-slate-200 dark:border-slate-700 rounded px-0.5 py-1 bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-amber-400">
+                </div>`;
+            }).join('');
+        }
+
+        // 특정 일자의 운행시간 입력 시 임시 배열 갱신 + 가동일수 자동 반영
+        function updateSpecialWorkHour(dayIndex, value) {
+            const h = Math.max(0, Number(value) || 0);
+            specialModalWorkHours[dayIndex] = h;
+            const daysWorked = specialModalWorkHours.filter(v => v > 0).length;
+            const workDaysInput = document.getElementById('special-work-days');
+            if (workDaysInput) workDaysInput.value = daysWorked || '';
+        }
+
+        /* ══ 지불의뢰서 특고 신고 내역 표 — 가동일수 더블클릭 시 뜨는 일자별 운행시간 빠른입력 팝업 ══ */
+        let workHoursQuickIndex = null;
+        let workHoursQuickTemp = new Array(31).fill(0);
+
+        function openWorkHoursQuickPopup(index) {
+            const item = requestSpecialItems[index];
+            if (!item) return;
+            workHoursQuickIndex = index;
+
+            const row = item.datasetId ? dataset.find(r => r.id === item.datasetId) : null;
+            workHoursQuickTemp = (row && Array.isArray(row.workHours) && row.workHours.length === 31)
+                ? [...row.workHours]
+                : new Array(31).fill(0);
+
+            document.getElementById('workhours-quick-title').innerHTML =
+                `<i data-lucide="calendar-clock" class="w-4 h-4 text-amber-600"></i> ${item.empName || '운전원'} — 일자별 운행시간`;
+            renderWorkHoursQuickGrid();
+            document.getElementById('workhours-quick-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function renderWorkHoursQuickGrid() {
+            const grid = document.getElementById('workhours-quick-grid');
+            if (!grid) return;
+            grid.innerHTML = Array.from({ length: 31 }, (_, i) => {
+                const day = i + 1;
+                const v = workHoursQuickTemp[i] || '';
+                return `<div class="flex flex-col items-center gap-0.5">
+                    <span class="text-[8px] text-slate-400 dark:text-slate-500">${day}</span>
+                    <input type="number" min="0" max="24" step="0.5" value="${v}" placeholder="-"
+                        oninput="updateWorkHoursQuickHour(${i}, this.value)"
+                        class="w-full text-center text-[10px] border border-slate-200 dark:border-slate-700 rounded px-0.5 py-1 bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-amber-400">
+                </div>`;
+            }).join('');
+            updateWorkHoursQuickDayCount();
+        }
+
+        function updateWorkHoursQuickHour(dayIndex, value) {
+            workHoursQuickTemp[dayIndex] = Math.max(0, Number(value) || 0);
+            updateWorkHoursQuickDayCount();
+        }
+
+        function updateWorkHoursQuickDayCount() {
+            const el = document.getElementById('workhours-quick-daycount');
+            if (el) el.textContent = workHoursQuickTemp.filter(v => v > 0).length;
+        }
+
+        function closeWorkHoursQuickPopup() {
+            document.getElementById('workhours-quick-modal').classList.add('hidden');
+            workHoursQuickIndex = null;
+        }
+
+        function saveWorkHoursQuickPopup() {
+            if (workHoursQuickIndex === null) return;
+            const item = requestSpecialItems[workHoursQuickIndex];
+            if (!item) return;
+            const daysWorked = workHoursQuickTemp.filter(v => v > 0).length;
+
+            item.workDays = daysWorked;
+            if (item.datasetId) {
+                const row = dataset.find(r => r.id === item.datasetId);
+                if (row) { row.workHours = [...workHoursQuickTemp]; row.workDays = daysWorked; }
+            }
+            saveToLocalStorage();
+            renderRequestSpecialTable();
+            renderStatementTable();
+            closeWorkHoursQuickPopup();
+            showToast(`일자별 운행시간이 저장되었습니다. (가동일수 ${daysWorked}일)`);
         }
 
         // 특고 보험료 자동계산 (공급가액 기준 고용 0.09% / 산재 0.2% 참고값 — 수정 가능)
@@ -5991,7 +6130,8 @@
 
             dataset[index].empName  = document.getElementById('special-emp-name').value.trim();
             dataset[index].empRrn   = document.getElementById('special-emp-rrn').value.trim();
-            dataset[index].workDays = Number(document.getElementById('special-work-days').value) || 0;
+            dataset[index].workDays = clampWorkDays(document.getElementById('special-work-days').value);
+            dataset[index].workHours = [...specialModalWorkHours];
             dataset[index].empInsur = Number(document.getElementById('special-emp-insur').value) || 0;
             dataset[index].accInsur = Number(document.getElementById('special-acc-insur').value) || 0;
 
@@ -6088,6 +6228,23 @@
         }
 
         // (이전 대표자 인라인 수정 함수는 openEditRowModal()로 대체되어 제거됨)
+
+        // 계좌DB 값이 청구명세서(dataset)에 저장된 원본 값과 다른 경우 경고 배지 표시
+        // (지불의뢰서는 계좌DB를 우선 표시하므로, 두 화면의 표시값이 달라질 수 있음을 사용자에게 알림)
+        function updateAccountMismatchBadge(dbRow, target) {
+            const badge = document.getElementById('req-account-mismatch-badge');
+            if (!badge) return;
+            if (!dbRow || !target) { badge.classList.add('hidden'); return; }
+
+            const norm = (v) => (v || '').toString().trim();
+            const normAccount = (v) => norm(v).replace(/[^0-9]/g, '');
+
+            const bankDiff    = norm(target.bank)    && norm(dbRow.bank)    && norm(target.bank)    !== norm(dbRow.bank);
+            const accountDiff = norm(target.account) && norm(dbRow.account) && normAccount(target.account) !== normAccount(dbRow.account);
+            const holderDiff  = norm(target.holder)  && norm(dbRow.holder)  && norm(target.holder)  !== norm(dbRow.holder);
+
+            badge.classList.toggle('hidden', !(bankDiff || accountDiff || holderDiff));
+        }
 
         function syncRequestFormToDbAndDataset() {
             const vendorName = document.getElementById('req-field-vendor').value.trim();
@@ -7710,6 +7867,8 @@ function changePrintScale(value) {
                 document.getElementById('req-vendor-account').value = "";
                 document.getElementById('req-vendor-holder').value = "";
                 document.getElementById('req-vendor-phone').value = "";
+                const badgeElReset = document.getElementById('req-account-mismatch-badge');
+                if (badgeElReset) badgeElReset.classList.add('hidden');
                 const memoElReset = document.getElementById('req-manager-memo');
                 if (memoElReset) { memoElReset.value = ""; autoResizeMemo(memoElReset); }
                 if (document.getElementById('quick-vendor-name')) {
@@ -7747,6 +7906,7 @@ function changePrintScale(value) {
                 document.getElementById('req-vendor-holder').value  = resolvedHolder  || "";
                 document.getElementById('req-vendor-phone').value   = resolvedPhone   || "";
                 document.getElementById('req-vendor-num').value     = resolvedBiznum  || "";
+                updateAccountMismatchBadge(dbRow, target);
                 if (document.getElementById('quick-vendor-name')) {
                     document.getElementById('quick-vendor-name').textContent = target.vendor || "미지정";
                 }
@@ -7801,6 +7961,7 @@ function changePrintScale(value) {
                 document.getElementById('req-vendor-holder').value  = rHolder  || "";
                 document.getElementById('req-vendor-phone').value   = rPhone   || "";
                 document.getElementById('req-vendor-num').value     = rBiznum  || "";
+                updateAccountMismatchBadge(dbRowC, firstItem);
                 if (document.getElementById('quick-vendor-name')) {
                     document.getElementById('quick-vendor-name').textContent = targetVendor;
                 }
@@ -8182,9 +8343,10 @@ function changePrintScale(value) {
                             class="w-full text-center bg-white dark:bg-slate-800 border-0 focus:ring-1 focus:ring-amber-400 rounded font-mono text-slate-700 dark:text-slate-200 outline-none text-xs" style="min-width:100px;">
                     </td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
-                        <input type="number" value="${item.workDays || ''}" placeholder="0"
-                            onchange="updateSpecialItem(${index}, 'workDays', Number(this.value)||0)"
-                            class="w-full text-center bg-white dark:bg-slate-800 border-0 focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-700 dark:text-slate-200 outline-none text-xs" style="min-width:36px;">
+                        <input type="number" value="${item.workDays || ''}" placeholder="0" min="1" max="31" title="더블클릭하면 날짜별 운행시간을 각각 입력할 수 있습니다"
+                            onchange="updateSpecialItem(${index}, 'workDays', clampWorkDays(this.value)); this.value = clampWorkDays(this.value) || '';"
+                            ondblclick="openWorkHoursQuickPopup(${index})"
+                            class="w-full text-center bg-white dark:bg-slate-800 border-0 focus:ring-1 focus:ring-amber-400 rounded font-bold text-slate-700 dark:text-slate-200 outline-none text-xs cursor-pointer" style="min-width:36px;">
                     </td>
                     <td class="py-1.5 px-1 border border-amber-200 dark:border-amber-800">
                         <input type="text" value="${Number(supply).toLocaleString('ko-KR')}"
@@ -14449,6 +14611,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'stats-detail-modal':  () => document.getElementById('stats-detail-modal').classList.add('hidden'),
             'row-dup-detail-modal':closeRowDupDetailModal,
             'checklist-manage-modal': closeChecklistManageModal,
+            'workhours-quick-modal': closeWorkHoursQuickPopup,
         };
 
         document.addEventListener('keydown', function(e) {
