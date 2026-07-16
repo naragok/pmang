@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.36</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V5.38</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -182,8 +182,15 @@
                 flex: 0 0 auto !important;
             }
 
-            /* 특고 전용 인쇄 — special-printing 클래스 시 특고 탭만 출력 */
-            body.special-printing > *:not(#tab-request-special) {
+            /* 특고 전용 인쇄 — special-printing 클래스 시 특고 탭만 출력
+               ★ #tab-request-special은 body의 직계 자식이 아니라 여러 겹 래퍼 안에 중첩되어 있어,
+                  아래 ">" 규칙만으로는 그 조상 래퍼들까지 함께 숨겨져 내용이 통째로 안 보이는 문제가 있었음.
+                  printSpecialFormal()에서 조상 요소들에 .sp-print-ancestor 클래스를 동적으로 부여해
+                  그 조상 체인만 표시 유지하고, 나머지 형제 요소만 숨기도록 함께 처리한다. */
+            body.special-printing > *:not(.sp-print-ancestor):not(#tab-request-special) {
+                display: none !important;
+            }
+            body.special-printing .sp-print-ancestor > *:not(.sp-print-ancestor):not(#tab-request-special) {
                 display: none !important;
             }
             body.special-printing #tab-request-special {
@@ -1345,6 +1352,15 @@
                     <button onclick="sortAccountDbBy('ceo')" id="acct-sort-btn-ceo" class="acct-sort-btn px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-blue-400">대표자 ↕</button>
                     <button onclick="sortAccountDbBy('biznum')" id="acct-sort-btn-biznum" class="acct-sort-btn px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-blue-400">사업자번호 ↕</button>
                     <button onclick="sortAccountDbBy('phone')" id="acct-sort-btn-phone" class="acct-sort-btn px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-blue-400">연락처 ↕</button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="account-db-search" oninput="renderAccountDBList()" placeholder="예금주·은행·계좌·대표자·거래처·사업자번호·연락처 검색"
+                            class="pl-7 pr-6 py-1.5 text-[11px] border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none focus:ring-1 focus:ring-blue-500 w-64">
+                        <button onclick="document.getElementById('account-db-search').value='';renderAccountDBList();" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500" title="검색어 지우기"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                    <span id="account-db-search-count" class="text-[10px] text-slate-400 font-bold whitespace-nowrap"></span>
                 </div>
                 <button onclick="checkAccountDbDuplicates()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-rose-300 dark:border-rose-700 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all">
                     <i data-lucide="scan-search" class="w-3 h-3"></i> 중복 전체 확인
@@ -5937,17 +5953,35 @@
         }
 
         /* ── 인쇄 개선 (전용 양식) ── */
+        // 인쇄 대상 요소의 조상들에 표시 유지용 클래스를 부여 (본인 제외, body 전까지)
+        function markPrintAncestors(el) {
+            const marked = [];
+            let node = el ? el.parentElement : null;
+            while (node && node !== document.body) {
+                node.classList.add('sp-print-ancestor');
+                marked.push(node);
+                node = node.parentElement;
+            }
+            return marked;
+        }
+        function unmarkPrintAncestors(marked) {
+            marked.forEach(node => node.classList.remove('sp-print-ancestor'));
+        }
+
         function printSpecialFormal() {
             syncSpecialMetaFromRequest();
             // 인쇄 전 특고 탭 보이게
             const tabEl = document.getElementById('tab-request-special');
             const wasHidden = tabEl && tabEl.classList.contains('hidden');
             if (wasHidden) tabEl.classList.remove('hidden');
+            // ★ #tab-request-special의 조상 래퍼들이 함께 숨겨지지 않도록 표시 유지 마킹
+            const markedAncestors = markPrintAncestors(tabEl);
             // 인쇄 클래스 추가
             document.body.classList.add('special-printing');
             window.print();
             setTimeout(() => {
                 document.body.classList.remove('special-printing');
+                unmarkPrintAncestors(markedAncestors);
                 if (wasHidden && tabEl) tabEl.classList.add('hidden');
             }, 800);
         }
@@ -8810,14 +8844,34 @@ function changePrintScale(value) {
             const container = document.getElementById('account-db-list');
             container.innerHTML = "";
 
-            // 계좌번호 중복 여부 사전 탐지 (예금주가 달라도 계좌번호 동일한 경우)
+            // 계좌번호 중복 여부 사전 탐지 (예금주가 달라도 계좌번호 동일한 경우) — 검색 필터와 무관하게 전체 DB 기준
             const accountCountMap = {};
             accountDb.forEach(acc => {
                 const clean = (acc.account || '').replace(/[^0-9]/g, '');
                 if (clean) accountCountMap[clean] = (accountCountMap[clean] || 0) + 1;
             });
-            
-            accountDb.forEach(acc => {
+
+            // ★ 검색어 필터 — 예금주/은행/계좌번호/대표자/거래처/사업자번호/연락처 대상 부분일치 검색
+            const keyword = (document.getElementById('account-db-search')?.value || '').trim().toLowerCase();
+            const keywordDigits = keyword.replace(/[^0-9]/g, '');
+            const filteredAccounts = keyword
+                ? accountDb.filter(acc => {
+                    const fields = [acc.holder, acc.bank, acc.ceo, acc.vendor].map(v => (v||'').toLowerCase());
+                    if (fields.some(f => f.includes(keyword))) return true;
+                    if (keywordDigits) {
+                        const accDigits = (acc.account||'').replace(/[^0-9]/g,'');
+                        const bizDigits  = (acc.biznum||'').replace(/[^0-9]/g,'');
+                        const phoneDigits= (acc.phone||'').replace(/[^0-9]/g,'');
+                        if (accDigits.includes(keywordDigits) || bizDigits.includes(keywordDigits) || phoneDigits.includes(keywordDigits)) return true;
+                    }
+                    return false;
+                })
+                : accountDb;
+
+            const countEl = document.getElementById('account-db-search-count');
+            if (countEl) countEl.textContent = keyword ? `${filteredAccounts.length}건 검색됨 (전체 ${accountDb.length}건)` : '';
+
+            filteredAccounts.forEach(acc => {
                 const cleanAcc = (acc.account || '').replace(/[^0-9]/g, '');
                 const isDupAcc = cleanAcc && accountCountMap[cleanAcc] > 1;
                 const rowClass = isDupAcc
@@ -8861,6 +8915,11 @@ function changePrintScale(value) {
                 `;
                 container.appendChild(tr);
             });
+
+            if (keyword && filteredAccounts.length === 0) {
+                const safeKeyword = (typeof htmlEsc === 'function') ? htmlEsc(keyword) : keyword;
+                container.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-slate-400 text-xs">"${safeKeyword}"에 대한 검색 결과가 없습니다.</td></tr>`;
+            }
         }
 
         function addAccountToDb() {
