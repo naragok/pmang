@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.0</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -4295,6 +4295,7 @@
         let duplicateItemIds = new Set();
         let duplicateDetailsByRow = {}; // rowId -> [{type, title, message}] — 경고 아이콘 클릭 시 상세 표시용
         let dupAccountModalCallback = null;
+        let _prevHasDuplicateAlert = false; // ★ 중복 경고 토스트를 "새로 감지됐을 때"만 띄우기 위한 이전 상태 추적
 
         // 대표자 불일치 상세 데이터 전역 보관 (모달에서 재사용)
         let _dupCeoGroups = [];
@@ -4485,9 +4486,17 @@
                     document.getElementById('dup-ceo-detail').innerHTML = ceoChips.join('');
                 } else { ceoSec.classList.add('hidden'); ceoSec.classList.remove('flex'); }
 
-                showToast("⚠️ 중복 의심 항목이 감지되었습니다. 상단 배너를 확인하세요.");
+                showToastOnceIfNewDuplicate();
             } else {
                 banner.classList.add('hidden');
+                _prevHasDuplicateAlert = false;
+            }
+
+            function showToastOnceIfNewDuplicate() {
+                if (!_prevHasDuplicateAlert) {
+                    showToast("⚠️ 중복 의심 항목이 감지되었습니다. 상단 배너를 확인하세요.");
+                }
+                _prevHasDuplicateAlert = true;
             }
         }
 
@@ -4505,10 +4514,6 @@
         }
         function closeDupQuickCheckModal() {
             document.getElementById('dup-quickcheck-modal').classList.add('hidden');
-        }
-
-        function showDuplicateToast() {
-            showToast("⚠️ 주황색/빨간 음영 항목이 중복 의심 상태입니다. 상단 배너에서 상세 내용을 확인하세요.");
         }
 
         /* ── 번호행 경고 아이콘 클릭 → 해당 항목의 중복 상세 내용 표시 ── */
