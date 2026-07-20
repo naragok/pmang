@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.2</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1122,6 +1122,9 @@
                     <i data-lucide="building-2" class="w-2.5 h-2.5" style="color:#38bdf8;"></i> <span style="font-size:9px;font-weight:700;">거래처DB</span>
                     <span id="vendor-master-badge-hdr" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#0ea5e9;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
                 </button>
+                <button onclick="openAddRowModal()" class="hdr-btn" style="padding:4px 8px;background:#2563eb;color:#fff;" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
+                    <i data-lucide="plus-circle" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">청구 항목 추가</span>
+                </button>
             </div>
 
             <div class="ml-auto flex items-center gap-1.5 flex-wrap">
@@ -1753,10 +1756,6 @@
                                 <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="background:#2563eb;color:#fff;">원</button>
                                 <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="color:#64748b;">천원</button>
                             </div>
-
-                            <button onclick="openAddRowModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm transition-all whitespace-nowrap">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> 자금 청구 항목 추가
-                            </button>
                         </div>
                     </div>
                     
@@ -12596,6 +12595,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const canvas = document.getElementById('cc-monthly-chart');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
+            if (!ctx) return;
 
             const months = [...new Set(data.map(r => (r.date||'').slice(0,7)).filter(Boolean))].sort();
             const cats   = Object.keys(CC_CAT_COLORS);
