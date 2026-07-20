@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.4</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.5</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1558,7 +1558,7 @@
             </div>
 
             <div id="row-dup-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeRowDupDetailModal()">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full">
                     <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
                         <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
                             <i data-lucide="triangle-alert" class="w-4 h-4 text-amber-500"></i> 이 항목의 중복 의심 상세
@@ -3511,8 +3511,10 @@
         }
 
 
-        // PDF.js 워커 세팅
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        // PDF.js 워커 세팅 (★ CDN 로딩 실패 시에도 이후 스크립트 전체 초기화가 중단되지 않도록 방어)
+        if (typeof pdfjsLib !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
 
         // 다크 모드 활성화/비활성화 전환 기능
         function toggleDarkMode() {
@@ -4302,10 +4304,10 @@
         function checkDuplicateContracts() {
             duplicateItemIds.clear();
             duplicateDetailsByRow = {};
-            const addDupDetail = (rowId, type, title, message) => {
+            const addDupDetail = (rowId, type, title, message, matches) => {
                 if (rowId === null || rowId === undefined) return;
                 if (!duplicateDetailsByRow[rowId]) duplicateDetailsByRow[rowId] = [];
-                duplicateDetailsByRow[rowId].push({ type, title, message });
+                duplicateDetailsByRow[rowId].push({ type, title, message, matches: matches || [] });
             };
             const seen = {};
             const duplicateGroups = {};
@@ -4328,8 +4330,13 @@
                     const [vendor, , supply] = key.split('_');
                     const groupIds = duplicateGroups[key];
                     groupIds.forEach(id => {
+                        const others = groupIds.filter(x => x !== id).map(oid => {
+                            const r = dataset.find(row => row.id === oid);
+                            return r ? { vendor: r.vendor, ceo: r.ceo, type: r.type, supply: r.supply, tax: r.tax, status: r.status, note: r.note } : null;
+                        }).filter(Boolean);
                         addDupDetail(id, 'claim', '이중 청구 의심',
-                            `동일 거래처 「${vendor}」 · 동일 대표자 · 동일 공급가액(${Number(supply).toLocaleString('ko-KR')}원) 항목이 ${groupIds.length - 1}건 더 있습니다.`);
+                            `동일 거래처 「${vendor}」 · 동일 대표자 · 동일 공급가액(${Number(supply).toLocaleString('ko-KR')}원) 항목이 ${groupIds.length - 1}건 더 있습니다.`,
+                            others);
                     });
                     claimChips.push(`<span class="inline-block bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full">${vendor} (${Number(supply).toLocaleString('ko-KR')}원)</span>`);
                 }
@@ -4386,9 +4393,11 @@
                 rows.forEach(r => {
                     if (r.id !== null) {
                         duplicateItemIds.add(r.id);
-                        const others = rows.filter(o => o !== r).map(o => `${o.vendor}(예금주:${o.holder||'-'}) [${o.src}]`).join(', ');
+                        const otherRows = rows.filter(o => o !== r);
+                        const others = otherRows.map(o => `${o.vendor}(예금주:${o.holder||'-'}) [${o.src}]`).join(', ');
                         addDupDetail(r.id, 'account', '계좌번호 중복' + (holderMismatch ? ' · 예금주 상이' : ''),
-                            `동일 계좌(${display})가 다른 거래처에서도 사용되고 있습니다 — ${others}`);
+                            `동일 계좌(${display})가 다른 거래처에서도 사용되고 있습니다 — ${others}`,
+                            otherRows.map(o => ({ vendor: o.vendor, holder: o.holder, account: display, source: o.src })));
                     }
                 });
             });
@@ -4413,9 +4422,11 @@
                 amtDupCount++;
                 rows.forEach(r => {
                     duplicateItemIds.add(r.id);
-                    const others = rows.filter(o => o !== r).map(o => `${o.vendor||'(거래처 미기입)'} [${o.note||'적요없음'}]`).join(', ');
+                    const otherRows = rows.filter(o => o !== r);
+                    const others = otherRows.map(o => `${o.vendor||'(거래처 미기입)'} [${o.note||'적요없음'}]`).join(', ');
                     addDupDetail(r.id, 'amount', '동일 금액 중복 입력 의심',
-                        `공급가액 ${Number(amt).toLocaleString('ko-KR')}원이 동일한 다른 항목이 있습니다 — ${others}`);
+                        `공급가액 ${Number(amt).toLocaleString('ko-KR')}원이 동일한 다른 항목이 있습니다 — ${others}`,
+                        otherRows.map(o => ({ vendor: o.vendor, ceo: o.ceo, type: o.type, supply: o.supply, note: o.note })));
                 });
                 amtChips.push(
                     `<span class="inline-block bg-orange-200 dark:bg-orange-900 text-orange-900 dark:text-orange-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help"
@@ -4520,16 +4531,79 @@
             const details = duplicateDetailsByRow[rowId] || [];
             const body = document.getElementById('row-dup-detail-body');
             if (!body) return;
+            const currentRow = dataset.find(r => r.id === rowId);
+
             if (!details.length) {
                 body.innerHTML = `<p class="text-slate-400 text-center py-4">이 항목에 대한 중복 상세 정보를 찾을 수 없습니다.</p>`;
             } else {
                 const typeColor = { claim: 'amber', account: 'rose', amount: 'orange' };
-                body.innerHTML = details.map(d => `
-                    <div class="rounded-lg border border-${typeColor[d.type]||'slate'}-300 dark:border-${typeColor[d.type]||'slate'}-800 bg-${typeColor[d.type]||'slate'}-50 dark:bg-${typeColor[d.type]||'slate'}-950/20 p-3">
-                        <p class="font-extrabold text-${typeColor[d.type]||'slate'}-800 dark:text-${typeColor[d.type]||'slate'}-300 text-xs mb-1">⚠️ ${d.title}</p>
+                const won = n => `${formatNumber(n||0)}원`;
+
+                let html = '';
+                if (currentRow) {
+                    html += `
+                    <div class="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 mb-1">
+                        <p class="font-extrabold text-slate-700 dark:text-slate-200 text-[11px] mb-1.5">📍 현재 항목</p>
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+                            <span>구분: <b class="text-slate-800 dark:text-slate-100">${currentRow.type||'-'}</b></span>
+                            <span>거래처: <b class="text-slate-800 dark:text-slate-100">${currentRow.vendor||'-'}</b></span>
+                            <span>대표자: <b class="text-slate-800 dark:text-slate-100">${currentRow.ceo||'-'}</b></span>
+                            <span>공급가액: <b class="text-slate-800 dark:text-slate-100">${won(currentRow.supply)}</b></span>
+                            <span>계좌: <b class="text-slate-800 dark:text-slate-100">${currentRow.bank||''} ${currentRow.account||'-'}</b></span>
+                            <span>예금주: <b class="text-slate-800 dark:text-slate-100">${currentRow.holder||'-'}</b></span>
+                        </div>
+                    </div>`;
+                }
+
+                html += details.map(d => {
+                    const color = typeColor[d.type] || 'slate';
+                    let matchTableHtml = '';
+                    if (d.matches && d.matches.length) {
+                        if (d.type === 'account') {
+                            matchTableHtml = `
+                            <table class="w-full mt-2 text-[10px] border-collapse">
+                                <thead><tr class="text-slate-400 dark:text-slate-500">
+                                    <th class="text-left font-semibold py-0.5">거래처</th><th class="text-left font-semibold py-0.5">예금주</th>
+                                    <th class="text-left font-semibold py-0.5">계좌번호</th><th class="text-left font-semibold py-0.5">출처</th>
+                                </tr></thead>
+                                <tbody>${d.matches.map(m => `
+                                    <tr class="border-t border-${color}-200 dark:border-${color}-800">
+                                        <td class="py-1 font-bold text-slate-700 dark:text-slate-200">${m.vendor||'-'}</td>
+                                        <td class="py-1">${m.holder||'-'}</td>
+                                        <td class="py-1">${m.account||'-'}</td>
+                                        <td class="py-1 text-slate-400">${m.source||'-'}</td>
+                                    </tr>`).join('')}
+                                </tbody>
+                            </table>`;
+                        } else {
+                            matchTableHtml = `
+                            <table class="w-full mt-2 text-[10px] border-collapse">
+                                <thead><tr class="text-slate-400 dark:text-slate-500">
+                                    <th class="text-left font-semibold py-0.5">구분</th><th class="text-left font-semibold py-0.5">거래처</th>
+                                    <th class="text-left font-semibold py-0.5">대표자</th><th class="text-right font-semibold py-0.5">공급가액</th>
+                                    <th class="text-left font-semibold py-0.5">비고</th>
+                                </tr></thead>
+                                <tbody>${d.matches.map(m => `
+                                    <tr class="border-t border-${color}-200 dark:border-${color}-800">
+                                        <td class="py-1">${m.type||'-'}</td>
+                                        <td class="py-1 font-bold text-slate-700 dark:text-slate-200">${m.vendor||'-'}</td>
+                                        <td class="py-1">${m.ceo||'-'}</td>
+                                        <td class="py-1 text-right">${won(m.supply)}</td>
+                                        <td class="py-1 text-slate-400">${m.note||'-'}</td>
+                                    </tr>`).join('')}
+                                </tbody>
+                            </table>`;
+                        }
+                    }
+                    return `
+                    <div class="rounded-lg border border-${color}-300 dark:border-${color}-800 bg-${color}-50 dark:bg-${color}-950/20 p-3">
+                        <p class="font-extrabold text-${color}-800 dark:text-${color}-300 text-xs mb-1">⚠️ ${d.title}</p>
                         <p class="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">${d.message}</p>
-                    </div>
-                `).join('');
+                        ${matchTableHtml}
+                    </div>`;
+                }).join('');
+
+                body.innerHTML = html;
             }
             document.getElementById('row-dup-detail-modal').classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -11276,7 +11350,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 });
             }
 
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             switchTab('dashboard');
         }
 
