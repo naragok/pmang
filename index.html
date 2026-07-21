@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.5</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V6.6</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTIwIiB5PSI4OCIgd2lkdGg9IjI3MiIgaGVpZ2h0PSIzMzYiIHJ4PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8cmVjdCB4PSIxNTIiIHk9IjEzMiIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIyMiIgcng9IjUiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHJlY3QgeD0iMTUyIiB5PSIxODAiIHdpZHRoPSIyMDgiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSIjOTRhM2I4Ii8+CjxyZWN0IHg9IjE1MiIgeT0iMjA2IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE0IiByeD0iNCIgZmlsbD0iIzk0YTNiOCIvPgo8bGluZSB4MT0iMTUyIiB5MT0iMjQ2IiB4Mj0iMzYwIiB5Mj0iMjQ2IiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMyIvPgo8dGV4dCB4PSIyNTYiIHk9IjM2OCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY0NmU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7igqk8L3RleHQ+Cjwvc3ZnPg==">
@@ -1904,8 +1904,12 @@
                         <div class="req-calc-section flex flex-col gap-2 text-[10px] mb-3">
                             
                             <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-850 w-full">
-                                <p class="font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center">
-                                    <span class="print-bullet text-blue-600 dark:text-blue-450 font-black mr-1">●</span> 청구 산출 근거
+                                <p class="font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center justify-between">
+                                    <span><span class="print-bullet text-blue-600 dark:text-blue-450 font-black mr-1">●</span> 청구 산출 근거</span>
+                                    <label class="no-print flex items-center gap-1 text-[9px] font-semibold text-slate-500 dark:text-slate-400 cursor-pointer">
+                                        <input type="checkbox" id="req-show-prepaid" onchange="onTogglePrepaidDisplay()" class="w-3 h-3 accent-blue-600">
+                                        선지급액 표시(인쇄 포함)
+                                    </label>
                                 </p>
                                 <div class="space-y-0.5">
                                     <div class="flex justify-between border-b border-slate-200 dark:border-slate-700 py-0.5">
@@ -1915,6 +1919,10 @@
                                     <div class="flex justify-between border-b border-slate-200 dark:border-slate-700 py-0.5">
                                         <span id="lbl-req-tax">부가가치세 :</span>
                                         <input type="text" id="req-calc-tax" value="0" class="font-bold text-slate-850 dark:text-slate-150 text-right bg-transparent border-none max-w-[120px] outline-none" readonly>
+                                    </div>
+                                    <div id="req-calc-prepaid-row" class="hidden flex justify-between border-b border-slate-200 dark:border-slate-700 py-0.5 text-rose-600 dark:text-rose-400">
+                                        <span id="lbl-req-prepaid">선지급액 :</span>
+                                        <input type="text" id="req-calc-prepaid" value="0" class="font-bold text-rose-600 dark:text-rose-400 text-right bg-transparent border-none max-w-[120px] outline-none" readonly>
                                     </div>
                                     <div class="flex justify-between py-0.5 text-indigo-650 dark:text-indigo-400 font-bold">
                                         <span id="lbl-req-total">청구 금액 계 :</span>
@@ -7002,6 +7010,14 @@ function changePrintScale(value) {
             el.style.height = el.scrollHeight + 'px';
         }
 
+        // ★ 지불의뢰서 "선지급액 표시(인쇄 포함)" 옵션 — 켜면 청구 산출 근거에 선지급액 행이 추가되고 총액에서 차감됨
+        const REQ_SHOW_PREPAID_KEY = 'req_show_prepaid_v1';
+        function onTogglePrepaidDisplay() {
+            const chk = document.getElementById('req-show-prepaid');
+            localStorage.setItem(REQ_SHOW_PREPAID_KEY, chk && chk.checked ? '1' : '0');
+            renderRequestItemsTable();
+        }
+
         function renderRequestItemsTable() {
             const tbody = document.getElementById('req-items-tbody');
             if (!tbody) return;
@@ -7040,7 +7056,25 @@ function changePrintScale(value) {
                 tbody.appendChild(tr);
             });
 
-            const finalTotal = totalRequestSupply + totalRequestTax;
+            const finalSupplyTax = totalRequestSupply + totalRequestTax;
+
+            // ★ 선지급액 표시 옵션 — 켜져 있으면 현재 거래처(청구명세서 매칭 행)의 선지급 합계를 청구 금액 계에서 차감해 표시
+            const showPrepaidChk = document.getElementById('req-show-prepaid');
+            const showPrepaid = !!(showPrepaidChk && showPrepaidChk.checked);
+            let prepaidSum = 0;
+            if (showPrepaid) {
+                const vendorName = document.getElementById('req-field-vendor')?.value?.trim() || '';
+                const ceoName    = document.getElementById('req-field-ceo')?.value?.trim() || '';
+                prepaidSum = dataset
+                    .filter(r => r.vendor === vendorName && (r.ceo||'') === ceoName)
+                    .reduce((s, r) => s + (r.prepaid || 0), 0);
+            }
+            const finalTotal = finalSupplyTax - prepaidSum;
+
+            const prepaidRow = document.getElementById('req-calc-prepaid-row');
+            if (prepaidRow) prepaidRow.classList.toggle('hidden', !showPrepaid);
+            const prepaidInput = document.getElementById('req-calc-prepaid');
+            if (prepaidInput) prepaidInput.value = '-' + formatMoneyByUnit(prepaidSum);
 
             document.getElementById('req-field-contract').value = `일금 ${getKoreanNumber(finalTotal)} 원정 (￦${formatNumber(finalTotal)})`;
             document.getElementById('req-calc-supply').value = formatMoneyByUnit(totalRequestSupply);
@@ -8176,6 +8210,19 @@ function changePrintScale(value) {
         function ghUtf8ToB64(str) { return btoa(unescape(encodeURIComponent(str))); }
         function ghB64ToUtf8(str) { return decodeURIComponent(escape(atob(str.replace(/\n/g, '')))); }
 
+        // ★ 기준 경로(data/backup.json)에 날짜-시간을 붙인 이력용 백업 경로 생성 (예: data/backup_20260721_143205.json)
+        function ghBuildTimestampedPath(basePath) {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+            const dotIdx = basePath.lastIndexOf('.');
+            const slashIdx = basePath.lastIndexOf('/');
+            if (dotIdx > slashIdx) {
+                return basePath.slice(0, dotIdx) + '_' + stamp + basePath.slice(dotIdx);
+            }
+            return basePath + '_' + stamp;
+        }
+
         async function ghSyncApiGet(cfg) {
             const url = `https://api.github.com/repos/${cfg.repo}/contents/${encodeURIComponent(cfg.path).replace(/%2F/g,'/')}?ref=${encodeURIComponent(cfg.branch)}`;
             const res = await fetch(url, {
@@ -8209,24 +8256,48 @@ function changePrintScale(value) {
                     exportedAt: new Date().toLocaleString('ko-KR'),
                     savedDocuments, accountDb, currentDocId, ccData: ccLoad()
                 };
+                const encodedContent = ghUtf8ToB64(JSON.stringify(dataToBackup, null, 2));
+                const commitMsg = `자금관리 데이터 동기화 — ${new Date().toLocaleString('ko-KR')}`;
+
+                // 1) 기준 경로(항상 최신본 — "GitHub에서 불러오기"가 참조하는 파일)에 저장
                 const url = `https://api.github.com/repos/${cfg.repo}/contents/${encodeURIComponent(cfg.path).replace(/%2F/g,'/')}`;
                 const res = await fetch(url, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${cfg.token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: `자금관리 데이터 동기화 — ${new Date().toLocaleString('ko-KR')}`,
-                        content: ghUtf8ToB64(JSON.stringify(dataToBackup, null, 2)),
+                        message: commitMsg,
+                        content: encodedContent,
                         branch: cfg.branch,
                         ...(existing ? { sha: existing.sha } : {})
                     })
                 });
                 if (!res.ok) throw new Error(`업로드 실패 (${res.status}): ${(await res.json().catch(()=>({})))?.message || res.statusText}`);
+
+                // 2) ★ 날짜-시간이 포함된 이력용 백업 파일도 함께 저장 (덮어쓰지 않고 매번 새 파일로 누적)
+                const timestampedPath = ghBuildTimestampedPath(cfg.path);
+                let historySaved = true;
+                try {
+                    const histUrl = `https://api.github.com/repos/${cfg.repo}/contents/${encodeURIComponent(timestampedPath).replace(/%2F/g,'/')}`;
+                    const histRes = await fetch(histUrl, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${cfg.token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: commitMsg + ` (이력본: ${timestampedPath})`,
+                            content: encodedContent,
+                            branch: cfg.branch
+                        })
+                    });
+                    if (!histRes.ok) historySaved = false;
+                } catch (e) { historySaved = false; }
+
                 const now = new Date().toLocaleString('ko-KR');
                 localStorage.setItem(BACKUP_LAST_KEY, now);
                 localStorage.setItem(BACKUP_LAST_ISO_KEY, new Date().toISOString());
                 updateLastBackupLabel();
-                ghSyncSetStatus(`업로드 완료! (${now})`);
-                showToast('GitHub에 데이터 업로드 완료!');
+                ghSyncSetStatus(historySaved
+                    ? `업로드 완료! (${now}) — 이력본: ${timestampedPath}`
+                    : `업로드 완료! (${now}) — 단, 날짜별 이력본 저장은 실패했습니다.`);
+                showToast('GitHub에 데이터 업로드 완료!' + (historySaved ? ' (날짜-시간 이력본 포함)' : ''));
             } catch (e) {
                 ghSyncSetStatus('업로드 실패: ' + e.message, true);
             }
@@ -11318,6 +11389,10 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         }
 
         window.onload = function() {
+            // 지불의뢰서 "선지급액 표시" 옵션 저장값 복원
+            const prepaidChk = document.getElementById('req-show-prepaid');
+            if (prepaidChk) prepaidChk.checked = localStorage.getItem(REQ_SHOW_PREPAID_KEY) === '1';
+
             // ESC로 인쇄 미리보기 닫기
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
