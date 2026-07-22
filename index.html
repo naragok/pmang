@@ -1125,6 +1125,9 @@
                 <button onclick="openAddRowModal()" class="hdr-btn" style="padding:4px 8px;background:#2563eb;color:#fff;" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
                     <i data-lucide="plus-circle" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">청구 항목 추가</span>
                 </button>
+                <button id="pwa-install-btn" onclick="handlePwaInstallClick()" class="hdr-btn hidden" style="padding:4px 8px;background:#059669;color:#fff;" title="홈 화면에 앱으로 설치합니다">
+                    <i data-lucide="download" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">홈 화면 설치</span>
+                </button>
             </div>
 
             <div class="ml-auto flex items-center gap-1.5 flex-wrap">
@@ -3344,6 +3347,19 @@
     </div>
 
 
+    <!-- PWA 홈 화면 설치 안내 모달 (iOS Safari 등 자동 설치 프롬프트 미지원 브라우저용) -->
+    <div id="pwa-install-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closePwaInstallModal()">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full p-5">
+            <div class="flex justify-between items-center mb-3">
+                <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                    <i data-lucide="smartphone" class="w-4 h-4 text-emerald-600"></i> 홈 화면에 추가하기
+                </p>
+                <button onclick="closePwaInstallModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="pwa-install-modal-body" class="text-[12px] text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed"></div>
+        </div>
+    </div>
+
     <div id="toast" class="opacity-0 pointer-events-none fixed bottom-5 right-5 bg-slate-950 text-white text-xs py-2.5 px-4 rounded-lg shadow-lg z-50 flex items-center gap-2 transition-all duration-300">
         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
         <span id="toast-msg">처리 완료</span>
@@ -3355,9 +3371,85 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '6.6';
-        const APP_VERSION_DATE = '2026-07-06';
-        const APP_VERSION_NOTE = '세금계산서 등록에 이미지 파일(사진·스캔본) 지원 추가 — Tesseract.js OCR로 텍스트 인식 후 기존 PDF 파싱 로직 재사용';
+        const APP_VERSION = '6.7';
+        const APP_VERSION_DATE = '2026-07-22';
+        const APP_VERSION_NOTE = 'PWA 홈 화면 설치 기능 추가 — 서비스워커 등록, 설치 버튼(Android/Chrome 자동 프롬프트), iOS 수동 설치 안내 모달';
+
+        // ══════════════════════════════════════════════════════
+        // PWA(홈 화면 설치) 지원
+        // 단일 HTML 파일이므로 서비스워커는 별도 파일 없이 Blob URL로 등록한다.
+        // ══════════════════════════════════════════════════════
+        let pwaDeferredPrompt = null;
+
+        (function initPwaServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+            try {
+                // 오프라인 캐싱 없이 "설치 가능(installable)" 조건만 충족시키는 최소 서비스워커
+                const swCode = `
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('activate', e => self.clients.claim());
+                    self.addEventListener('fetch', e => { /* 네트워크 그대로 통과 — 캐싱 없음 */ });
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+                navigator.serviceWorker.register(swUrl).catch(() => { /* 등록 실패 시 조용히 무시 (설치 프롬프트만 안 뜰 뿐, 앱 사용에는 지장 없음) */ });
+            } catch (e) { /* 무시 */ }
+        })();
+
+        // 이미 홈 화면에서 실행 중(standalone)인지 확인
+        function isPwaStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            pwaDeferredPrompt = e;
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn && !isPwaStandalone()) btn.classList.remove('hidden');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            pwaDeferredPrompt = null;
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn) btn.classList.add('hidden');
+            showToast('홈 화면에 설치되었습니다!');
+        });
+
+        async function handlePwaInstallClick() {
+            if (pwaDeferredPrompt) {
+                pwaDeferredPrompt.prompt();
+                const { outcome } = await pwaDeferredPrompt.userChoice;
+                if (outcome === 'accepted') showToast('설치를 진행합니다...');
+                pwaDeferredPrompt = null;
+                document.getElementById('pwa-install-btn')?.classList.add('hidden');
+            } else {
+                openPwaInstallModal();
+            }
+        }
+
+        function openPwaInstallModal() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const body = document.getElementById('pwa-install-modal-body');
+            if (isIOS) {
+                body.innerHTML = `
+                    <p>iOS(아이폰/아이패드) Safari에서는 아래 순서로 직접 추가해 주세요.</p>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-2"><b class="text-emerald-600">1.</b> 하단 공유 버튼(<i data-lucide="share" class="w-3.5 h-3.5 inline"></i>) 탭</div>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-2"><b class="text-emerald-600">2.</b> "홈 화면에 추가" 선택</div>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-2"><b class="text-emerald-600">3.</b> 우측 상단 "추가" 탭</div>
+                `;
+            } else {
+                body.innerHTML = `
+                    <p>이 브라우저에서는 자동 설치 팝업을 지원하지 않거나 이미 설치되어 있을 수 있습니다.</p>
+                    <p>Chrome/Edge 브라우저라면 주소창 오른쪽의 <b>설치 아이콘</b>을 눌러도 설치할 수 있습니다.</p>
+                    <p class="text-slate-400">(브라우저 메뉴 → "앱 설치" 또는 "홈 화면에 추가" 항목을 확인해 주세요.)</p>
+                `;
+            }
+            document.getElementById('pwa-install-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closePwaInstallModal() {
+            document.getElementById('pwa-install-modal').classList.add('hidden');
+        }
 
         function applyAppVersionBadges() {
             const label = `PRO V${APP_VERSION}`;
@@ -13430,6 +13522,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'stats-detail-modal':  () => document.getElementById('stats-detail-modal').classList.add('hidden'),
             'row-dup-detail-modal':closeRowDupDetailModal,
             'checklist-manage-modal': closeChecklistManageModal,
+            'pwa-install-modal': closePwaInstallModal,
         };
 
         document.addEventListener('keydown', function(e) {
