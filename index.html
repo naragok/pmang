@@ -3389,9 +3389,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '6.9';
-        const APP_VERSION_DATE = '2026-07-24';
-        const APP_VERSION_NOTE = '오프라인 지원(서비스워커 실제 캐싱) 및 지불의뢰서 카카오톡/문자 바로 공유 기능 추가';
+        const APP_VERSION = '7.0';
+        const APP_VERSION_DATE = '2026-07-25';
+        const APP_VERSION_NOTE = '지불의뢰서 HTML 출력의 선지급액 표시를 화면의 "선지급액 표시" 옵션과 동일하게 연동 (공제금액은 별도 행으로 분리)';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -9892,13 +9892,15 @@ function changePrintScale(value) {
         /* ── 지불의뢰서 카드 HTML (실제 화면 미리보기와 동일한 레이아웃) — 한 거래처+대표자 단위 ── */
         function buildReqCardHTML(row, site, period, selectorKey) {
             const esc = htmlEsc, won = htmlWon;
+            // ★ 화면의 "선지급액 표시(인쇄 포함)" 옵션과 동일하게 반영 (저장된 설정값 기준)
+            const showPrepaidInDoc = localStorage.getItem(REQ_SHOW_PREPAID_KEY) === '1';
             // ★ 더 이상 같은 거래처의 여러 행을 합산하지 않고, 이 카드 하나(row)만의 값을 사용 — 같은 거래처라도 행마다 개별 카드로 취급
             const supplySum = row.supply||0;
             const taxSum    = row.tax||0;
             const total     = supplySum+taxSum;
             const dedSum    = row.deduction||0;
             const preSum    = row.prepaid||0;
-            const reqAmt    = total - dedSum - preSum;
+            const reqAmt    = total - dedSum - (showPrepaidInDoc ? preSum : 0);
             const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor','ceo','holder']);
             const bank    = accMatch?.bank    || row.bank    || '';
             const account = accMatch?.account || row.account || '';
@@ -9951,7 +9953,8 @@ function changePrintScale(value) {
                             <p class="sec">● 청구 산출 근거</p>
                             <div class="kv"><span>공급가액계</span><b>${won(supplySum)}</b></div>
                             <div class="kv"><span>부가가치세</span><b>${won(taxSum)}</b></div>
-                            <div class="kv"><span>공제금액 / 선지급</span><b>${won(dedSum)} / ${won(preSum)}</b></div>
+                            ${dedSum ? `<div class="kv"><span>공제금액</span><b>${won(dedSum)}</b></div>` : ''}
+                            ${showPrepaidInDoc ? `<div class="kv" style="color:#e11d48;"><span>선지급액</span><b>-${won(preSum)}</b></div>` : ''}
                             <div class="kv total"><span>청구 금액 계</span><b>${won(reqAmt)}</b></div>
                         </div>
                         <div class="req-box">
