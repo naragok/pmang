@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V7.6</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V7.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2548,13 +2548,9 @@
                             <button type="button" onclick="document.getElementById('cc-edit-receipt-input').click()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center gap-1">
                                 <i data-lucide="camera" class="w-3.5 h-3.5"></i> 영수증/현금영수증 첨부
                             </button>
-                            <button type="button" id="cc-ocr-btn" onclick="ccRunOcr()" class="hidden px-3 py-1.5 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 flex items-center gap-1" title="첨부한 영수증 사진에서 금액·가맹점·날짜를 자동으로 인식합니다">
-                                <i data-lucide="scan-line" class="w-3.5 h-3.5"></i> <span id="cc-ocr-btn-label">사진에서 자동 인식</span>
-                            </button>
                             <span id="cc-receipt-filename" class="text-[10px] text-slate-400"></span>
                             <button type="button" id="cc-receipt-remove-btn" onclick="ccRemoveReceipt()" class="hidden text-[10px] text-rose-500 hover:text-rose-700 font-semibold">제거</button>
                         </div>
-                        <div id="cc-ocr-result-note" class="hidden mt-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> <span id="cc-ocr-result-text"></span></div>
                         <div id="cc-receipt-preview-wrap" class="hidden mt-2 relative inline-block">
                             <img id="cc-receipt-preview" class="max-h-32 rounded-lg border border-slate-200 dark:border-slate-700">
                             <button type="button" onclick="ccRemoveReceipt()" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 shadow" title="삭제"><i data-lucide="x" class="w-3 h-3"></i></button>
@@ -3476,9 +3472,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '7.6';
+        const APP_VERSION = '7.9';
         const APP_VERSION_DATE = '2026-07-30';
-        const APP_VERSION_NOTE = '청구명세서 편의기능 3종 추가 — ① Enter키로 항목 입력 모달 다음 칸 자동 이동, ② 금액 0원/마이너스 이상거래 자동 표시 및 필터, ③ 거래처별 누적(연간) 청구 통계 모달';
+        const APP_VERSION_NOTE = '법인카드 영수증 사진 자동 인식(OCR) 기능 제거 — claude.ai 밖에서 독립 실행 시 API 인증이 되지 않아 항상 실패하는 문제로 제거';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -10076,7 +10072,11 @@ function changePrintScale(value) {
             const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
             const ymPrefix = ym ? `${ym[1]}-${String(ym[2]).padStart(2,'0')}` : '';
             const ccAll = (typeof ccLoad === 'function') ? ccLoad() : [];
-            const ccList = ccAll.filter(r => (!site || (r.site||'') === site) && (!ymPrefix || (r.date||'').startsWith(ymPrefix)));
+            const ccList = ccAll.filter(r =>
+                (!site || (r.site||'') === site) &&
+                (!ymPrefix || (r.date||'').startsWith(ymPrefix)) &&
+                (!company || (r.company||'') === company)
+            );
             const ccRows = [];
             const ccMerges = [{ r1:0, c1:0, r2:0, c2:6 }];
             ccRows.push([c(`법인카드 사용내역 — ${docTitle}`, XSI.TITLE)]);
@@ -10471,7 +10471,11 @@ function changePrintScale(value) {
             const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
             const ymPrefix = ym ? `${ym[1]}-${String(ym[2]).padStart(2,'0')}` : '';
             const ccAll  = (typeof ccLoad === 'function') ? ccLoad() : [];
-            const ccList = ccAll.filter(r => (!site || (r.site||'') === site) && (!ymPrefix || (r.date||'').startsWith(ymPrefix)));
+            const ccList = ccAll.filter(r =>
+                (!site || (r.site||'') === site) &&
+                (!ymPrefix || (r.date||'').startsWith(ymPrefix)) &&
+                (!company || (r.company||'') === company)
+            );
             const ccTotal = ccList.reduce((s,r)=>s+Number(r.amount||0),0);
             const ccHtml = ccList.map((r,i) => `<tr><td class="ctr">${i+1}</td><td class="ctr">${esc(r.date)}</td><td class="ctr">${esc(r.cat)}</td>
                 <td>${esc(r.merchant)}</td><td class="num">${won(r.amount)}</td><td class="ctr">${esc(r.site)}</td><td>${esc(r.memo)}</td></tr>`).join('');
@@ -13717,9 +13721,6 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const img  = document.getElementById('cc-receipt-preview');
             const fn   = document.getElementById('cc-receipt-filename');
             const rmBtn = document.getElementById('cc-receipt-remove-btn');
-            const ocrBtn = document.getElementById('cc-ocr-btn');
-            const ocrNote = document.getElementById('cc-ocr-result-note');
-            if (ocrNote) ocrNote.classList.add('hidden');
             if (!wrap || !img || !fn) return;
 
             if (!ccTempReceipt) {
@@ -13727,13 +13728,10 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 img.src = '';
                 fn.textContent = '';
                 if (rmBtn) rmBtn.classList.add('hidden');
-                if (ocrBtn) ocrBtn.classList.add('hidden');
                 return;
             }
 
             if (rmBtn) rmBtn.classList.remove('hidden');
-            // OCR은 이미지(사진)에만 지원 — PDF는 지원하지 않음
-            if (ocrBtn) ocrBtn.classList.toggle('hidden', ccTempReceipt.type === 'application/pdf');
 
             if (ccTempReceipt.type === 'application/pdf') {
                 wrap.classList.add('hidden');
@@ -13745,105 +13743,6 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
         }
 
-        /* 영수증 사진 자동 인식 (OCR) — Claude Vision API로 금액·가맹점·날짜·카테고리 추출 */
-        async function ccRunOcr() {
-            if (!ccTempReceipt || ccTempReceipt.type === 'application/pdf') {
-                showToast('사진(이미지) 영수증만 자동 인식할 수 있습니다.', 'error');
-                return;
-            }
-            const btn = document.getElementById('cc-ocr-btn');
-            const label = document.getElementById('cc-ocr-btn-label');
-            const note = document.getElementById('cc-ocr-result-note');
-            const noteText = document.getElementById('cc-ocr-result-text');
-            const origLabel = label.textContent;
-            btn.disabled = true;
-            label.textContent = '인식 중…';
-            btn.classList.add('opacity-60', 'cursor-wait');
-
-            try {
-                const m = /^data:([^;]+);base64,(.+)$/.exec(ccTempReceipt.dataUrl || '');
-                if (!m) throw new Error('이미지를 읽을 수 없습니다.');
-                const mediaType = m[1], base64Data = m[2];
-
-                const categories = ['유류비','식대','숙박비','자재구입','공구/장비','통신비','교통비','소모품','접대비','기타'];
-                const prompt = `첨부된 영수증/카드전표 사진에서 아래 정보를 정확히 읽어 JSON으로만 응답하세요. 다른 설명이나 마크다운 없이 JSON 객체 하나만 출력하세요.
-{
-  "date": "YYYY-MM-DD 형식의 결제일자 (읽을 수 없으면 빈 문자열)",
-  "merchant": "가맹점명 (상호명)",
-  "amount": 최종 결제 금액(숫자만, 콤마/원화기호 제외),
-  "supply": 공급가액(숫자, 부가세 별도 표기가 있으면, 없으면 null),
-  "tax": 부가세액(숫자, 표기가 있으면, 없으면 null),
-  "category": "다음 중 가장 적절한 것 하나: ${categories.join(', ')}",
-  "proofType": "다음 중 하나: taxinvoice(세금계산서), cashreceipt(현금영수증), cardslip(신용카드매출전표), simple(간이영수증), none(확인불가)"
-}`;
-
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        model: "claude-sonnet-4-6",
-                        max_tokens: 1000,
-                        messages: [{
-                            role: "user",
-                            content: [
-                                { type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } },
-                                { type: "text", text: prompt }
-                            ]
-                        }]
-                    })
-                });
-                if (!response.ok) throw new Error('API 요청 실패 (' + response.status + ')');
-                const data = await response.json();
-                const textBlock = (data.content || []).find(b => b.type === 'text');
-                if (!textBlock) throw new Error('인식 결과가 없습니다.');
-                const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
-                const result = JSON.parse(cleaned);
-
-                let applied = [];
-                if (result.date && /^\d{4}-\d{2}-\d{2}$/.test(result.date)) {
-                    document.getElementById('cc-edit-date').value = result.date; applied.push('날짜');
-                }
-                if (result.merchant) {
-                    document.getElementById('cc-edit-merchant').value = result.merchant; applied.push('가맹점');
-                }
-                if (categories.includes(result.category)) {
-                    document.getElementById('cc-edit-cat').value = result.category; applied.push('카테고리');
-                }
-                if (['taxinvoice','cashreceipt','cardslip','simple','none'].includes(result.proofType)) {
-                    document.getElementById('cc-edit-prooftype').value = result.proofType; applied.push('증빙구분');
-                }
-                if (result.supply != null && result.tax != null && Number(result.supply) > 0) {
-                    document.getElementById('cc-edit-vat-toggle').checked = true;
-                    ccToggleVatInput();
-                    document.getElementById('cc-edit-supply').value = Math.round(Number(result.supply));
-                    document.getElementById('cc-edit-tax').value = Math.round(Number(result.tax));
-                    ccCalcVatTotal();
-                    applied.push('금액(VAT)');
-                } else if (result.amount) {
-                    document.getElementById('cc-edit-vat-toggle').checked = false;
-                    ccToggleVatInput();
-                    document.getElementById('cc-edit-amount').value = Math.round(Number(result.amount));
-                    ccFormatAmtPreview();
-                    applied.push('금액');
-                }
-
-                if (applied.length) {
-                    note.classList.remove('hidden');
-                    noteText.textContent = applied.join(', ') + ' 자동 입력됨 — 확인 후 저장하세요.';
-                    showToast('영수증 자동 인식 완료', 'success');
-                } else {
-                    showToast('영수증에서 인식된 항목이 없습니다. 직접 입력해 주세요.', 'error');
-                }
-            } catch (err) {
-                console.error('OCR 오류:', err);
-                showToast('자동 인식에 실패했습니다. 직접 입력해 주세요.', 'error');
-            } finally {
-                btn.disabled = false;
-                label.textContent = origLabel;
-                btn.classList.remove('opacity-60', 'cursor-wait');
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }
-        }
         function ccRemoveReceipt() {
             ccTempReceipt = null;
             ccShowReceiptPreview();
@@ -13927,8 +13826,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         function ccExportExcel() {
             if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
             ccData = ccLoad();
-            if (!ccData.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
-            const rows = ccData.map((r,i) => ({
+            const filtered = ccFiltered();
+            if (!filtered.length) { showToast('내보낼 데이터가 없습니다. (필터 조건을 확인하세요)', 'error'); return; }
+
+            const companyVal = document.getElementById('cc-filter-company')?.value || '';
+            const companyLabel = companyVal || '전체 회사';
+
+            const rows = filtered.map((r,i) => ({
                 'No': i+1,
                 '사용일자': r.date||'',
                 '카테고리': r.cat||'',
@@ -13947,9 +13851,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '법인카드경비');
 
-            // 현장별 시트
+            // 현장별 시트 (필터링된 대상 회사 기준)
             const siteMap = {};
-            ccData.forEach(r=>{ const k=r.site||'(미배분)'; (siteMap[k]=siteMap[k]||[]).push(r); });
+            filtered.forEach(r=>{ const k=r.site||'(미배분)'; (siteMap[k]=siteMap[k]||[]).push(r); });
             Object.entries(siteMap).forEach(([site, list])=>{
                 const srows = list.map((r,i)=>({
                     'No': i+1, '사용일자': r.date||'', '카테고리': r.cat||'',
@@ -13962,8 +13866,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 XLSX.utils.book_append_sheet(wb, ws2, sheetName);
             });
 
-            XLSX.writeFile(wb, `법인카드경비_${new Date().toISOString().slice(0,10)}.xlsx`);
-            showToast('엑셀 내보내기 완료', 'success');
+            const fileCompanyPart = companyVal ? `_${companyVal}` : '';
+            XLSX.writeFile(wb, `법인카드경비${fileCompanyPart}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast(`엑셀 내보내기 완료 (${companyLabel} · ${filtered.length}건)`, 'success');
         }
 
         /* 인쇄 */
