@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V9.0</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V9.3</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1782,17 +1782,23 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-                        <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex items-center gap-2 min-w-0 group/meta cursor-text" onclick="document.getElementById('meta-site').focus()" title="클릭하여 현장명 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300" style="width:50px;text-align:center;">현장명</span>
-                            <input type="text" id="meta-site" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <input type="text" id="meta-site" list="meta-site-list" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 dark:border-slate-700 group-hover/meta:border-indigo-400 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <datalist id="meta-site-list"></datalist>
+                            <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-indigo-400"></i>
                         </div>
-                        <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex items-center gap-2 min-w-0 group/meta cursor-text" onclick="document.getElementById('meta-month').focus()" title="클릭하여 작성월 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300" style="width:50px;text-align:center;">작성월</span>
-                            <input type="text" id="meta-month" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 dark:border-slate-700 group-hover/meta:border-emerald-400 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <datalist id="meta-month-list"></datalist>
+                            <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-emerald-400"></i>
                         </div>
-                        <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex items-center gap-2 min-w-0 group/meta cursor-text" onclick="document.getElementById('meta-company').focus()" title="클릭하여 회사명 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300" style="width:50px;text-align:center;">회사명</span>
-                            <input type="text" id="meta-company" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <input type="text" id="meta-company" list="meta-company-list" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 group-hover/meta:border-amber-400 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <datalist id="meta-company-list"></datalist>
+                            <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-amber-400"></i>
                         </div>
                         <div class="flex items-center gap-2 min-w-0 no-print">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200" style="width:50px;text-align:center;">결재</span>
@@ -3632,9 +3638,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '9.1';
+        const APP_VERSION = '9.3';
         const APP_VERSION_DATE = '2026-07-30';
-        const APP_VERSION_NOTE = '총 투입비 탭의 집계 방식 수정 — 선지급액은 이미 실제 지급된 금액이므로 차감하지 않고 합계에 포함 (공제액만 실제 지출이 아니므로 계속 제외)';
+        const APP_VERSION_NOTE = '청구명세서 상단 현장명/작성월/회사명이 클릭해서 바로 바꿀 수 있음을 명확히 표시(연필 아이콘·호버 강조) + 과거 등록된 값 자동완성 목록 추가';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5204,7 +5210,7 @@
                     vendorStats[row.vendor].count++;
                     vendorStats[row.vendor].supply    += (row.supply || 0);
                     vendorStats[row.vendor].tax       += (row.tax || 0);
-                    vendorStats[row.vendor].requestAmt += (row.supply||0) + (row.tax||0) - (row.deduction||0) - (row.prepaid||0);
+                    vendorStats[row.vendor].requestAmt += (row.supply||0) + (row.tax||0) - (row.deduction||0); // 선지급 포함
                 });
 
                 const vendors = Object.keys(vendorStats).sort((a, b) => a.localeCompare(b, 'ko-KR'));
@@ -5270,7 +5276,7 @@
             CAT_LIST.forEach(c => totals[c] = 0);
             rows.forEach(r => {
                 if (totals[r.type] !== undefined)
-                    totals[r.type] += (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0);
+                    totals[r.type] += (r.supply||0) + (r.tax||0) - (r.deduction||0); // 선지급 포함(투입비 기준), 공제만 제외
             });
             return totals;
         }
@@ -5447,7 +5453,7 @@
                 const wb = XLSX.utils.book_new();
 
                 // ── 시트1: 공종별 집계 요약 ──
-                const sumRows = [['공종','거래처수','공급가액','부가세','합계','공제','선지급','청구합계']];
+                const sumRows = [['공종','거래처수','공급가액','부가세','합계','공제','선지급(포함)','투입비합계']];
                 const totals = calcCatTotals(dataset);
                 CAT_LIST.forEach(cat => {
                     const rows = dataset.filter(r => r.type === cat);
@@ -5457,16 +5463,16 @@
                     const tax     = rows.reduce((s,r)=>s+(r.tax||0),0);
                     const ded     = rows.reduce((s,r)=>s+(r.deduction||0),0);
                     const pre     = rows.reduce((s,r)=>s+(r.prepaid||0),0);
-                    sumRows.push([cat, vendors.size, supply, tax, supply+tax, ded, pre, supply+tax-ded-pre]);
+                    sumRows.push([cat, vendors.size, supply, tax, supply+tax, ded, pre, supply+tax-ded]);
                 });
-                const grand = dataset.reduce((s,r)=>s+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0),0);
+                const grand = dataset.reduce((s,r)=>s+(r.supply||0)+(r.tax||0)-(r.deduction||0),0);
                 sumRows.push(['합 계','','','','','','',grand]);
                 const ws1 = XLSX.utils.aoa_to_sheet(sumRows);
                 ws1['!cols'] = [{wch:8},{wch:8},{wch:14},{wch:12},{wch:14},{wch:12},{wch:10},{wch:14}];
                 XLSX.utils.book_append_sheet(wb, ws1, '공종별 집계');
 
                 // ── 시트2: 거래처별 상세 ──
-                const detRows = [['공종','거래처','대표자','건수','공급가액','부가세','청구합계']];
+                const detRows = [['공종','거래처','대표자','건수','공급가액','부가세','투입비합계']];
                 CAT_LIST.forEach(cat => {
                     const rows = dataset.filter(r => r.type === cat);
                     const map = {};
@@ -5476,7 +5482,7 @@
                         map[r.vendor].cnt++;
                         map[r.vendor].supply += r.supply||0;
                         map[r.vendor].tax    += r.tax||0;
-                        map[r.vendor].req    += (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
+                        map[r.vendor].req    += (r.supply||0)+(r.tax||0)-(r.deduction||0);
                     });
                     Object.entries(map).sort((a,b)=>b[1].req-a[1].req).forEach(([v,d])=>{
                         detRows.push([cat,v,d.ceo,d.cnt,d.supply,d.tax,d.req]);
@@ -5488,8 +5494,8 @@
 
                 // ── Top5 시트 ──
                 const map5 = {};
-                dataset.forEach(r=>{if(!r.vendor)return; map5[r.vendor]=(map5[r.vendor]||0)+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);});
-                const top5Rows = [['순위','거래처','청구합계']];
+                dataset.forEach(r=>{if(!r.vendor)return; map5[r.vendor]=(map5[r.vendor]||0)+(r.supply||0)+(r.tax||0)-(r.deduction||0);});
+                const top5Rows = [['순위','거래처','투입비합계']];
                 Object.entries(map5).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([v,a],i)=>top5Rows.push([i+1,v,a]));
                 const ws3 = XLSX.utils.aoa_to_sheet(top5Rows);
                 ws3['!cols'] = [{wch:6},{wch:20},{wch:14}];
@@ -5513,7 +5519,7 @@
             const title = currentDoc ? `${currentDoc.company} ${currentDoc.month} 자금청구집계표` : "자금청구집계표";
 
             let csvContent = "\uFEFF자금청구집계표\n";
-            csvContent += `회사,항목,대표자,공급가액,부가세,합계금액,공제금액,선지급,지급요청금액\n`;
+            csvContent += `회사,항목,대표자,공급가액,부가세,합계금액,공제금액,선지급(포함),투입비합계\n`;
 
             const categories = ["외주비", "자재비", "장비비", "노무비", "관리비"];
             categories.forEach(cat => {
@@ -5531,7 +5537,7 @@
                 Object.keys(vendorStats).sort().forEach(vendor => {
                     const d = vendorStats[vendor];
                     const total = d.supply + d.tax;
-                    const reqAmt = total - d.deduction - d.prepaid;
+                    const reqAmt = total - d.deduction;
                     csvContent += `${vendor},${cat},${d.ceo},${d.supply},${d.tax},${total},${d.deduction},${d.prepaid},${reqAmt}\n`;
                 });
             });
@@ -7877,6 +7883,7 @@ function changePrintScale(value) {
                 document.getElementById('req-meta-site').value = currentDoc.site;
             }
             renderApprovalBadge();
+            populateMetaDatalists();
             selectedRowIds.clear();
             saveToLocalStorage();
             renderStatementTable();
@@ -8054,6 +8061,27 @@ function changePrintScale(value) {
             saveToLocalStorage();
             buildFilterOptions();
             updateSavedSheetsSelector();
+            populateMetaDatalists();
+        }
+
+        /* 현장명/작성월/회사명 입력칸의 자동완성 목록을 과거 등록된 모든 문서 기준으로 채운다 */
+        function populateMetaDatalists() {
+            const siteList = document.getElementById('meta-site-list');
+            const monthList = document.getElementById('meta-month-list');
+            const companyList = document.getElementById('meta-company-list');
+            if (!siteList || !monthList || !companyList) return;
+
+            const sites = new Set(), months = new Set(), companies = new Set();
+            (savedDocuments || []).forEach(d => {
+                if (d.site) sites.add(d.site);
+                if (d.month) months.add(d.month);
+                if (d.company) companies.add(d.company);
+            });
+
+            const toOptions = (set) => [...set].sort().map(v => `<option value="${v}"></option>`).join('');
+            siteList.innerHTML = toOptions(sites);
+            monthList.innerHTML = toOptions(months);
+            companyList.innerHTML = toOptions(companies);
         }
 
         /* ── 결재선/승인 워크플로우 ── */
@@ -8259,11 +8287,11 @@ function changePrintScale(value) {
 
             const monthKey = (m) => { const mm = /(\d{4}).*?(\d{1,2})/.exec(m || ''); return mm ? parseInt(mm[1],10)*100+parseInt(mm[2],10) : 0; };
 
-            // 청구명세서: 해당 현장의 모든 저장 문서 → 월별 지급요청금액
+            // 청구명세서: 해당 현장의 모든 저장 문서 → 월별 투입비 (선지급 포함, 공제만 제외)
             const stByMonth = {};
             (savedDocuments || []).filter(d => d.site === site).forEach(doc => {
                 const rows = doc.dataset || [];
-                const request = rows.reduce((s,r)=>s+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0),0);
+                const request = rows.reduce((s,r)=>s+(r.supply||0)+(r.tax||0)-(r.deduction||0),0);
                 stByMonth[doc.month] = (stByMonth[doc.month] || 0) + request;
             });
 
@@ -9513,7 +9541,7 @@ function changePrintScale(value) {
             savedDocuments.forEach(doc => {
                 const site = (doc.site || '현장 미지정').trim();
                 if (!stats[site]) {
-                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
                 }
                 stats[site].companies.add(doc.company || '');
                 stats[site].docCount++;
@@ -9522,21 +9550,23 @@ function changePrintScale(value) {
                     stats[site].rowCount++;
                     stats[site].supply     += (row.supply || 0) + (row.tax || 0);
                     stats[site].requestAmt += (row.supply || 0) + (row.tax || 0) - (row.deduction || 0) - (row.prepaid || 0);
+                    stats[site].prepaidAmt += (row.prepaid || 0);
                 });
             });
             // 법인카드 경비도 현장별로 합산 (총 투입비에 포함)
             (typeof ccLoad === 'function' ? ccLoad() : []).forEach(r => {
                 const site = (r.site || '현장 미지정').trim();
                 if (!stats[site]) {
-                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
                 }
                 stats[site].ccAmt += Number(r.amount || 0);
                 if (r.company) stats[site].companies.add(r.company);
             });
-            // Set → Array, 총 투입비(청구명세서 + 법인카드) 계산
+            // Set → Array, 총 투입비(청구명세서 지급요청액 + 선지급액 + 법인카드) 계산
+            // ※ 선지급액은 이미 실제 지급된 금액이므로 총 투입비에는 다시 더해서 포함시킨다
             Object.values(stats).forEach(s => {
                 s.companies = [...s.companies].filter(Boolean);
-                s.totalInvest = s.requestAmt + s.ccAmt;
+                s.totalInvest = s.requestAmt + s.prepaidAmt + s.ccAmt;
             });
             return stats;
         }
@@ -12511,6 +12541,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             renderAccountDBList();
             refreshRequestSelector();
             renderSiteDashboard();
+            populateMetaDatalists();
             changePrintScale(1.00);
             document.getElementById('print-scale-slider').value = "1.00";
             applyCategoryColor("자재비");
@@ -12727,9 +12758,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             //   대시보드 진입 시 항상 localStorage에서 최신값을 다시 읽어온다.
             if (typeof ccLoad === 'function') { ccData = ccLoad(); }
 
-            // 1) 자금청구명세서 — 현재 로드된 문서(dataset) 기준 청구액 합계
+            // 1) 자금청구명세서 — 현재 로드된 문서(dataset) 기준 투입비 합계 (선지급 포함, 공제만 제외)
             const claimRows = (typeof dataset !== 'undefined') ? dataset : [];
-            const claimTotal = claimRows.reduce((s,r) => s + (Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)), 0);
+            const claimTotal = claimRows.reduce((s,r) => s + (Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)), 0);
             const elClaim = document.getElementById('dash-total-claim');
             if (elClaim) elClaim.textContent = fmt(claimTotal);
             const elClaimSub = document.getElementById('dash-claim-sub');
