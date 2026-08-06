@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V8.4</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V9.0</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1226,6 +1226,13 @@
                     <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">법인카드</span>
                 </button>
 
+                <button id="tab-btn-totalinvest" onclick="switchTab('totalinvest')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">5</span>
+                    <i data-lucide="pie-chart" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">총 투입비</span>
+                </button>
+
             </div>
 
             <div id="sidebar-footer" class="px-3 py-2 text-[9px] font-bold" style="color:#334155;border-top:1px solid rgba(255,255,255,0.06);">
@@ -1390,7 +1397,7 @@
                 <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded shrink-0">Ctrl+K</span>
             </button>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-2">
                 <button onclick="switchTab('stats')" class="dash-tab-card group" style="--dc:#0891b2;">
                     <i data-lucide="pie-chart" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">집계표</div>
@@ -1410,6 +1417,11 @@
                     <i data-lucide="credit-card" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">법인카드 경비</div>
                     <div class="dash-tab-card-count" id="dash-cnt-corpcard">0건</div>
+                </button>
+                <button onclick="switchTab('totalinvest')" class="dash-tab-card group" style="--dc:#059669;">
+                    <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                    <div class="dash-tab-card-label">총 투입비</div>
+                    <div class="dash-tab-card-count" id="dash-cnt-totalinvest">&nbsp;</div>
                 </button>
             </div>
 
@@ -2159,6 +2171,9 @@
                         <button onclick="openCompanyMonthlyStats()" class="ctrl-btn" style="background:#0891b2;" title="회사(현장) 기준으로 등록된 모든 월의 청구 내역을 한 표로 모아보기">
                             <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i> 회사·현장 전체 월 집계표
                         </button>
+                        <button onclick="openSiteInvestmentDashboard()" class="ctrl-btn" style="background:#059669;" title="청구명세서 + 법인카드를 합산한 현장별 총 투입비">
+                            <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> 현장 총 투입비
+                        </button>
                         <div class="ctrl-divider"></div>
                         <button onclick="exportStatsToExcel()" class="ctrl-btn" style="background:#059669;">
                             <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
@@ -2355,6 +2370,71 @@
                 <div id="cc-monthly-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-500"></div>
             </div>
         </div><!-- /tab-corpcard -->
+
+        <div id="tab-totalinvest" class="hidden">
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h2 class="text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i> 총 투입비
+                    <span class="text-[11px] font-semibold text-slate-400">— 회사·현장·월별 공종 구분 집계</span>
+                </h2>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-3">
+                <select id="ti-filter-company" onchange="renderTotalInvestTab()" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
+                    <option value="">전체 회사</option>
+                </select>
+                <select id="ti-filter-site" onchange="renderTotalInvestTab()" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
+                    <option value="">전체 현장</option>
+                </select>
+            </div>
+
+            <div id="ti-summary-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-3"></div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                <table class="w-full border-collapse text-[11px]">
+                    <thead>
+                        <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-center font-bold text-slate-700 dark:text-slate-200">
+                            <th class="py-2.5 px-3 text-left">회사</th>
+                            <th class="py-2.5 px-3 text-left">현장</th>
+                            <th class="py-2.5 px-3 text-left">월</th>
+                            <th class="py-2.5 px-3" style="color:#2563eb;">외주비</th>
+                            <th class="py-2.5 px-3" style="color:#7c3aed;">노무비</th>
+                            <th class="py-2.5 px-3" style="color:#ea580c;">장비대</th>
+                            <th class="py-2.5 px-3" style="color:#059669;">자재비</th>
+                            <th class="py-2.5 px-3" style="color:#e11d48;">관리비</th>
+                            <th class="py-2.5 px-3" style="color:#d97706;">법인카드</th>
+                            <th class="py-2.5 px-3 bg-emerald-100 dark:bg-emerald-900/40">월 합계</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ti-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200"></tbody>
+                    <tfoot id="ti-tfoot" class="border-t-2 border-slate-300 dark:border-slate-600 font-extrabold text-slate-800 dark:text-slate-100"></tfoot>
+                </table>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-2">💡 항목의 금액을 클릭하면 세부 내역이 열립니다. 금액이 0원인 칸은 클릭할 수 없습니다. (선지급액은 실제 지급된 금액이므로 총 투입비에 포함되며, 공제액은 실제 지출이 아니므로 제외됩니다)</p>
+        </div>
+
+        <!-- 총 투입비 세부내역 모달 -->
+        <div id="ti-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[80vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 id="ti-detail-title" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm"></h3>
+                    <button onclick="closeTiDetailModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="overflow-y-auto flex-1 p-2">
+                    <table class="w-full text-xs">
+                        <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                            <tr id="ti-detail-thead" class="text-slate-400 border-b border-slate-100 dark:border-slate-800"></tr>
+                        </thead>
+                        <tbody id="ti-detail-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-500">합계: <span id="ti-detail-total" class="text-emerald-600 dark:text-emerald-400 font-extrabold"></span></span>
+                    <button onclick="closeTiDetailModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">닫기</button>
+                </div>
+            </div>
+        </div>
+
 
         <!-- 운전원 DB 모달 -->
 
@@ -2634,6 +2714,40 @@
                         </thead>
                         <tbody id="company-monthly-tbody"></tbody>
                         <tfoot id="company-monthly-tfoot" class="border-t-2 border-slate-200 dark:border-slate-700 font-extrabold"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 현장 총 투입비 통합 대시보드 (청구명세서 + 법인카드) -->
+        <div id="site-invest-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-4xl max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i> 현장 총 투입비
+                        <span class="text-[10px] font-semibold text-slate-400">(청구명세서 + 법인카드 합산)</span>
+                    </h3>
+                    <button onclick="closeSiteInvestmentDashboard()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="px-5 py-2 border-b border-slate-100 dark:border-slate-800">
+                    <select id="site-invest-select" onchange="renderSiteInvestmentDashboard()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
+                        <option value="">현장을 선택하세요</option>
+                    </select>
+                </div>
+                <div id="site-invest-summary" class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                <div class="overflow-y-auto flex-1 p-2">
+                    <table class="w-full text-xs">
+                        <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                            <tr class="text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                <th class="text-left font-bold py-2 px-2">월</th>
+                                <th class="text-right font-bold py-2 px-2">청구명세서 (지급요청액)</th>
+                                <th class="text-right font-bold py-2 px-2">법인카드</th>
+                                <th class="text-right font-bold py-2 px-2 text-emerald-600 dark:text-emerald-400">월 합계 투입비</th>
+                                <th class="text-right font-bold py-2 px-2">누계</th>
+                            </tr>
+                        </thead>
+                        <tbody id="site-invest-tbody"></tbody>
+                        <tfoot id="site-invest-tfoot" class="border-t-2 border-slate-200 dark:border-slate-700 font-extrabold"></tfoot>
                     </table>
                 </div>
             </div>
@@ -3067,6 +3181,8 @@
                                     <th class="py-2.5 px-3">총 청구건</th>
                                     <th class="py-2.5 px-3">공급가액 합계</th>
                                     <th class="py-2.5 px-3">지급요청 합계</th>
+                                    <th class="py-2.5 px-3">법인카드</th>
+                                    <th class="py-2.5 px-3 bg-emerald-100 dark:bg-emerald-900/40">총 투입비</th>
                                     <th class="py-2.5 px-3">집행률</th>
                                     <th class="py-2.5 px-3">바로가기</th>
                                 </tr>
@@ -3516,9 +3632,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '8.4';
+        const APP_VERSION = '9.1';
         const APP_VERSION_DATE = '2026-07-30';
-        const APP_VERSION_NOTE = '회사·현장 전체 월 집계표에 공제/선지급 컬럼 추가 및 누적 선지급 합계 요약 배너 추가 (향후 투입금 확인용)';
+        const APP_VERSION_NOTE = '총 투입비 탭의 집계 방식 수정 — 선지급액은 이미 실제 지급된 금액이므로 차감하지 않고 합계에 포함 (공제액만 실제 지출이 아니므로 계속 제외)';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4291,21 +4407,24 @@
             const tabRequest = document.getElementById('tab-request');
             const tabStats = document.getElementById('tab-stats');
             const tabCorpcard = document.getElementById('tab-corpcard');
+            const tabTotalInvest = document.getElementById('tab-totalinvest');
 
             const btnDashboard = document.getElementById('tab-btn-dashboard');
             const btnStatement = document.getElementById('tab-btn-statement');
             const btnRequest = document.getElementById('tab-btn-request');
             const btnStats = document.getElementById('tab-btn-stats');
             const btnCorpcard = document.getElementById('tab-btn-corpcard');
+            const btnTotalInvest = document.getElementById('tab-btn-totalinvest');
 
             if (tabDashboard) tabDashboard.classList.add('hidden');
             tabStatement.classList.add('hidden');
             tabRequest.classList.add('hidden');
             tabStats.classList.add('hidden');
             if (tabCorpcard) tabCorpcard.classList.add('hidden');
+            if (tabTotalInvest) tabTotalInvest.classList.add('hidden');
 
             // 모든 탭 버튼 비활성화 (상단 탭바 & 사이드바 공용)
-            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard].forEach(b => {
+            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard, btnTotalInvest].forEach(b => {
                 if (b) {
                     b.classList.remove('tab-active');
                     b.classList.remove('sidebar-tab-active');
@@ -4332,6 +4451,11 @@
                 if (tabCorpcard) tabCorpcard.classList.remove('hidden');
                 if (btnCorpcard) btnCorpcard.classList.add('tab-active','sidebar-tab-active');
                 ccRender();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else if (tabId === 'totalinvest') {
+                if (tabTotalInvest) tabTotalInvest.classList.remove('hidden');
+                if (btnTotalInvest) btnTotalInvest.classList.add('tab-active','sidebar-tab-active');
+                renderTotalInvestTab();
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
         }
@@ -8100,6 +8224,111 @@ function changePrintScale(value) {
                 </div>`;
         }
 
+        /* ── 현장 총 투입비 (청구명세서 + 법인카드 합산) ── */
+        function openSiteInvestmentDashboard() {
+            saveToLocalStorage();
+            const sel = document.getElementById('site-invest-select');
+            const statementSites = (savedDocuments || []).map(d => d.site).filter(Boolean);
+            const ccSites = (typeof ccLoad === 'function' ? ccLoad() : []).map(r => r.site).filter(Boolean);
+            const sites = [...new Set([...statementSites, ...ccSites])].sort();
+
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            sel.innerHTML = '<option value="">현장을 선택하세요</option>' +
+                sites.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (currentDoc?.site && sites.includes(currentDoc.site)) sel.value = currentDoc.site;
+
+            renderSiteInvestmentDashboard();
+            document.getElementById('site-invest-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeSiteInvestmentDashboard() {
+            document.getElementById('site-invest-modal').classList.add('hidden');
+        }
+        function renderSiteInvestmentDashboard() {
+            const site = document.getElementById('site-invest-select').value;
+            const tbody = document.getElementById('site-invest-tbody');
+            const tfoot = document.getElementById('site-invest-tfoot');
+            const summaryBox = document.getElementById('site-invest-summary');
+
+            if (!site) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400">현장을 선택하세요.</td></tr>';
+                tfoot.innerHTML = '';
+                summaryBox.innerHTML = '';
+                return;
+            }
+
+            const monthKey = (m) => { const mm = /(\d{4}).*?(\d{1,2})/.exec(m || ''); return mm ? parseInt(mm[1],10)*100+parseInt(mm[2],10) : 0; };
+
+            // 청구명세서: 해당 현장의 모든 저장 문서 → 월별 지급요청금액
+            const stByMonth = {};
+            (savedDocuments || []).filter(d => d.site === site).forEach(doc => {
+                const rows = doc.dataset || [];
+                const request = rows.reduce((s,r)=>s+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0),0);
+                stByMonth[doc.month] = (stByMonth[doc.month] || 0) + request;
+            });
+
+            // 법인카드: 해당 현장의 모든 사용내역 → 월별(YYYY-MM 기준) 합계
+            const ccByMonth = {};
+            (typeof ccLoad === 'function' ? ccLoad() : []).filter(r => r.site === site).forEach(r => {
+                const ym = (r.date || '').slice(0,7); // YYYY-MM
+                if (!ym) return;
+                const label = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
+                ccByMonth[label] = (ccByMonth[label] || 0) + Number(r.amount || 0);
+            });
+
+            const allMonths = [...new Set([...Object.keys(stByMonth), ...Object.keys(ccByMonth)])]
+                .sort((a,b) => monthKey(a) - monthKey(b));
+
+            if (!allMonths.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400">해당 현장의 데이터가 없습니다.</td></tr>';
+                tfoot.innerHTML = '';
+                summaryBox.innerHTML = '';
+                return;
+            }
+
+            let gSt=0, gCc=0, cumulative=0;
+            tbody.innerHTML = allMonths.map(m => {
+                const st = stByMonth[m] || 0;
+                const cc = ccByMonth[m] || 0;
+                const total = st + cc;
+                gSt += st; gCc += cc; cumulative += total;
+                return `<tr class="border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td class="py-1.5 px-2 font-bold text-slate-800 dark:text-slate-100">${m}</td>
+                    <td class="py-1.5 px-2 text-right">${st.toLocaleString('ko-KR')}원</td>
+                    <td class="py-1.5 px-2 text-right">${cc.toLocaleString('ko-KR')}원</td>
+                    <td class="py-1.5 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">${total.toLocaleString('ko-KR')}원</td>
+                    <td class="py-1.5 px-2 text-right text-slate-400">${cumulative.toLocaleString('ko-KR')}원</td>
+                </tr>`;
+            }).join('');
+
+            const grandTotal = gSt + gCc;
+            tfoot.innerHTML = `<tr>
+                <td class="py-2 px-2">합계 (${allMonths.length}개월)</td>
+                <td class="py-2 px-2 text-right">${gSt.toLocaleString('ko-KR')}원</td>
+                <td class="py-2 px-2 text-right">${gCc.toLocaleString('ko-KR')}원</td>
+                <td class="py-2 px-2 text-right text-emerald-600 dark:text-emerald-400">${grandTotal.toLocaleString('ko-KR')}원</td>
+                <td></td>
+            </tr>`;
+
+            summaryBox.innerHTML = `
+                <div class="px-3 py-2 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 text-center">
+                    <div class="text-[10px] text-sky-600 dark:text-sky-400 font-bold">청구명세서 누계</div>
+                    <div class="text-sm font-extrabold text-sky-700 dark:text-sky-300">${gSt.toLocaleString('ko-KR')}원</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-center">
+                    <div class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">법인카드 누계</div>
+                    <div class="text-sm font-extrabold text-amber-700 dark:text-amber-300">${gCc.toLocaleString('ko-KR')}원</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-center col-span-2 sm:col-span-1">
+                    <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">총 투입비</div>
+                    <div class="text-sm font-extrabold text-emerald-700 dark:text-emerald-300">${grandTotal.toLocaleString('ko-KR')}원</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">조회 기간</div>
+                    <div class="text-sm font-extrabold text-slate-700 dark:text-slate-200">${allMonths.length}개월</div>
+                </div>`;
+        }
+
         function updateApprovalTabBadge() {
             const badge = document.getElementById('tab-badge-statement');
             if (!badge) return;
@@ -9132,12 +9361,159 @@ function changePrintScale(value) {
         }
 
         /* 현장별 집계 계산 */
+        /* ══════════════════════════════════════════════════════
+           총 투입비 탭 — 회사·현장·월별 공종(외주비/노무비/장비대/자재비/관리비) + 법인카드 집계
+           ══════════════════════════════════════════════════════ */
+        const TI_CATEGORIES = ['외주비', '노무비', '장비비', '자재비', '관리비']; // 내부 키 (장비비=장비대)
+        const TI_CAT_LABEL  = { '외주비':'외주비', '노무비':'노무비', '장비비':'장비대', '자재비':'자재비', '관리비':'관리비', '법인카드':'법인카드' };
+        const TI_CAT_COLOR  = { '외주비':'#2563eb', '노무비':'#7c3aed', '장비비':'#ea580c', '자재비':'#059669', '관리비':'#e11d48', '법인카드':'#d97706' };
+
+        function buildTotalInvestData() {
+            const groups = {}; // key: company|site|month
+            const monthKey = (m) => { const mm = /(\d{4}).*?(\d{1,2})/.exec(m || ''); return mm ? parseInt(mm[1],10)*100+parseInt(mm[2],10) : 0; };
+            const getGroup = (company, site, month) => {
+                const key = `${company||'(회사 미지정)'}|${site||'(현장 미지정)'}|${month||'(월 미지정)'}`;
+                if (!groups[key]) {
+                    groups[key] = { company: company||'(회사 미지정)', site: site||'(현장 미지정)', month: month||'(월 미지정)',
+                        monthKey: monthKey(month), amounts: {}, rows: {} };
+                    [...TI_CATEGORIES, '법인카드'].forEach(c => { groups[key].amounts[c] = 0; groups[key].rows[c] = []; });
+                }
+                return groups[key];
+            };
+
+            (savedDocuments || []).forEach(doc => {
+                (doc.dataset || []).forEach(row => {
+                    const cat = TI_CATEGORIES.includes(row.type) ? row.type : '관리비'; // 미분류는 관리비로 귀속
+                    // 총 투입비 = 공급가액+부가세-공제 (공제는 실제 지출이 아니므로 제외, 선지급은 이미 실제 지급된 금액이므로 포함)
+                    const amt = (row.supply||0) + (row.tax||0) - (row.deduction||0);
+                    const g = getGroup(doc.company, doc.site, doc.month);
+                    g.amounts[cat] += amt;
+                    g.rows[cat].push({ vendor: row.vendor||'', ceo: row.ceo||'', supply: row.supply||0, tax: row.tax||0,
+                        deduction: row.deduction||0, prepaid: row.prepaid||0, amount: amt, note: row.note||'' });
+                });
+            });
+
+            (typeof ccLoad === 'function' ? ccLoad() : []).forEach(r => {
+                const ym = (r.date || '').slice(0,7);
+                if (!ym) return;
+                const month = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
+                const g = getGroup(r.company, r.site, month);
+                g.amounts['법인카드'] += Number(r.amount||0);
+                g.rows['법인카드'].push({ merchant: r.merchant||'', cat: r.cat||'', date: r.date||'', amount: Number(r.amount||0), memo: r.memo||'' });
+            });
+
+            return Object.values(groups);
+        }
+
+        function renderTotalInvestTab() {
+            const data = buildTotalInvestData();
+
+            // 필터 옵션 구성 (기존 선택값 보존)
+            const companySel = document.getElementById('ti-filter-company');
+            const siteSel = document.getElementById('ti-filter-site');
+            const curCompany = companySel.value, curSite = siteSel.value;
+            const companies = [...new Set(data.map(g => g.company))].sort();
+            const sites = [...new Set(data.map(g => g.site))].sort();
+            companySel.innerHTML = '<option value="">전체 회사</option>' + companies.map(c => `<option value="${c}">${c}</option>`).join('');
+            siteSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s => `<option value="${s}">${s}</option>`).join('');
+            companySel.value = companies.includes(curCompany) ? curCompany : '';
+            siteSel.value = sites.includes(curSite) ? curSite : '';
+
+            let filtered = data.filter(g =>
+                (!companySel.value || g.company === companySel.value) &&
+                (!siteSel.value || g.site === siteSel.value)
+            );
+            filtered.sort((a,b) => a.company.localeCompare(b.company,'ko-KR') || a.site.localeCompare(b.site,'ko-KR') || a.monthKey - b.monthKey);
+
+            const tbody = document.getElementById('ti-tbody');
+            const tfoot = document.getElementById('ti-tfoot');
+            const summaryBox = document.getElementById('ti-summary-cards');
+            const dashCnt = document.getElementById('dash-cnt-totalinvest');
+
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="10" class="py-6 text-center text-slate-400 text-[11px]">등록된 데이터가 없습니다.</td></tr>';
+                tfoot.innerHTML = '';
+                summaryBox.innerHTML = '';
+                if (dashCnt) dashCnt.innerHTML = '&nbsp;';
+                return;
+            }
+
+            const gTotal = { '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0 };
+            const cellBtn = (g, cat) => {
+                const v = g.amounts[cat] || 0;
+                if (v <= 0) return `<td class="py-2 px-2 text-right text-slate-300 dark:text-slate-700">-</td>`;
+                return `<td class="py-2 px-2 text-right"><button onclick="showTiDetail('${g.company.replace(/'/g,"\\'")}','${g.site.replace(/'/g,"\\'")}','${g.month.replace(/'/g,"\\'")}','${cat}')" class="font-bold hover:underline" style="color:${TI_CAT_COLOR[cat]}">${v.toLocaleString('ko-KR')}원</button></td>`;
+            };
+
+            tbody.innerHTML = filtered.map(g => {
+                const monthTotal = TI_CATEGORIES.reduce((s,c)=>s+(g.amounts[c]||0),0) + (g.amounts['법인카드']||0);
+                TI_CATEGORIES.forEach(c => gTotal[c] += (g.amounts[c]||0));
+                gTotal['법인카드'] += (g.amounts['법인카드']||0);
+                return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200">${g.company}</td>
+                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200">${g.site}</td>
+                    <td class="py-2 px-3 text-slate-500">${g.month}</td>
+                    ${cellBtn(g,'외주비')}${cellBtn(g,'노무비')}${cellBtn(g,'장비비')}${cellBtn(g,'자재비')}${cellBtn(g,'관리비')}${cellBtn(g,'법인카드')}
+                    <td class="py-2 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${monthTotal.toLocaleString('ko-KR')}원</td>
+                </tr>`;
+            }).join('');
+
+            const grandTotal = Object.values(gTotal).reduce((s,v)=>s+v,0);
+            tfoot.innerHTML = `<tr>
+                <td class="py-2.5 px-3" colspan="3">합계 (${filtered.length}건 그룹)</td>
+                ${TI_CATEGORIES.map(c => `<td class="py-2.5 px-3 text-right" style="color:${TI_CAT_COLOR[c]}">${gTotal[c].toLocaleString('ko-KR')}원</td>`).join('')}
+                <td class="py-2.5 px-3 text-right" style="color:${TI_CAT_COLOR['법인카드']}">${gTotal['법인카드'].toLocaleString('ko-KR')}원</td>
+                <td class="py-2.5 px-3 text-right bg-emerald-100 dark:bg-emerald-900/40">${grandTotal.toLocaleString('ko-KR')}원</td>
+            </tr>`;
+
+            summaryBox.innerHTML = [...TI_CATEGORIES, '법인카드'].map(c => `
+                <div class="px-3 py-2 rounded-lg border text-center" style="background:${TI_CAT_COLOR[c]}0f;border-color:${TI_CAT_COLOR[c]}55;">
+                    <div class="text-[10px] font-bold" style="color:${TI_CAT_COLOR[c]}">${TI_CAT_LABEL[c]}</div>
+                    <div class="text-sm font-extrabold" style="color:${TI_CAT_COLOR[c]}">${gTotal[c].toLocaleString('ko-KR')}원</div>
+                </div>`).join('');
+
+            if (dashCnt) dashCnt.innerHTML = `${grandTotal.toLocaleString('ko-KR')}원`;
+        }
+
+        function showTiDetail(company, site, month, cat) {
+            const data = buildTotalInvestData();
+            const g = data.find(x => x.company === company && x.site === site && x.month === month);
+            if (!g) return;
+            const rows = g.rows[cat] || [];
+
+            document.getElementById('ti-detail-title').textContent = `${company} · ${site} · ${month} — ${TI_CAT_LABEL[cat]} 세부내역`;
+            const thead = document.getElementById('ti-detail-thead');
+            const tbody = document.getElementById('ti-detail-tbody');
+            let total = 0;
+
+            if (cat === '법인카드') {
+                thead.innerHTML = `<th class="text-left font-bold py-2 px-2">사용일자</th><th class="text-left font-bold py-2 px-2">가맹점</th><th class="text-left font-bold py-2 px-2">카테고리</th><th class="text-right font-bold py-2 px-2">금액</th><th class="text-left font-bold py-2 px-2">메모</th>`;
+                tbody.innerHTML = rows.map(r => {
+                    total += r.amount;
+                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2">${r.date}</td><td class="py-1.5 px-2 font-semibold">${r.merchant}</td><td class="py-1.5 px-2">${r.cat}</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-slate-400">${r.memo}</td></tr>`;
+                }).join('');
+            } else {
+                thead.innerHTML = `<th class="text-left font-bold py-2 px-2">거래처</th><th class="text-left font-bold py-2 px-2">대표자</th><th class="text-right font-bold py-2 px-2">공급가액</th><th class="text-right font-bold py-2 px-2">부가세</th><th class="text-right font-bold py-2 px-2">공제</th><th class="text-right font-bold py-2 px-2 text-amber-600 dark:text-amber-400">선지급(포함)</th><th class="text-right font-bold py-2 px-2">투입금액</th><th class="text-left font-bold py-2 px-2">메모</th>`;
+                tbody.innerHTML = rows.map(r => {
+                    total += r.amount;
+                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2 font-semibold">${r.vendor}</td><td class="py-1.5 px-2">${r.ceo}</td><td class="py-1.5 px-2 text-right">${r.supply.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.tax.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.deduction.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.prepaid.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-slate-400">${r.note}</td></tr>`;
+                }).join('');
+            }
+
+            document.getElementById('ti-detail-total').textContent = total.toLocaleString('ko-KR') + '원';
+            document.getElementById('ti-detail-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeTiDetailModal() {
+            document.getElementById('ti-detail-modal').classList.add('hidden');
+        }
+
         function getSiteStats() {
             const stats = {};
             savedDocuments.forEach(doc => {
                 const site = (doc.site || '현장 미지정').trim();
                 if (!stats[site]) {
-                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, months: [] };
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
                 }
                 stats[site].companies.add(doc.company || '');
                 stats[site].docCount++;
@@ -9148,8 +9524,20 @@ function changePrintScale(value) {
                     stats[site].requestAmt += (row.supply || 0) + (row.tax || 0) - (row.deduction || 0) - (row.prepaid || 0);
                 });
             });
-            // Set → Array
-            Object.values(stats).forEach(s => { s.companies = [...s.companies].filter(Boolean); });
+            // 법인카드 경비도 현장별로 합산 (총 투입비에 포함)
+            (typeof ccLoad === 'function' ? ccLoad() : []).forEach(r => {
+                const site = (r.site || '현장 미지정').trim();
+                if (!stats[site]) {
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
+                }
+                stats[site].ccAmt += Number(r.amount || 0);
+                if (r.company) stats[site].companies.add(r.company);
+            });
+            // Set → Array, 총 투입비(청구명세서 + 법인카드) 계산
+            Object.values(stats).forEach(s => {
+                s.companies = [...s.companies].filter(Boolean);
+                s.totalInvest = s.requestAmt + s.ccAmt;
+            });
             return stats;
         }
 
@@ -9219,7 +9607,7 @@ function changePrintScale(value) {
                 groupView.innerHTML = `<p class="text-[11px] text-slate-400 italic py-4 text-center">해당 회사의 현장이 없습니다.</p>`;
                 return;
             }
-            const totalAmt = sites.reduce((s, k) => s + stats[k].requestAmt, 0);
+            const totalAmt = sites.reduce((s, k) => s + stats[k].totalInvest, 0);
 
             // 회사 헤더 카드
             let html = `
@@ -9234,7 +9622,7 @@ function changePrintScale(value) {
             `;
 
             // 현장별 카드
-            sites.sort((a, b) => stats[b].requestAmt - stats[a].requestAmt).forEach((site, idx) => {
+            sites.sort((a, b) => stats[b].totalInvest - stats[a].totalInvest).forEach((site, idx) => {
                 const s      = stats[site];
                 const budget = budgets[site] || 0;
                 const pct    = budget > 0 ? Math.min(100, Math.round(s.requestAmt / budget * 100)) : null;
@@ -9247,7 +9635,7 @@ function changePrintScale(value) {
                 const siteDocs = savedDocuments
                     .filter(d => (d.site||'현장 미지정').trim() === site && (d.company||'') === company)
                     .sort((a, b) => (a.month||'').localeCompare(b.month||''));
-                const sharePct = totalAmt > 0 ? Math.round(s.requestAmt / totalAmt * 100) : 0;
+                const sharePct = totalAmt > 0 ? Math.round(s.totalInvest / totalAmt * 100) : 0;
 
                 html += `
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-md transition-all">
@@ -9263,8 +9651,8 @@ function changePrintScale(value) {
                             </p>
                         </div>
                         <div class="text-right shrink-0">
-                            <p class="font-extrabold text-indigo-700 dark:text-indigo-400 text-[13px]">${formatNumber(s.requestAmt)}원</p>
-                            <p class="text-[9px] text-slate-400">전체 대비 ${sharePct}%</p>
+                            <p class="font-extrabold text-emerald-700 dark:text-emerald-400 text-[13px]">${formatNumber(s.totalInvest)}원 <span class="text-[9px] font-semibold text-slate-400">총투입</span></p>
+                            <p class="text-[9px] text-slate-400">청구 ${formatNumber(s.requestAmt)}원 + 법인카드 ${formatNumber(s.ccAmt)}원</p>
                         </div>
                     </div>
                     ${pctBar}
@@ -9317,18 +9705,18 @@ function changePrintScale(value) {
             }
 
             if (!sites.length) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
                 return;
             }
-            const totalAmt = sites.reduce((s, k) => s + stats[k].requestAmt, 0);
-            sites.sort((a, b) => stats[b].requestAmt - stats[a].requestAmt).forEach(site => {
+            const totalAmt = sites.reduce((s, k) => s + stats[k].totalInvest, 0);
+            sites.sort((a, b) => stats[b].totalInvest - stats[a].totalInvest).forEach(site => {
                 const s      = stats[site];
                 const budget = budgets[site] || 0;
                 const pct    = budget > 0 ? Math.min(100, Math.round(s.requestAmt / budget * 100)) : '-';
                 const pctBadge = pct !== '-'
                     ? `<span class="font-bold ${pct >= 90 ? 'text-rose-600' : pct >= 70 ? 'text-amber-600' : 'text-emerald-600'}">${pct}%</span>`
                     : `<span class="text-slate-400 text-[10px]">예산 미설정</span>`;
-                const sharePct = totalAmt > 0 ? Math.round(s.requestAmt / totalAmt * 100) : 0;
+                const sharePct = totalAmt > 0 ? Math.round(s.totalInvest / totalAmt * 100) : 0;
                 // 선택 현장의 대장만 월별로 필터링해 이동 대상으로 제공
                 const siteDocs = savedDocuments
                     .filter(d => (d.site||'현장 미지정').trim() === site)
@@ -9345,6 +9733,8 @@ function changePrintScale(value) {
                     <td class="py-2.5 px-3 text-right font-extrabold text-indigo-700 dark:text-indigo-400">${formatNumber(s.requestAmt)}원
                         <span class="ml-1 text-[9px] text-slate-400">(${sharePct}%)</span>
                     </td>
+                    <td class="py-2.5 px-3 text-right font-semibold text-amber-600 dark:text-amber-400">${formatNumber(s.ccAmt)}원</td>
+                    <td class="py-2.5 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${formatNumber(s.totalInvest)}원</td>
                     <td class="py-2.5 px-3 text-center">${pctBadge}</td>
                     <td class="py-2.5 px-3 text-center">
                         ${siteDocs.length ? `<select onchange="if(this.value){ loadSavedDocument(this.value); closeSiteManagerModal(); }" class="text-[10px] font-bold border rounded px-1 py-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600" title="${site} 대장으로 이동 (회사 · 월 선택)">
@@ -12377,6 +12767,14 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             setCnt('dash-cnt-statement', claimRows.length);
             setCnt('dash-cnt-request', reqThisMonth.length);
             setCnt('dash-cnt-corpcard', cardThisMonth.length);
+
+            // 총 투입비 카드 — 전체 기간(모든 회사·현장·월) 총 투입비 합계 표시
+            const elTi = document.getElementById('dash-cnt-totalinvest');
+            if (elTi && typeof buildTotalInvestData === 'function') {
+                const tiData = buildTotalInvestData();
+                const tiGrand = tiData.reduce((s,g) => s + Object.values(g.amounts).reduce((a,b)=>a+b,0), 0);
+                elTi.textContent = fmt(tiGrand);
+            }
 
             // 6) 현재 현장 정보
             const siteInfoEl = document.getElementById('dash-site-info');
