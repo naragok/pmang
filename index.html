@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V9.8</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V10.7</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1089,8 +1089,9 @@
                 <i data-lucide="map-pin" class="w-3 h-3 shrink-0" style="color:#f87171;"></i>
                 <select id="site-quick-selector" onchange="onSiteQuickSelect(this.value)" class="hdr-select" style="max-width:150px;">
                 </select>
-                <button onclick="openSiteManagerModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 6px;" title="현장 관리">
+                <button onclick="openSiteManagerModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;" title="현장 관리">
                     <i data-lucide="settings-2" class="w-3 h-3"></i>
+                    <span class="text-[10px] font-bold">현장관리</span>
                 </button>
             </div>
 
@@ -1363,7 +1364,8 @@
                         <i data-lucide="trending-up" class="w-4 h-4 opacity-70"></i>
                     </div>
                     <div id="dash-total-claim" class="text-xl font-black">0원</div>
-                    <div id="dash-claim-sub" class="text-[10px] opacity-70 mt-1">자금청구명세서 기준</div>
+                    <div id="dash-claim-sub" class="text-[10px] opacity-80 mt-1">자금청구명세서 기준</div>
+                    <div id="dash-claim-breakdown" class="text-[9px] opacity-70 mt-0.5"></div>
                 </div>
                 <div class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-2.5 text-white shadow-md">
                     <div class="flex items-center justify-between mb-1">
@@ -1782,21 +1784,21 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-                        <div class="flex items-center gap-2 min-w-0 group/meta cursor-text" onclick="document.getElementById('meta-site').focus()" title="클릭하여 현장명 변경">
+                        <div class="flex items-center gap-2 min-w-0 group/meta" ondblclick="enableMetaEdit('meta-site')" title="더블클릭하여 현장명 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300" style="width:50px;text-align:center;">현장명</span>
-                            <input type="text" id="meta-site" list="meta-site-list" value="원주 캠프롱 현장" onchange="syncMetaValues('meta-site', this.value)" class="border-b border-slate-200 dark:border-slate-700 group-hover/meta:border-indigo-400 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <input type="text" id="meta-site" list="meta-site-list" value="원주 캠프롱 현장" readonly onchange="syncMetaValues('meta-site', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-indigo-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default">
                             <datalist id="meta-site-list"></datalist>
                             <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-indigo-400"></i>
                         </div>
-                        <div class="flex items-center gap-2 min-w-0 group/meta cursor-text" onclick="document.getElementById('meta-month').focus()" title="클릭하여 작성월 변경">
+                        <div class="flex items-center gap-2 min-w-0 group/meta" ondblclick="enableMetaEdit('meta-month')" title="더블클릭하여 작성월 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300" style="width:50px;text-align:center;">작성월</span>
-                            <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" class="border-b border-slate-200 dark:border-slate-700 group-hover/meta:border-emerald-400 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" readonly onchange="syncMetaValues('meta-month', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-emerald-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default">
                             <datalist id="meta-month-list"></datalist>
                             <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-emerald-400"></i>
                         </div>
-                        <div class="flex items-center gap-2 min-w-0 group/meta cursor-text" onclick="document.getElementById('meta-company').focus()" title="클릭하여 회사명 변경">
+                        <div class="flex items-center gap-2 min-w-0 group/meta" ondblclick="enableMetaEdit('meta-company')" title="더블클릭하여 회사명 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300" style="width:50px;text-align:center;">회사명</span>
-                            <input type="text" id="meta-company" list="meta-company-list" value="경산개발(주)" onchange="syncMetaValues('meta-company', this.value)" class="border-b border-slate-200 dark:border-slate-700 group-hover/meta:border-amber-400 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm">
+                            <input type="text" id="meta-company" list="meta-company-list" value="경산개발(주)" readonly onchange="syncMetaValues('meta-company', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-amber-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default">
                             <datalist id="meta-company-list"></datalist>
                             <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-amber-400"></i>
                         </div>
@@ -2205,15 +2207,27 @@
                 </div>
             </div>
 
-            <div id="stats-grand-total-banner" class="hidden bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl px-5 py-3.5 mb-3 flex items-center justify-between flex-wrap gap-2">
-                <div class="flex items-center gap-2 min-w-0">
-                    <i data-lucide="hash" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
-                    <div class="min-w-0">
-                        <div class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">전체 청구합계 (한글금액)</div>
-                        <div id="stats-grand-total-korean" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm truncate"></div>
+            <div id="stats-grand-total-banner" class="hidden bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl px-5 py-3.5 mb-3">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <i data-lucide="hash" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">전체 청구합계 (한글금액) — 지급요청금액 + 선지급</div>
+                            <div id="stats-grand-total-korean" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm truncate"></div>
+                        </div>
+                    </div>
+                    <div id="stats-grand-total-number" class="text-lg font-black text-emerald-700 dark:text-emerald-400 shrink-0"></div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-emerald-200/70 dark:border-emerald-900/70">
+                    <div class="px-3 py-1 rounded-lg bg-white/70 dark:bg-slate-900/40 text-[11px]">
+                        <span class="text-slate-500 dark:text-slate-400 font-semibold">지급요청금액</span>
+                        <span id="stats-grand-request-number" class="ml-1 font-extrabold text-indigo-600 dark:text-indigo-400"></span>
+                    </div>
+                    <div class="px-3 py-1 rounded-lg bg-white/70 dark:bg-slate-900/40 text-[11px]">
+                        <span class="text-slate-500 dark:text-slate-400 font-semibold">선지급</span>
+                        <span id="stats-grand-prepaid-number" class="ml-1 font-extrabold text-amber-600 dark:text-amber-400"></span>
                     </div>
                 </div>
-                <div id="stats-grand-total-number" class="text-lg font-black text-emerald-700 dark:text-emerald-400 shrink-0"></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3" id="stats-dashboard-row">
@@ -2400,6 +2414,9 @@
                 <button onclick="exportTotalInvestToHTML()" class="ctrl-btn" style="background:#059669;" title="현재 필터(회사/현장) 조건의 총 투입비 표를 HTML로 저장/인쇄">
                     <i data-lucide="file-code" class="w-3.5 h-3.5"></i> HTML 내보내기
                 </button>
+                <button onclick="generateSiteReportFromFilter()" class="ctrl-btn" style="background:#0f172a;" title="현재 선택된 현장의 종합 보고서(투입비+집행률+결재현황)를 1클릭으로 생성합니다">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 현장 종합보고서 생성
+                </button>
                 <button onclick="document.getElementById('labor-stmt-upload-input').click()" class="ctrl-btn" style="background:#7c3aed;" title="노무비명세서 HTML 파일을 업로드하면 노무비 항목에 자동으로 집계됩니다">
                     <i data-lucide="upload" class="w-3.5 h-3.5"></i> 노무비명세서 업로드
                 </button>
@@ -2407,15 +2424,15 @@
             </div>
 
             <div id="labor-stmt-list-wrap" class="hidden mb-3 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/20 p-3">
-                <p class="text-[11px] font-bold text-violet-700 dark:text-violet-300 mb-2 flex items-center gap-1"><i data-lucide="file-check-2" class="w-3.5 h-3.5"></i> 등록된 노무비명세서</p>
+                <p id="labor-stmt-list-title" class="text-[11px] font-bold text-violet-700 dark:text-violet-300 mb-2 flex items-center gap-1"><i data-lucide="file-check-2" class="w-3.5 h-3.5"></i> <span id="labor-stmt-list-title-text">등록된 노무비명세서</span></p>
                 <div id="labor-stmt-list" class="space-y-1"></div>
             </div>
 
             <div class="flex flex-wrap gap-2 mb-3">
-                <select id="ti-filter-company" onchange="renderTotalInvestTab()" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
+                <select id="ti-filter-company" onchange="renderTotalInvestTab(); renderLaborStatementList();" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
                     <option value="">전체 회사</option>
                 </select>
-                <select id="ti-filter-site" onchange="renderTotalInvestTab()" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
+                <select id="ti-filter-site" onchange="renderTotalInvestTab(); renderLaborStatementList();" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
                     <option value="">전체 현장</option>
                 </select>
             </div>
@@ -3196,7 +3213,7 @@
     </div>
 
     <div id="site-manager-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-[1280px] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4 shrink-0">
                 <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
                     <i data-lucide="construction" class="w-5 h-5 text-rose-500"></i> 공사 현장 관리
@@ -3223,7 +3240,21 @@
                     </div>
                     <div id="site-company-group-view" class="hidden space-y-4 mb-3"></div>
                     <div id="site-all-table-wrap" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-                        <table class="w-full border-collapse text-[11px]">
+                        <table class="border-collapse text-[11px]" style="width:100%;min-width:1290px;table-layout:fixed;">
+                            <colgroup>
+                                <col style="width:190px;">
+                                <col style="width:130px;">
+                                <col style="width:70px;">
+                                <col style="width:80px;">
+                                <col style="width:120px;">
+                                <col style="width:130px;">
+                                <col style="width:110px;">
+                                <col style="width:110px;">
+                                <col style="width:130px;">
+                                <col style="width:90px;">
+                                <col style="width:160px;">
+                                <col style="width:90px;">
+                            </colgroup>
                             <thead>
                                 <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-center font-bold text-slate-700 dark:text-slate-200">
                                     <th class="py-2.5 px-3 text-left">현장명</th>
@@ -3232,10 +3263,12 @@
                                     <th class="py-2.5 px-3">총 청구건</th>
                                     <th class="py-2.5 px-3">공급가액 합계</th>
                                     <th class="py-2.5 px-3">지급요청 합계</th>
+                                    <th class="py-2.5 px-3 text-amber-700 dark:text-amber-400">선지급</th>
                                     <th class="py-2.5 px-3">법인카드</th>
                                     <th class="py-2.5 px-3 bg-emerald-100 dark:bg-emerald-900/40">총 투입비</th>
                                     <th class="py-2.5 px-3">집행률</th>
                                     <th class="py-2.5 px-3">바로가기</th>
+                                    <th class="py-2.5 px-3">보고서</th>
                                 </tr>
                             </thead>
                             <tbody id="site-comparison-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
@@ -3683,9 +3716,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '9.8';
+        const APP_VERSION = '10.7';
         const APP_VERSION_DATE = '2026-07-30';
-        const APP_VERSION_NOTE = '총 투입비 탭에 "노무비명세서 업로드" 기능 추가 — 노무비명세서 HTML 파일(제목에서 업체명·현장명·월 자동 인식, 합계행에서 총액·실지급액·근로자수 자동 추출)을 업로드하면 노무비 항목에 자동 집계 및 세부내역에서 확인 가능';
+        const APP_VERSION_NOTE = '공사현장관리 비교표/카드뷰에 선지급 금액 컬럼 별도 표시 추가. 총 투입비는 지급요청금액+선지급(+법인카드)를 합산한 값으로 계속 표시';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5210,15 +5243,21 @@
             const labelCount = document.getElementById('stats-total-vendor-count');
             if (labelCount) labelCount.textContent = `총 ${totalVendorSet.size}개 거래처`;
 
-            // ── 전체 청구합계 한글 금액 배너 ──
+            // ── 전체 청구합계 한글 금액 배너 (지급요청금액 + 선지급 = 청구합계) ──
             const grandBanner = document.getElementById('stats-grand-total-banner');
             const grandKorean = document.getElementById('stats-grand-total-korean');
             const grandNumber = document.getElementById('stats-grand-total-number');
+            const grandRequestEl = document.getElementById('stats-grand-request-number');
+            const grandPrepaidEl = document.getElementById('stats-grand-prepaid-number');
             if (grandBanner && grandKorean && grandNumber) {
-                const grandTotal = dataset.reduce((s, r) => s + (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0), 0);
+                const requestAmt = dataset.reduce((s, r) => s + (r.supply||0) + (r.tax||0) - (r.deduction||0) - (r.prepaid||0), 0);
+                const prepaidAmt = dataset.reduce((s, r) => s + (r.prepaid||0), 0);
+                const grandTotal = requestAmt + prepaidAmt; // = 공급가액+부가세-공제 (선지급 포함)
                 if (grandTotal > 0) {
                     grandKorean.textContent = `일금 ${getKoreanNumber(grandTotal)} 원정`;
                     grandNumber.textContent = `₩${formatNumber(grandTotal)}`;
+                    if (grandRequestEl) grandRequestEl.textContent = `₩${formatNumber(requestAmt)}`;
+                    if (grandPrepaidEl) grandPrepaidEl.textContent = `₩${formatNumber(prepaidAmt)}`;
                     grandBanner.classList.remove('hidden');
                 } else {
                     grandBanner.classList.add('hidden');
@@ -8124,6 +8163,22 @@ function changePrintScale(value) {
         }
 
         /* 현장명/작성월/회사명 입력칸의 자동완성 목록을 과거 등록된 모든 문서 기준으로 채운다 */
+        /* 현장명/작성월/회사명: 평소엔 읽기전용, 더블클릭해야 수정 가능 (실수로 값이 바뀌는 것 방지) */
+        function enableMetaEdit(fieldId) {
+            const el = document.getElementById(fieldId);
+            if (!el) return;
+            el.removeAttribute('readonly');
+            el.classList.remove('cursor-default');
+            el.classList.add('ring-1', 'ring-blue-400', 'bg-white', 'dark:bg-slate-700');
+            el.focus();
+            el.select();
+        }
+        function disableMetaEdit(el) {
+            el.setAttribute('readonly', 'readonly');
+            el.classList.add('cursor-default');
+            el.classList.remove('ring-1', 'ring-blue-400', 'bg-white', 'dark:bg-slate-700');
+        }
+
         function populateMetaDatalists() {
             const siteList = document.getElementById('meta-site-list');
             const monthList = document.getElementById('meta-month-list');
@@ -9551,15 +9606,25 @@ function changePrintScale(value) {
             const files = Array.from(fileList || []);
             if (!files.length) return;
             const currentDoc = savedDocuments.find(d => d.id === currentDocId);
-            let successCount = 0;
+
+            if (!currentDoc) {
+                showToast('먼저 청구명세서 탭에서 등록할 문서(현장·회사·월)를 선택한 후 업로드하세요.', 'error');
+                document.getElementById('labor-stmt-upload-input').value = '';
+                return;
+            }
+
+            let successCount = 0, skipCount = 0;
 
             const readNext = (idx) => {
                 if (idx >= files.length) {
                     if (successCount > 0) {
                         renderTotalInvestTab();
                         renderLaborStatementList();
-                        showToast(`노무비명세서 ${successCount}건이 등록되었습니다.`, 'success');
                     }
+                    const msgParts = [];
+                    if (successCount > 0) msgParts.push(`${successCount}건 등록`);
+                    if (skipCount > 0) msgParts.push(`${skipCount}건 중복으로 건너뜀`);
+                    if (msgParts.length) showToast(msgParts.join(' · '), successCount > 0 ? 'success' : 'error');
                     document.getElementById('labor-stmt-upload-input').value = '';
                     return;
                 }
@@ -9570,23 +9635,50 @@ function changePrintScale(value) {
                         const parsed = parseLaborStatementHTML(e.target.result);
                         if (!parsed.totalAmount) {
                             showToast(`[${file.name}] 노무비명세서 양식에서 총액을 찾지 못했습니다.`, 'error');
-                        } else {
-                            const list = loadLaborStatements();
-                            list.push({
-                                id: 'labor-' + Date.now() + '-' + idx,
-                                company: currentDoc?.company || '',
-                                site: currentDoc?.site || parsed.site || '',
-                                month: currentDoc?.month || parsed.month || '',
-                                subcontractor: parsed.subcontractor,
-                                totalAmount: parsed.totalAmount,
-                                netAmount: parsed.netAmount,
-                                workerCount: parsed.workerCount,
-                                fileName: file.name,
-                                uploadedAt: new Date().toLocaleString('ko-KR')
-                            });
-                            saveLaborStatements(list);
-                            successCount++;
+                            readNext(idx + 1);
+                            return;
                         }
+
+                        // 현장명 불일치 확인 (다른 프로젝트 파일을 잘못 올렸을 가능성)
+                        if (parsed.site && currentDoc.site && parsed.site !== currentDoc.site) {
+                            const proceed = confirm(
+                                `⚠️ 업로드한 파일의 현장명이 현재 선택된 청구서와 다릅니다.\n\n` +
+                                `파일 내 현장명: ${parsed.site}\n현재 청구서 현장명: ${currentDoc.site}\n\n` +
+                                `그래도 [${currentDoc.site}] 기준으로 등록하시겠습니까?`
+                            );
+                            if (!proceed) { skipCount++; readNext(idx + 1); return; }
+                        }
+
+                        // 중복 등록 방지: 같은 회사·현장·월·업체명·파일명 조합이 이미 있으면 건너뜀
+                        const list = loadLaborStatements();
+                        const isDup = list.some(s =>
+                            s.company === (currentDoc?.company || '') &&
+                            s.site === (currentDoc?.site || '') &&
+                            s.month === (currentDoc?.month || '') &&
+                            s.subcontractor === parsed.subcontractor &&
+                            s.fileName === file.name
+                        );
+                        if (isDup) {
+                            showToast(`[${file.name}] 이미 등록된 노무비명세서입니다. (${parsed.subcontractor}, ${currentDoc?.month||''})`, 'error');
+                            skipCount++;
+                            readNext(idx + 1);
+                            return;
+                        }
+
+                        list.push({
+                            id: 'labor-' + Date.now() + '-' + idx,
+                            company: currentDoc?.company || '',
+                            site: currentDoc?.site || parsed.site || '',
+                            month: currentDoc?.month || parsed.month || '',
+                            subcontractor: parsed.subcontractor,
+                            totalAmount: parsed.totalAmount,
+                            netAmount: parsed.netAmount,
+                            workerCount: parsed.workerCount,
+                            fileName: file.name,
+                            uploadedAt: new Date().toLocaleString('ko-KR')
+                        });
+                        saveLaborStatements(list);
+                        successCount++;
                     } catch (err) {
                         console.error(err);
                         showToast(`[${file.name}] 파일을 읽는 중 오류가 발생했습니다.`, 'error');
@@ -9607,13 +9699,24 @@ function changePrintScale(value) {
             showToast('삭제되었습니다.');
         }
 
+        /* 총 투입비 탭의 회사/현장 필터와 연동해서 목록을 좁혀 보여준다 */
         function renderLaborStatementList() {
             const wrap = document.getElementById('labor-stmt-list-wrap');
             const listEl = document.getElementById('labor-stmt-list');
             if (!wrap || !listEl) return;
-            const list = loadLaborStatements();
+
+            const companyFilter = document.getElementById('ti-filter-company')?.value || '';
+            const siteFilter = document.getElementById('ti-filter-site')?.value || '';
+            const list = loadLaborStatements().filter(s =>
+                (!companyFilter || s.company === companyFilter) &&
+                (!siteFilter || s.site === siteFilter)
+            );
+
             if (!list.length) { wrap.classList.add('hidden'); listEl.innerHTML = ''; return; }
             wrap.classList.remove('hidden');
+            const filterNote = (companyFilter || siteFilter)
+                ? ` <span class="text-[10px] text-violet-400 font-normal">(현재 필터 기준, 전체 ${loadLaborStatements().length}건 중 ${list.length}건 표시)</span>` : '';
+            document.getElementById('labor-stmt-list-title-text').innerHTML = `등록된 노무비명세서${filterNote}`;
             listEl.innerHTML = list.slice().reverse().map(s => `
                 <div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 rounded-lg px-3 py-1.5 text-[11px]">
                     <div class="min-w-0">
@@ -10011,7 +10114,7 @@ function changePrintScale(value) {
                         </div>
                         <div class="text-right shrink-0">
                             <p class="font-extrabold text-emerald-700 dark:text-emerald-400 text-[13px]">${formatNumber(s.totalInvest)}원 <span class="text-[9px] font-semibold text-slate-400">총투입</span></p>
-                            <p class="text-[9px] text-slate-400">청구 ${formatNumber(s.requestAmt)}원 + 법인카드 ${formatNumber(s.ccAmt)}원</p>
+                            <p class="text-[9px] text-slate-400">지급요청 ${formatNumber(s.requestAmt)}원 + 선지급 ${formatNumber(s.prepaidAmt)}원 + 법인카드 ${formatNumber(s.ccAmt)}원</p>
                         </div>
                     </div>
                     ${pctBar}
@@ -10064,7 +10167,7 @@ function changePrintScale(value) {
             }
 
             if (!sites.length) {
-                tbody.innerHTML = `<tr><td colspan="10" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="12" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
                 return;
             }
             const totalAmt = sites.reduce((s, k) => s + stats[k].totalInvest, 0);
@@ -10084,14 +10187,15 @@ function changePrintScale(value) {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-all';
                 tr.innerHTML = `
-                    <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100">${site}</td>
-                    <td class="py-2.5 px-3 text-center">${coTags || '-'}</td>
+                    <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100" style="word-break:keep-all; overflow-wrap:break-word; white-space:normal;">${site}</td>
+                    <td class="py-2.5 px-3 text-center"><div class="flex flex-wrap justify-center gap-1">${coTags || '-'}</div></td>
                     <td class="py-2.5 px-3 text-center text-blue-600 dark:text-blue-400 font-bold">${s.docCount}</td>
                     <td class="py-2.5 px-3 text-center font-semibold">${s.rowCount}</td>
                     <td class="py-2.5 px-3 text-right font-semibold text-slate-700 dark:text-slate-200">${formatNumber(s.supply)}원</td>
                     <td class="py-2.5 px-3 text-right font-extrabold text-indigo-700 dark:text-indigo-400">${formatNumber(s.requestAmt)}원
                         <span class="ml-1 text-[9px] text-slate-400">(${sharePct}%)</span>
                     </td>
+                    <td class="py-2.5 px-3 text-right font-semibold text-amber-700 dark:text-amber-400">${formatNumber(s.prepaidAmt)}원</td>
                     <td class="py-2.5 px-3 text-right font-semibold text-amber-600 dark:text-amber-400">${formatNumber(s.ccAmt)}원</td>
                     <td class="py-2.5 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${formatNumber(s.totalInvest)}원</td>
                     <td class="py-2.5 px-3 text-center">${pctBadge}</td>
@@ -10105,9 +10209,146 @@ function changePrintScale(value) {
                             `).join('')}
                         </select>` : '-'}
                     </td>
+                    <td class="py-2.5 px-3 text-center">
+                        <button onclick="generateSiteReport('${site.replace(/'/g,"\\'")}')" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-800 text-white" title="이 현장의 종합 보고서를 1클릭으로 생성합니다">
+                            <i data-lucide="file-text" class="w-3 h-3 inline"></i> 생성
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        /* ── 현장별 종합 보고서 1클릭 생성 (총 투입비 + 예산집행률 + 결재현황 + 노무비명세서) ── */
+        /* 총 투입비 탭에서 현재 선택된 현장 필터를 기준으로 보고서를 생성 (현장 미선택 시 안내) */
+        function generateSiteReportFromFilter() {
+            const site = document.getElementById('ti-filter-site')?.value || '';
+            const company = document.getElementById('ti-filter-company')?.value || '';
+            if (!site) {
+                showToast('먼저 상단 "현장" 필터에서 현장을 선택해주세요.', 'error');
+                return;
+            }
+            generateSiteReport(site, company);
+        }
+
+        function generateSiteReport(site, company) {
+            company = company || '';
+
+            const budgets = getSiteBudgets();
+            const budget = budgets[site] || 0;
+
+            // 공종별 집계 (회사가 지정되면 해당 회사만, 아니면 현장의 모든 회사 합산)
+            const tiData = buildTotalInvestData().filter(g => g.site === site && (!company || g.company === company));
+            if (!tiData.length) { showToast('해당 조건의 데이터를 찾을 수 없습니다.', 'error'); return; }
+            const catTotal = { '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0 };
+            tiData.forEach(g => Object.keys(catTotal).forEach(c => catTotal[c] += (g.amounts[c]||0)));
+            const totalInvest = Object.values(catTotal).reduce((a,b)=>a+b,0);
+
+            // 결재현황: 해당 현장(+회사) 저장 문서
+            const siteDocs = savedDocuments.filter(d => (d.site||'').trim() === site && (!company || d.company === company))
+                .sort((a,b) => (a.month||'').localeCompare(b.month||''));
+            const requestAmt = siteDocs.reduce((sum,d) => sum + (d.dataset||[]).reduce((s2,r)=>s2+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0),0), 0);
+            const prepaidAmt = siteDocs.reduce((sum,d) => sum + (d.dataset||[]).reduce((s2,r)=>s2+(r.prepaid||0),0), 0);
+            const ccAmt = catTotal['법인카드'];
+            const companiesInvolved = company ? [company] : [...new Set(siteDocs.map(d=>d.company).filter(Boolean))];
+
+            const pct = budget > 0 ? Math.round(requestAmt / budget * 100) : null;
+
+            const approvalCount = { draft:0, site_approved:0, hq_approved:0, rejected:0 };
+            siteDocs.forEach(d => approvalCount[d.approvalStatus || 'draft']++);
+
+            // 노무비명세서 현황
+            const laborList = loadLaborStatements().filter(l => l.site === site && (!company || l.company === company));
+
+            const today = new Date().toLocaleDateString('ko-KR');
+            const fmt = n => Number(n||0).toLocaleString('ko-KR') + '원';
+            const pctColor = pct === null ? '#94a3b8' : (pct >= 90 ? '#dc2626' : pct >= 70 ? '#d97706' : '#059669');
+            const reportSubtitle = company ? `${company} · ${site}` : site;
+
+            const html = `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>${htmlEsc(reportSubtitle)} — 현장 종합 보고서</title>
+<style>
+    body { font-family:'Malgun Gothic','Noto Sans KR',sans-serif; margin:28px; color:#0f172a; font-size:13px; }
+    h1 { font-size:22px; margin-bottom:4px; }
+    .sub { color:#64748b; font-size:12px; margin-bottom:20px; }
+    .section-title { font-size:14px; font-weight:800; margin:20px 0 8px; padding-bottom:4px; border-bottom:2px solid #0f172a; }
+    table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; }
+    th, td { border:1px solid #e2e8f0; padding:6px 8px; }
+    th { background:#f1f5f9; font-weight:800; text-align:center; color:#334155; }
+    .num { text-align:right; }
+    .grand { background:#ecfdf5; font-weight:800; color:#047857; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700; }
+    .kpi-row { display:flex; gap:10px; margin-bottom:8px; }
+    .kpi { flex:1; border:1px solid #e2e8f0; border-radius:8px; padding:10px; text-align:center; }
+    .kpi .label { font-size:11px; color:#64748b; font-weight:700; }
+    .kpi .value { font-size:16px; font-weight:800; margin-top:2px; }
+    @media print { @page { size:A4 portrait; margin:15mm; } }
+</style></head>
+<body>
+    <h1>${htmlEsc(reportSubtitle)} — 현장 종합 보고서</h1>
+    <div class="sub">생성일: ${today} · 참여 회사: ${companiesInvolved.join(', ')||'-'} · 대장 ${siteDocs.length}건</div>
+
+    <div class="section-title">1. 총 투입비 요약</div>
+    <div class="kpi-row">
+        <div class="kpi"><div class="label">총 투입비</div><div class="value" style="color:#047857;">${fmt(totalInvest)}</div></div>
+        <div class="kpi"><div class="label">지급요청금액</div><div class="value" style="color:#4338ca;">${fmt(requestAmt)}</div></div>
+        <div class="kpi"><div class="label">선지급 누계</div><div class="value" style="color:#b45309;">${fmt(prepaidAmt)}</div></div>
+        <div class="kpi"><div class="label">법인카드</div><div class="value" style="color:#d97706;">${fmt(ccAmt)}</div></div>
+    </div>
+    <table>
+        <thead><tr><th>외주비</th><th>노무비</th><th>장비대</th><th>자재비</th><th>관리비</th><th>법인카드</th><th>합계</th></tr></thead>
+        <tbody><tr>
+            <td class="num">${fmt(catTotal['외주비'])}</td>
+            <td class="num">${fmt(catTotal['노무비'])}</td>
+            <td class="num">${fmt(catTotal['장비비'])}</td>
+            <td class="num">${fmt(catTotal['자재비'])}</td>
+            <td class="num">${fmt(catTotal['관리비'])}</td>
+            <td class="num">${fmt(catTotal['법인카드'])}</td>
+            <td class="num grand">${fmt(Object.values(catTotal).reduce((a,b)=>a+b,0))}</td>
+        </tr></tbody>
+    </table>
+
+    <div class="section-title">2. 예산 대비 집행률</div>
+    ${budget > 0 ? `
+    <table>
+        <thead><tr><th>배정 예산</th><th>지급요청 누계</th><th>집행률</th></tr></thead>
+        <tbody><tr>
+            <td class="num">${fmt(budget)}</td>
+            <td class="num">${fmt(requestAmt)}</td>
+            <td class="num"><span class="badge" style="background:${pctColor}22;color:${pctColor};">${pct}%</span></td>
+        </tr></tbody>
+    </table>` : `<p style="color:#94a3b8;">이 현장에는 예산이 설정되어 있지 않습니다.</p>`}
+
+    <div class="section-title">3. 청구서 결재현황 (${siteDocs.length}건)</div>
+    <table>
+        <thead><tr><th>월</th><th>회사</th><th>지급요청금액</th><th>결재상태</th></tr></thead>
+        <tbody>
+            ${siteDocs.length ? siteDocs.map(d => {
+                const rows = d.dataset || [];
+                const amt = rows.reduce((s2,r)=>s2+(r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0),0);
+                const info = APPROVAL_STEPS[d.approvalStatus || 'draft'] || APPROVAL_STEPS.draft;
+                return `<tr><td>${htmlEsc(d.month||'-')}</td><td>${htmlEsc(d.company||'-')}</td><td class="num">${fmt(amt)}</td><td style="text-align:center;">${info.label}</td></tr>`;
+            }).join('') : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;">등록된 청구서가 없습니다.</td></tr>'}
+        </tbody>
+    </table>
+    <div style="font-size:11px;color:#64748b;">초안 ${approvalCount.draft}건 · 현장소장 승인 ${approvalCount.site_approved}건 · 본사 승인 완료 ${approvalCount.hq_approved}건 · 반려 ${approvalCount.rejected}건</div>
+
+    <div class="section-title">4. 노무비명세서 현황 (${laborList.length}건)</div>
+    <table>
+        <thead><tr><th>월</th><th>업체명</th><th>근로자수</th><th>총액</th><th>실지급액</th></tr></thead>
+        <tbody>
+            ${laborList.length ? laborList.map(l => `<tr><td>${htmlEsc(l.month||'-')}</td><td>${htmlEsc(l.subcontractor)}</td><td style="text-align:center;">${l.workerCount}명</td><td class="num">${fmt(l.totalAmount)}</td><td class="num">${fmt(l.netAmount)}</td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">등록된 노무비명세서가 없습니다.</td></tr>'}
+        </tbody>
+    </table>
+
+    <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+</body></html>`;
+
+            const win = window.open('', '_blank');
+            if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
+            win.document.write(html);
+            win.document.close();
         }
 
         function renderSiteTimeline() {
@@ -13150,11 +13391,15 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             // 1) 자금청구명세서 — 현재 로드된 문서(dataset) 기준 투입비 합계 (선지급 포함, 공제만 제외)
             const claimRows = (typeof dataset !== 'undefined') ? dataset : [];
-            const claimTotal = claimRows.reduce((s,r) => s + (Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)), 0);
+            const claimRequestAmt = claimRows.reduce((s,r) => s + (Number(r.supply||0)+Number(r.tax||0)-Number(r.deduction||0)-Number(r.prepaid||0)), 0);
+            const claimPrepaidAmt = claimRows.reduce((s,r) => s + Number(r.prepaid||0), 0);
+            const claimTotal = claimRequestAmt + claimPrepaidAmt; // = 지급요청금액 + 선지급
             const elClaim = document.getElementById('dash-total-claim');
             if (elClaim) elClaim.textContent = fmt(claimTotal);
             const elClaimSub = document.getElementById('dash-claim-sub');
             if (elClaimSub) elClaimSub.textContent = `${(currentDoc && currentDoc.month) ? currentDoc.month : thisMonth} · ${(currentDoc && currentDoc.site) ? currentDoc.site : '현재 문서'} · ${claimRows.length}건`;
+            const elClaimBreakdown = document.getElementById('dash-claim-breakdown');
+            if (elClaimBreakdown) elClaimBreakdown.textContent = `지급요청 ${fmt(claimRequestAmt)} · 선지급 ${fmt(claimPrepaidAmt)}`;
 
             // 자금청구명세서 — 바로가기 카드는 이제 선택월(현재 문서) 기준. allSavedDocs는
             // 아래 월별 차트·현장별 현황(여러 문서를 넘나드는 집계)에 여전히 필요해 유지.
