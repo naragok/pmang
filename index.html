@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V10.7</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1007,6 +1007,13 @@
             .req-header-section h2 * { font-size: 25px !important; }
         }
 
+        @keyframes addRowPulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.55), 0 1px 3px rgba(0,0,0,0.15); transform: scale(1); }
+            50% { box-shadow: 0 0 0 6px rgba(37,99,235,0), 0 1px 3px rgba(0,0,0,0.15); transform: scale(1.035); }
+        }
+        #add-row-hdr-btn { animation: addRowPulseGlow 2.2s ease-in-out infinite; }
+        #add-row-hdr-btn:hover { animation-play-state: paused; filter: brightness(1.1); }
+
         
             .tab-btn { padding: 8px 10px; font-size: 10px; }
         }
@@ -1126,8 +1133,12 @@
                     <i data-lucide="building-2" class="w-2.5 h-2.5" style="color:#38bdf8;"></i> <span style="font-size:9px;font-weight:700;">거래처DB</span>
                     <span id="vendor-master-badge-hdr" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#0ea5e9;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
                 </button>
-                <button onclick="openAddRowModal()" class="hdr-btn" style="padding:4px 8px;background:#2563eb;color:#fff;" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
+                <button id="add-row-hdr-btn" onclick="openAddRowModal()" class="hdr-btn" style="padding:4px 8px;background:#2563eb;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
                     <i data-lucide="plus-circle" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">청구 항목 추가</span>
+                </button>
+                <button onclick="openTrashModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;position:relative;" title="삭제한 청구항목 복구">
+                    <i data-lucide="trash-2" class="w-2.5 h-2.5" style="color:#f87171;"></i> <span style="font-size:9px;font-weight:700;">휴지통</span>
+                    <span id="trash-count-badge" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#f43f5e;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
                 </button>
                 <button id="pwa-install-btn" onclick="handlePwaInstallClick()" class="hdr-btn hidden" style="padding:4px 8px;background:#059669;color:#fff;" title="홈 화면에 앱으로 설치합니다">
                     <i data-lucide="download" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">홈 화면 설치</span>
@@ -1210,7 +1221,7 @@
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">2</span>
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
                     <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">청구명세서</span>
-                    <span id="tab-badge-statement" class="hidden ml-auto shrink-0 text-[9px] font-black text-white bg-amber-500 rounded-full px-1.5 py-0.5" title="본사 승인 대기 문서 수"></span>
+                    <span id="tab-badge-statement" class="hidden ml-auto shrink-0 text-[9px] font-black text-white bg-amber-500 rounded-full px-1.5 py-0.5" title="결재 대기(초안) 문서 수"></span>
                 </button>
 
                 <button id="tab-btn-request" onclick="switchTab('request')"
@@ -1695,6 +1706,7 @@
                         <i data-lucide="chevron-down" class="w-3 h-3" id="stmt-toolbar-chevron"></i>
                     </button>
                 </div>
+                <div id="stmt-tag-chips" class="hidden px-3 pb-2 flex flex-wrap gap-1.5 items-center border-t border-slate-100 dark:border-slate-800 pt-2"></div>
                 <div id="stmt-toolbar-body" class="collapsed">
                     <div class="px-3 pb-2.5 flex flex-wrap gap-3 items-center border-t border-slate-100 dark:border-slate-800" style="padding-top:10px;">
                         <div class="flex items-center gap-1.5 flex-wrap">
@@ -1801,6 +1813,9 @@
                             <input type="text" id="meta-company" list="meta-company-list" value="경산개발(주)" readonly onchange="syncMetaValues('meta-company', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-amber-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default">
                             <datalist id="meta-company-list"></datalist>
                             <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-amber-400"></i>
+                            <button type="button" onclick="event.stopPropagation(); openMoveDocCompanyModal();" class="no-print shrink-0 text-slate-300 hover:text-amber-500" title="이 청구서를 다른 회사로 이동">
+                                <i data-lucide="arrow-right-left" class="w-3 h-3"></i>
+                            </button>
                         </div>
                         <div class="flex items-center gap-2 min-w-0 no-print">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200" style="width:50px;text-align:center;">결재</span>
@@ -2414,6 +2429,9 @@
                 <button onclick="exportTotalInvestToHTML()" class="ctrl-btn" style="background:#059669;" title="현재 필터(회사/현장) 조건의 총 투입비 표를 HTML로 저장/인쇄">
                     <i data-lucide="file-code" class="w-3.5 h-3.5"></i> HTML 내보내기
                 </button>
+                <button onclick="exportTotalInvestToXLSX()" class="ctrl-btn" style="background:#15803d;" title="현재 필터(회사/현장) 조건의 총 투입비 표를 엑셀로 저장">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 엑셀 내보내기
+                </button>
                 <button onclick="generateSiteReportFromFilter()" class="ctrl-btn" style="background:#0f172a;" title="현재 선택된 현장의 종합 보고서(투입비+집행률+결재현황)를 1클릭으로 생성합니다">
                     <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 현장 종합보고서 생성
                 </button>
@@ -2802,6 +2820,54 @@
             </div>
         </div>
 
+        <!-- 휴지통 모달 -->
+        <div id="trash-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl max-h-[75vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4 text-rose-500"></i> 휴지통
+                        <span class="text-[10px] font-semibold text-slate-400">— 삭제된 청구항목 복구</span>
+                    </h3>
+                    <button onclick="closeTrashModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="trash-list" class="overflow-y-auto flex-1 p-3"></div>
+                <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <button onclick="emptyTrash()" class="text-[11px] font-bold text-rose-500 hover:text-rose-700">휴지통 비우기</button>
+                    <button onclick="closeTrashModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">닫기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 청구서를 다른 회사로 이동 모달 -->
+        <div id="move-doc-company-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="arrow-right-left" class="w-4 h-4 text-amber-500"></i> 청구서를 다른 회사로 이동
+                    </h3>
+                    <button onclick="closeMoveDocCompanyModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-5 space-y-3">
+                    <div id="move-doc-current-info" class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-2"></div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">이동할 회사 선택</label>
+                        <select id="move-doc-company-select" onchange="toggleMoveDocNewCompanyInput()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-amber-500">
+                            <option value="">기존 회사 목록에서 선택</option>
+                            <option value="__NEW__">+ 새 회사명 직접 입력</option>
+                        </select>
+                    </div>
+                    <div id="move-doc-new-company-wrap" class="hidden">
+                        <input type="text" id="move-doc-new-company-input" placeholder="새 회사명 입력" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-amber-500">
+                    </div>
+                    <p class="text-[10px] text-slate-400">이동하면 이 청구서에 속한 모든 항목의 회사 정보가 함께 변경됩니다. 법인카드 등 다른 데이터는 영향을 받지 않습니다.</p>
+                </div>
+                <div class="px-5 pb-5 flex justify-end gap-2">
+                    <button onclick="closeMoveDocCompanyModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
+                    <button onclick="confirmMoveDocCompany()" class="px-5 py-1.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-all">이동</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 결재선/승인 모달 -->
         <div id="approval-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md">
@@ -2817,8 +2883,7 @@
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">처리 단계</label>
                         <select id="approval-step-select" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
                             <option value="draft">초안 (작성중)</option>
-                            <option value="site_approved">현장소장 승인</option>
-                            <option value="hq_approved">본사 승인 (최종)</option>
+                            <option value="site_approved">현장소장 승인 (최종)</option>
                             <option value="rejected">반려</option>
                         </select>
                     </div>
@@ -3716,9 +3781,9 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '10.7';
+        const APP_VERSION = '11.2';
         const APP_VERSION_DATE = '2026-07-30';
-        const APP_VERSION_NOTE = '공사현장관리 비교표/카드뷰에 선지급 금액 컬럼 별도 표시 추가. 총 투입비는 지급요청금액+선지급(+법인카드)를 합산한 값으로 계속 표시';
+        const APP_VERSION_NOTE = '청구항목 메모/적요에 #태그(예: #긴급, #확인필요) 기능 추가 — 태그가 있으면 필터바에 색상 칩으로 자동 노출, 클릭 시 해당 태그 항목만 필터링. 메모 아이콘도 태그 색상으로 표시. (컬럼 정렬은 이미 구현되어 있어 별도 작업 없음)';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5930,6 +5995,41 @@
             }
         }
 
+        /* ── 항목 메모/적요 태그(#긴급, #확인필요 등) ── */
+        function extractTags(text) {
+            const matches = (text || '').match(/#[가-힣a-zA-Z0-9_]+/g);
+            return matches ? [...new Set(matches)] : [];
+        }
+        const TAG_COLOR_PALETTE = ['#dc2626','#d97706','#059669','#2563eb','#7c3aed','#db2777','#0891b2','#65a30d'];
+        function tagColor(tag) {
+            let h = 0;
+            for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+            return TAG_COLOR_PALETTE[h % TAG_COLOR_PALETTE.length];
+        }
+        function renderTagChips() {
+            const wrap = document.getElementById('stmt-tag-chips');
+            if (!wrap) return;
+            const tagCount = {};
+            dataset.forEach(row => {
+                extractTags((row.memo||'') + ' ' + (row.note||'')).forEach(t => { tagCount[t] = (tagCount[t]||0) + 1; });
+            });
+            const tags = Object.keys(tagCount).sort((a,b) => tagCount[b]-tagCount[a]);
+            if (!tags.length) { wrap.classList.add('hidden'); wrap.innerHTML = ''; return; }
+            wrap.classList.remove('hidden');
+            const active = window._activeTagFilter;
+            wrap.innerHTML = `<span class="text-[10px] font-bold text-slate-400 shrink-0">태그:</span>` +
+                tags.map(t => {
+                    const c = tagColor(t);
+                    const isActive = active === t;
+                    return `<button onclick="toggleTagFilter('${t.replace(/'/g,"\\'")}')" class="text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all" style="${isActive ? `background:${c};color:#fff;border-color:${c};` : `background:${c}18;color:${c};border-color:${c}55;`}">${t} <span class="opacity-70">${tagCount[t]}</span></button>`;
+                }).join('') +
+                (active ? `<button onclick="toggleTagFilter(null)" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 ml-1">✕ 필터 해제</button>` : '');
+        }
+        function toggleTagFilter(tag) {
+            window._activeTagFilter = (window._activeTagFilter === tag) ? null : tag;
+            renderStatementTable();
+        }
+
         function renderStatementTable() {
             checkDuplicateContracts();
 
@@ -5965,6 +6065,10 @@
                     const t = (row.supply || 0) + (row.tax || 0);
                     const r = t - (row.deduction || 0) - (row.prepaid || 0);
                     if (!(t <= 0 || r < 0)) return false;
+                }
+                if (window._activeTagFilter) {
+                    const tags = extractTags((row.memo||'') + ' ' + (row.note||''));
+                    if (!tags.includes(window._activeTagFilter)) return false;
                 }
                 return true;
             }).sort((a, b) => {
@@ -6175,7 +6279,8 @@
                     </td>
                     <td class="py-1 px-1 no-print">
                         <button onclick="openMemoModal(${row.id})"
-                            class="w-full flex items-center justify-center rounded transition-all ${row.memo ? 'text-amber-500 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'}"
+                            class="w-full flex items-center justify-center rounded transition-all ${row.memo ? 'hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'}"
+                            style="${row.memo && extractTags(row.memo).length ? `color:${tagColor(extractTags(row.memo)[0])};` : (row.memo ? 'color:#f59e0b;' : '')}"
                             title="${row.memo ? '메모 있음: ' + row.memo.substring(0, 30) + (row.memo.length > 30 ? '…' : '') : '메모 추가'}">
                             <i data-lucide="${row.memo ? 'message-square' : 'message-square-plus'}" class="w-3.5 h-3.5"></i>
                         </button>
@@ -6250,6 +6355,7 @@
             lucide.createIcons();
             updateSortIcons();
             initDragDrop();
+            renderTagChips();
         }
         window._searchFields = { vendor: true, holder: true, account: false, biznum: false, note: true };
         function toggleSearchField(field) {
@@ -6354,11 +6460,129 @@
             }
         }
 
+        /* ── 삭제된 청구항목 휴지통 ── */
+        const TRASH_KEY = 'claimTrash_v1';
+        function loadTrash() {
+            try { return JSON.parse(localStorage.getItem(TRASH_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function saveTrash(arr) {
+            try { localStorage.setItem(TRASH_KEY, JSON.stringify(arr)); } catch(e) { console.error(e); }
+        }
+        function updateTrashBadge() {
+            const badge = document.getElementById('trash-count-badge');
+            if (!badge) return;
+            const n = loadTrash().length;
+            if (n > 0) { badge.textContent = n; badge.classList.remove('hidden'); }
+            else { badge.classList.add('hidden'); }
+        }
+
         function deleteRow(id) {
+            const row = dataset.find(item => item.id === id);
+            if (!row) return;
+            if (!confirm(`[${row.vendor||'거래처 미입력'}] 항목을 삭제하시겠습니까?\n(휴지통에서 복구할 수 있습니다)`)) return;
+
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const trash = loadTrash();
+            trash.push({
+                trashId: 'trash-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+                docId: currentDocId,
+                docLabel: currentDoc ? `${currentDoc.company||''} · ${currentDoc.site||''} · ${currentDoc.month||''}` : '(문서 정보 없음)',
+                row: JSON.parse(JSON.stringify(row)),
+                deletedAt: new Date().toLocaleString('ko-KR')
+            });
+            saveTrash(trash);
+
             dataset = dataset.filter(item => item.id !== id);
             saveToLocalStorage();
             renderStatementTable();
             refreshRequestSelector();
+            updateTrashBadge();
+            showToast('삭제되었습니다. (휴지통에서 복구 가능)');
+        }
+
+        function openTrashModal() {
+            renderTrashList();
+            document.getElementById('trash-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeTrashModal() {
+            document.getElementById('trash-modal').classList.add('hidden');
+        }
+        function renderTrashList() {
+            const listEl = document.getElementById('trash-list');
+            const trash = loadTrash();
+            if (!trash.length) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-xs">휴지통이 비어 있습니다.</div>';
+                return;
+            }
+            listEl.innerHTML = trash.slice().reverse().map(t => {
+                const r = t.row;
+                const amt = (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
+                return `<div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 py-2 px-1 text-xs">
+                    <div class="min-w-0">
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${r.vendor||'(거래처 미입력)'}</span>
+                        <span class="text-slate-400 ml-1">${r.type||''} · ${amt.toLocaleString('ko-KR')}원 · ${t.docLabel}</span>
+                        <div class="text-[10px] text-slate-400">삭제일시: ${t.deletedAt}</div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="restoreTrashItem('${t.trashId}')" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100">복구</button>
+                        <button onclick="permanentDeleteTrashItem('${t.trashId}')" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300 hover:bg-rose-100">영구삭제</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function restoreTrashItem(trashId) {
+            const trash = loadTrash();
+            const idx = trash.findIndex(t => t.trashId === trashId);
+            if (idx === -1) return;
+            const item = trash[idx];
+
+            // 대상 문서 찾기: 현재 열려있는 문서면 dataset에 바로, 아니면 savedDocuments에서 찾아 반영
+            if (item.docId === currentDocId) {
+                dataset.push(item.row);
+                saveToLocalStorage();
+                renderStatementTable();
+                refreshRequestSelector();
+            } else {
+                const targetDoc = savedDocuments.find(d => d.id === item.docId);
+                if (targetDoc) {
+                    targetDoc.dataset = targetDoc.dataset || [];
+                    targetDoc.dataset.push(item.row);
+                    saveToLocalStorage();
+                    showToast(`[${item.docLabel}] 문서로 복구되었습니다. (해당 문서를 열면 확인 가능)`);
+                } else {
+                    showToast('원래 문서를 찾을 수 없어 현재 문서에 복구합니다.', 'error');
+                    dataset.push(item.row);
+                    saveToLocalStorage();
+                    renderStatementTable();
+                    refreshRequestSelector();
+                }
+            }
+
+            trash.splice(idx, 1);
+            saveTrash(trash);
+            renderTrashList();
+            updateTrashBadge();
+            showToast('복구되었습니다.', 'success');
+        }
+
+        function permanentDeleteTrashItem(trashId) {
+            if (!confirm('영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+            const trash = loadTrash().filter(t => t.trashId !== trashId);
+            saveTrash(trash);
+            renderTrashList();
+            updateTrashBadge();
+        }
+
+        function emptyTrash() {
+            const trash = loadTrash();
+            if (!trash.length) return;
+            if (!confirm(`휴지통의 ${trash.length}건 항목을 모두 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
+            saveTrash([]);
+            renderTrashList();
+            updateTrashBadge();
+            showToast('휴지통을 비웠습니다.');
         }
 
         /* 거래처 자동완성: 계좌DB + 과거 저장된 모든 청구명세서(전체 기간) + 현재 작업중인 표에서
@@ -8179,6 +8403,60 @@ function changePrintScale(value) {
             el.classList.remove('ring-1', 'ring-blue-400', 'bg-white', 'dark:bg-slate-700');
         }
 
+        /* ── 청구서를 다른 회사로 이동 ── */
+        function openMoveDocCompanyModal() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            if (!currentDoc) { showToast('먼저 이동할 청구서를 선택하세요.', 'error'); return; }
+
+            document.getElementById('move-doc-current-info').innerHTML =
+                `현재: <b>${currentDoc.company || '(회사 미지정)'}</b> · ${currentDoc.site || '-'} · ${currentDoc.month || '-'} (${(currentDoc.dataset||[]).length}건)`;
+
+            const companies = [...new Set(savedDocuments.map(d => d.company).filter(Boolean))]
+                .filter(c => c !== currentDoc.company)
+                .sort();
+            const select = document.getElementById('move-doc-company-select');
+            select.innerHTML = '<option value="">기존 회사 목록에서 선택</option>' +
+                companies.map(c => `<option value="${c}">${c}</option>`).join('') +
+                '<option value="__NEW__">+ 새 회사명 직접 입력</option>';
+            select.value = '';
+            document.getElementById('move-doc-new-company-wrap').classList.add('hidden');
+            document.getElementById('move-doc-new-company-input').value = '';
+
+            document.getElementById('move-doc-company-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeMoveDocCompanyModal() {
+            document.getElementById('move-doc-company-modal').classList.add('hidden');
+        }
+        function toggleMoveDocNewCompanyInput() {
+            const isNew = document.getElementById('move-doc-company-select').value === '__NEW__';
+            document.getElementById('move-doc-new-company-wrap').classList.toggle('hidden', !isNew);
+        }
+        function confirmMoveDocCompany() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            if (!currentDoc) return;
+
+            const selectVal = document.getElementById('move-doc-company-select').value;
+            let targetCompany = selectVal === '__NEW__'
+                ? document.getElementById('move-doc-new-company-input').value.trim()
+                : selectVal;
+
+            if (!targetCompany) { showToast('이동할 회사를 선택하거나 입력하세요.', 'error'); return; }
+            if (targetCompany === currentDoc.company) { showToast('현재와 동일한 회사입니다.', 'error'); return; }
+
+            if (!confirm(`[${currentDoc.month || '-'}] 청구서를\n"${currentDoc.company || '(미지정)'}" → "${targetCompany}"(으)로 이동하시겠습니까?`)) return;
+
+            currentDoc.company = targetCompany;
+            document.getElementById('meta-company').value = targetCompany;
+
+            saveToLocalStorage();
+            buildFilterOptions();
+            updateSavedSheetsSelector();
+            populateMetaDatalists();
+            closeMoveDocCompanyModal();
+            showToast(`"${targetCompany}"(으)로 이동되었습니다.`, 'success');
+        }
+
         function populateMetaDatalists() {
             const siteList = document.getElementById('meta-site-list');
             const monthList = document.getElementById('meta-month-list');
@@ -8201,8 +8479,8 @@ function changePrintScale(value) {
         /* ── 결재선/승인 워크플로우 ── */
         const APPROVAL_STEPS = {
             draft:         { label: '초안',           cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600' },
-            site_approved: { label: '현장소장 승인',   cls: 'bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' },
-            hq_approved:   { label: '본사 승인 완료',  cls: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' },
+            site_approved: { label: '현장소장 승인 완료(최종)', cls: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' },
+            hq_approved:   { label: '본사 승인 완료',  cls: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' }, // 구버전 데이터 표시용(더 이상 신규 선택 불가)
             rejected:      { label: '반려',           cls: 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700' }
         };
 
@@ -8476,7 +8754,7 @@ function changePrintScale(value) {
             if (!badge) return;
             const pending = (savedDocuments || []).filter(d => {
                 const s = d.approvalStatus || 'draft';
-                return s === 'draft' || s === 'site_approved';
+                return s === 'draft'; // 현장소장 승인이 최종 단계이므로 초안만 "미결재"로 집계
             }).length;
             if (pending > 0) {
                 badge.textContent = pending;
@@ -9879,6 +10157,46 @@ function changePrintScale(value) {
         }
 
         /* 총 투입비 탭 HTML 내보내기 — 현재 회사/현장 필터 조건 그대로 반영 */
+        /* 총 투입비 탭 엑셀 내보내기 — 현재 회사/현장 필터 조건 그대로 반영 */
+        function exportTotalInvestToXLSX() {
+            if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
+            const data = buildTotalInvestData();
+            const companyFilter = document.getElementById('ti-filter-company')?.value || '';
+            const siteFilter = document.getElementById('ti-filter-site')?.value || '';
+
+            let filtered = data.filter(g =>
+                (!companyFilter || g.company === companyFilter) &&
+                (!siteFilter || g.site === siteFilter)
+            );
+            if (!filtered.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
+            filtered.sort((a,b) => a.company.localeCompare(b.company,'ko-KR') || a.site.localeCompare(b.site,'ko-KR') || a.monthKey - b.monthKey);
+
+            const gTotal = { '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0 };
+            const rows = filtered.map(g => {
+                const monthTotal = TI_CATEGORIES.reduce((s,c)=>s+(g.amounts[c]||0),0) + (g.amounts['법인카드']||0);
+                TI_CATEGORIES.forEach(c => gTotal[c] += (g.amounts[c]||0));
+                gTotal['법인카드'] += (g.amounts['법인카드']||0);
+                return {
+                    '회사': g.company, '현장': g.site, '월': g.month,
+                    '외주비': g.amounts['외주비']||0, '노무비': g.amounts['노무비']||0, '장비대': g.amounts['장비비']||0,
+                    '자재비': g.amounts['자재비']||0, '관리비': g.amounts['관리비']||0, '법인카드': g.amounts['법인카드']||0,
+                    '월 합계': monthTotal
+                };
+            });
+            const grandTotal = Object.values(gTotal).reduce((s,v)=>s+v,0);
+            rows.push({ '회사':'합계','현장':'','월':'', '외주비':gTotal['외주비'],'노무비':gTotal['노무비'],'장비대':gTotal['장비비'],
+                '자재비':gTotal['자재비'],'관리비':gTotal['관리비'],'법인카드':gTotal['법인카드'],'월 합계':grandTotal });
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [{wch:16},{wch:20},{wch:12},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:16}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '총투입비');
+
+            const filterLabel = [companyFilter, siteFilter].filter(Boolean).join('_') || '전체';
+            XLSX.writeFile(wb, `총투입비_${filterLabel.replace(/[\\/*?:"<>|]/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast('엑셀 내보내기 완료', 'success');
+        }
+
         function exportTotalInvestToHTML() {
             const data = buildTotalInvestData();
             const companyFilter = document.getElementById('ti-filter-company')?.value || '';
@@ -10332,7 +10650,7 @@ function changePrintScale(value) {
             }).join('') : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;">등록된 청구서가 없습니다.</td></tr>'}
         </tbody>
     </table>
-    <div style="font-size:11px;color:#64748b;">초안 ${approvalCount.draft}건 · 현장소장 승인 ${approvalCount.site_approved}건 · 본사 승인 완료 ${approvalCount.hq_approved}건 · 반려 ${approvalCount.rejected}건</div>
+    <div style="font-size:11px;color:#64748b;">초안 ${approvalCount.draft}건 · 현장소장 승인(최종) ${approvalCount.site_approved + approvalCount.hq_approved}건 · 반려 ${approvalCount.rejected}건</div>
 
     <div class="section-title">4. 노무비명세서 현황 (${laborList.length}건)</div>
     <table>
@@ -13173,6 +13491,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             refreshRequestSelector();
             renderSiteDashboard();
             populateMetaDatalists();
+            updateTrashBadge();
             changePrintScale(1.00);
             document.getElementById('print-scale-slider').value = "1.00";
             applyCategoryColor("자재비");
