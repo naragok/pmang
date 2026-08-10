@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.2</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1238,6 +1238,13 @@
                     <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">법인카드</span>
                 </button>
 
+                <button id="tab-btn-personalexp" onclick="switchTab('personalexp')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">4.5</span>
+                    <i data-lucide="user-round" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">개인경비 정산</span>
+                </button>
+
                 <button id="tab-btn-totalinvest" onclick="switchTab('totalinvest')"
                     class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">5</span>
@@ -1431,6 +1438,11 @@
                     <div class="dash-tab-card-label">법인카드 경비</div>
                     <div class="dash-tab-card-count" id="dash-cnt-corpcard">0건</div>
                 </button>
+                <button onclick="switchTab('personalexp')" class="dash-tab-card group" style="--dc:#db2777;">
+                    <i data-lucide="user-round" class="w-4 h-4"></i>
+                    <div class="dash-tab-card-label">개인경비 정산</div>
+                    <div class="dash-tab-card-count" id="dash-cnt-personalexp">0건</div>
+                </button>
                 <button onclick="switchTab('totalinvest')" class="dash-tab-card group" style="--dc:#059669;">
                     <i data-lucide="pie-chart" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">총 투입비</div>
@@ -1516,6 +1528,17 @@
                     </div>
                     <div id="dash-pinned-vendors" class="space-y-1 max-h-[120px] overflow-y-auto pr-1"></div>
                 </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3 mt-2">
+                <div class="flex items-center justify-between mb-1.5">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                        <i data-lucide="scale" class="w-3.5 h-3.5 text-amber-500"></i> 선지급 정산 현황
+                        <span class="text-[9px] font-normal text-slate-400">거래처별 선지급 누계 vs 정산(청구 반영) 차액 — 전체 기간</span>
+                    </h3>
+                    <span id="dash-prepaid-summary" class="text-[10px] font-bold text-slate-400"></span>
+                </div>
+                <div id="dash-prepaid-settlement" class="space-y-1 text-[11px] max-h-[160px] overflow-y-auto pr-1"></div>
             </div>
 
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3 mt-2">
@@ -2419,6 +2442,233 @@
                 <div id="cc-monthly-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-500"></div>
             </div>
         </div><!-- /tab-corpcard -->
+
+        <!-- ═══════════════════════════════════════════
+             개인경비 정산 탭 (tab-personalexp)
+             직원 개인카드/개인비용 사용 후, 회사가 직원 계좌로 입금(정산)하는 내역 관리
+        ═══════════════════════════════════════════ -->
+        <div id="tab-personalexp" class="hidden">
+
+            <div class="no-print tab-ctrl-panel mb-4">
+                <div class="tab-ctrl-header">
+                    <div class="tab-ctrl-title-wrap">
+                        <div class="tab-ctrl-icon" style="background:#db2777;">
+                            <i data-lucide="user-round" class="w-4 h-4 text-white"></i>
+                        </div>
+                        <div>
+                            <div class="tab-ctrl-title">개인경비 정산 관리대장</div>
+                            <div class="tab-ctrl-sub">직원이 개인카드·현금으로 대납한 경비를 기록하고, 입금계좌로 정산 처리</div>
+                        </div>
+                    </div>
+                    <div class="tab-ctrl-actions">
+                        <button onclick="peAddRow()" class="ctrl-btn" style="background:#db2777;">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
+                        </button>
+                        <button onclick="peExportExcel()" class="ctrl-btn" style="background:#059669;">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
+                        </button>
+                        <button onclick="pePrint()" class="ctrl-btn" style="background:#2563eb;">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄
+                        </button>
+                        <div class="ctrl-divider"></div>
+                        <button onclick="peBackup()" class="ctrl-btn ctrl-btn-ghost">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> 백업
+                        </button>
+                        <button onclick="document.getElementById('pe-restore-input').click()" class="ctrl-btn ctrl-btn-ghost">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> 복원
+                        </button>
+                        <input type="file" id="pe-restore-input" accept=".json" class="hidden" onchange="peRestore(event)">
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 items-center">
+                    <span class="text-[10px] font-bold text-slate-500">필터</span>
+                    <select id="pe-filter-month" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        <option value="">전체 월</option>
+                    </select>
+                    <select id="pe-filter-employee" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        <option value="">전체 직원</option>
+                    </select>
+                    <select id="pe-filter-cat" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        <option value="">전체 카테고리</option>
+                        <option>유류비</option><option>식대</option><option>숙박비</option>
+                        <option>자재구입</option><option>공구/장비</option><option>통신비</option>
+                        <option>교통비</option><option>소모품</option><option>접대비</option><option>기타</option>
+                    </select>
+                    <select id="pe-filter-site" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        <option value="">전체 현장</option>
+                    </select>
+                    <select id="pe-filter-status" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        <option value="">전체 상태</option>
+                        <option value="pending">미정산</option>
+                        <option value="settled">정산완료</option>
+                    </select>
+                    <input type="text" id="pe-filter-search" oninput="peRender()" placeholder="직원명·가맹점·메모 검색…" class="px-2.5 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500 w-44">
+                    <button onclick="peClearFilters()" class="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded-lg">초기화</button>
+                    <span class="ml-auto text-[10px] font-bold text-pink-700 dark:text-pink-400" id="pe-filter-summary"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4" id="pe-summary-cards">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">미정산 합계</div>
+                    <div id="pe-kpi-pending" class="text-lg font-black text-rose-600">0원</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">정산완료 합계</div>
+                    <div id="pe-kpi-settled" class="text-lg font-black text-emerald-600">0원</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">전체 건수</div>
+                    <div id="pe-kpi-count" class="text-lg font-black text-slate-800 dark:text-slate-100">0건</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                    <div class="text-[10px] text-slate-400 font-semibold mb-1">최다 사용 직원</div>
+                    <div id="pe-kpi-topemp" class="text-lg font-black text-pink-600">-</div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs border-collapse" id="pe-table">
+                        <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-2 py-2 text-center w-8 font-bold">No</th>
+                                <th class="px-2 py-2 text-center w-24 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="peSort('date')">사용일자 ↕</th>
+                                <th class="px-2 py-2 text-center w-20 font-bold">직원명</th>
+                                <th class="px-2 py-2 text-center w-24 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="peSort('cat')">카테고리 ↕</th>
+                                <th class="px-2 py-2 text-left w-32 font-bold">가맹점명</th>
+                                <th class="px-2 py-2 text-right w-24 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="peSort('amount')">금액 ↕</th>
+                                <th class="px-2 py-2 text-center w-24 font-bold">현장</th>
+                                <th class="px-2 py-2 text-left w-40 font-bold">입금계좌(직원)</th>
+                                <th class="px-2 py-2 text-center w-16 font-bold">정산상태</th>
+                                <th class="px-2 py-2 text-center w-20 font-bold">정산일</th>
+                                <th class="px-2 py-2 text-left font-bold">메모</th>
+                                <th class="px-2 py-2 text-center w-20 font-bold no-print">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pe-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr><td colspan="12" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
+                        </tbody>
+                        <tfoot id="pe-tfoot" class="bg-slate-50 dark:bg-slate-800/50 font-bold border-t-2 border-slate-300 dark:border-slate-600"></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-pink-500"></i> 직원별 정산 현황
+                    </h3>
+                    <div id="pe-employee-chart" class="space-y-2 text-xs"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i data-lucide="tag" class="w-4 h-4 text-amber-500"></i> 카테고리별 집계
+                    </h3>
+                    <div id="pe-cat-chart" class="space-y-2 text-xs"></div>
+                </div>
+            </div>
+        </div><!-- /tab-personalexp -->
+
+        <!-- 개인경비 입력/수정 모달 -->
+        <div id="pe-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="user-round" class="w-4 h-4 text-pink-500"></i>
+                        <span id="pe-modal-title">개인경비 내역 입력</span>
+                    </h3>
+                    <button onclick="peCloseModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-5 space-y-3">
+                    <input type="hidden" id="pe-edit-id">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">사용일자 <span class="text-rose-500">*</span></label>
+                            <input type="date" id="pe-edit-date" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">직원명 <span class="text-rose-500">*</span></label>
+                            <input type="text" id="pe-edit-employee" list="pe-employee-datalist" placeholder="예: 홍길동" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            <datalist id="pe-employee-datalist"></datalist>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">카테고리</label>
+                            <select id="pe-edit-cat" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                                <option>유류비</option><option>식대</option><option>숙박비</option>
+                                <option>자재구입</option><option>공구/장비</option><option>통신비</option>
+                                <option>교통비</option><option>소모품</option><option>접대비</option><option>기타</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">금액 (원) <span class="text-rose-500">*</span></label>
+                            <input type="number" id="pe-edit-amount" placeholder="0" oninput="peFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            <span id="pe-amt-preview" class="text-[10px] text-pink-600 mt-0.5 block font-semibold"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">가맹점명 / 사용처</label>
+                        <input type="text" id="pe-edit-merchant" placeholder="예: OO주유소" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">현장 배분</label>
+                            <input type="text" id="pe-edit-site" list="pe-site-datalist" placeholder="예: 원주 무실동 공사현장" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            <datalist id="pe-site-datalist"></datalist>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">회사</label>
+                            <select id="pe-edit-company" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                                <option value="">회사 미지정</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <div class="text-[10px] font-bold text-pink-600 dark:text-pink-400 mb-1.5 flex items-center gap-1"><i data-lucide="landmark" class="w-3 h-3"></i> 입금받을 계좌 (직원 본인)</div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[9px] text-slate-400 mb-0.5">은행</label>
+                                <input type="text" id="pe-edit-bank" placeholder="예: 국민은행" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-400 mb-0.5">예금주</label>
+                                <input type="text" id="pe-edit-holder" placeholder="예금주명" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <label class="block text-[9px] text-slate-400 mb-0.5">계좌번호</label>
+                            <input type="text" id="pe-edit-account" placeholder="'-' 없이 숫자만 입력해도 됩니다" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">정산상태</label>
+                            <select id="pe-edit-status" onchange="peToggleSettleDate()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                                <option value="pending">미정산</option>
+                                <option value="settled">정산완료</option>
+                            </select>
+                        </div>
+                        <div id="pe-settledate-wrap">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">정산일자</label>
+                            <input type="date" id="pe-edit-settledate" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">메모</label>
+                        <textarea id="pe-edit-memo" rows="2" placeholder="예: 현장 자재 긴급구매, 개인카드 결제분" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500 font-mono resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="px-5 pb-5 flex justify-end gap-2">
+                    <button onclick="peCloseModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
+                    <button onclick="peSaveModal()" class="px-5 py-1.5 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-all">저장</button>
+                </div>
+            </div>
+        </div>
 
         <div id="tab-totalinvest" class="hidden">
             <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -4556,6 +4806,7 @@
             const tabRequest = document.getElementById('tab-request');
             const tabStats = document.getElementById('tab-stats');
             const tabCorpcard = document.getElementById('tab-corpcard');
+            const tabPersonalexp = document.getElementById('tab-personalexp');
             const tabTotalInvest = document.getElementById('tab-totalinvest');
 
             const btnDashboard = document.getElementById('tab-btn-dashboard');
@@ -4563,6 +4814,7 @@
             const btnRequest = document.getElementById('tab-btn-request');
             const btnStats = document.getElementById('tab-btn-stats');
             const btnCorpcard = document.getElementById('tab-btn-corpcard');
+            const btnPersonalexp = document.getElementById('tab-btn-personalexp');
             const btnTotalInvest = document.getElementById('tab-btn-totalinvest');
 
             if (tabDashboard) tabDashboard.classList.add('hidden');
@@ -4570,10 +4822,11 @@
             tabRequest.classList.add('hidden');
             tabStats.classList.add('hidden');
             if (tabCorpcard) tabCorpcard.classList.add('hidden');
+            if (tabPersonalexp) tabPersonalexp.classList.add('hidden');
             if (tabTotalInvest) tabTotalInvest.classList.add('hidden');
 
             // 모든 탭 버튼 비활성화 (상단 탭바 & 사이드바 공용)
-            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard, btnTotalInvest].forEach(b => {
+            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard, btnPersonalexp, btnTotalInvest].forEach(b => {
                 if (b) {
                     b.classList.remove('tab-active');
                     b.classList.remove('sidebar-tab-active');
@@ -4600,6 +4853,11 @@
                 if (tabCorpcard) tabCorpcard.classList.remove('hidden');
                 if (btnCorpcard) btnCorpcard.classList.add('tab-active','sidebar-tab-active');
                 ccRender();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else if (tabId === 'personalexp') {
+                if (tabPersonalexp) tabPersonalexp.classList.remove('hidden');
+                if (btnPersonalexp) btnPersonalexp.classList.add('tab-active','sidebar-tab-active');
+                if (typeof peRender === 'function') peRender();
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             } else if (tabId === 'totalinvest') {
                 if (tabTotalInvest) tabTotalInvest.classList.remove('hidden');
@@ -9227,6 +9485,7 @@ function changePrintScale(value) {
                 accountDb,
                 currentDocId,
                 ccData: ccLoad(),
+                peData: (typeof peLoad === 'function' ? peLoad() : []),
                 checklistItems: getChecklistItems(),
                 checklistStates
             };
@@ -9323,6 +9582,7 @@ function changePrintScale(value) {
                 accountDb      = parsed.accountDb;
                 currentDocId   = parsed.currentDocId || savedDocuments[0].id;
                 if (Array.isArray(parsed.ccData)) { ccData = parsed.ccData; ccSave(); }
+                if (Array.isArray(parsed.peData)) { peData = parsed.peData; peSave(); }
 
                 // ★ 체크리스트 항목 정의 복원 (있으면 전체 대체)
                 if (Array.isArray(parsed.checklistItems) && parsed.checklistItems.length) {
@@ -9374,6 +9634,19 @@ function changePrintScale(value) {
                         stats.addedCc++;
                     });
                     ccSave();
+                }
+
+                if (Array.isArray(parsed.peData)) {
+                    peData = peLoad();
+                    const localPeIds = new Set(peData.map(r => r.id));
+                    parsed.peData.forEach(row => {
+                        const dup = peData.some(local => local.date === row.date && local.employee === row.employee && Number(local.amount) === Number(row.amount));
+                        if (dup) { return; }
+                        if (localPeIds.has(row.id)) row = { ...row, id: 'pe-' + Date.now() + '-' + Math.floor(Math.random()*10000) };
+                        peData.push(row);
+                        localPeIds.add(row.id);
+                    });
+                    peSave();
                 }
 
                 // ★ 체크리스트 항목 병합 — 이미 있는 라벨은 건너뛰고 새 항목만 추가
@@ -9507,7 +9780,7 @@ function changePrintScale(value) {
                 const dataToBackup = {
                     version: 'v13',
                     exportedAt: new Date().toLocaleString('ko-KR'),
-                    savedDocuments, accountDb, currentDocId, ccData: ccLoad()
+                    savedDocuments, accountDb, currentDocId, ccData: ccLoad(), peData: (typeof peLoad === 'function' ? peLoad() : [])
                 };
                 const encodedContent = ghUtf8ToB64(JSON.stringify(dataToBackup, null, 2));
                 const commitMsg = `자금관리 데이터 동기화 — ${new Date().toLocaleString('ko-KR')}`;
@@ -13808,6 +14081,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (unregisteredVendors.length > 0) {
                     alerts.push(`<button onclick="switchTab('statement')" class="w-full flex items-center gap-2 bg-sky-50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300 rounded-lg px-3 py-2 text-left hover:bg-sky-100 dark:hover:bg-sky-950/40 transition-colors"><i data-lucide="user-x" class="w-3.5 h-3.5 shrink-0"></i><span>계좌 마스터 DB 미등록 거래처 <b>${unregisteredVendors.length}개사</b> 사용중</span></button>`);
                 }
+                // ── 미정산 개인경비 알림 ──
+                const pePending = (typeof peLoad === 'function' ? peLoad() : []).filter(r => (r.status||'pending') !== 'settled');
+                if (pePending.length > 0) {
+                    const pePendingTotal = pePending.reduce((s,r)=>s+Number(r.amount||0),0);
+                    alerts.push(`<button onclick="switchTab('personalexp')" class="w-full flex items-center gap-2 bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-300 rounded-lg px-3 py-2 text-left hover:bg-pink-100 dark:hover:bg-pink-950/40 transition-colors"><i data-lucide="user-round" class="w-3.5 h-3.5 shrink-0"></i><span>미정산 개인경비 <b>${pePending.length}건</b> · ${Number(pePendingTotal).toLocaleString('ko-KR')}원</span></button>`);
+                }
                 if (!alerts.length) {
                     alerts.push(`<div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg px-3 py-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i><span>확인이 필요한 항목이 없습니다.</span></div>`);
                 }
@@ -13941,7 +14220,67 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             renderDashRecentActivity();
 
+            renderPrepaidSettlement();
+
             if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* ── 선지급 정산 현황: 거래처별 선지급 누계 vs 정산(공제 반영) 차액 ── */
+        function renderPrepaidSettlement() {
+            const el = document.getElementById('dash-prepaid-settlement');
+            const sumEl = document.getElementById('dash-prepaid-summary');
+            if (!el) return;
+
+            const allDocs = (typeof savedDocuments !== 'undefined') ? savedDocuments : [];
+            const fmt = n => Number(n||0).toLocaleString('ko-KR') + '원';
+
+            // 거래처별 집계: 선지급 누계, 공제(정산) 누계, 최근 발생월, 문서수
+            const stats = {};
+            allDocs.forEach(doc => {
+                (doc.dataset||[]).forEach(r => {
+                    const vendor = (r.vendor||'').trim();
+                    if (!vendor) return;
+                    const prepaid = Number(r.prepaid||0);
+                    const deduction = Number(r.deduction||0);
+                    if (prepaid <= 0 && deduction <= 0) return;
+                    if (!stats[vendor]) stats[vendor] = { prepaid:0, deduction:0, lastMonth:'', docCnt:0 };
+                    stats[vendor].prepaid += prepaid;
+                    stats[vendor].deduction += deduction;
+                    if ((doc.month||'') > stats[vendor].lastMonth) stats[vendor].lastMonth = doc.month||'';
+                    stats[vendor].docCnt++;
+                });
+            });
+
+            const vendors = Object.keys(stats)
+                .map(v => ({ vendor: v, ...stats[v], balance: stats[v].prepaid - stats[v].deduction }))
+                .filter(v => v.prepaid > 0)
+                .sort((a,b) => b.balance - a.balance);
+
+            const totalPrepaid = vendors.reduce((s,v) => s + v.prepaid, 0);
+            const totalDeduction = vendors.reduce((s,v) => s + v.deduction, 0);
+            const totalBalance = totalPrepaid - totalDeduction;
+
+            if (sumEl) sumEl.textContent = vendors.length ? `잔액 합계 ${fmt(totalBalance)}` : '';
+
+            if (!vendors.length) {
+                el.innerHTML = `<div class="text-center text-slate-400 text-xs py-6">선지급 이력이 있는 거래처가 없습니다.</div>`;
+                return;
+            }
+
+            el.innerHTML = vendors.map(v => {
+                const balColor = v.balance > 0 ? 'text-amber-600 dark:text-amber-400' : (v.balance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400');
+                const balLabel = v.balance > 0 ? '미정산 잔액' : (v.balance < 0 ? '공제 초과' : '정산 완료');
+                return `<button onclick="showVendorUsage('${v.vendor.replace(/'/g,"\\'")}')" class="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left">
+                    <div class="min-w-0">
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${v.vendor}</span>
+                        <span class="block text-[9px] text-slate-400">선지급 ${fmt(v.prepaid)} · 공제(정산) ${fmt(v.deduction)} · 최근 ${v.lastMonth||'-'}</span>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="block text-[11px] font-bold ${balColor}">${fmt(Math.abs(v.balance))}</span>
+                        <span class="block text-[9px] ${balColor}">${balLabel}</span>
+                    </div>
+                </button>`;
+            }).join('');
         }
 
         /* ── 즐겨찾기 거래처 (대시보드 고정) ── */
@@ -15513,6 +15852,547 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     ccData = arr;
                     ccSave();
                     ccRender();
+                    showToast(`${arr.length}건 복원 완료`, 'success');
+                } catch { showToast('유효하지 않은 파일입니다.', 'error'); }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ★ 개인경비 정산 관리 (Personal Expense Settlement)
+        //   직원이 개인카드/현금으로 대납한 경비를 기록하고,
+        //   직원 본인 계좌로 회사가 입금(정산)하는 내역을 관리한다.
+        // ══════════════════════════════════════════════════════════
+        const PE_KEY = 'cons_personalexp_v1';
+        let peData = [];
+        let peSortKey = 'date';
+        let peSortAsc = false;
+
+        function peLoad() {
+            try { return JSON.parse(localStorage.getItem(PE_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function peSave() {
+            localStorage.setItem(PE_KEY, JSON.stringify(peData));
+        }
+
+        function peFmt(n) { return Number(n||0).toLocaleString('ko-KR') + '원'; }
+
+        function peStatusBadge(status) {
+            return status === 'settled'
+                ? `<span class="inline-block bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded">정산완료</span>`
+                : `<span class="inline-block bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-300 text-[9px] font-bold px-1.5 py-0.5 rounded">미정산</span>`;
+        }
+
+        /* 필터 적용된 데이터 반환 */
+        function peFiltered() {
+            const month    = document.getElementById('pe-filter-month')?.value || '';
+            const employee = document.getElementById('pe-filter-employee')?.value || '';
+            const cat      = document.getElementById('pe-filter-cat')?.value || '';
+            const site     = document.getElementById('pe-filter-site')?.value || '';
+            const status   = document.getElementById('pe-filter-status')?.value || '';
+            const search   = (document.getElementById('pe-filter-search')?.value || '').trim().toLowerCase();
+            return peData.filter(r => {
+                if (month && !(r.date||'').startsWith(month)) return false;
+                if (employee && r.employee !== employee) return false;
+                if (cat && r.cat !== cat) return false;
+                if (site && r.site !== site) return false;
+                if (status && (r.status||'pending') !== status) return false;
+                if (search && !(
+                    (r.employee||'').toLowerCase().includes(search) ||
+                    (r.merchant||'').toLowerCase().includes(search) ||
+                    (r.memo||'').toLowerCase().includes(search)
+                )) return false;
+                return true;
+            });
+        }
+
+        /* 필터 셀렉트/데이터리스트 옵션 재구성 */
+        function peRefreshFilterOptions() {
+            const months = [...new Set(peData.map(r => (r.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+            const employees = [...new Set(peData.map(r => r.employee).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+            const sites  = [...new Set(peData.map(r => r.site).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+            const companies = [...new Set([
+                ...savedDocuments.map(d => d.company),
+                ...peData.map(r => r.company)
+            ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+
+            const mSel = document.getElementById('pe-filter-month');
+            const eSel = document.getElementById('pe-filter-employee');
+            const sSel = document.getElementById('pe-filter-site');
+            const curM = mSel?.value; const curE = eSel?.value; const curS = sSel?.value;
+
+            if (mSel) {
+                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+                if (curM) mSel.value = curM;
+            }
+            if (eSel) {
+                eSel.innerHTML = '<option value="">전체 직원</option>' + employees.map(v=>`<option value="${v}">${v}</option>`).join('');
+                if (curE) eSel.value = curE;
+            }
+            if (sSel) {
+                sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${s}">${s}</option>`).join('');
+                if (curS) sSel.value = curS;
+            }
+
+            const empDl = document.getElementById('pe-employee-datalist');
+            if (empDl) empDl.innerHTML = employees.map(v=>`<option value="${v}">`).join('');
+            const siteDl = document.getElementById('pe-site-datalist');
+            if (siteDl) siteDl.innerHTML = sites.map(s=>`<option value="${s}">`).join('');
+
+            const editCoSel = document.getElementById('pe-edit-company');
+            if (editCoSel) {
+                const curEditCo = editCoSel.value;
+                editCoSel.innerHTML = '<option value="">회사 미지정</option>' + companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+                if (curEditCo) editCoSel.value = curEditCo;
+            }
+        }
+
+        /* KPI 카드 갱신 */
+        function peUpdateKpi(filtered) {
+            const pending = peData.filter(r => (r.status||'pending') !== 'settled').reduce((s,r)=>s+Number(r.amount||0),0);
+            const settled = peData.filter(r => r.status === 'settled').reduce((s,r)=>s+Number(r.amount||0),0);
+            const count = filtered.length;
+            const empCount = {};
+            peData.forEach(r => { if (r.employee) empCount[r.employee] = (empCount[r.employee]||0)+1; });
+            const topEmp = Object.entries(empCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
+
+            const el = id => document.getElementById(id);
+            if (el('pe-kpi-pending')) el('pe-kpi-pending').textContent = peFmt(pending);
+            if (el('pe-kpi-settled')) el('pe-kpi-settled').textContent = peFmt(settled);
+            if (el('pe-kpi-count'))   el('pe-kpi-count').textContent   = count + '건';
+            if (el('pe-kpi-topemp'))  el('pe-kpi-topemp').textContent  = topEmp;
+        }
+
+        /* 직원별 / 카테고리별 집계 차트 (미정산/정산완료 막대) */
+        function peUpdateCharts(filtered) {
+            const empMap = {};
+            filtered.forEach(r => {
+                const k = r.employee || '(직원 미입력)';
+                if (!empMap[k]) empMap[k] = { pending:0, settled:0 };
+                empMap[k][(r.status==='settled') ? 'settled' : 'pending'] += Number(r.amount||0);
+            });
+            const empEl = document.getElementById('pe-employee-chart');
+            if (empEl) {
+                const sorted = Object.entries(empMap).sort((a,b)=>(b[1].pending+b[1].settled)-(a[1].pending+a[1].settled));
+                empEl.innerHTML = sorted.length ? sorted.map(([k,v])=>{
+                    const total = v.pending + v.settled || 1;
+                    const pendingPct = Math.round(v.pending/total*100);
+                    return `<div>
+                        <div class="flex justify-between text-[10px] font-semibold mb-0.5">
+                            <span class="text-slate-700 dark:text-slate-300 truncate max-w-[50%]">${k}</span>
+                            <span class="text-slate-500">미정산 <b class="text-rose-600">${peFmt(v.pending)}</b> · 정산 <b class="text-emerald-600">${peFmt(v.settled)}</b></span>
+                        </div>
+                        <div class="h-2 bg-emerald-200 dark:bg-emerald-900/40 rounded-full overflow-hidden">
+                            <div class="h-full bg-rose-500 rounded-full" style="width:${pendingPct}%"></div>
+                        </div>
+                    </div>`;
+                }).join('') : '<p class="text-slate-400 text-[10px]">데이터 없음</p>';
+            }
+
+            const catMap = {};
+            filtered.forEach(r => { const k=r.cat||'기타'; catMap[k]=(catMap[k]||0)+Number(r.amount||0); });
+            const catTotal = Object.values(catMap).reduce((s,v)=>s+v,0) || 1;
+            const catEl = document.getElementById('pe-cat-chart');
+            if (catEl) {
+                const sorted = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+                catEl.innerHTML = sorted.length ? sorted.map(([k,v])=>`
+                    <div>
+                        <div class="flex justify-between text-[10px] font-semibold mb-0.5">
+                            <span class="text-slate-700 dark:text-slate-300">${k}</span>
+                            <span class="text-slate-500">${peFmt(v)} <span class="text-slate-400">(${Math.round(v/catTotal*100)}%)</span></span>
+                        </div>
+                        <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-pink-500 rounded-full" style="width:${Math.round(v/catTotal*100)}%"></div>
+                        </div>
+                    </div>`).join('') : '<p class="text-slate-400 text-[10px]">데이터 없음</p>';
+            }
+        }
+
+        /* 테이블 렌더링 */
+        function peRender() {
+            peData = peLoad();
+            peRefreshFilterOptions();
+
+            const sorted = [...peData].sort((a,b) => {
+                let av = a[peSortKey]||'', bv = b[peSortKey]||'';
+                if (peSortKey==='amount') { av=Number(av); bv=Number(bv); }
+                if (av < bv) return peSortAsc ? -1 : 1;
+                if (av > bv) return peSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const filtered = peFiltered();
+            const filteredIds = new Set(filtered.map(r=>r.id));
+            const filteredSorted = sorted.filter(r=>filteredIds.has(r.id));
+
+            const tbody = document.getElementById('pe-tbody');
+            const tfoot = document.getElementById('pe-tfoot');
+            if (!tbody) return;
+
+            if (!filteredSorted.length) {
+                tbody.innerHTML = `<tr><td colspan="12" class="py-12 text-center text-slate-400 text-sm">${peData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
+                if (tfoot) tfoot.innerHTML = '';
+            } else {
+                let totalAmt = 0, pendingAmt = 0;
+                const rowsHtml = filteredSorted.map((r, idx) => {
+                    totalAmt += Number(r.amount||0);
+                    if ((r.status||'pending') !== 'settled') pendingAmt += Number(r.amount||0);
+                    const rowBg = idx%2===0 ? '' : 'bg-slate-50 dark:bg-slate-800/30';
+                    const acctLine = (r.bank || r.account || r.holder)
+                        ? `${r.bank||''} ${r.account||''}${r.holder ? ' ('+r.holder+')' : ''}`.trim()
+                        : '<span class="text-slate-300">미등록</span>';
+                    return `<tr class="${rowBg} hover:bg-pink-50 dark:hover:bg-pink-900/10 transition-colors">
+                        <td class="px-2 py-2 text-center text-slate-400 font-mono text-[10px]">${idx+1}</td>
+                        <td class="px-2 py-2 text-center text-slate-700 dark:text-slate-300 font-mono text-[11px]">${r.date||''}</td>
+                        <td class="px-2 py-2 text-center text-slate-800 dark:text-slate-100 font-bold text-[11px]">${r.employee||''}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.cat||'기타'}</td>
+                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}</td>
+                        <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-[10px] text-slate-600 dark:text-slate-400 truncate max-w-[160px]" title="${acctLine.replace(/"/g,'&quot;')}">${acctLine}</td>
+                        <td class="px-2 py-2 text-center">${peStatusBadge(r.status)}</td>
+                        <td class="px-2 py-2 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400">${r.settleDate||'-'}</td>
+                        <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
+                        <td class="px-2 py-2 text-center no-print">
+                            <div class="flex items-center justify-center gap-1">
+                                ${r.status !== 'settled' ? `<button onclick="peQuickSettle('${r.id}')" class="p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30" title="정산완료 처리"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>` : ''}
+                                <button onclick="peEditRow('${r.id}')" class="p-1 rounded text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="수정"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="peDeleteRow('${r.id}')" class="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = rowsHtml.join('');
+                if (tfoot) {
+                    tfoot.innerHTML = `<tr>
+                        <td colspan="5" class="px-2 py-2 text-right text-xs text-slate-600 dark:text-slate-300 font-bold">합계 (${filteredSorted.length}건)</td>
+                        <td class="px-2 py-2 text-right text-sm font-black text-pink-700 dark:text-pink-400">${totalAmt.toLocaleString('ko-KR')}</td>
+                        <td colspan="2" class="px-2 py-2"></td>
+                        <td class="px-2 py-2 text-right text-[10px] text-rose-600 font-bold">미정산 ${pendingAmt.toLocaleString('ko-KR')}</td>
+                        <td colspan="3" class="px-2 py-2"></td>
+                    </tr>`;
+                }
+            }
+
+            const sumEl = document.getElementById('pe-filter-summary');
+            if (sumEl) {
+                const totalFiltered = filteredSorted.reduce((s,r)=>s+Number(r.amount||0),0);
+                sumEl.textContent = filteredSorted.length ? `조회 ${filteredSorted.length}건 · ${peFmt(totalFiltered)}` : '';
+            }
+
+            peUpdateKpi(filteredSorted);
+            peUpdateCharts(filteredSorted);
+
+            // 대시보드 바로가기 카드 건수 갱신
+            const cntEl = document.getElementById('dash-cnt-personalexp');
+            if (cntEl) cntEl.textContent = peData.filter(r=>(r.status||'pending')!=='settled').length + '건';
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 정렬 */
+        function peSort(key) {
+            if (peSortKey === key) { peSortAsc = !peSortAsc; } else { peSortKey = key; peSortAsc = false; }
+            peRender();
+        }
+
+        /* 정산일자 입력란 표시/숨김 */
+        function peToggleSettleDate() {
+            const status = document.getElementById('pe-edit-status')?.value;
+            const wrap = document.getElementById('pe-settledate-wrap');
+            const dateInput = document.getElementById('pe-edit-settledate');
+            if (!wrap) return;
+            if (status === 'settled') {
+                wrap.style.opacity = '1';
+                if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+            } else {
+                wrap.style.opacity = '0.5';
+            }
+        }
+
+        /* 금액 미리보기(한글금액) */
+        function peFormatAmtPreview() {
+            const amt = Number(document.getElementById('pe-edit-amount')?.value) || 0;
+            const el = document.getElementById('pe-amt-preview');
+            if (el) el.textContent = amt ? peFmt(amt) : '';
+        }
+
+        /* 추가 모달 열기 */
+        function peAddRow() {
+            peRefreshFilterOptions();
+            document.getElementById('pe-edit-id').value = '';
+            document.getElementById('pe-modal-title').textContent = '개인경비 내역 추가';
+            document.getElementById('pe-edit-date').value = new Date().toISOString().slice(0,10);
+            document.getElementById('pe-edit-employee').value = '';
+            document.getElementById('pe-edit-cat').value = '유류비';
+            document.getElementById('pe-edit-merchant').value = '';
+            document.getElementById('pe-edit-amount').value = '';
+            document.getElementById('pe-edit-site').value = '';
+            const curDocForPe = savedDocuments.find(d => d.id === currentDocId);
+            document.getElementById('pe-edit-company').value = curDocForPe?.company || '';
+            document.getElementById('pe-edit-bank').value = '';
+            document.getElementById('pe-edit-holder').value = '';
+            document.getElementById('pe-edit-account').value = '';
+            document.getElementById('pe-edit-status').value = 'pending';
+            document.getElementById('pe-edit-settledate').value = '';
+            document.getElementById('pe-edit-memo').value = '';
+            document.getElementById('pe-amt-preview').textContent = '';
+            peToggleSettleDate();
+            document.getElementById('pe-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            setTimeout(()=>document.getElementById('pe-edit-employee').focus(), 100);
+        }
+
+        /* 수정 모달 열기 — 직원 계좌 자동완성: 동일 직원의 최근 등록 계좌를 자동으로 채워준다 */
+        function peEditRow(id) {
+            peData = peLoad();
+            const r = peData.find(x=>x.id===id);
+            if (!r) return;
+            peRefreshFilterOptions();
+            document.getElementById('pe-edit-id').value = r.id;
+            document.getElementById('pe-modal-title').textContent = '개인경비 내역 수정';
+            document.getElementById('pe-edit-date').value = r.date||'';
+            document.getElementById('pe-edit-employee').value = r.employee||'';
+            document.getElementById('pe-edit-cat').value = r.cat||'기타';
+            document.getElementById('pe-edit-merchant').value = r.merchant||'';
+            document.getElementById('pe-edit-amount').value = r.amount||'';
+            document.getElementById('pe-edit-site').value = r.site||'';
+            document.getElementById('pe-edit-company').value = r.company||'';
+            document.getElementById('pe-edit-bank').value = r.bank||'';
+            document.getElementById('pe-edit-holder').value = r.holder||'';
+            document.getElementById('pe-edit-account').value = r.account||'';
+            document.getElementById('pe-edit-status').value = r.status||'pending';
+            document.getElementById('pe-edit-settledate').value = r.settleDate||'';
+            document.getElementById('pe-edit-memo').value = r.memo||'';
+            peFormatAmtPreview();
+            peToggleSettleDate();
+            document.getElementById('pe-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 직원명 입력 시 최근 등록된 해당 직원 계좌를 자동으로 채워줌 (신규 입력 편의) */
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'pe-edit-employee') {
+                const editingId = document.getElementById('pe-edit-id')?.value;
+                if (editingId) return; // 수정 모드에서는 덮어쓰지 않음
+                const name = e.target.value.trim();
+                if (!name) return;
+                const arr = peLoad();
+                const recent = [...arr].filter(r=>r.employee===name && (r.bank||r.account)).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+                if (recent) {
+                    document.getElementById('pe-edit-bank').value = recent.bank||'';
+                    document.getElementById('pe-edit-holder').value = recent.holder||name;
+                    document.getElementById('pe-edit-account').value = recent.account||'';
+                    showToast(`[${name}]님의 최근 등록 계좌를 자동으로 불러왔습니다.`);
+                }
+            }
+        });
+
+        /* 모달 저장 */
+        function peSaveModal() {
+            const date     = document.getElementById('pe-edit-date').value;
+            const employee = document.getElementById('pe-edit-employee').value.trim();
+            const cat      = document.getElementById('pe-edit-cat').value;
+            const merchant = document.getElementById('pe-edit-merchant').value.trim();
+            const amount   = Number(document.getElementById('pe-edit-amount').value) || 0;
+            const site     = document.getElementById('pe-edit-site').value.trim();
+            const company  = document.getElementById('pe-edit-company').value.trim();
+            const bank     = document.getElementById('pe-edit-bank').value.trim();
+            const holder   = document.getElementById('pe-edit-holder').value.trim();
+            const account  = document.getElementById('pe-edit-account').value.trim();
+            const status   = document.getElementById('pe-edit-status').value;
+            const settleDate = status === 'settled' ? (document.getElementById('pe-edit-settledate').value || new Date().toISOString().slice(0,10)) : '';
+            const memo     = document.getElementById('pe-edit-memo').value.trim();
+
+            if (!date)     { showToast('사용일자를 입력하세요.', 'error'); return; }
+            if (!employee) { showToast('직원명을 입력하세요.', 'error'); return; }
+            if (!amount)   { showToast('금액을 입력하세요.', 'error'); return; }
+
+            peData = peLoad();
+            const existingId = document.getElementById('pe-edit-id').value;
+            if (existingId) {
+                const idx = peData.findIndex(r=>r.id===existingId);
+                if (idx>=0) peData[idx] = { ...peData[idx], date, employee, cat, merchant, amount, site, company, bank, holder, account, status, settleDate, memo };
+            } else {
+                peData.push({ id: 'pe-' + Date.now(), date, employee, cat, merchant, amount, site, company, bank, holder, account, status, settleDate, memo });
+            }
+            peData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+            peSave();
+            peCloseModal();
+            peRender();
+            showToast('저장 완료!', 'success');
+        }
+
+        /* 모달 닫기 */
+        function peCloseModal() {
+            document.getElementById('pe-modal').classList.add('hidden');
+        }
+
+        /* 목록에서 바로 정산완료 처리 (오늘 날짜로) */
+        function peQuickSettle(id) {
+            peData = peLoad();
+            const idx = peData.findIndex(r=>r.id===id);
+            if (idx < 0) return;
+            if (!peData[idx].bank && !peData[idx].account) {
+                if (!confirm('입금계좌가 등록되어 있지 않습니다. 그래도 정산완료로 처리하시겠습니까?')) return;
+            }
+            peData[idx].status = 'settled';
+            peData[idx].settleDate = new Date().toISOString().slice(0,10);
+            peSave();
+            peRender();
+            showToast(`[${peData[idx].employee}] 정산완료 처리되었습니다.`, 'success');
+        }
+
+        /* 행 삭제 */
+        function peDeleteRow(id) {
+            if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+            peData = peLoad();
+            peData = peData.filter(r=>r.id!==id);
+            peSave();
+            peRender();
+            showToast('삭제되었습니다.', 'success');
+        }
+
+        /* 필터 초기화 */
+        function peClearFilters() {
+            const ids = ['pe-filter-month','pe-filter-employee','pe-filter-cat','pe-filter-site','pe-filter-status','pe-filter-search'];
+            ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+            peRender();
+        }
+
+        /* 엑셀 내보내기 — 계좌정보 포함, 은행 이체용으로 바로 활용 가능 */
+        function peExportExcel() {
+            if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
+            peData = peLoad();
+            const filtered = peFiltered();
+            if (!filtered.length) { showToast('내보낼 데이터가 없습니다. (필터 조건을 확인하세요)', 'error'); return; }
+
+            const rows = filtered.map((r,i) => ({
+                'No': i+1,
+                '사용일자': r.date||'',
+                '직원명': r.employee||'',
+                '카테고리': r.cat||'',
+                '가맹점명': r.merchant||'',
+                '금액': Number(r.amount||0),
+                '현장': r.site||'',
+                '회사': r.company||'',
+                '은행': r.bank||'',
+                '계좌번호': r.account||'',
+                '예금주': r.holder||'',
+                '정산상태': r.status==='settled' ? '정산완료' : '미정산',
+                '정산일자': r.settleDate||'',
+                '메모': r.memo||''
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [
+                {wch:5},{wch:12},{wch:10},{wch:10},{wch:24},{wch:12},{wch:20},{wch:16},{wch:14},{wch:20},{wch:10},{wch:10},{wch:12},{wch:32}
+            ];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '개인경비정산');
+
+            // 미정산 건만 모은 "이체 실행용" 시트
+            const pendingList = filtered.filter(r => (r.status||'pending') !== 'settled');
+            if (pendingList.length) {
+                const prows = pendingList.map((r,i)=>({
+                    'No': i+1, '직원명': r.employee||'', '은행': r.bank||'', '계좌번호': r.account||'',
+                    '예금주': r.holder||r.employee||'', '이체금액': Number(r.amount||0), '메모': r.memo||''
+                }));
+                const total = pendingList.reduce((s,r)=>s+Number(r.amount||0),0);
+                prows.push({'No':'합계','직원명':'','은행':'','계좌번호':'','예금주':'','이체금액':total,'메모':''});
+                const ws2 = XLSX.utils.json_to_sheet(prows);
+                ws2['!cols'] = [{wch:5},{wch:10},{wch:14},{wch:20},{wch:10},{wch:14},{wch:24}];
+                XLSX.utils.book_append_sheet(wb, ws2, '미정산_이체실행용');
+            }
+
+            XLSX.writeFile(wb, `개인경비정산_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast(`엑셀 내보내기 완료 (${filtered.length}건)`, 'success');
+        }
+
+        /* 인쇄 */
+        function pePrint() {
+            peData = peLoad();
+            const filtered = peFiltered();
+            if (!filtered.length) { showToast('출력할 데이터가 없습니다.', 'error'); return; }
+
+            const monthVal = document.getElementById('pe-filter-month')?.value || '';
+            const monthLabel = monthVal ? `${monthVal.slice(0,4)}년 ${Number(monthVal.slice(5,7))}월분` : '전체 기간';
+            const totalAmt = filtered.reduce((s,r)=>s+Number(r.amount||0),0);
+            const rows = filtered.map((r,i)=>`
+                <tr style="background:${i%2?'#f8fafc':'#fff'};">
+                    <td style="text-align:center;color:#94a3b8;font-size:10px;">${i+1}</td>
+                    <td style="text-align:center;font-family:monospace;">${r.date||''}</td>
+                    <td style="text-align:center;font-weight:700;">${r.employee||''}</td>
+                    <td style="text-align:center;">${r.cat||''}</td>
+                    <td>${r.merchant||''}</td>
+                    <td style="text-align:right;font-weight:700;">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
+                    <td style="text-align:center;color:#64748b;font-size:10px;">${r.bank||''} ${r.account||''}</td>
+                    <td style="text-align:center;">${r.status==='settled' ? '정산완료' : '미정산'}</td>
+                    <td style="color:#64748b;font-size:10px;">${r.memo||''}</td>
+                </tr>`).join('');
+
+            const win = window.open('','_blank','width=1000,height=800');
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+                <title>개인경비 정산 관리대장 - ${monthLabel}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+                <style>
+                    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+                    body{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#1e293b;margin:0;padding:12mm;}
+                    @page{size:A4 landscape;margin:10mm;}
+                    h1{font-size:16px;font-weight:900;text-align:center;margin-bottom:4px;}
+                    .sub{text-align:center;font-size:10px;color:#64748b;margin-bottom:8px;}
+                    table{width:100%;border-collapse:collapse;font-size:10px;}
+                    th{background:#1e293b;color:#fff;padding:5px 4px;text-align:center;font-weight:700;}
+                    td{border:1px solid #e2e8f0;padding:4px;vertical-align:middle;}
+                    tfoot td{background:#f1f5f9;font-weight:900;border-top:2px solid #334155;}
+                    @media print{body{padding:0;}}
+                </style>
+            </head><body>
+            <h1>개인경비 정산 관리대장 <span style="font-weight:700;color:#db2777;">(${monthLabel})</span></h1>
+            <div class="sub">출력일: ${new Date().toLocaleDateString('ko-KR')} · 대상: ${monthLabel} · 총 ${filtered.length}건 · 합계 ${totalAmt.toLocaleString('ko-KR')}원</div>
+            <table>
+                <thead><tr>
+                    <th style="width:32px;">No</th><th style="width:80px;">사용일자</th>
+                    <th style="width:70px;">직원명</th><th style="width:64px;">카테고리</th>
+                    <th style="width:150px;">가맹점명</th><th style="width:80px;">금액(원)</th>
+                    <th style="width:150px;">입금계좌</th><th style="width:60px;">정산상태</th><th>메모</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+                <tfoot><tr>
+                    <td colspan="5" style="text-align:right;">합 계</td>
+                    <td style="text-align:right;">${totalAmt.toLocaleString('ko-KR')}</td>
+                    <td colspan="3"></td>
+                </tr></tfoot>
+            </table>
+            </body></html>`);
+            win.document.close();
+            setTimeout(()=>{ win.focus(); win.print(); }, 400);
+        }
+
+        /* 백업 */
+        function peBackup() {
+            peData = peLoad();
+            if (!peData.length) { showToast('백업할 데이터가 없습니다.', 'error'); return; }
+            const blob = new Blob([JSON.stringify(peData, null, 2)], { type:'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `개인경비정산_백업_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            showToast('백업 파일 다운로드 완료', 'success');
+        }
+
+        /* 복원 */
+        function peRestore(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const arr = JSON.parse(ev.target.result);
+                    if (!Array.isArray(arr)) throw new Error();
+                    if (!confirm(`${arr.length}건을 복원합니다. 기존 데이터는 덮어씁니다.`)) return;
+                    peData = arr;
+                    peSave();
+                    peRender();
                     showToast(`${arr.length}건 복원 완료`, 'success');
                 } catch { showToast('유효하지 않은 파일입니다.', 'error'); }
             };
