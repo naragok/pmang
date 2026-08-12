@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.15</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.17</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -3551,7 +3551,7 @@
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">공급가액 (원) <span class="text-rose-500">*</span></label>
-                    <input type="text" inputmode="numeric" id="modal-supply" placeholder="0" oninput="formatModalAmount(this); calcModalVatOnInput(); updateModalKoreanAmount();" onkeydown="handleModalRowEnterKey(event)" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
+                    <input type="text" inputmode="numeric" id="modal-supply" placeholder="0 또는 =750000*12" oninput="formatModalAmount(this); calcModalVatOnInput(); updateModalKoreanAmount();" onblur="resolveModalAmountExpr(this)" onkeydown="if(event.key==='Enter'){resolveModalAmountExpr(this);} handleModalRowEnterKey(event)" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 text-right outline-none font-semibold">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">부가세 (원)</label>
@@ -6546,8 +6546,24 @@
             };
             let prevCatLabel = null;
             let catRowNum = 0; // 구분이 바뀔 때마다 1부터 다시 세는 번호 카운터 (기본 정렬 시에만 사용)
+            let autoFilledHolderCount = 0;
 
             filteredDataset.forEach((row, index) => {
+                // ★ 예금주가 비어있고 대표자(ceo)가 입력되어 있으면, 그 대표자 명의로 등록된 계좌를 자동으로 채운다.
+                //   같은 거래처명이라도 대표자가 다르면 다른 계좌를 써야 하므로, 대표자 일치를 최우선으로 매칭한다.
+                if (!row.holder && row.ceo) {
+                    const norm = (v) => (v||'').toString().trim();
+                    const matched = accountDb.find(a => norm(a.ceo) === norm(row.ceo));
+                    if (matched) {
+                        row.holder  = matched.holder;
+                        row.bank    = matched.bank;
+                        row.account = matched.account;
+                        row.phone   = matched.phone  || row.phone  || '';
+                        row.biznum  = matched.biznum || row.biznum || '';
+                        autoFilledHolderCount++;
+                    }
+                }
+
                 const totalRowAmt = (row.supply || 0) + (row.tax || 0);
                 const requestAmt = totalRowAmt - (row.deduction || 0) - (row.prepaid || 0);
 
@@ -6685,7 +6701,7 @@
                         <div class="flex items-center w-full justify-between gap-1">
                             ${holderWarnIcon}
                             <select onchange="handleHolderChange(${row.id}, this.value)" class="${holderSelectClass}">
-                                ${getHolderOptionsHtml(row.holder)}
+                                ${getHolderOptionsHtml(row.holder, row.ceo, row.vendor)}
                             </select>
                             ${showDbRegBtn}
                         </div>
@@ -6779,6 +6795,12 @@
             updateSortIcons();
             initDragDrop();
             renderTagChips();
+
+            // 대표자명 기준 예금주 자동 채움이 발생했다면 저장 (재렌더링은 호출하지 않음 — 무한루프 방지)
+            if (autoFilledHolderCount > 0) {
+                saveToLocalStorage();
+                showToast(`대표자명 일치로 예금주 ${autoFilledHolderCount}건이 자동 매칭되었습니다.`, 'success');
+            }
         }
         window._searchFields = { vendor: true, holder: true, account: false, biznum: false, note: true };
         function toggleSearchField(field) {
@@ -7252,9 +7274,77 @@
         }
 
         /* 모달 금액 입력 필드: 입력 중 천단위 콤마 자동 표시 */
+        /* ── 금액 입력란에 "=750000*12" 같은 수식을 입력하면 자동 계산 ──
+              보안을 위해 숫자, 공백, 사칙연산 기호, 괄호 외의 문자는 전혀 허용하지 않는다 (eval 미사용, 자체 파서 사용). */
+        function evalSimpleMathExpr(expr) {
+            const cleaned = expr.replace(/[, ]/g, '');
+            if (!/^[0-9+\-*/().]+$/.test(cleaned)) return null;
+            try {
+                // 자체 재귀하강 파서 — 사칙연산과 괄호만 지원, 함수/변수 호출 등은 애초에 불가능
+                let pos = 0;
+                const peek = () => cleaned[pos];
+                const parseNumber = () => {
+                    const start = pos;
+                    while (pos < cleaned.length && /[0-9.]/.test(cleaned[pos])) pos++;
+                    if (pos === start) throw new Error('invalid');
+                    return parseFloat(cleaned.slice(start, pos));
+                };
+                const parseFactor = () => {
+                    if (peek() === '(') {
+                        pos++;
+                        const v = parseExpr();
+                        if (peek() !== ')') throw new Error('invalid');
+                        pos++;
+                        return v;
+                    }
+                    if (peek() === '-') { pos++; return -parseFactor(); }
+                    if (peek() === '+') { pos++; return parseFactor(); }
+                    return parseNumber();
+                };
+                const parseTerm = () => {
+                    let v = parseFactor();
+                    while (peek() === '*' || peek() === '/') {
+                        const op = cleaned[pos]; pos++;
+                        const rhs = parseFactor();
+                        v = op === '*' ? v * rhs : v / rhs;
+                    }
+                    return v;
+                };
+                const parseExpr = () => {
+                    let v = parseTerm();
+                    while (peek() === '+' || peek() === '-') {
+                        const op = cleaned[pos]; pos++;
+                        const rhs = parseTerm();
+                        v = op === '+' ? v + rhs : v - rhs;
+                    }
+                    return v;
+                };
+                const result = parseExpr();
+                if (pos !== cleaned.length || !isFinite(result)) return null;
+                return Math.round(result);
+            } catch (e) {
+                return null;
+            }
+        }
+
         function formatModalAmount(el) {
-            const raw = el.value.replace(/[^0-9]/g, '');
+            const val = el.value.trim();
+            if (val.startsWith('=')) return; // 수식 입력 중에는 그대로 두고, blur/Enter 시점에 계산한다
+            const raw = val.replace(/[^0-9]/g, '');
             el.value = raw ? Number(raw).toLocaleString('ko-KR') : '';
+        }
+
+        /* 금액 입력란이 "=수식" 형태면 계산해서 결과 숫자로 치환한다. blur, Enter 시 호출 */
+        function resolveModalAmountExpr(el) {
+            const val = el.value.trim();
+            if (!val.startsWith('=')) return;
+            const result = evalSimpleMathExpr(val.slice(1));
+            if (result === null) {
+                showToast('수식을 계산할 수 없습니다. 예) =750000*12', 'error');
+                return;
+            }
+            el.value = Math.max(0, result).toLocaleString('ko-KR');
+            el.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
         function getModalAmountValue(id) {
@@ -9666,13 +9756,21 @@ function changePrintScale(value) {
             }
         }
 
-        function getHolderOptionsHtml(selectedHolder) {
+        function getHolderOptionsHtml(selectedHolder, rowCeo, rowVendor) {
             let options = `<option value="">⚠️ 예금주 미선택</option>`;
-            accountDb.forEach(acc => {
+            // 대표자명이 일치하는 계좌를 최상단에, 나머지는 그 다음에 정렬 (혼동 방지)
+            const norm = (v) => (v||'').toString().trim();
+            const sorted = [...accountDb].sort((a, b) => {
+                const aMatch = rowCeo && norm(a.ceo) === norm(rowCeo) ? 0 : 1;
+                const bMatch = rowCeo && norm(b.ceo) === norm(rowCeo) ? 0 : 1;
+                return aMatch - bMatch;
+            });
+            sorted.forEach(acc => {
                 const isSelected = acc.holder === selectedHolder ? 'selected' : '';
                 // 계좌번호 끝 4자리를 함께 표시해 혼동 방지
                 const accountSuffix = acc.account ? acc.account.slice(-4) : '??';
-                options += `<option value="${acc.holder}" ${isSelected}>${acc.holder} (${acc.bank || '미기입'} …${accountSuffix})</option>`;
+                const ceoTag = rowCeo && norm(acc.ceo) === norm(rowCeo) ? ' ★대표자일치' : (acc.ceo ? ` (대표:${acc.ceo})` : '');
+                options += `<option value="${acc.holder}" ${isSelected}>${acc.holder} (${acc.bank || '미기입'} …${accountSuffix})${ceoTag}</option>`;
             });
             return options;
         }
