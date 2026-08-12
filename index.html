@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.17</title>
+    <title>현장 자금관리 PRO V1.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -3392,7 +3392,7 @@
         <div class="shrink-0 flex items-center justify-between px-5 py-2 bg-slate-900 border-t border-slate-700 text-[11px] text-slate-400">
             <span><kbd class="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono">ESC</kbd> 닫기</span>
             <span>미리보기는 브라우저 렌더링 기반으로, 실제 프린터 출력과 약간 다를 수 있습니다.</span>
-            <span class="text-emerald-400 font-semibold">현장 경비관리 마스터 <span class="app-version-label">Pro V1.0</span></span>
+            <span class="text-emerald-400 font-semibold">현장 자금관리 마스터 <span class="app-version-label">Pro V1.0</span></span>
         </div>
     </div>
 
@@ -4117,9 +4117,10 @@
         // 표기 규칙: V{MAJOR}.{MINOR}  (예: V1.0 → V1.1 → V1.2 … → V1.9 → V2.0)
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
-        const APP_VERSION = '11.2';
-        const APP_VERSION_DATE = '2026-07-30';
-        const APP_VERSION_NOTE = '청구항목 메모/적요에 #태그(예: #긴급, #확인필요) 기능 추가 — 태그가 있으면 필터바에 색상 칩으로 자동 노출, 클릭 시 해당 태그 항목만 필터링. 메모 아이콘도 태그 색상으로 표시. (컬럼 정렬은 이미 구현되어 있어 별도 작업 없음)';
+        const APP_NAME = '현장 자금관리';
+        const APP_VERSION = '1.1';
+        const APP_VERSION_DATE = '2026-08-12';
+        const APP_VERSION_NOTE = '"자금 청구 항목 수정" 모달을 열 때 대표자명 기준으로 계좌 마스터 DB를 조회해 계좌번호를 자동 매핑. 이미 계좌가 저장돼 있어도 대표자와 불일치하면 대표자 우선으로 자동 보정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4232,7 +4233,7 @@
             document.querySelectorAll('.app-version-label').forEach(el => { el.textContent = label; });
             const headerBadge = document.getElementById('app-version-badge');
             if (headerBadge) { headerBadge.textContent = label; headerBadge.title = `버전 ${APP_VERSION} (${APP_VERSION_DATE}) — ${APP_VERSION_NOTE}`; }
-            document.title = `건설현장 자금청구 및 지불의뢰서 시스템 ${label}`;
+            document.title = `${APP_NAME} ${label}`;
         }
         document.addEventListener('DOMContentLoaded', applyAppVersionBadges);
 
@@ -7110,10 +7111,43 @@
             document.getElementById('modal-note').value      = row.note || "";
 
             if (row.account) {
+                // 이미 계좌가 있어도, 대표자명 기준 DB 매칭 결과와 다르면 대표자 우선으로 자동 보정한다.
+                // (거래처명 폴백은 쓰지 않는다 — 같은 거래처명, 다른 대표자인 경우 엉뚱한 계좌로 덮어쓸 위험이 있기 때문)
+                const matchedForExisting = row.ceo ? findAccountMatch({ ceo: row.ceo }, ['ceo']) : null;
+                const norm = (v) => (v||'').toString().trim();
+                const mismatched = matchedForExisting && norm(matchedForExisting.holder) !== norm(row.holder);
+                if (mismatched) {
+                    row.bank    = matchedForExisting.bank    || '';
+                    row.account = matchedForExisting.account || '';
+                    row.holder  = matchedForExisting.holder  || '';
+                    row.phone   = matchedForExisting.phone   || row.phone   || '';
+                    row.biznum  = matchedForExisting.biznum  || row.biznum  || '';
+                    saveToLocalStorage();
+                    showToast(`⚠ 계좌정보가 대표자 [${row.ceo}] 명의 계좌로 자동 보정되었습니다.`, 'success');
+                }
                 document.getElementById('modal-preview-bank').textContent    = (row.bank || '') + '은행';
                 document.getElementById('modal-preview-account').textContent = row.account || '';
                 document.getElementById('modal-preview-holder').textContent  = row.holder || '';
                 document.getElementById('modal-account-preview').classList.remove('hidden');
+            } else if (row.ceo) {
+                // ★ 계좌가 비어있는 행을 수정하려고 열면, 대표자명 기준으로 계좌 마스터 DB를 조회해 자동으로 채워준다.
+                //   (거래처명 폴백은 쓰지 않는다 — 대표자 명의 계좌가 DB에 없으면 채우지 않고 그대로 비워둔다)
+                const matched = findAccountMatch({ ceo: row.ceo }, ['ceo']);
+                if (matched) {
+                    row.bank    = matched.bank    || '';
+                    row.account = matched.account || '';
+                    row.holder  = matched.holder  || '';
+                    row.phone   = matched.phone   || row.phone   || '';
+                    row.biznum  = matched.biznum  || row.biznum  || '';
+                    document.getElementById('modal-preview-bank').textContent    = (matched.bank || '') + '은행';
+                    document.getElementById('modal-preview-account').textContent = matched.account || '';
+                    document.getElementById('modal-preview-holder').textContent  = matched.holder || '';
+                    document.getElementById('modal-account-preview').classList.remove('hidden');
+                    saveToLocalStorage();
+                    showToast(`대표자 [${row.ceo}] 명의 계좌를 자동으로 매핑했습니다.`, 'success');
+                } else {
+                    document.getElementById('modal-account-preview').classList.add('hidden');
+                }
             } else {
                 document.getElementById('modal-account-preview').classList.add('hidden');
             }
@@ -12739,6 +12773,7 @@ function changePrintScale(value) {
                 reqHtml += cardHtml;
                 summaryRowsHtml.push(`<tr><td>${esc(row.vendor)}</td><td>${esc(row.ceo||'')}</td><td class="ctr">${esc(row.type||'')}</td>
                     <td class="num">${won(supplySum)}</td><td class="num">${won(taxSum)}</td><td class="num">${won(total)}</td>
+                    <td class="num">${won(row.deduction||0)}</td><td class="num">${won(row.prepaid||0)}</td><td class="num" style="font-weight:800;">${won(reqAmt)}</td>
                     <td>${esc(bank)} ${esc(account)} (${esc(holder)})</td></tr>`);
             }
 
@@ -12796,8 +12831,17 @@ ${REQ_CARD_CSS}
     <div class="page">
         <h2>지불의뢰서 요약</h2>
         <table>
-            <thead><tr><th>거래처</th><th>대표자</th><th>공종</th><th>공급가액</th><th>부가세</th><th>합계금액</th><th>은행/계좌</th></tr></thead>
+            <thead><tr><th>거래처</th><th>대표자</th><th>공종</th><th>공급가액</th><th>부가세</th><th>합계금액</th>
+                <th>공제금액</th><th>선지급</th><th>지급요청금액</th><th>은행/계좌</th></tr></thead>
             <tbody>${summaryRowsHtml.join('')}</tbody>
+            <tfoot><tr class="grand"><td colspan="3">합계 (${reqCount}건)</td>
+                <td class="num">${won(dataset.filter(r=>r.vendor).reduce((s,r)=>s+(r.supply||0),0))}</td>
+                <td class="num">${won(dataset.filter(r=>r.vendor).reduce((s,r)=>s+(r.tax||0),0))}</td>
+                <td class="num">${won(dataset.filter(r=>r.vendor).reduce((s,r)=>s+(r.supply||0)+(r.tax||0),0))}</td>
+                <td class="num">${won(dataset.filter(r=>r.vendor).reduce((s,r)=>s+(r.deduction||0),0))}</td>
+                <td class="num">${won(dataset.filter(r=>r.vendor).reduce((s,r)=>s+(r.prepaid||0),0))}</td>
+                <td class="num">${won(reqTotalAmt)}</td>
+                <td></td></tr></tfoot>
         </table>
     </div>
 
