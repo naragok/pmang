@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.13</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.15</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1133,8 +1133,8 @@
                     <i data-lucide="building-2" class="w-2.5 h-2.5" style="color:#38bdf8;"></i> <span style="font-size:9px;font-weight:700;">거래처DB</span>
                     <span id="vendor-master-badge-hdr" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#0ea5e9;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
                 </button>
-                <button id="add-row-hdr-btn" onclick="openAddRowModal()" class="hdr-btn" style="padding:4px 8px;background:#dc2626;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
-                    <i data-lucide="plus-circle" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">청구 항목 추가</span>
+                <button id="add-row-hdr-btn" onclick="openAddRowModal()" class="hdr-btn" style="padding:7px 14px;background:#dc2626;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> <span style="font-size:12px;font-weight:800;">청구 항목 추가</span>
                 </button>
                 <button onclick="openTrashModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;position:relative;" title="삭제한 청구항목 복구">
                     <i data-lucide="trash-2" class="w-2.5 h-2.5" style="color:#f87171;"></i> <span style="font-size:9px;font-weight:700;">휴지통</span>
@@ -1281,7 +1281,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-2">
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">예금주 (실명 필수)</label>
-                        <input type="text" id="new-db-holder" placeholder="예: 유용근" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
+                        <input type="text" id="new-db-holder" oninput="this.dataset.autofilled='0'" placeholder="예: 유용근" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">은행</label>
@@ -1293,7 +1293,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">대표자명</label>
-                        <input type="text" id="new-db-ceo" placeholder="예: 유용근" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
+                        <input type="text" id="new-db-ceo" oninput="autoFillNewDbHolder()" placeholder="예: 유용근" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">거래처 연계 명칭</label>
@@ -3602,7 +3602,7 @@
                         <input type="text" id="modal-db-biznum" placeholder="사업자등록번호 (선택)" class="border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-xs bg-white dark:bg-slate-800 dark:text-slate-100 outline-none">
                         <input type="text" id="modal-db-phone" placeholder="연락처 (선택)" class="border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-xs bg-white dark:bg-slate-800 dark:text-slate-100 outline-none">
                     </div>
-                    <p class="text-[10px] text-slate-400">예금주는 위 "대표자" 입력값을 그대로 사용합니다. 이후 다른 청구항목에서도 이 거래처를 선택하면 계좌정보가 자동으로 채워집니다.</p>
+                    <p class="text-[10px] text-slate-400">예금주는 위 "대표자" 입력값을 그대로 사용합니다 → <b id="modal-db-holder-preview" class="text-indigo-600 dark:text-indigo-400">예금주 미입력</b>. 이후 다른 청구항목에서도 이 거래처를 선택하면 계좌정보가 자동으로 채워집니다.</p>
                     <button type="button" onclick="registerVendorFromModal()" class="w-full bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-xs py-1.5 rounded-lg transition-all">거래처 DB에 등록</button>
                 </div>
             </div>
@@ -4360,21 +4360,25 @@
             const bizNum = normDigits(c.bizNum);
             const phone  = normDigits(c.phone);
 
-            // 1차: 지정된 우선순위로 완전 일치 탐색
+            // ★ 대표자가 둘 다 입력돼 있는데 서로 다르면, 같은 거래처명이라도 다른 사업자로 간주하고 매칭에서 제외한다.
+            //    (예: "대호건기" 상호로 김찬혁/박근학/박상진 등 대표자가 다른 개별 사업자가 여러 명 존재하는 경우)
+            const ceoConflict = (acc) => raw.ceo && acc.ceo && normBizName(acc.ceo) !== norm.ceo;
+
+            // 1차: 지정된 우선순위로 완전 일치 탐색 (대표자 불일치 항목은 건너뜀)
             for (const field of order) {
                 if (raw[field]) {
-                    const acc = accountDb.find(a => a[field] === raw[field]);
+                    const acc = accountDb.find(a => a[field] === raw[field] && !ceoConflict(a));
                     if (acc) return acc;
                 }
             }
-            // 2차: 동일 우선순위로 정규화(공백·법인접미사 제거) 일치 탐색
+            // 2차: 동일 우선순위로 정규화(공백·법인접미사 제거) 일치 탐색 (대표자 불일치 항목은 건너뜀)
             for (const field of order) {
                 if (norm[field]) {
-                    const acc = accountDb.find(a => normBizName(a[field]) === norm[field]);
+                    const acc = accountDb.find(a => normBizName(a[field]) === norm[field] && !ceoConflict(a));
                     if (acc) return acc;
                 }
             }
-            // 3차: 사업자번호 / 연락처(숫자만 비교)
+            // 3차: 사업자번호 / 연락처(숫자만 비교) — 이 경우는 사업자번호 자체가 동일 사업자임을 증명하므로 대표자 불일치 여부를 다시 확인하지 않음
             if (bizNum && bizNum.length >= 8) {
                 const acc = accountDb.find(a => normDigits(a.biznum) === bizNum);
                 if (acc) return acc;
@@ -4750,7 +4754,29 @@
                 return ceos.length > 1;
             });
 
-            if (!dupAccGroups.length && !dupBizGroups.length && !dupPhoneGroups.length && !dupCeoGroups.length && !ceoConflictGroups.length) {
+            // 6) ★ 청구명세서에서 같은 거래처명을 쓰지만 대표자가 서로 다른 행들 중,
+            //      계좌 마스터 DB에 그 대표자로는 등록되어 있지 않아 계좌 매칭이 안 되는 경우
+            const vendorCeoUsage = {}; // vendor -> Set(ceo)
+            (savedDocuments||[]).forEach(doc => {
+                (doc.dataset||[]).forEach(row => {
+                    const v = (row.vendor||'').trim();
+                    const c = (row.ceo||'').trim();
+                    if (!v || !c) return;
+                    (vendorCeoUsage[v] = vendorCeoUsage[v] || new Set()).add(c);
+                });
+            });
+            const unmatchedCeoRows = [];
+            Object.entries(vendorCeoUsage).forEach(([vendor, ceoSet]) => {
+                if (ceoSet.size < 2) return; // 같은 거래처명에 대표자가 2명 이상 섞여 쓰인 경우만 확인
+                ceoSet.forEach(ceo => {
+                    const matched = findAccountMatch({ vendor, ceo }, ['ceo','vendor']);
+                    if (!matched || (matched.ceo||'').trim() !== ceo) {
+                        unmatchedCeoRows.push({ vendor, ceo });
+                    }
+                });
+            });
+
+            if (!dupAccGroups.length && !dupBizGroups.length && !dupPhoneGroups.length && !dupCeoGroups.length && !ceoConflictGroups.length && !unmatchedCeoRows.length) {
                 bar.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">✅ 중복 없음 — 계좌번호 · 사업자번호 · 연락처 · 대표자 모두 이상 없습니다.</span>`;
                 bar.classList.remove('hidden', 'border-rose-200', 'bg-rose-50');
                 bar.classList.add('border-emerald-200', 'dark:border-emerald-800', 'bg-emerald-50', 'dark:bg-emerald-950/20', 'text-emerald-700');
@@ -4762,6 +4788,13 @@
             bar.classList.add('border-rose-200', 'dark:border-rose-800', 'bg-rose-50', 'dark:bg-rose-950/20', 'text-rose-700');
 
             let html = '';
+
+            if (unmatchedCeoRows.length) {
+                html += `<p class="font-extrabold mb-1 text-rose-700 dark:text-rose-300">🚨 동일 거래처명 · 대표자별 계좌 미등록 (${unmatchedCeoRows.length}건) — 잘못된 계좌로 표시될 위험</p>`;
+                unmatchedCeoRows.forEach(r => {
+                    html += `<p class="ml-2 text-[10px] font-semibold">· <span class="font-mono">${r.vendor}</span> — 대표자 <strong>${r.ceo}</strong> 명의 계좌가 마스터 DB에 없어, 같은 거래처명의 다른 대표자 계좌로 표시될 수 있습니다. 이 대표자로 별도 등록해 주세요.</p>`;
+                });
+            }
 
             if (ceoConflictGroups.length) {
                 html += `<p class="font-extrabold mb-1 text-rose-700 dark:text-rose-300">🚨 동일 계좌번호 · 대표자 불일치 (${ceoConflictGroups.length}건) — 오매칭 위험</p>`;
@@ -7172,6 +7205,7 @@
             const vendorVal = document.getElementById('modal-vendor').value.trim();
             if (!vendorVal) {
                 document.getElementById('modal-account-preview').classList.add('hidden');
+                updateModalDbHolderPreview();
                 return;
             }
             
@@ -7188,6 +7222,7 @@
             } else {
                 document.getElementById('modal-account-preview').classList.add('hidden');
             }
+            updateModalDbHolderPreview();
         }
 
         function handleModalCeoInput() {
@@ -7203,6 +7238,17 @@
             } else {
                 document.getElementById('modal-account-preview').classList.add('hidden');
             }
+            updateModalDbHolderPreview();
+        }
+
+        /* 계좌 마스터 DB 등록 섹션의 "예금주" 미리보기 — 대표자명을 우선, 없으면 거래처명 */
+        function updateModalDbHolderPreview() {
+            const el = document.getElementById('modal-db-holder-preview');
+            if (!el) return;
+            const ceoVal    = document.getElementById('modal-ceo').value.trim();
+            const vendorVal = document.getElementById('modal-vendor').value.trim();
+            const holder = ceoVal || vendorVal;
+            el.textContent = holder ? holder : '예금주 미입력';
         }
 
         /* 모달 금액 입력 필드: 입력 중 천단위 콤마 자동 표시 */
@@ -9442,6 +9488,7 @@ function changePrintScale(value) {
                     if (biznumEl) biznumEl.value = '';
                     if (phoneEl)  phoneEl.value = '';
                 }
+                updateModalDbHolderPreview();
             }
         }
 
@@ -9484,6 +9531,17 @@ function changePrintScale(value) {
             renderAccountDBList();
             populateModalVendorDatalist();
             handleModalVendorInput(); // 방금 등록한 정보로 미리보기 즉시 갱신
+        }
+
+        /* 계좌 마스터 DB 신규등록 폼: 대표자명 입력 시 예금주가 비어있으면 자동으로 채워준다 */
+        function autoFillNewDbHolder() {
+            const holderEl = document.getElementById('new-db-holder');
+            const ceoEl = document.getElementById('new-db-ceo');
+            if (!holderEl || !ceoEl) return;
+            if (!holderEl.value.trim() || holderEl.dataset.autofilled === '1') {
+                holderEl.value = ceoEl.value;
+                holderEl.dataset.autofilled = '1';
+            }
         }
 
         function addAccountToDb() {
@@ -14420,6 +14478,27 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 }).length;
                 if (ceoConflictCount > 0) {
                     alerts.push(`<button onclick="openAccountModal();setTimeout(()=>checkAccountDbDuplicates(),150);" class="w-full flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 rounded-lg px-3 py-2 text-left hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors font-bold"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i><span>🚨 동일 계좌번호인데 대표자가 다른 건 <b>${ceoConflictCount}건</b> — 오매칭 위험</span></button>`);
+                }
+                // ── 같은 거래처명, 다른 대표자인데 그 대표자 명의 계좌가 DB에 없는 경우 (엉뚱한 계좌로 표시될 위험) ──
+                const vendorCeoUsageDash = {};
+                (savedDocuments||[]).forEach(doc => {
+                    (doc.dataset||[]).forEach(row => {
+                        const v = (row.vendor||'').trim();
+                        const c = (row.ceo||'').trim();
+                        if (!v || !c) return;
+                        (vendorCeoUsageDash[v] = vendorCeoUsageDash[v] || new Set()).add(c);
+                    });
+                });
+                let unmatchedCeoCountDash = 0;
+                Object.entries(vendorCeoUsageDash).forEach(([vendor, ceoSet]) => {
+                    if (ceoSet.size < 2) return;
+                    ceoSet.forEach(ceo => {
+                        const matched = findAccountMatch({ vendor, ceo }, ['ceo','vendor']);
+                        if (!matched || (matched.ceo||'').trim() !== ceo) unmatchedCeoCountDash++;
+                    });
+                });
+                if (unmatchedCeoCountDash > 0) {
+                    alerts.push(`<button onclick="openAccountModal();setTimeout(()=>checkAccountDbDuplicates(),150);" class="w-full flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 rounded-lg px-3 py-2 text-left hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors font-bold"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i><span>🚨 같은 거래처명, 다른 대표자의 계좌 미등록 <b>${unmatchedCeoCountDash}건</b> — 엉뚱한 계좌로 표시될 위험</span></button>`);
                 }
                 // ── 미정산 개인경비 알림 ──
                 const pePending = (typeof peLoad === 'function' ? peLoad() : []).filter(r => (r.status||'pending') !== 'settled');
