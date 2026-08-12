@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.11</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.13</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -3176,9 +3176,9 @@
                     <div id="approval-history-box" class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1 bg-slate-50 dark:bg-slate-800 rounded-lg p-3"></div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">처리 단계</label>
-                        <select id="approval-step-select" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <select id="approval-step-select" onchange="toggleApprovalLockUI()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
                             <option value="draft">초안 (작성중)</option>
-                            <option value="site_approved">현장소장 승인 (최종)</option>
+                            <option value="site_approved">담당자 승인 (최종)</option>
                             <option value="rejected">반려</option>
                         </select>
                     </div>
@@ -3186,14 +3186,55 @@
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">결재자명</label>
                         <input type="text" id="approval-name-input" placeholder="예: 홍길동" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
+                    <div id="approval-lock-box" class="hidden bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                        <div class="text-[10px] font-bold text-amber-700 dark:text-amber-300 mb-1.5 flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> 최종 승인 본인 확인</div>
+                        <div id="approval-lock-desc" class="text-[10px] text-amber-600 dark:text-amber-400 mb-2"></div>
+                        <input type="password" id="approval-lock-pin" placeholder="본인 승인 비밀번호 입력" class="w-full px-3 py-1.5 text-xs border border-amber-300 dark:border-amber-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                    </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">비고 (반려 사유 등)</label>
                         <textarea id="approval-note-input" rows="2" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                    </div>
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <span class="text-[9px] text-slate-400">최종 승인 권한자: <b id="approval-owner-display" class="text-slate-600 dark:text-slate-300">미등록</b></span>
+                        <button onclick="openApprovalOwnerSetup()" class="text-[9px] text-indigo-500 hover:text-indigo-700 font-bold underline">권한자 설정</button>
                     </div>
                 </div>
                 <div class="px-5 pb-5 flex justify-end gap-2">
                     <button onclick="closeApprovalModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
                     <button onclick="saveApproval()" class="px-5 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all">처리 저장</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 승인 권한자 설정 모달 -->
+        <div id="approval-owner-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="user-cog" class="w-4 h-4 text-indigo-500"></i> 최종 승인 권한자 설정
+                    </h3>
+                    <button onclick="closeApprovalOwnerSetup()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-5 space-y-3">
+                    <p class="text-[10px] text-slate-400 leading-relaxed">"담당자 승인(최종)" 처리는 여기 등록된 담당자만 비밀번호를 입력해 진행할 수 있습니다. 이 브라우저(기기)에만 저장됩니다.</p>
+                    <div id="approval-owner-current" class="hidden text-[10px] bg-slate-50 dark:bg-slate-800 rounded-lg p-2 text-slate-500"></div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">담당자명</label>
+                        <input type="text" id="approval-owner-name-input" placeholder="예: 홍길동 (현장소장)" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">승인 비밀번호 (4자리 이상)</label>
+                        <input type="password" id="approval-owner-pin-input" placeholder="새 비밀번호" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <div id="approval-owner-verify-wrap" class="hidden">
+                        <label class="block text-[10px] font-bold text-rose-500 mb-1">변경하려면 기존 비밀번호를 입력하세요</label>
+                        <input type="password" id="approval-owner-verify-input" placeholder="기존 비밀번호" class="w-full px-3 py-1.5 text-xs border border-rose-200 dark:border-rose-800 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-rose-500">
+                    </div>
+                </div>
+                <div class="px-5 pb-5 flex justify-end gap-2">
+                    <button onclick="closeApprovalOwnerSetup()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
+                    <button onclick="saveApprovalOwner()" class="px-5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all">저장</button>
                 </div>
             </div>
         </div>
@@ -8830,7 +8871,7 @@ function changePrintScale(value) {
         /* ── 결재선/승인 워크플로우 ── */
         const APPROVAL_STEPS = {
             draft:         { label: '초안',           cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600' },
-            site_approved: { label: '현장소장 승인 완료(최종)', cls: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' },
+            site_approved: { label: '담당자 승인 완료(최종)', cls: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' },
             hq_approved:   { label: '본사 승인 완료',  cls: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' }, // 구버전 데이터 표시용(더 이상 신규 선택 불가)
             rejected:      { label: '반려',           cls: 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700' }
         };
@@ -9105,7 +9146,7 @@ function changePrintScale(value) {
             if (!badge) return;
             const pending = (savedDocuments || []).filter(d => {
                 const s = d.approvalStatus || 'draft';
-                return s === 'draft'; // 현장소장 승인이 최종 단계이므로 초안만 "미결재"로 집계
+                return s === 'draft'; // 담당자 승인이 최종 단계이므로 초안만 "미결재"로 집계
             }).length;
             if (pending > 0) {
                 badge.textContent = pending;
@@ -9121,11 +9162,15 @@ function changePrintScale(value) {
             document.getElementById('approval-step-select').value = currentDoc.approvalStatus || 'draft';
             document.getElementById('approval-name-input').value = currentDoc.approvalBy || '';
             document.getElementById('approval-note-input').value = '';
+            const lockPin = document.getElementById('approval-lock-pin');
+            if (lockPin) lockPin.value = '';
             const hist = document.getElementById('approval-history-box');
             const log = currentDoc.approvalLog || [];
             hist.innerHTML = log.length
                 ? log.slice().reverse().map(h => `<div>· <b>${(APPROVAL_STEPS[h.status]||{}).label||h.status}</b> — ${h.by||'미기재'} (${h.at})${h.note ? ' · '+h.note : ''}</div>`).join('')
                 : '<div class="italic">처리 이력 없음</div>';
+            updateApprovalOwnerDisplay();
+            toggleApprovalLockUI();
             document.getElementById('approval-modal').classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
@@ -9142,6 +9187,26 @@ function changePrintScale(value) {
             const note = document.getElementById('approval-note-input').value.trim();
             if (status !== 'draft' && !by) { showToast('결재자명을 입력하세요.', 'error'); return; }
 
+            // ── 최종 승인(site_approved) 단계는 등록된 권한자 본인만 처리 가능 ──
+            if (status === 'site_approved') {
+                const owner = getApprovalOwner();
+                if (owner) {
+                    if (by !== owner.name) {
+                        showToast(`최종 승인은 등록된 권한자(${owner.name})만 처리할 수 있습니다.`, 'error');
+                        return;
+                    }
+                    const pin = document.getElementById('approval-lock-pin').value;
+                    if (!pin) { showToast('승인 비밀번호를 입력하세요.', 'error'); return; }
+                    if (simpleHash(pin) !== owner.pinHash) {
+                        showToast('승인 비밀번호가 일치하지 않습니다.', 'error');
+                        return;
+                    }
+                } else {
+                    showToast('먼저 최종 승인 권한자를 등록해 주세요. ("권한자 설정" 클릭)', 'error');
+                    return;
+                }
+            }
+
             currentDoc.approvalStatus = status;
             currentDoc.approvalBy = by;
             currentDoc.approvalAt = new Date().toLocaleString('ko-KR');
@@ -9152,6 +9217,117 @@ function changePrintScale(value) {
             renderApprovalBadge();
             closeApprovalModal();
             showToast('결재 처리가 저장되었습니다.', 'success');
+        }
+
+        /* ── 최종 승인 권한자 관리 (이 브라우저/기기에만 저장) ── */
+        const APPROVAL_OWNER_KEY = 'cons_approval_owner_v1';
+
+        /* 아주 가벼운 해시 (완전한 암호학적 보안이 필요한 용도가 아닌, 화면상 평문 노출 방지 목적) */
+        function simpleHash(str) {
+            let h = 0;
+            const s = String(str);
+            for (let i = 0; i < s.length; i++) {
+                h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+            }
+            return 'h' + Math.abs(h).toString(36) + '_' + s.length;
+        }
+
+        function getApprovalOwner() {
+            try { return JSON.parse(localStorage.getItem(APPROVAL_OWNER_KEY) || 'null'); } catch(e) { return null; }
+        }
+
+        function toggleApprovalLockUI() {
+            const status = document.getElementById('approval-step-select').value;
+            const box = document.getElementById('approval-lock-box');
+            const desc = document.getElementById('approval-lock-desc');
+            const nameInput = document.getElementById('approval-name-input');
+            if (!box) return;
+            if (status === 'site_approved') {
+                box.classList.remove('hidden');
+                const owner = getApprovalOwner();
+                if (owner) {
+                    desc.textContent = `등록된 권한자(${owner.name}) 본인만 비밀번호를 확인해야 최종 승인됩니다.`;
+                    nameInput.value = owner.name;
+                    nameInput.readOnly = true;
+                    nameInput.classList.add('bg-slate-100','dark:bg-slate-700','cursor-not-allowed');
+                } else {
+                    desc.textContent = '아직 최종 승인 권한자가 등록되지 않았습니다. 하단 "권한자 설정"에서 먼저 등록해 주세요.';
+                }
+            } else {
+                box.classList.add('hidden');
+                nameInput.readOnly = false;
+                nameInput.classList.remove('bg-slate-100','dark:bg-slate-700','cursor-not-allowed');
+            }
+        }
+
+        function openApprovalOwnerSetup() {
+            const owner = getApprovalOwner();
+            const nameInput = document.getElementById('approval-owner-name-input');
+            const pinInput = document.getElementById('approval-owner-pin-input');
+            const verifyWrap = document.getElementById('approval-owner-verify-wrap');
+            const verifyInput = document.getElementById('approval-owner-verify-input');
+            const curBox = document.getElementById('approval-owner-current');
+
+            pinInput.value = '';
+            verifyInput.value = '';
+            if (owner) {
+                nameInput.value = owner.name;
+                verifyWrap.classList.remove('hidden');
+                curBox.classList.remove('hidden');
+                curBox.textContent = `현재 등록된 권한자: ${owner.name} (변경하려면 기존 비밀번호 확인이 필요합니다)`;
+            } else {
+                nameInput.value = '';
+                verifyWrap.classList.add('hidden');
+                curBox.classList.add('hidden');
+            }
+            document.getElementById('approval-owner-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeApprovalOwnerSetup() {
+            document.getElementById('approval-owner-modal').classList.add('hidden');
+        }
+
+        function saveApprovalOwner() {
+            const name = document.getElementById('approval-owner-name-input').value.trim();
+            const pin = document.getElementById('approval-owner-pin-input').value;
+            const owner = getApprovalOwner();
+
+            if (!name) { showToast('담당자명을 입력하세요.', 'error'); return; }
+
+            if (owner) {
+                // 기존 권한자가 있으면 변경 시 기존 비밀번호 확인 필수
+                const verify = document.getElementById('approval-owner-verify-input').value;
+                if (simpleHash(verify) !== owner.pinHash) {
+                    showToast('기존 비밀번호가 일치하지 않습니다.', 'error');
+                    return;
+                }
+                if (!pin) {
+                    // 이름만 변경하고 비밀번호는 유지
+                    localStorage.setItem(APPROVAL_OWNER_KEY, JSON.stringify({ name, pinHash: owner.pinHash }));
+                    showToast('권한자 정보가 변경되었습니다. (비밀번호는 유지)', 'success');
+                    closeApprovalOwnerSetup();
+                    toggleApprovalLockUI();
+                    updateApprovalOwnerDisplay();
+                    return;
+                }
+            }
+
+            if (pin && pin.length < 4) { showToast('비밀번호는 4자리 이상 입력해 주세요.', 'error'); return; }
+            if (!owner && !pin) { showToast('신규 등록 시 비밀번호를 입력해 주세요.', 'error'); return; }
+
+            localStorage.setItem(APPROVAL_OWNER_KEY, JSON.stringify({ name, pinHash: simpleHash(pin) }));
+            showToast(`최종 승인 권한자가 [${name}]으로 등록되었습니다.`, 'success');
+            closeApprovalOwnerSetup();
+            toggleApprovalLockUI();
+            updateApprovalOwnerDisplay();
+        }
+
+        function updateApprovalOwnerDisplay() {
+            const el = document.getElementById('approval-owner-display');
+            if (!el) return;
+            const owner = getApprovalOwner();
+            el.textContent = owner ? owner.name : '미등록';
         }
 
         function renderAccountDBList() {
@@ -11066,7 +11242,7 @@ function changePrintScale(value) {
             }).join('') : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;">등록된 청구서가 없습니다.</td></tr>'}
         </tbody>
     </table>
-    <div style="font-size:11px;color:#64748b;">초안 ${approvalCount.draft}건 · 현장소장 승인(최종) ${approvalCount.site_approved + approvalCount.hq_approved}건 · 반려 ${approvalCount.rejected}건</div>
+    <div style="font-size:11px;color:#64748b;">초안 ${approvalCount.draft}건 · 담당자 승인(최종) ${approvalCount.site_approved + approvalCount.hq_approved}건 · 반려 ${approvalCount.rejected}건</div>
 
     <div class="section-title">4. 노무비명세서 현황 (${laborList.length}건)</div>
     <table>
@@ -13915,6 +14091,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             renderSiteDashboard();
             populateMetaDatalists();
             updateTrashBadge();
+            updateApprovalOwnerDisplay();
             changePrintScale(1.00);
             document.getElementById('print-scale-slider').value = "1.00";
             applyCategoryColor("자재비");
