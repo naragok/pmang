@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.8</title>
+    <title>건설현장 자금청구 및 지불의뢰서 시스템 Pro V11.11</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4703,7 +4703,13 @@
             });
             const dupCeoGroups = Object.values(ceoMap).filter(g => g.length > 1);
 
-            if (!dupAccGroups.length && !dupBizGroups.length && !dupPhoneGroups.length && !dupCeoGroups.length) {
+            // 5) ★ 같은 계좌번호인데 대표자가 서로 다른 경우 — 오매칭/오타 위험 신호
+            const ceoConflictGroups = dupAccGroups.filter(g => {
+                const ceos = [...new Set(g.map(a => (a.ceo||'').trim()).filter(Boolean))];
+                return ceos.length > 1;
+            });
+
+            if (!dupAccGroups.length && !dupBizGroups.length && !dupPhoneGroups.length && !dupCeoGroups.length && !ceoConflictGroups.length) {
                 bar.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">✅ 중복 없음 — 계좌번호 · 사업자번호 · 연락처 · 대표자 모두 이상 없습니다.</span>`;
                 bar.classList.remove('hidden', 'border-rose-200', 'bg-rose-50');
                 bar.classList.add('border-emerald-200', 'dark:border-emerald-800', 'bg-emerald-50', 'dark:bg-emerald-950/20', 'text-emerald-700');
@@ -4715,6 +4721,13 @@
             bar.classList.add('border-rose-200', 'dark:border-rose-800', 'bg-rose-50', 'dark:bg-rose-950/20', 'text-rose-700');
 
             let html = '';
+
+            if (ceoConflictGroups.length) {
+                html += `<p class="font-extrabold mb-1 text-rose-700 dark:text-rose-300">🚨 동일 계좌번호 · 대표자 불일치 (${ceoConflictGroups.length}건) — 오매칭 위험</p>`;
+                ceoConflictGroups.forEach(g => {
+                    html += `<p class="ml-2 text-[10px] font-semibold">· <span class="font-mono">${g[0].account}</span> → ${g.map(a=>`<strong>${a.ceo||'(대표자 미입력)'}</strong> / ${a.holder}(${a.vendor||'-'})`).join('  vs  ')}</p>`;
+                });
+            }
 
             if (dupAccGroups.length) {
                 html += `<p class="font-extrabold mb-1">⚠️ 계좌번호 중복 (${dupAccGroups.length}건)</p>`;
@@ -6160,6 +6173,39 @@
             const holderDiff  = norm(target.holder)  && norm(dbRow.holder)  && norm(target.holder)  !== norm(dbRow.holder);
 
             badge.classList.toggle('hidden', !(bankDiff || accountDiff || holderDiff));
+        }
+
+        /* ── 거래처 DB 계좌정보를 우선 기준으로, 불일치하는 청구명세서(dataset) 행을 자동 보정한다.
+              지불의뢰서 화면에서 이미 계좌 마스터 DB 값을 우선 표시하고 있지만,
+              원본 dataset은 예전 값을 그대로 갖고 있어 인쇄/엑셀 등 다른 화면에서 불일치가 남을 수 있다.
+              이 함수는 그 간극을 없애기 위해 dataset 자체를 DB 기준으로 맞춰서 저장한다. */
+        function autoFixDatasetAccountFromDb(dbRow, vendorName) {
+            if (!dbRow || !vendorName) return false;
+            const norm = (v) => (v || '').toString().trim();
+            const normAccount = (v) => norm(v).replace(/[^0-9]/g, '');
+
+            let fixedCount = 0;
+            dataset.forEach(row => {
+                if (row.vendor !== vendorName) return;
+                const bankDiff    = norm(row.bank)    && norm(dbRow.bank)    && norm(row.bank)    !== norm(dbRow.bank);
+                const accountDiff = norm(row.account) && norm(dbRow.account) && normAccount(row.account) !== normAccount(dbRow.account);
+                const holderDiff  = norm(row.holder)  && norm(dbRow.holder)  && norm(row.holder)  !== norm(dbRow.holder);
+                if (!(bankDiff || accountDiff || holderDiff)) return;
+
+                row.bank    = dbRow.bank    || row.bank;
+                row.account = dbRow.account || row.account;
+                row.holder  = dbRow.holder  || row.holder;
+                if (dbRow.phone)  row.phone  = dbRow.phone;
+                if (dbRow.biznum) row.biznum = dbRow.biznum;
+                fixedCount++;
+            });
+
+            if (fixedCount > 0) {
+                saveToLocalStorage();
+                renderStatementTable();
+                showToast(`⚠ [${vendorName}] 청구명세서 계좌정보가 계좌 마스터 DB 기준으로 자동 보정되었습니다. (${fixedCount}건)`, 'success');
+            }
+            return fixedCount > 0;
         }
 
         function syncRequestFormToDbAndDataset() {
@@ -7991,6 +8037,7 @@ function changePrintScale(value) {
                 document.getElementById('req-vendor-phone').value   = resolvedPhone   || "";
                 document.getElementById('req-vendor-num').value     = resolvedBiznum  || "";
                 updateAccountMismatchBadge(dbRow, target);
+                autoFixDatasetAccountFromDb(dbRow, target.vendor);
                 if (document.getElementById('quick-vendor-name')) {
                     document.getElementById('quick-vendor-name').textContent = target.vendor || "미지정";
                 }
@@ -8044,6 +8091,7 @@ function changePrintScale(value) {
                 document.getElementById('req-vendor-phone').value   = rPhone   || "";
                 document.getElementById('req-vendor-num').value     = rBiznum  || "";
                 updateAccountMismatchBadge(dbRowC, firstItem);
+                autoFixDatasetAccountFromDb(dbRowC, targetVendor);
                 if (document.getElementById('quick-vendor-name')) {
                     document.getElementById('quick-vendor-name').textContent = targetVendor;
                 }
@@ -9193,8 +9241,32 @@ function changePrintScale(value) {
         function toggleModalDbRegister() {
             const body = document.getElementById('modal-db-register-body');
             const chevron = document.getElementById('modal-db-register-chevron');
+            const willOpen = body.classList.contains('hidden'); // 지금부터 펼쳐지는 경우
             body.classList.toggle('hidden');
             if (chevron) chevron.style.transform = body.classList.contains('hidden') ? '' : 'rotate(180deg)';
+
+            if (willOpen) {
+                // 이미 계좌 마스터 DB에 등록된 거래처라면 기존 정보를 불러와 입력란에 채워준다
+                const vendor = document.getElementById('modal-vendor').value.trim();
+                const ceo = document.getElementById('modal-ceo').value.trim();
+                const existing = findAccountMatch({ vendor, ceo, holder: vendor }, ['vendor', 'ceo', 'holder']);
+                const bankEl = document.getElementById('modal-db-bank');
+                const accEl = document.getElementById('modal-db-account');
+                const biznumEl = document.getElementById('modal-db-biznum');
+                const phoneEl = document.getElementById('modal-db-phone');
+                if (existing) {
+                    if (bankEl)   bankEl.value = existing.bank || '';
+                    if (accEl)    accEl.value = existing.account || '';
+                    if (biznumEl) biznumEl.value = existing.biznum || '';
+                    if (phoneEl)  phoneEl.value = existing.phone || '';
+                    showToast(`[${vendor}] 기존 등록된 계좌 정보를 불러왔습니다.`);
+                } else {
+                    if (bankEl)   bankEl.value = '';
+                    if (accEl)    accEl.value = '';
+                    if (biznumEl) biznumEl.value = '';
+                    if (phoneEl)  phoneEl.value = '';
+                }
+            }
         }
 
         /* 청구항목 추가/수정 모달에서 바로 거래처를 계좌 마스터 DB에 등록 (또는 기존 정보 갱신) */
@@ -13607,6 +13679,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
         }
 
+        /* 계좌 마스터 DB 모달을 확실히 "열기"만 한다 (토글이 아님) — 대시보드 알림처럼 항상 열어야 하는 경우 사용 */
+        function openAccountModal() {
+            const panel = document.getElementById('account-manager-panel');
+            panel.classList.remove('hidden');
+            if (typeof renderAccountDBList === 'function') renderAccountDBList();
+        }
+
         function showConfirmModal(title, msg, onConfirm) {
             document.getElementById('confirm-title').textContent = title;
             document.getElementById('confirm-message').textContent = msg;
@@ -14151,6 +14230,19 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 });
                 if (unregisteredVendors.length > 0) {
                     alerts.push(`<button onclick="switchTab('statement')" class="w-full flex items-center gap-2 bg-sky-50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300 rounded-lg px-3 py-2 text-left hover:bg-sky-100 dark:hover:bg-sky-950/40 transition-colors"><i data-lucide="user-x" class="w-3.5 h-3.5 shrink-0"></i><span>계좌 마스터 DB 미등록 거래처 <b>${unregisteredVendors.length}개사</b> 사용중</span></button>`);
+                }
+                // ── 동일 계좌번호인데 대표자가 다른 경우 (오매칭 위험) ──
+                const acctByNum = {};
+                accountDb.forEach(a => {
+                    const k = (a.account || '').replace(/[^0-9]/g, '');
+                    if (k) (acctByNum[k] = acctByNum[k] || []).push(a);
+                });
+                const ceoConflictCount = Object.values(acctByNum).filter(g => {
+                    const ceos = [...new Set(g.map(a => (a.ceo||'').trim()).filter(Boolean))];
+                    return g.length > 1 && ceos.length > 1;
+                }).length;
+                if (ceoConflictCount > 0) {
+                    alerts.push(`<button onclick="openAccountModal();setTimeout(()=>checkAccountDbDuplicates(),150);" class="w-full flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 rounded-lg px-3 py-2 text-left hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors font-bold"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i><span>🚨 동일 계좌번호인데 대표자가 다른 건 <b>${ceoConflictCount}건</b> — 오매칭 위험</span></button>`);
                 }
                 // ── 미정산 개인경비 알림 ──
                 const pePending = (typeof peLoad === 'function' ? peLoad() : []).filter(r => (r.status||'pending') !== 'settled');
