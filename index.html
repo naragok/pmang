@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.3</title>
+    <title>현장 자금관리 PRO V1.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1459,16 +1459,7 @@
                         <div id="dup-account-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
                     </div>
                 </div>
-                <div id="dup-section-amount" class="hidden bg-orange-50 dark:bg-orange-950/20 p-3 items-start gap-3">
-                    <i data-lucide="copy-x" class="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5 animate-pulse"></i>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-xs font-extrabold text-orange-800 dark:text-orange-300">🟠 동일 금액 중복 입력 의심</p>
-                        <p class="text-[11px] text-orange-700 dark:text-orange-400 mt-0.5" id="dup-amount-msg"></p>
-                        <div id="dup-amount-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
-                    </div>
-                </div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-3">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
@@ -4118,9 +4109,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.3';
+        const APP_VERSION = '1.4';
         const APP_VERSION_DATE = '2026-08-12';
-        const APP_VERSION_NOTE = '본사 제출용 HTML 대폭 개선 — 개인경비 정산 섹션 신규 추가, 상단 목차(바로가기)+인쇄버튼 추가, 청구명세서에 대표자-계좌 불일치/미등록 경고 배지 표시, 문서 상단에 결재상태 요약 표시.';
+        const APP_VERSION_NOTE = '"동일 금액 중복 입력 의심" 자동 경고 기능을 제거했습니다. 거래처가 다르면 우연히 금액이 같은 경우가 많아 오탐이 잦았습니다. (계좌번호 중복, 상호+금액 이중청구, 대표자 불일치 검사는 그대로 유지)';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5346,39 +5337,8 @@
                 });
             });
 
-            // 3) 동일 금액 중복 입력 의심: 거래처/대표자가 달라도 공급가액이 완전히 같으면
-            //    복붙 실수·중복 입력 가능성으로 별도 경고 (0원 및 소액 왜곡 방지 위해 1만원 미만 제외)
-            const amtMap = {};
-            dataset.forEach(row => {
-                const amt = Number(row.supply);
-                if (!amt || amt < 10000) return;
-                if (!amtMap[amt]) amtMap[amt] = [];
-                amtMap[amt].push(row);
-            });
-            let amtDupCount = 0;
-            const amtChips = [];
-            Object.entries(amtMap).forEach(([amt, rows]) => {
-                if (rows.length < 2) return;
-                const vendorSet = new Set(rows.map(r => (r.vendor||'').trim()));
-                // 거래처+대표자까지 완전히 같은 건은 위 1)번 청구중복에서 이미 경고했으므로 제외
-                const ceoSet = new Set(rows.map(r => `${(r.vendor||'').trim()}_${normCeo(r.ceo)}`));
-                if (ceoSet.size === 1) return;
-                amtDupCount++;
-                rows.forEach(r => {
-                    duplicateItemIds.add(r.id);
-                    const otherRows = rows.filter(o => o !== r);
-                    const others = otherRows.map(o => `${o.vendor||'(거래처 미기입)'} [${o.note||'적요없음'}]`).join(', ');
-                    addDupDetail(r.id, 'amount', '동일 금액 중복 입력 의심',
-                        `공급가액 ${Number(amt).toLocaleString('ko-KR')}원이 동일한 다른 항목이 있습니다 — ${others}`,
-                        otherRows.map(o => ({ vendor: o.vendor, ceo: o.ceo, type: o.type, supply: o.supply, note: o.note })));
-                });
-                amtChips.push(
-                    `<span class="inline-block bg-orange-200 dark:bg-orange-900 text-orange-900 dark:text-orange-200 text-[10px] font-bold px-2 py-0.5 rounded-full cursor-help"
-                        title="${rows.map(r=>`${r.vendor||'(거래처 미기입)'} [${r.note||'적요없음'}]`).join(' / ')}">
-                        ${Number(amt).toLocaleString('ko-KR')}원 → ${vendorSet.size}개 거래처 ${rows.length}건
-                    </span>`
-                );
-            });
+            // 3) 동일 금액 중복 입력 검사는 비활성화됨 (오탐이 잦아 사용자 요청으로 제거)
+            //    거래처가 다르면 우연히 금액이 같은 것은 정상적인 경우가 많아, 더 이상 중복 의심으로 플래그하지 않습니다.
 
             // 4) 대표자 불일치 검사 비활성화됨
             //    거래처명이 같더라도 대표자(ceo)가 다르면 별개의 거래처로 간주하여
@@ -5394,11 +5354,10 @@
             const ceoSec       = document.getElementById('dup-section-ceo');
             const dashBanner   = document.getElementById('dash-dup-banner');
             const accSec       = document.getElementById('dup-section-account');
-            const amtSec       = document.getElementById('dup-section-amount');
-            const hasAny       = claimCount > 0 || accDupCount > 0 || amtDupCount > 0 || ceoDupCount > 0;
-            const hasAccOrAmt  = accDupCount > 0 || amtDupCount > 0;
+            const hasAny       = claimCount > 0 || accDupCount > 0 || ceoDupCount > 0;
+            const hasAccOrAmt  = accDupCount > 0;
 
-            // ── 대시보드로 이동된 두 섹션(계좌/금액 중복) ──
+            // ── 대시보드로 이동된 계좌 중복 섹션 (금액 중복 검사는 비활성화됨) ──
             if (hasAccOrAmt) {
                 dashBanner.classList.remove('hidden');
                 if (accDupCount > 0) {
@@ -5411,19 +5370,12 @@
                     document.getElementById('dup-account-msg').innerHTML = accMsg;
                     document.getElementById('dup-account-detail').innerHTML = accChips.join('');
                 } else { accSec.classList.add('hidden'); accSec.classList.remove('flex'); }
-
-                if (amtDupCount > 0) {
-                    amtSec.classList.remove('hidden'); amtSec.classList.add('flex');
-                    document.getElementById('dup-amount-msg').innerHTML = `동일 공급가액(1만원 이상) 반복 입력 <strong>${amtDupCount}건</strong> — 거래처가 다르더라도 금액이 완전히 같으면 복붙 실수를 의심해보세요.`;
-                    document.getElementById('dup-amount-detail').innerHTML = amtChips.join('');
-                } else { amtSec.classList.add('hidden'); amtSec.classList.remove('flex'); }
             } else {
                 dashBanner.classList.add('hidden');
                 accSec.classList.add('hidden'); accSec.classList.remove('flex');
-                amtSec.classList.add('hidden'); amtSec.classList.remove('flex');
             }
 
-            // ── 자금청구명세서 탭에는 청구중복·대표자불일치만 그대로, 계좌/금액은 안내 버튼만 ──
+            // ── 자금청구명세서 탭에는 청구중복·대표자불일치만 그대로, 계좌는 안내 버튼만 ──
             if (hasAny) {
                 banner.classList.remove('hidden');
                 if (claimCount > 0) {
