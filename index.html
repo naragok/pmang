@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.4</title>
+    <title>현장 자금관리 PRO V1.8</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1576,19 +1576,6 @@
                         <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
                     </button>
                 </div>
-                <div id="dup-section-ceo" class="hidden bg-purple-50 dark:bg-purple-950/20 p-3 items-start gap-3">
-                    <i data-lucide="user-x" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5 animate-pulse"></i>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <p class="text-xs font-extrabold text-purple-800 dark:text-purple-300">🟣 대표자 불일치 감지</p>
-                            <button onclick="openDupCeoDetailModal()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-purple-600 hover:bg-purple-700 text-white transition-all">
-                                <i data-lucide="zoom-in" class="w-3 h-3"></i> 상세 확인
-                            </button>
-                        </div>
-                        <p class="text-[11px] text-purple-700 dark:text-purple-400 mt-0.5" id="dup-ceo-msg"></p>
-                        <div id="dup-ceo-detail" class="mt-1.5 flex flex-wrap gap-1"></div>
-                    </div>
-                </div>
             </div>
 
             <div id="dup-quickcheck-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDupQuickCheckModal()">
@@ -1630,29 +1617,6 @@
                     <div class="flex gap-2">
                         <button onclick="closeDupModal(false)" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">취소 (재확인)</button>
                         <button onclick="closeDupModal(true)" class="flex-1 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all">그래도 저장</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="dup-ceo-detail-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDupCeoDetailModal()">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-purple-200 dark:border-purple-800 w-full max-w-2xl max-h-[88vh] flex flex-col">
-                    <div class="flex items-center justify-between px-5 py-4 border-b border-purple-100 dark:border-purple-900 shrink-0">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-purple-100 dark:bg-purple-950/40 rounded-xl">
-                                <i data-lucide="user-x" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i>
-                            </div>
-                            <div>
-                                <p class="font-extrabold text-purple-700 dark:text-purple-400 text-sm">대표자 불일치 상세</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400">현재 대장 · 계좌DB · 저장 대장 통합 비교 결과</p>
-                            </div>
-                        </div>
-                        <button onclick="closeDupCeoDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                            <i data-lucide="x" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                    <div id="dup-ceo-detail-body" class="flex-1 overflow-auto p-5 space-y-3 text-xs"></div>
-                    <div class="shrink-0 flex items-center justify-end px-5 pb-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                        <button onclick="closeDupCeoDetailModal()" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">닫기</button>
                     </div>
                 </div>
             </div>
@@ -2056,6 +2020,15 @@
                                         <button onclick="addChecklistItem()" class="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">추가</button>
                                     </div>
                                     <button onclick="resetChecklistItemsToDefault()" class="w-full mt-2 text-[10px] text-slate-400 hover:text-rose-500 font-semibold">기본 항목(6개)으로 초기화</button>
+                                    <div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <button onclick="backupChecklistItems()" class="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold text-slate-500 hover:text-violet-600 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5">
+                                            <i data-lucide="download" class="w-3 h-3"></i> 백업
+                                        </button>
+                                        <button onclick="document.getElementById('checklist-restore-input').click()" class="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold text-slate-500 hover:text-violet-600 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5">
+                                            <i data-lucide="upload" class="w-3 h-3"></i> 불러오기
+                                        </button>
+                                        <input type="file" id="checklist-restore-input" accept=".json" class="hidden" onchange="restoreChecklistItems(event)">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4109,9 +4082,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.4';
+        const APP_VERSION = '1.8';
         const APP_VERSION_DATE = '2026-08-12';
-        const APP_VERSION_NOTE = '"동일 금액 중복 입력 의심" 자동 경고 기능을 제거했습니다. 거래처가 다르면 우연히 금액이 같은 경우가 많아 오탐이 잦았습니다. (계좌번호 중복, 상호+금액 이중청구, 대표자 불일치 검사는 그대로 유지)';
+        const APP_VERSION_NOTE = '구비 서류 체크리스트 항목 관리 모달에 "백업"/"불러오기" 버튼 추가. 체크리스트 항목 구성(아이콘+이름)만 JSON 파일로 저장/불러오기 가능 — 다른 현장 문서나 다른 PC에서도 동일한 항목 구성을 재사용할 수 있음. 문서별 체크 여부는 영향받지 않음.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5233,9 +5206,6 @@
         let dupAccountModalCallback = null;
         let _prevHasDuplicateAlert = false; // ★ 중복 경고 토스트를 "새로 감지됐을 때"만 띄우기 위한 이전 상태 추적
 
-        // 대표자 불일치 상세 데이터 전역 보관 (모달에서 재사용)
-        let _dupCeoGroups = [];
-
         function checkDuplicateContracts() {
             duplicateItemIds.clear();
             duplicateDetailsByRow = {};
@@ -5340,21 +5310,13 @@
             // 3) 동일 금액 중복 입력 검사는 비활성화됨 (오탐이 잦아 사용자 요청으로 제거)
             //    거래처가 다르면 우연히 금액이 같은 것은 정상적인 경우가 많아, 더 이상 중복 의심으로 플래그하지 않습니다.
 
-            // 4) 대표자 불일치 검사 비활성화됨
-            //    거래처명이 같더라도 대표자(ceo)가 다르면 별개의 거래처로 간주하여
-            //    더 이상 중복 의심으로 플래그하지 않습니다.
-            let ceoDupCount = 0;
-            const ceoChips = [];
-            _dupCeoGroups = [];
-
             // ── 배너 렌더링 ──
             const banner       = document.getElementById('duplicate-alert-banner');
             const claimSec     = document.getElementById('dup-section-claim');
             const quicklinkSec = document.getElementById('dash-dup-quicklink');
-            const ceoSec       = document.getElementById('dup-section-ceo');
             const dashBanner   = document.getElementById('dash-dup-banner');
             const accSec       = document.getElementById('dup-section-account');
-            const hasAny       = claimCount > 0 || accDupCount > 0 || ceoDupCount > 0;
+            const hasAny       = claimCount > 0 || accDupCount > 0;
             const hasAccOrAmt  = accDupCount > 0;
 
             // ── 대시보드로 이동된 계좌 중복 섹션 (금액 중복 검사는 비활성화됨) ──
@@ -5375,7 +5337,7 @@
                 accSec.classList.add('hidden'); accSec.classList.remove('flex');
             }
 
-            // ── 자금청구명세서 탭에는 청구중복·대표자불일치만 그대로, 계좌는 안내 버튼만 ──
+            // ── 자금청구명세서 탭에는 청구중복만 그대로, 계좌는 안내 버튼만 ──
             if (hasAny) {
                 banner.classList.remove('hidden');
                 if (claimCount > 0) {
@@ -5385,12 +5347,6 @@
                 } else { claimSec.classList.add('hidden'); claimSec.classList.remove('flex'); }
 
                 quicklinkSec.classList.toggle('hidden', !hasAccOrAmt);
-
-                if (ceoDupCount > 0) {
-                    ceoSec.classList.remove('hidden'); ceoSec.classList.add('flex');
-                    document.getElementById('dup-ceo-msg').innerHTML = `동일 거래처 대표자명 불일치 <strong>${ceoDupCount}건</strong> — 명의 도용·오입력 확인 필요`;
-                    document.getElementById('dup-ceo-detail').innerHTML = ceoChips.join('');
-                } else { ceoSec.classList.add('hidden'); ceoSec.classList.remove('flex'); }
 
                 showToastOnceIfNewDuplicate();
             } else {
@@ -5520,112 +5476,6 @@
             dupAccountModalCallback = null;
         }
 
-
-        /* ── 대표자 불일치 상세 모달 ── */
-        function openDupCeoDetailModal() {
-            const body = document.getElementById('dup-ceo-detail-body');
-            if (!body) return;
-
-            if (!_dupCeoGroups.length) {
-                body.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-3">
-                    <i data-lucide="check-circle" class="w-10 h-10 text-emerald-400"></i>
-                    <p class="font-bold text-emerald-600 dark:text-emerald-400">대표자 불일치 없음</p>
-                    <p class="text-slate-400 text-[11px]">현재 대장 · 계좌DB · 저장 대장 모두 이상이 없습니다.</p>
-                </div>`;
-                document.getElementById('dup-ceo-detail-modal').classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-                return;
-            }
-
-            const SRC_ORDER = ['계좌DB', '현재대장'];
-            const SRC_COLOR = { '계좌DB': '#059669', '현재대장': '#2563eb' };
-            const SRC_BG    = { '계좌DB': 'rgba(5,150,105,0.1)', '현재대장': 'rgba(37,99,235,0.1)' };
-            const getColor  = src => SRC_COLOR[src] || '#6366f1';
-            const getBg     = src => SRC_BG[src]    || 'rgba(99,102,241,0.1)';
-
-            const cards = _dupCeoGroups.map(({ vendor, entries, uniqueCeos }, idx) => {
-                // 출처 정렬: 계좌DB → 현재대장 → 저장대장(오래된 순)
-                const sorted = [...entries].sort((a, b) => {
-                    const ai = SRC_ORDER.indexOf(a.src);
-                    const bi = SRC_ORDER.indexOf(b.src);
-                    if (ai !== bi) return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
-                    return 0;
-                });
-
-                // 기준 대표자: 계좌DB가 있으면 DB값, 없으면 첫 번째
-                const refEntry = sorted.find(e => e.src === '계좌DB') || sorted[0];
-                const refCeo   = refEntry.ceo;
-
-                const rows = sorted.map(e => {
-                    const isSame = e.ceo === refCeo;
-                    const isRef  = e === refEntry;
-                    const color  = getColor(e.src);
-                    const bg     = getBg(e.src);
-
-                    const srcBadge = `<span style="background:${bg};color:${color};border:1px solid ${color}33;
-                        padding:1px 7px;border-radius:20px;font-size:9px;font-weight:800;white-space:nowrap;">${e.src}</span>`;
-
-                    let nameCellStyle = '';
-                    let nameContent   = e.ceo;
-                    if (isRef) {
-                        nameCellStyle = `font-weight:700;color:#1e293b;`;
-                        nameContent   += ` <span style="font-size:9px;background:#dcfce7;color:#166534;padding:1px 6px;border-radius:20px;font-weight:800;">기준</span>`;
-                    } else if (!isSame) {
-                        nameCellStyle = `font-weight:800;color:#7c3aed;background:rgba(124,58,237,0.06);`;
-                        nameContent   = `<span style="font-size:10px;margin-right:3px;">⚠</span>` + e.ceo
-                            + ` <span style="font-size:9px;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:20px;font-weight:800;">불일치</span>`;
-                    }
-
-                    return `<tr style="border-bottom:1px solid #f1f5f9;">
-                        <td style="padding:7px 10px;text-align:center;white-space:nowrap;">${srcBadge}</td>
-                        <td style="padding:7px 10px;${nameCellStyle}">${nameContent}</td>
-                    </tr>`;
-                }).join('');
-
-                const mismatchCount = sorted.filter(e => e !== refEntry && e.ceo !== refCeo).length;
-                const headerBg = mismatchCount > 0 ? 'rgba(124,58,237,0.09)' : 'rgba(147,197,253,0.15)';
-                const headerBorder = mismatchCount > 0 ? '#c4b5fd' : '#bfdbfe';
-
-                return `<div style="border:1px solid ${headerBorder};border-radius:10px;overflow:hidden;margin-bottom:0;">
-                    <div style="background:${headerBg};padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;
-                            border-radius:50%;background:#7c3aed;color:#fff;font-size:10px;font-weight:900;flex-shrink:0;">${idx+1}</span>
-                        <span style="font-weight:800;font-size:13px;color:#4c1d95;">${vendor}</span>
-                        <span style="font-size:10px;font-weight:700;color:#7c3aed;">대표자 ${uniqueCeos.length}종 감지</span>
-                        ${mismatchCount > 0
-                            ? `<span style="margin-left:auto;font-size:9px;font-weight:800;background:rgba(124,58,237,0.12);
-                                color:#6d28d9;padding:2px 8px;border-radius:20px;">⚠ 불일치 ${mismatchCount}건</span>`
-                            : `<span style="margin-left:auto;font-size:9px;color:#94a3b8;">출처 간 동일</span>`}
-                    </div>
-                    <table style="width:100%;border-collapse:collapse;font-size:11px;background:#fff;">
-                        <thead>
-                            <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
-                                <th style="padding:5px 10px;text-align:center;color:#64748b;font-size:10px;width:110px;">출처</th>
-                                <th style="padding:5px 10px;text-align:left;color:#64748b;font-size:10px;">대표자명</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>`;
-            }).join('');
-
-            body.innerHTML = `<div style="font-size:10px;color:#64748b;margin-bottom:10px;padding:8px 10px;background:#faf5ff;border-radius:8px;border:1px solid #e9d5ff;">
-                총 <strong style="color:#7c3aed;">${_dupCeoGroups.length}건</strong> 감지 — 계좌DB 등록값과 다르거나 동일 거래처에 복수 대표자명이 혼용된 경우입니다.
-                기준값(<span style="background:#dcfce7;color:#166534;padding:0 5px;border-radius:10px;font-weight:800;font-size:9px;">기준</span>)과 다른 행은
-                <span style="color:#7c3aed;font-weight:800;">⚠ 불일치</span>로 표시됩니다.
-            </div>
-            <div style="display:flex;flex-direction:column;gap:10px;">${cards}</div>`;
-
-            document.getElementById('dup-ceo-detail-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function closeDupCeoDetailModal() {
-            document.getElementById('dup-ceo-detail-modal').classList.add('hidden');
-            document.body.style.overflow = '';
-        }
 
         function setDashboardFilter(status) {
             dashboardFilterStatus = status;
@@ -8130,6 +7980,59 @@ function changePrintScale(value) {
             setChecklistItems(JSON.parse(JSON.stringify(DEFAULT_CHECKLIST_ITEMS)));
             renderChecklistManageList();
             renderChecklistItems();
+        }
+
+        /* ── 구비 서류 체크리스트 항목 목록 백업/불러오기 (항목 정의만 — 문서별 체크 상태는 포함하지 않음) ──
+              다른 현장 문서나 다른 PC에서도 동일한 체크리스트 항목 구성을 재사용하고 싶을 때 사용 */
+        function backupChecklistItems() {
+            const items = getChecklistItems();
+            if (!items.length) { showToast('백업할 체크리스트 항목이 없습니다.', 'error'); return; }
+            const payload = {
+                type: 'checklist_items_backup',
+                version: 1,
+                exportedAt: new Date().toLocaleString('ko-KR'),
+                items
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `구비서류체크리스트_백업_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast(`체크리스트 항목 ${items.length}개 백업 완료`, 'success');
+        }
+
+        function restoreChecklistItems(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    const items = Array.isArray(parsed) ? parsed : parsed.items; // 예전 형식(배열 그대로)도 지원
+                    if (!Array.isArray(items) || !items.length) throw new Error('empty');
+                    // 필수 필드(id, label) 검증 — 유효하지 않은 파일로 항목 전체가 깨지는 것 방지
+                    const valid = items.every(it => it && typeof it.label === 'string');
+                    if (!valid) throw new Error('invalid shape');
+
+                    if (!confirm(`${items.length}개 항목을 불러옵니다. 현재 체크리스트 항목 목록을 덮어씁니다.\n(이미 등록된 문서별 체크 상태는 유지됩니다)`)) return;
+
+                    // id가 없는 옛 형식 대비 — 없으면 새로 생성
+                    const normalized = items.map((it, i) => ({
+                        id: it.id || `chk_${Date.now()}_${i}`,
+                        icon: it.icon || '📋',
+                        label: it.label
+                    }));
+                    setChecklistItems(normalized);
+                    renderChecklistManageList();
+                    renderChecklistItems();
+                    showToast(`체크리스트 항목 ${normalized.length}개 불러오기 완료`, 'success');
+                } catch (err) {
+                    showToast('유효하지 않은 체크리스트 백업 파일입니다.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
         }
 
         function loadRequestData(valueKey) {
@@ -12213,24 +12116,17 @@ function changePrintScale(value) {
             stMerges.push({ r1:t1Idx, c1:0, r2:t1Idx, c2:3 });
             sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[6,8,18,10,13,11,13,11,10,14,8,16,10,7,16] });
 
-            /* ── 시트2~N: 지불의뢰서 — 거래처+대표자 조합별로 '전체' 내보내기와 완전히 동일한 방식으로 생성 ── */
+            /* ── 시트2~N: 지불의뢰서 — 청구명세서의 각 행을 개별 시트로 (같은 거래처+대표자라도 합산하지 않음) ── */
             const COL_W = [6, 18, 8, 14, 14, 14];
-            const processed = new Set();
             const summaryData = [];
             const reqSheets = [];
+            const sheetNameCount = {}; // 같은 거래처가 여러 행이면 시트명 뒤에 (2),(3)... 붙여 구분
 
             for (const row of [...dataset].filter(r => r.vendor)) {
-                const vendorKey = `${row.vendor}||${row.ceo||''}`;
-                if (processed.has(vendorKey)) continue;
-                processed.add(vendorKey);
-
-                const vendorRows = dataset.filter(r => r.vendor===row.vendor && (r.ceo||'')===(row.ceo||''));
-                const supplySum  = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
-                const taxSum     = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+                const supplySum  = row.supply||0;
+                const taxSum     = row.tax||0;
                 const totalSum   = supplySum+taxSum;
-                const reqAmt     = totalSum
-                    - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
-                    - vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
+                const reqAmt     = totalSum - (row.deduction||0) - (row.prepaid||0);
 
                 const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                 const bank    = accMatch?.bank    || row.bank    || '';
@@ -12239,13 +12135,9 @@ function changePrintScale(value) {
                 const phone   = accMatch?.phone   || row.phone   || '';
                 const biznum  = accMatch?.biznum  || row.biznum  || '';
 
-                const firstRow = vendorRows[0];
-                const items = (firstRow.vendorItems && firstRow.vendorItems.length>0)
-                    ? firstRow.vendorItems
-                    : vendorRows.map(r=>({
-                        item: r.note&&r.note.trim()?r.note.trim():(r.type||'품목 청구'),
-                        qty:'1.0', supply:r.supply||0, tax:r.tax||0,
-                      }));
+                const items = (row.vendorItems && row.vendorItems.length>0)
+                    ? row.vendorItems
+                    : [{ item: row.note&&row.note.trim()?row.note.trim():(row.type||'품목 청구'), qty:'1.0', supply:row.supply||0, tax:row.tax||0 }];
 
                 const d = {
                     site, period,
@@ -12258,15 +12150,22 @@ function changePrintScale(value) {
                     memo:'', items,
                 };
                 const { rows, merges } = buildRequestXlsxRows(d);
-                const sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
+                let sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
                             + (row.ceo?`_${row.ceo.slice(0,4)}`:'');
+                // 같은 거래처+대표자로 시트명이 겹치면 뒤에 번호를 붙여 구분 (엑셀은 시트명 중복 불가)
+                if (sheetNameCount[sName] !== undefined) {
+                    sheetNameCount[sName]++;
+                    sName = `${sName.slice(0,28)}(${sheetNameCount[sName]})`;
+                } else {
+                    sheetNameCount[sName] = 1;
+                }
                 reqSheets.push({ name:sName, rows, merges, colWidths:COL_W });
                 summaryData.push({ vendor:row.vendor, ceo:row.ceo||'', type:row.type||'',
                     supply:supplySum, tax:taxSum, total:totalSum,
                     bankInfo:`${bank} ${account} (${holder})` });
             }
 
-            // 지불의뢰서 요약 시트를 맨 앞에, 이어서 거래처+대표자별 개별 시트
+            // 지불의뢰서 요약 시트를 맨 앞에, 이어서 행별 개별 시트
             const { rows: sRows, merges: sMerges } = buildSummaryXlsxRows(site, period, summaryData);
             sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[16,10,10,13,11,13,24] });
             sheets.push(...reqSheets);
@@ -12304,6 +12203,42 @@ function changePrintScale(value) {
             }
             sheets.push({ name:'법인카드', rows: ccRows, merges: ccMerges, colWidths:[6,12,12,26,13,16,30] });
 
+            /* ── 개인경비 정산 시트 (현재 현장, 해당 월 기준) ── */
+            const peAll = (typeof peLoad === 'function') ? peLoad() : [];
+            const peList = peAll.filter(r =>
+                (!site || (r.site||'') === site) &&
+                (!ymPrefix || (r.date||'').startsWith(ymPrefix)) &&
+                (!company || (r.company||'') === company)
+            );
+            const peRows = [];
+            const peMerges = [{ r1:0, c1:0, r2:0, c2:9 }];
+            peRows.push([c(`개인경비 정산 내역 — ${docTitle}`, XSI.TITLE)]);
+            peRows.push([]);
+            peRows.push([
+                c('No',XSI.TBL_HEAD), c('사용일자',XSI.TBL_HEAD), c('직원명',XSI.TBL_HEAD), c('카테고리',XSI.TBL_HEAD),
+                c('가맹점명',XSI.TBL_HEAD), c('금액',XSI.TBL_HEAD), c('현장',XSI.TBL_HEAD),
+                c('정산상태',XSI.TBL_HEAD), c('입금계좌',XSI.TBL_HEAD), c('메모',XSI.TBL_HEAD)
+            ]);
+            peList.forEach((r, i) => {
+                const acctLine = (r.bank||r.account) ? `${r.bank||''} ${r.account||''}${r.holder?' ('+r.holder+')':''}`.trim() : '';
+                peRows.push([
+                    c(i+1,XSI.TBL_DATA), c(r.date||'',XSI.TBL_DATA), c(r.employee||'',XSI.TBL_DATA), c(r.cat||'',XSI.TBL_DATA),
+                    c(r.merchant||'',XSI.TBL_DATA), c(Number(r.amount||0),XSI.TBL_NUM), c(r.site||'',XSI.TBL_DATA),
+                    c(r.status==='settled' ? '정산완료' : '미정산', XSI.TBL_DATA), c(acctLine,XSI.TBL_DATA), c(r.memo||'',XSI.TBL_DATA)
+                ]);
+            });
+            const peTotal = peList.reduce((s,r)=>s+Number(r.amount||0),0);
+            const peSettledTotal = peList.filter(r=>r.status==='settled').reduce((s,r)=>s+Number(r.amount||0),0);
+            const pePendingTotal = peTotal - peSettledTotal;
+            if (peList.length) {
+                const peTotalIdx = peRows.length;
+                const peStartRow = 4, peEndRow = peRows.length;
+                peRows.push([c('합계',XSI.TBL_TOTAL),'','','',fc(`SUM(F${peStartRow}:F${peEndRow})`, peTotal, XSI.TBL_TOTAL),'','',
+                    c(`정산완료 ${peSettledTotal.toLocaleString('ko-KR')} / 미정산 ${pePendingTotal.toLocaleString('ko-KR')}`, XSI.TBL_DATA),'','']);
+                peMerges.push({ r1:peTotalIdx, c1:0, r2:peTotalIdx, c2:3 });
+            }
+            sheets.push({ name:'개인경비정산', rows: peRows, merges: peMerges, colWidths:[6,12,10,10,22,13,16,10,22,26] });
+
             /* ── 최종적으로 맨 앞에 삽입할 집계표 — 전체 요약(청구명세서/지불의뢰서/법인카드 총액) ── */
             const reqTotalAmt = summaryData.reduce((s,sd)=>s+sd.total,0);
             const stTotalAmt  = t1supply + t1tax;
@@ -12328,6 +12263,8 @@ function changePrintScale(value) {
                 reqSummaryTotalRow ? fc(`'지불의뢰서_요약'!F${reqSummaryTotalRow}`, reqTotalAmt, XSI.SUM_NUM) : c(0, XSI.SUM_NUM)]);
             sumRows.push([c('법인카드 사용 합계',XSI.VALUE), c(ccList.length,XSI.SUM_NUM),
                 ccList.length ? fc(`'법인카드'!E${ccRows.length}`, ccTotal, XSI.SUM_NUM) : c(0, XSI.SUM_NUM)]);
+            sumRows.push([c('개인경비 정산 합계',XSI.VALUE), c(peList.length,XSI.SUM_NUM),
+                peList.length ? fc(`'개인경비정산'!F${peRows.length}`, peTotal, XSI.SUM_NUM) : c(0, XSI.SUM_NUM)]);
             sumRows.push([]);
             sumRows.push([c('구분(공종)별 청구 내역',XSI.SEC_HEAD),'','']);
             sumMerges.push({ r1:sumRows.length-1, c1:0, r2:sumRows.length-1, c2:2 });
@@ -12341,7 +12278,7 @@ function changePrintScale(value) {
             const blob = await makeXlsxBlob(sheets);
             const filename = `${docLabel}_본사보고용_${new Date().toISOString().slice(0,10)}.xlsx`;
             downloadBlob(blob, filename);
-            showToast(`본사 보고용 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${summaryData.length}건 · 법인카드 ${ccList.length}건)`);
+            showToast(`본사 보고용 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${summaryData.length}건 · 법인카드 ${ccList.length}건 · 개인경비 ${peList.length}건)`);
         }
 
         /* ============================================================
@@ -13141,25 +13078,17 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
             const currentDoc = savedDocuments.find(d=>d.id===currentDocId);
             const docLabel   = currentDoc ? `${currentDoc.company}_${currentDoc.month}` : '지불의뢰서';
 
-            const processed = new Set();
             const outerZip  = new JSZip();
             let count = 0;
+            const fnameCount = {}; // 같은 거래처+대표자로 파일명이 겹치면 (2),(3)... 붙여 구분 (zip 내 덮어쓰기 방지)
 
             showToast('Word 파일 생성 중...');
 
             for (const row of [...dataset].filter(r=>r.vendor)) {
-                // 거래처명 + 대표자 복합 키 — 같은 상호라도 대표자 다르면 개별 파일
-                const vendorKey = `${row.vendor}||${row.ceo||''}`;
-                if (processed.has(vendorKey)) continue;
-                processed.add(vendorKey);
-
-                const vendorRows = dataset.filter(r=>r.vendor===row.vendor && (r.ceo||'')===(row.ceo||''));
-                const supplySum  = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
-                const taxSum     = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+                const supplySum  = row.supply||0;
+                const taxSum     = row.tax||0;
                 const totalSum   = supplySum + taxSum;
-                const reqAmt     = totalSum
-                    - vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
-                    - vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
+                const reqAmt     = totalSum - (row.deduction||0) - (row.prepaid||0);
 
                 const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                 const bank    = accMatch?.bank    || row.bank    || '';
@@ -13168,21 +13097,20 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
                 const phone   = accMatch?.phone   || row.phone   || '';
                 const bizNum  = accMatch?.biznum  || row.biznum  || '';
 
-                const firstRow = vendorRows[0];
-                const itemRows = (firstRow.vendorItems && firstRow.vendorItems.length>0)
-                    ? firstRow.vendorItems.map(it=>({
+                const itemRows = (row.vendorItems && row.vendorItems.length>0)
+                    ? row.vendorItems.map(it=>({
                         item:it.item, qty:it.qty||'1.0',
                         supply:typeof it.supply==='number'?it.supply.toLocaleString('ko-KR'):it.supply,
                         tax:typeof it.tax==='number'?it.tax.toLocaleString('ko-KR'):it.tax,
                         total:typeof it.supply==='number'?((it.supply||0)+(it.tax||0)).toLocaleString('ko-KR'):''
                       }))
-                    : vendorRows.map(r=>({
-                        item: r.note&&r.note.trim()?r.note.trim():(r.type||'품목 청구'),
+                    : [{
+                        item: row.note&&row.note.trim()?row.note.trim():(row.type||'품목 청구'),
                         qty:'1.0',
-                        supply:(r.supply||0).toLocaleString('ko-KR'),
-                        tax:(r.tax||0).toLocaleString('ko-KR'),
-                        total:((r.supply||0)+(r.tax||0)).toLocaleString('ko-KR')
-                      }));
+                        supply:(row.supply||0).toLocaleString('ko-KR'),
+                        tax:(row.tax||0).toLocaleString('ko-KR'),
+                        total:((row.supply||0)+(row.tax||0)).toLocaleString('ko-KR')
+                      }];
 
                 const d = {
                     category: row.type||'',
@@ -13200,7 +13128,14 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
                 const docXml  = buildRequestDocxXml(d);
                 const docBlob = await makeDocxBlob(docXml);
                 const ceoSuffix = row.ceo ? `_${row.ceo}` : '';
-                const fname = `${row.vendor}${ceoSuffix}_지불의뢰서.docx`;
+                let fname = `${row.vendor}${ceoSuffix}_지불의뢰서.docx`;
+                // 같은 거래처+대표자로 파일명이 겹치면 뒤에 번호를 붙여 구분
+                if (fnameCount[fname] !== undefined) {
+                    fnameCount[fname]++;
+                    fname = fname.replace(/\.docx$/, `(${fnameCount[fname]}).docx`);
+                } else {
+                    fnameCount[fname] = 1;
+                }
                 outerZip.file(fname, docBlob);
                 count++;
             }
@@ -13635,22 +13570,15 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             } else {
                 showToast('Excel 전체 생성 중...');
-                const processed = new Set();
                 const xlsxSheets = [];
                 const summaryData = [];
+                const sheetNameCount = {}; // 같은 거래처가 여러 행이면 시트명 뒤에 (2),(3)... 붙여 구분
 
                 for (const row of [...dataset].filter(r=>r.vendor)) {
-                    const vendorKey = `${row.vendor}||${row.ceo||''}`;
-                    if (processed.has(vendorKey)) continue;
-                    processed.add(vendorKey);
-
-                    const vendorRows = dataset.filter(r=>r.vendor===row.vendor&&(r.ceo||'')===(row.ceo||''));
-                    const supplySum  = vendorRows.reduce((s,r)=>s+(r.supply||0),0);
-                    const taxSum     = vendorRows.reduce((s,r)=>s+(r.tax||0),0);
+                    const supplySum  = row.supply||0;
+                    const taxSum     = row.tax||0;
                     const totalSum   = supplySum+taxSum;
-                    const reqAmt     = totalSum
-                        -vendorRows.reduce((s,r)=>s+(r.deduction||0),0)
-                        -vendorRows.reduce((s,r)=>s+(r.prepaid||0),0);
+                    const reqAmt     = totalSum - (row.deduction||0) - (row.prepaid||0);
 
                     const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                     const bank    = accMatch?.bank    || row.bank    || '';
@@ -13659,13 +13587,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const phone   = accMatch?.phone   || row.phone   || '';
                     const biznum  = accMatch?.biznum  || row.biznum  || '';
 
-                    const firstRow = vendorRows[0];
-                    const items = (firstRow.vendorItems && firstRow.vendorItems.length>0)
-                        ? firstRow.vendorItems
-                        : vendorRows.map(r=>({
-                            item: r.note&&r.note.trim()?r.note.trim():(r.type||'품목 청구'),
-                            qty:'1.0', supply:r.supply||0, tax:r.tax||0,
-                          }));
+                    const items = (row.vendorItems && row.vendorItems.length>0)
+                        ? row.vendorItems
+                        : [{ item: row.note&&row.note.trim()?row.note.trim():(row.type||'품목 청구'), qty:'1.0', supply:row.supply||0, tax:row.tax||0 }];
 
                     const d = {
                         site, period,
@@ -13678,8 +13602,15 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         memo:'', items,
                     };
                     const { rows, merges } = buildRequestXlsxRows(d);
-                    const sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
+                    let sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
                                 + (row.ceo?`_${row.ceo.slice(0,4)}`:'');
+                    // 같은 거래처+대표자로 시트명이 겹치면 뒤에 번호를 붙여 구분 (엑셀은 시트명 중복 불가)
+                    if (sheetNameCount[sName] !== undefined) {
+                        sheetNameCount[sName]++;
+                        sName = `${sName.slice(0,28)}(${sheetNameCount[sName]})`;
+                    } else {
+                        sheetNameCount[sName] = 1;
+                    }
                     xlsxSheets.push({name:sName, rows, merges, colWidths:COL_W});
                     summaryData.push({vendor:row.vendor,ceo:row.ceo||'',type:row.type||'',
                         supply:supplySum,tax:taxSum,total:totalSum,
