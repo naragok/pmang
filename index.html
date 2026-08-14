@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V2.1</title>
+    <title>현장 자금관리 PRO V2.3</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4082,9 +4082,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '2.1';
-        const APP_VERSION_DATE = '2026-08-12';
-        const APP_VERSION_NOTE = '본사 보고용 내보내기(Excel/HTML)에 "지불의뢰서 요약" 표를 다시 표시. 단, 거래처별 개별 지불의뢰서 카드/시트는 계속 제외 — 요약표(거래처·대표자·금액·계좌)만 포함.';
+        const APP_VERSION = '2.3';
+        const APP_VERSION_DATE = '2026-08-14';
+        const APP_VERSION_NOTE = '지불의뢰서 HTML 내보내기의 "거래처 및 입금 계좌 정보" 박스를 2열 그리드에서 1열(한 줄씩 세로 나열)로 변경.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -12271,8 +12271,24 @@ function changePrintScale(value) {
             const bizNum  = accMatch?.biznum  || row.biznum  || '';
             const phone   = accMatch?.phone   || row.phone   || '';
 
-            const itemRows = `<tr><td>${esc(row.note?.trim() || row.type || '품목 청구')}</td><td class="ctr">1.0</td>
-                <td class="num">${won(supplySum)}</td><td class="num">${won(taxSum)}</td><td class="num">${won(supplySum+taxSum)}</td></tr>`;
+            // ★ 화면의 공종별 배지 색상과 동일한 매핑 (applyCategoryColor와 동일한 색상표)
+            const CARD_COLOR_MAP = {
+                "외주비": "blue", "자재비": "emerald", "장비비": "amber", "노무비": "purple", "관리비": "rose"
+            };
+            const badgeColor = CARD_COLOR_MAP[row.type] || "slate";
+
+            // ★ 화면과 동일하게, 저장된 품목(vendorItems)이 있으면 그 전체를 표시 (품목 여러 줄 지원)
+            const items = (row.vendorItems && row.vendorItems.length > 0)
+                ? row.vendorItems
+                : [{ item: row.note?.trim() || row.type || '품목 청구', qty: '1.0', supply: supplySum, tax: taxSum }];
+            const itemRows = items.map(it => {
+                const itSupply = Number(it.supply)||0, itTax = Number(it.tax)||0;
+                return `<tr><td>${esc(it.item||'')}</td><td class="ctr">${esc(it.qty||'1.0')}</td>
+                    <td class="num">${won(itSupply)}</td><td class="num">${won(itTax)}</td><td class="num">${won(itSupply+itTax)}</td></tr>`;
+            }).join('');
+
+            // ★ 화면의 "청구금액" 필드 형식과 동일하게 (일금 ○○○ 원정)
+            const contractText = `일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`;
 
             // ★ 구비 서류 체크리스트 — 등록된 항목 + 이 건(selectorKey)에 저장된 체크 상태
             let checklistHtml = '';
@@ -12294,13 +12310,13 @@ function changePrintScale(value) {
 
             return { reqAmt, supplySum, taxSum, html: `<div class="page req-page">
                 <div class="req-doc">
-                    <div class="req-doc-title">(<span class="badge">${esc(row.type||'-')}</span>) 지 불 의 뢰 서</div>
+                    <div class="req-doc-title">(<span class="badge badge-${badgeColor}">${esc(row.type||'-')}</span>) 지 불 의 뢰 서</div>
                     <div class="req-meta">
                         <div><b>현&nbsp;&nbsp;장&nbsp;&nbsp;명</b> : ${esc(site||'-')}</div>
                         <div><b>청구기간</b> : ${esc(period||'-')}</div>
                     </div>
                     <table class="req-vendor-box">
-                        <tr><th>공종명</th><td>${esc(row.type||'-')}</td><th>청구금액</th><td class="strong">${won(reqAmt)}</td></tr>
+                        <tr><th>공종명</th><td>${esc(row.type||'-')}</td><th>청구금액</th><td class="strong">${esc(contractText)}</td></tr>
                         <tr><th>거래처</th><td class="strong">${esc(row.vendor)}</td><th>대표자</th><td>${esc(row.ceo||'-')}</td></tr>
                     </table>
 
@@ -12359,7 +12375,13 @@ function changePrintScale(value) {
             .req-page { align-items:stretch; justify-content:flex-start; }
             .req-doc { border:1px solid #cbd5e1; border-radius:10px; padding:16mm 14mm; width:100%; height:100%; flex:1; display:flex; flex-direction:column; }
             .req-doc-title { text-align:center; font-size:19px; font-weight:800; letter-spacing:0.15em; border-bottom:2px solid #1e293b; padding-bottom:14px; margin-bottom:12px; }
-            .req-doc-title .badge { background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; border-radius:6px; padding:1px 8px; letter-spacing:0; font-size:15px; }
+            .req-doc-title .badge { border-radius:6px; padding:1px 8px; letter-spacing:0; font-size:15px; border:1px solid; }
+            .req-doc-title .badge-blue    { background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; }
+            .req-doc-title .badge-emerald { background:#ecfdf5; color:#059669; border-color:#a7f3d0; }
+            .req-doc-title .badge-amber   { background:#fffbeb; color:#b45309; border-color:#fcd34d; }
+            .req-doc-title .badge-purple  { background:#faf5ff; color:#7c3aed; border-color:#d8b4fe; }
+            .req-doc-title .badge-rose    { background:#fff1f2; color:#e11d48; border-color:#fda4af; }
+            .req-doc-title .badge-slate   { background:#f8fafc; color:#334155; border-color:#cbd5e1; }
             .req-meta { display:flex; gap:24px; font-size:12px; margin-bottom:14px; }
             table.req-vendor-box { margin-bottom:14px; }
             table.req-vendor-box th { background:#f1f5f9; width:80px; text-align:left; color:#1e293b; }
@@ -12370,7 +12392,7 @@ function changePrintScale(value) {
             table.req-items tfoot th:first-child { text-align:center; }
             .req-boxes { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
             .req-box { border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; }
-            .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px 20px; }
+            .kv-grid { display:grid; grid-template-columns:1fr; gap:2px; }
             .kv { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #e2e8f0; font-size:11px; }
             .kv b { font-weight:700; }
             .kv.total { border-bottom:none; color:#4f46e5; font-weight:800; padding-top:6px; }
