@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.8</title>
+    <title>현장 자금관리 PRO V2.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1133,12 +1133,12 @@
                     <i data-lucide="building-2" class="w-2.5 h-2.5" style="color:#38bdf8;"></i> <span style="font-size:9px;font-weight:700;">거래처DB</span>
                     <span id="vendor-master-badge-hdr" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#0ea5e9;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
                 </button>
-                <button id="add-row-hdr-btn" onclick="openAddRowModal()" class="hdr-btn" style="padding:7px 14px;background:#dc2626;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i> <span style="font-size:12px;font-weight:800;">청구 항목 추가</span>
-                </button>
                 <button onclick="openTrashModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;position:relative;" title="삭제한 청구항목 복구">
                     <i data-lucide="trash-2" class="w-2.5 h-2.5" style="color:#f87171;"></i> <span style="font-size:9px;font-weight:700;">휴지통</span>
                     <span id="trash-count-badge" class="hidden" style="position:absolute;top:-5px;right:-5px;background:#f43f5e;color:white;font-size:8px;font-weight:800;padding:1px 4px;border-radius:9px;line-height:1.3;"></span>
+                </button>
+                <button id="add-row-hdr-btn" onclick="openAddRowModal()" class="hdr-btn" style="padding:7px 14px;background:#dc2626;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> <span style="font-size:12px;font-weight:800;">청구 항목 추가</span>
                 </button>
                 <button id="pwa-install-btn" onclick="handlePwaInstallClick()" class="hdr-btn hidden" style="padding:4px 8px;background:#059669;color:#fff;" title="홈 화면에 앱으로 설치합니다">
                     <i data-lucide="download" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">홈 화면 설치</span>
@@ -4082,9 +4082,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.8';
+        const APP_VERSION = '2.1';
         const APP_VERSION_DATE = '2026-08-12';
-        const APP_VERSION_NOTE = '구비 서류 체크리스트 항목 관리 모달에 "백업"/"불러오기" 버튼 추가. 체크리스트 항목 구성(아이콘+이름)만 JSON 파일로 저장/불러오기 가능 — 다른 현장 문서나 다른 PC에서도 동일한 항목 구성을 재사용할 수 있음. 문서별 체크 여부는 영향받지 않음.';
+        const APP_VERSION_NOTE = '본사 보고용 내보내기(Excel/HTML)에 "지불의뢰서 요약" 표를 다시 표시. 단, 거래처별 개별 지불의뢰서 카드/시트는 계속 제외 — 요약표(거래처·대표자·금액·계좌)만 포함.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -12116,59 +12116,22 @@ function changePrintScale(value) {
             stMerges.push({ r1:t1Idx, c1:0, r2:t1Idx, c2:3 });
             sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[6,8,18,10,13,11,13,11,10,14,8,16,10,7,16] });
 
-            /* ── 시트2~N: 지불의뢰서 — 청구명세서의 각 행을 개별 시트로 (같은 거래처+대표자라도 합산하지 않음) ── */
-            const COL_W = [6, 18, 8, 14, 14, 14];
+            /* ── 지불의뢰서 요약 시트 (개별 지불의뢰서 카드/시트는 생성하지 않음 — 요약표만) ── */
             const summaryData = [];
-            const reqSheets = [];
-            const sheetNameCount = {}; // 같은 거래처가 여러 행이면 시트명 뒤에 (2),(3)... 붙여 구분
-
             for (const row of [...dataset].filter(r => r.vendor)) {
-                const supplySum  = row.supply||0;
-                const taxSum     = row.tax||0;
-                const totalSum   = supplySum+taxSum;
-                const reqAmt     = totalSum - (row.deduction||0) - (row.prepaid||0);
-
+                const supplySum = row.supply||0;
+                const taxSum    = row.tax||0;
+                const totalSum  = supplySum+taxSum;
                 const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                 const bank    = accMatch?.bank    || row.bank    || '';
                 const account = accMatch?.account || row.account || '';
                 const holder  = accMatch?.holder  || row.holder  || '';
-                const phone   = accMatch?.phone   || row.phone   || '';
-                const biznum  = accMatch?.biznum  || row.biznum  || '';
-
-                const items = (row.vendorItems && row.vendorItems.length>0)
-                    ? row.vendorItems
-                    : [{ item: row.note&&row.note.trim()?row.note.trim():(row.type||'품목 청구'), qty:'1.0', supply:row.supply||0, tax:row.tax||0 }];
-
-                const d = {
-                    site, period,
-                    category: row.type||'',
-                    type:    row.type||'',
-                    contract:`일금 ${getKoreanNumber(reqAmt)} 원정 (￦${formatNumber(reqAmt)})`,
-                    vendor:  row.vendor, ceo: row.ceo||'',
-                    biznum, bank:bank?`${bank}은행`:bank, account, holder, phone,
-                    supply:  supplySum, tax: taxSum,
-                    memo:'', items,
-                };
-                const { rows, merges } = buildRequestXlsxRows(d);
-                let sName = row.vendor.slice(0,24).replace(/[:\\/?*\[\]]/g,'_')
-                            + (row.ceo?`_${row.ceo.slice(0,4)}`:'');
-                // 같은 거래처+대표자로 시트명이 겹치면 뒤에 번호를 붙여 구분 (엑셀은 시트명 중복 불가)
-                if (sheetNameCount[sName] !== undefined) {
-                    sheetNameCount[sName]++;
-                    sName = `${sName.slice(0,28)}(${sheetNameCount[sName]})`;
-                } else {
-                    sheetNameCount[sName] = 1;
-                }
-                reqSheets.push({ name:sName, rows, merges, colWidths:COL_W });
                 summaryData.push({ vendor:row.vendor, ceo:row.ceo||'', type:row.type||'',
                     supply:supplySum, tax:taxSum, total:totalSum,
                     bankInfo:`${bank} ${account} (${holder})` });
             }
-
-            // 지불의뢰서 요약 시트를 맨 앞에, 이어서 행별 개별 시트
             const { rows: sRows, merges: sMerges } = buildSummaryXlsxRows(site, period, summaryData);
             sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[16,10,10,13,11,13,24] });
-            sheets.push(...reqSheets);
 
             /* ── 마지막 시트: 법인카드 사용내역 (현재 현장, 해당 월 기준) ── */
             const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
@@ -12239,7 +12202,7 @@ function changePrintScale(value) {
             }
             sheets.push({ name:'개인경비정산', rows: peRows, merges: peMerges, colWidths:[6,12,10,10,22,13,16,10,22,26] });
 
-            /* ── 최종적으로 맨 앞에 삽입할 집계표 — 전체 요약(청구명세서/지불의뢰서/법인카드 총액) ── */
+            /* ── 최종적으로 맨 앞에 삽입할 집계표 — 전체 요약(청구명세서/지불의뢰서/법인카드/개인경비 총액) ── */
             const reqTotalAmt = summaryData.reduce((s,sd)=>s+sd.total,0);
             const stTotalAmt  = t1supply + t1tax;
             const stReqAmt    = stTotalAmt - t1ded - t1pre;
@@ -12282,7 +12245,7 @@ function changePrintScale(value) {
         }
 
         /* ============================================================
-           본사 제출용 HTML 내보내기 — 집계표 + 청구명세서 + 지불의뢰서 + 법인카드를
+           본사 제출용 HTML 내보내기 — 집계표 + 청구명세서 + 법인카드 + 개인경비를
            인쇄 가능한 HTML 파일 하나로 묶어서 내보낸다 (xlsx 버전과 동일한 데이터 구성)
         ============================================================ */
         /* ── HTML 내보내기 공용 헬퍼 ── */
@@ -12659,22 +12622,22 @@ function changePrintScale(value) {
                 <td class="num">${won(t1ded)}</td><td class="num">${won(t1pre)}</td><td class="num">${won(t1req)}</td>
                 <td colspan="5"></td></tr>`;
 
-            /* ── 지불의뢰서: 청구명세서의 각 행을 개별 카드로 (같은 거래처라도 그룹핑하지 않음) ── */
-            let reqHtml = '';
+            /* ── 지불의뢰서 요약 (개별 지불의뢰서 카드는 포함하지 않음 — 요약표만) ── */
             const summaryRowsHtml = [];
             let reqTotalAmt = 0;
             let reqCount = 0;
             for (const row of dataset.filter(r => r.vendor)) {
                 reqCount++;
-                const { html: cardHtml, reqAmt, supplySum, taxSum } = buildReqCardHTML(row, site, period, `row-${row.id}`);
-                const total = supplySum + taxSum;
+                const supplySum = row.supply||0;
+                const taxSum    = row.tax||0;
+                const total     = supplySum+taxSum;
+                const reqAmt    = total - (row.deduction||0) - (row.prepaid||0);
                 reqTotalAmt += reqAmt;
                 const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor','ceo','holder']);
                 const bank    = accMatch?.bank    || row.bank    || '';
                 const account = accMatch?.account || row.account || '';
                 const holder  = accMatch?.holder  || row.holder  || '';
 
-                reqHtml += cardHtml;
                 summaryRowsHtml.push(`<tr><td>${esc(row.vendor)}</td><td>${esc(row.ceo||'')}</td><td class="ctr">${esc(row.type||'')}</td>
                     <td class="num">${won(supplySum)}</td><td class="num">${won(taxSum)}</td><td class="num">${won(total)}</td>
                     <td class="num">${won(row.deduction||0)}</td><td class="num">${won(row.prepaid||0)}</td><td class="num" style="font-weight:800;">${won(reqAmt)}</td>
@@ -12748,7 +12711,7 @@ ${REQ_CARD_CSS}
         <span class="hq-toc-title">📑 바로가기</span>
         <a href="#sec-summary">집계표</a>
         <a href="#sec-statement">청구명세서</a>
-        <a href="#sec-request">지불의뢰서</a>
+        <a href="#sec-request">지불의뢰서 요약</a>
         <a href="#sec-corpcard">법인카드</a>
         <a href="#sec-personalexp">개인경비</a>
         <button onclick="window.print()" class="hq-print-btn">🖨 인쇄 / PDF 저장</button>
@@ -12792,8 +12755,6 @@ ${REQ_CARD_CSS}
                 <td></td></tr></tfoot>
         </table>
     </div>
-
-    ${reqHtml}
 
     <div class="page" id="sec-corpcard">
         <h2>법인카드 사용내역</h2>
