@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V2.3</title>
+    <title>현장 자금관리 PRO V2.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4082,9 +4082,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '2.3';
+        const APP_VERSION = '2.9';
         const APP_VERSION_DATE = '2026-08-14';
-        const APP_VERSION_NOTE = '지불의뢰서 HTML 내보내기의 "거래처 및 입금 계좌 정보" 박스를 2열 그리드에서 1열(한 줄씩 세로 나열)로 변경.';
+        const APP_VERSION_NOTE = '지불의뢰서 Excel 내보내기를 실제 PDF/화면 인쇄본 형태에 맞춤 — 섹션 제목(현장정보, 공종및거래처정보 등) 앞에 "▣" 기호 추가, 청구 산출 근거의 공급가액계·부가가치세 값을 천단위 콤마가 붙는 숫자 서식으로 변경.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -12114,7 +12114,7 @@ function changePrintScale(value) {
                 '','','','',''
             ]);
             stMerges.push({ r1:t1Idx, c1:0, r2:t1Idx, c2:3 });
-            sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[6,8,18,10,13,11,13,11,10,14,8,16,10,7,16] });
+            sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[6,10,20,11,14,12,14,12,11,15,10,17,11,8,18] });
 
             /* ── 지불의뢰서 요약 시트 (개별 지불의뢰서 카드/시트는 생성하지 않음 — 요약표만) ── */
             const summaryData = [];
@@ -12131,7 +12131,7 @@ function changePrintScale(value) {
                     bankInfo:`${bank} ${account} (${holder})` });
             }
             const { rows: sRows, merges: sMerges } = buildSummaryXlsxRows(site, period, summaryData);
-            sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[16,10,10,13,11,13,24] });
+            sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[18,12,12,15,13,15,26] });
 
             /* ── 마지막 시트: 법인카드 사용내역 (현재 현장, 해당 월 기준) ── */
             const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
@@ -12396,7 +12396,7 @@ function changePrintScale(value) {
             .kv { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #e2e8f0; font-size:11px; }
             .kv b { font-weight:700; }
             .kv.total { border-bottom:none; color:#4f46e5; font-weight:800; padding-top:6px; }
-            .chk-list { display:flex; flex-wrap:wrap; gap:6px 14px; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; margin-bottom:8px; }
+            .chk-list { display:flex; flex-direction:column; gap:6px; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; margin-bottom:8px; }
             .chk-list .chk { font-size:11px; color:#94a3b8; }
             .chk-list .chk.on { color:#1e293b; font-weight:700; }
             .memo-box { border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; font-size:11px; color:#475569; white-space:pre-wrap; min-height:32px; margin-bottom:8px; }
@@ -13154,6 +13154,7 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
             CONTRACT:   9,  // 청구금액 강조 (파랑+볼드)
             SUM_HEAD:  10,  // 요약 헤더
             SUM_NUM:   11,  // 요약 숫자
+            VALUE_NUM: 12,  // 값 셀(숫자, 천단위 콤마+우측정렬) — 공급가액계/부가가치세 등 라벨-값 행의 숫자칸
         };
 
         const XLSX_STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -13177,22 +13178,22 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
 <borders count="3">
   <border><left/><right/><top/><bottom/><diagonal/></border>
   <border>
-    <left style="thin"><color rgb="FFAAAAAA"/></left>
-    <right style="thin"><color rgb="FFAAAAAA"/></right>
-    <top style="thin"><color rgb="FFAAAAAA"/></top>
-    <bottom style="thin"><color rgb="FFAAAAAA"/></bottom>
+    <left style="thin"><color rgb="FF000000"/></left>
+    <right style="thin"><color rgb="FF000000"/></right>
+    <top style="thin"><color rgb="FF000000"/></top>
+    <bottom style="thin"><color rgb="FF000000"/></bottom>
     <diagonal/>
   </border>
   <border>
-    <left style="medium"><color rgb="FF1E3A5F"/></left>
-    <right style="medium"><color rgb="FF1E3A5F"/></right>
-    <top style="medium"><color rgb="FF1E3A5F"/></top>
-    <bottom style="medium"><color rgb="FF1E3A5F"/></bottom>
+    <left style="thin"><color rgb="FF000000"/></left>
+    <right style="thin"><color rgb="FF000000"/></right>
+    <top style="thin"><color rgb="FF000000"/></top>
+    <bottom style="thin"><color rgb="FF000000"/></bottom>
     <diagonal/>
   </border>
 </borders>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="12">
+<cellXfs count="13">
   <xf numFmtId="0"   fontId="0" fillId="0" borderId="0" xfId="0"/>
   <xf numFmtId="0"   fontId="1" fillId="2" borderId="2" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
   <xf numFmtId="0"   fontId="3" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
@@ -13205,6 +13206,7 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
   <xf numFmtId="0"   fontId="5" fillId="5" borderId="2" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>
   <xf numFmtId="0"   fontId="4" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
   <xf numFmtId="3"   fontId="4" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+  <xf numFmtId="3"   fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
 </cellXfs>
 </styleSheet>`;
 
@@ -13252,17 +13254,51 @@ SHEET_OVERRIDES
         function buildXlsxSheet(rows, ss, merges=[], colWidths=[]) {
             const cells = [];
             let maxCol = 0;
+
+            // ★ 병합 범위 내부의 (좌상단이 아닌) 셀들도 좌상단과 동일한 스타일의 빈 셀로 채워, 테두리가 병합 영역 전체에 끊김없이 그려지도록 한다.
+            //   Excel은 병합 시 좌상단 셀만 값/스타일을 갖고 나머지는 비워두는 게 정상이지만, 서식(테두리)까지 지우면 라인이 끊겨 보인다.
+            const mergeFillMap = new Map(); // "r,c" -> si (해당 병합의 좌상단 스타일)
+            merges.forEach(m => {
+                for (let r = m.r1; r <= m.r2; r++) {
+                    for (let cc = m.c1; cc <= m.c2; cc++) {
+                        if (r === m.r1 && cc === m.c1) continue; // 좌상단은 원래 값 그대로 사용
+                        mergeFillMap.set(`${r},${cc}`, null); // si는 아래에서 좌상단 값을 보고 채움
+                    }
+                }
+            });
+
             rows.forEach((row, ri) => {
                 if (!row || !row.length) return;
                 const rowCells = [];
                 let rowSi = null;
+                // 이 행의 각 칸이 어떤 병합의 좌상단 스타일을 물려받아야 하는지 미리 계산
+                const rowLeadStyle = {};
+                merges.forEach(m => {
+                    if (ri < m.r1 || ri > m.r2) return;
+                    const leadCell = rows[m.r1] && rows[m.r1][m.c1];
+                    const leadSi = leadCell && leadCell.si !== undefined ? leadCell.si : XSI.DEFAULT;
+                    for (let cc = m.c1; cc <= m.c2; cc++) {
+                        if (ri === m.r1 && cc === m.c1) continue;
+                        rowLeadStyle[cc] = leadSi;
+                    }
+                });
+
                 row.forEach((cell, ci) => {
-                    if (cell === null || cell === undefined || cell === '') return;
                     const ref = xlsxRef(ri, ci);
+                    if (ci > maxCol) maxCol = ci;
+
+                    if (cell === null || cell === undefined || cell === '') {
+                        // ★ 병합 영역에 속한 빈 셀이면 좌상단과 같은 스타일로 빈 셀을 만들어 테두리를 이어준다.
+                        const inheritedSi = rowLeadStyle[ci];
+                        if (inheritedSi !== undefined && inheritedSi !== XSI.DEFAULT) {
+                            rowCells.push(`<c r="${ref}" s="${inheritedSi}"/>`);
+                        }
+                        return;
+                    }
+
                     const si  = typeof cell.v === 'number' ? cell.si ?? XSI.DEFAULT : cell.si ?? XSI.DEFAULT;
                     if (rowSi === null) rowSi = si; // 행의 첫 셀 스타일로 행 높이 결정
                     const val = cell.v ?? cell;
-                    if (ci > maxCol) maxCol = ci;
                     if (cell && cell.f) {
                         // ★ 수식 셀 — 엑셀에서 열면 수식이 그대로 살아있고, 캐시값(v)은 미리보기용으로만 사용됨
                         const cachedVal = typeof val === 'number' ? val : 0;
@@ -13275,7 +13311,7 @@ SHEET_OVERRIDES
                 });
                 if (rowCells.length) {
                     // 제목 행은 크게, 섹션 헤더 행은 중간, 일반 행은 기본 높이로 — 화면 인쇄본과 동일한 시각적 위계
-                    const ht = rowSi === XSI.TITLE ? 32 : (rowSi === XSI.SEC_HEAD ? 22 : 18);
+                    const ht = rowSi === XSI.TITLE ? 34 : (rowSi === XSI.SEC_HEAD ? 24 : 20);
                     cells.push(`<row r="${ri+1}" customHeight="1" ht="${ht}">${rowCells.join('')}</row>`);
                 }
             });
@@ -13327,7 +13363,7 @@ ${mergeSxml}
             addRow([]); // 빈줄
 
             // ── 현장 정보 ──
-            fullMerge(addRow([c('현 장 정 보', S.SEC_HEAD),'','','','','']));
+            fullMerge(addRow([c('▣ 현 장 정 보', S.SEC_HEAD),'','','','','']));
             let rIdx = addRow([c('현장명',S.LABEL),'',c(d.site||'',S.VALUE),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
             rIdx = addRow([c('청구기간',S.LABEL),'',c(d.period||'',S.VALUE),'','','']);
@@ -13335,7 +13371,7 @@ ${mergeSxml}
             addRow([]);
 
             // ── 공종 및 거래처 정보 (화면상 품목표 바로 위 섹션과 동일 순서) ──
-            fullMerge(addRow([c('공 종 및 거 래 처 정 보', S.SEC_HEAD),'','','','','']));
+            fullMerge(addRow([c('▣ 공 종 및 거 래 처 정 보', S.SEC_HEAD),'','','','','']));
             rIdx = addRow([c('공종명',S.LABEL),'',c(d.type||'',S.VALUE),'',c('청구금액',S.LABEL),c(d.contract||'',S.CONTRACT)]);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
             rIdx = addRow([c('거래처',S.LABEL),'',c(d.vendor||'',S.VALUE),'',c('대표자',S.LABEL),c(d.ceo||'',S.VALUE)]);
@@ -13343,7 +13379,7 @@ ${mergeSxml}
             addRow([]);
 
             // ── 청구 및 의뢰 품목 내역 표 (화면과 동일 위치: 거래처 정보 바로 다음) ──
-            fullMerge(addRow([c('청 구 및 의 뢰 품 목 내 역', S.SEC_HEAD),'','','','','']));
+            fullMerge(addRow([c('▣ 청 구 및 의 뢰 품 목 내 역', S.SEC_HEAD),'','','','','']));
             addRow([
                 c('번호',S.TBL_HEAD), c('품목명 / 비고',S.TBL_HEAD),
                 c('수량',S.TBL_HEAD), c('공급가액',S.TBL_HEAD),
@@ -13379,21 +13415,25 @@ ${mergeSxml}
             const sumRowNum = rIdx + 1; // 합계 행의 엑셀 row 번호 (청구 산출 근거에서 참조)
 
             // ── 청구 산출 근거 (화면과 동일: 품목표 바로 아래) ──
-            fullMerge(addRow([c('청 구 산 출 근 거', S.SEC_HEAD),'','','','','']));
-            rIdx = addRow([c('공급가액계',S.LABEL),'',fc(`D${sumRowNum}`, supplyNum, S.VALUE),'','','']);
+            fullMerge(addRow([c('▣ 청 구 산 출 근 거', S.SEC_HEAD),'','','','','']));
+            rIdx = addRow([c('공급가액계',S.LABEL),'',fc(`D${sumRowNum}`, supplyNum, S.VALUE_NUM),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
-            rIdx = addRow([c('부가가치세',S.LABEL),'',fc(`E${sumRowNum}`, taxNum, S.VALUE),'','','']);
+            rIdx = addRow([c('부가가치세',S.LABEL),'',fc(`E${sumRowNum}`, taxNum, S.VALUE_NUM),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
             rIdx = addRow([c('청 구 금 액 계',S.LABEL),'',c(d.contract||'',S.CONTRACT),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
             addRow([]);
 
-            // ── 거래처 및 입금계좌 정보 (화면과 동일: 산출근거 바로 아래) ──
-            fullMerge(addRow([c('거 래 처 및 입 금 계 좌 정 보', S.SEC_HEAD),'','','','','']));
-            rIdx = addRow([c('사업자번호',S.LABEL),'',c(d.biznum||'',S.VALUE),'',c('은행',S.LABEL),c(d.bank||'',S.VALUE)]);
-            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
-            rIdx = addRow([c('계좌번호',S.LABEL),'',c(d.account||'',S.VALUE),'',c('예금주',S.LABEL),c(d.holder||'',S.VALUE)]);
-            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,3);
+            // ── 거래처 및 입금계좌 정보 (화면과 동일: 산출근거 바로 아래, 한 줄씩 세로로 나열) ──
+            fullMerge(addRow([c('▣ 거 래 처 및 입 금 계 좌 정 보', S.SEC_HEAD),'','','','','']));
+            rIdx = addRow([c('사업자번호',S.LABEL),'',c(d.biznum||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            rIdx = addRow([c('은행',S.LABEL),'',c(d.bank||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            rIdx = addRow([c('계좌번호',S.LABEL),'',c(d.account||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
+            rIdx = addRow([c('예금주',S.LABEL),'',c(d.holder||'',S.VALUE),'','','']);
+            addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
             rIdx = addRow([c('연락처',S.LABEL),'',c(d.phone||'',S.VALUE),'','','']);
             addMerge(rIdx,0,rIdx,1); addMerge(rIdx,2,rIdx,5);
             addRow([]);
@@ -13402,13 +13442,13 @@ ${mergeSxml}
             const CHK_LABELS = getChecklistLabels();
             const checklist  = d.checklist || CHK_LABELS.map(l=>({label:l,checked:false}));
             const chkStr = checklist.map(ck=>`${ck.checked?'☑':'☐'} ${ck.label}`).join('  ');
-            fullMerge(addRow([c('구 비 서 류 체 크 리 스 트', S.SEC_HEAD),'','','','','']));
+            fullMerge(addRow([c('▣ 구 비 서 류 체 크 리 스 트', S.SEC_HEAD),'','','','','']));
             fullMerge(addRow([c(chkStr, S.VALUE),'','','','','']));
             addRow([]);
 
             // ── 담당자 메모 ──
             if (d.memo) {
-                fullMerge(addRow([c('담당자 메모 / 특이사항', S.SEC_HEAD),'','','','','']));
+                fullMerge(addRow([c('▣ 담당자 메모 / 특이사항', S.SEC_HEAD),'','','','','']));
                 fullMerge(addRow([c(d.memo, S.VALUE),'','','','','']));
                 addRow([]);
             }
@@ -13526,7 +13566,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const docLabel   = currentDoc ? `${currentDoc.company}_${currentDoc.month}` : '지불의뢰서';
             const site       = document.getElementById('req-meta-site')?.value  || '';
             const period     = document.getElementById('req-meta-period')?.value || '';
-            const COL_W      = [6, 18, 8, 14, 14, 14];
+            const COL_W      = [10, 24, 10, 16, 16, 16];
 
             if (mode === 'current') {
                 const g = id => document.getElementById(id)?.value||'';
@@ -13603,7 +13643,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 // 요약 시트 맨 앞
                 const { rows:sRows, merges:sMerges } = buildSummaryXlsxRows(site, period, summaryData);
                 xlsxSheets.unshift({name:'전체요약', rows:sRows, merges:sMerges,
-                    colWidths:[16,10,10,13,11,13,24]});
+                    colWidths:[18,12,12,15,13,15,26]});
 
                 const blob = await makeXlsxBlob(xlsxSheets);
                 downloadBlob(blob, `${docLabel}_지불의뢰서_전체.xlsx`);
