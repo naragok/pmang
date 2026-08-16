@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V2.9</title>
+    <title>현장 자금관리 PRO V3.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1114,6 +1114,10 @@
                 </select>
                 <select id="saved-sheets-selector" onchange="loadSavedDocument(this.value)" class="hdr-select" style="max-width:280px;min-width:180px;border-color:rgba(99,102,241,0.4);">
                 </select>
+                <button id="month-close-btn" onclick="openMonthCloseModal()" class="hdr-btn hdr-btn-ghost" style="padding:4px 8px;position:relative;" title="이번 달 청구서를 확정본으로 저장 — 이후 원본과 대조 가능">
+                    <i data-lucide="lock" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">마감</span>
+                    <span id="month-close-badge" class="hidden" style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:#f59e0b;border:1px solid #fff;" title="이 문서는 마감 확정되어 있습니다"></span>
+                </button>
 
                 <div class="hdr-divider shrink-0"></div>
 
@@ -1281,7 +1285,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-2">
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">예금주 (실명 필수)</label>
-                        <input type="text" id="new-db-holder" oninput="this.dataset.autofilled='0'" placeholder="예: 유용근" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
+                        <input type="text" id="new-db-holder" oninput="this.dataset.autofilled='0'" placeholder="예: 홍길동" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">은행</label>
@@ -1293,11 +1297,11 @@
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">대표자명</label>
-                        <input type="text" id="new-db-ceo" oninput="autoFillNewDbHolder()" placeholder="예: 유용근" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
+                        <input type="text" id="new-db-ceo" oninput="autoFillNewDbHolder()" placeholder="예: 홍길동" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">거래처 연계 명칭</label>
-                        <input type="text" id="new-db-vendor" placeholder="예: 길한산업" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
+                        <input type="text" id="new-db-vendor" placeholder="예: OO상사" class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">사업자등록번호</label>
@@ -1776,7 +1780,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
                         <div class="flex items-center gap-2 min-w-0 group/meta" ondblclick="enableMetaEdit('meta-site')" title="더블클릭하여 현장명 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300" style="width:50px;text-align:center;">현장명</span>
-                            <input type="text" id="meta-site" list="meta-site-list" value="원주 캠프롱 현장" readonly onchange="syncMetaValues('meta-site', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-indigo-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default">
+                            <input type="text" id="meta-site" list="meta-site-list" value="" readonly onchange="syncMetaValues('meta-site', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-indigo-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default" placeholder="현장명을 입력하세요">
                             <datalist id="meta-site-list"></datalist>
                             <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-indigo-400"></i>
                         </div>
@@ -1788,7 +1792,7 @@
                         </div>
                         <div class="flex items-center gap-2 min-w-0 group/meta" ondblclick="enableMetaEdit('meta-company')" title="더블클릭하여 회사명 변경">
                             <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300" style="width:50px;text-align:center;">회사명</span>
-                            <input type="text" id="meta-company" list="meta-company-list" value="경산개발(주)" readonly onchange="syncMetaValues('meta-company', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-amber-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default">
+                            <input type="text" id="meta-company" list="meta-company-list" value="" readonly onchange="syncMetaValues('meta-company', this.value)" onblur="disableMetaEdit(this)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-amber-300 px-1 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-sm cursor-default" placeholder="회사명을 입력하세요">
                             <datalist id="meta-company-list"></datalist>
                             <i data-lucide="pencil" class="w-3 h-3 shrink-0 text-slate-300 group-hover/meta:text-amber-400"></i>
                             <button type="button" onclick="event.stopPropagation(); openMoveDocCompanyModal();" class="no-print shrink-0 text-slate-300 hover:text-amber-500" title="이 청구서를 다른 회사로 이동">
@@ -1872,7 +1876,7 @@
                                 <div class="req-meta-row">
                                     <span class="req-meta-label">현 장 명</span>
                                     <span class="req-meta-sep">:</span>
-                                    <input type="text" id="req-meta-site" value="원주 캠프롱 현장" onchange="syncMetaSiteFromReq(this.value)" class="req-meta-input">
+                                    <input type="text" id="req-meta-site" value="" onchange="syncMetaSiteFromReq(this.value)" class="req-meta-input" placeholder="현장명">
                                 </div>
                                 <div class="req-meta-row">
                                     <span class="req-meta-label">청구기간</span>
@@ -3469,7 +3473,7 @@
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">복사 대상 현장명</label>
-                    <input type="text" id="dup-doc-site" placeholder="예: 원주 캠프롱 현장" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-850 outline-none">
+                    <input type="text" id="dup-doc-site" placeholder="예: OO 현장" class="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-850 outline-none">
                 </div>
                 <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2 mt-2">
                     <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
@@ -4057,6 +4061,94 @@
         </div>
     </div>
 
+    <!-- 최초 실행 온보딩 모달 — savedDocuments가 완전히 비어있는 최초 1회에만 자동으로 뜬다 -->
+    <div id="onboarding-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden">
+            <div class="px-6 py-5 bg-gradient-to-br from-indigo-600 to-blue-700 text-white">
+                <div class="flex items-center gap-2 mb-1">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    <h2 class="text-lg font-extrabold">현장 자금관리에 오신 것을 환영합니다</h2>
+                </div>
+                <p class="text-[12px] text-indigo-100">시작하기 전에, 아래 3단계만 따라해 보세요.</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex gap-3">
+                    <div class="shrink-0 w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-extrabold flex items-center justify-center text-sm">1</div>
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">새 문서(현장) 만들기</p>
+                        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">회사명·현장명·청구월을 입력해 첫 청구서를 시작합니다.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="shrink-0 w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-extrabold flex items-center justify-center text-sm">2</div>
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">계좌 마스터 DB 등록</p>
+                        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">자주 쓰는 거래처의 계좌정보를 미리 등록해두면, 이후 청구 항목 입력 시 대표자명만으로 자동으로 계좌가 채워집니다.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="shrink-0 w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-extrabold flex items-center justify-center text-sm">3</div>
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">청구 항목 추가</p>
+                        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">헤더의 빨간색 "청구 항목 추가" 버튼으로 거래처별 청구 내역을 입력합니다. 지불의뢰서·본사보고용 자료는 자동으로 생성됩니다.</p>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                    <p class="text-[11px] text-slate-400">모든 데이터는 이 브라우저(기기)에만 저장됩니다. 다른 기기와 공유하려면 상단 "백업" 기능을 이용하세요.</p>
+                </div>
+            </div>
+            <div class="px-6 pb-6 flex gap-2">
+                <button onclick="closeOnboardingModal()" class="px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700">나중에</button>
+                <button onclick="closeOnboardingModal(); toggleNewDocModal();" class="flex-1 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all flex items-center justify-center gap-1.5">
+                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 새 문서 만들고 시작하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 월별 마감 스냅샷 모달 -->
+    <div id="month-close-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4 text-amber-500"></i> 월별 마감 확정
+                </h3>
+                <button onclick="closeMonthCloseModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 space-y-4 overflow-y-auto">
+                <div id="month-close-current-box" class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                    <p class="text-[11px] text-amber-700 dark:text-amber-400">현재 열려있는 문서를 <b>마감 확정본</b>으로 저장합니다. 확정 이후에도 데이터는 계속 수정할 수 있지만, 확정 시점의 데이터는 그대로 보존되어 나중에 비교·복원할 수 있습니다.</p>
+                </div>
+                <button onclick="confirmMonthClose()" class="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm py-2.5 rounded-lg transition-all">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> 지금 이 문서를 마감 확정하기
+                </button>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <p class="text-[11px] font-bold text-slate-500 mb-2">확정된 마감 목록</p>
+                    <div id="month-close-list" class="space-y-1.5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 마감본 상세 비교 모달 -->
+    <div id="month-close-diff-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <i data-lucide="git-compare" class="w-4 h-4 text-amber-500"></i> 마감본 대비 현재 데이터 비교
+                </h3>
+                <button onclick="closeMonthCloseDiffModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="month-close-diff-body" class="p-5 overflow-y-auto text-xs space-y-2"></div>
+            <div class="px-5 pb-5 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
+                <button onclick="closeMonthCloseDiffModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">닫기</button>
+                <button id="month-close-restore-btn" class="px-4 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all">이 마감본으로 되돌리기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PWA 홈 화면 설치 안내 모달 (iOS Safari 등 자동 설치 프롬프트 미지원 브라우저용) -->
     <div id="pwa-install-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closePwaInstallModal()">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full p-5">
@@ -4082,9 +4174,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '2.9';
-        const APP_VERSION_DATE = '2026-08-14';
-        const APP_VERSION_NOTE = '지불의뢰서 Excel 내보내기를 실제 PDF/화면 인쇄본 형태에 맞춤 — 섹션 제목(현장정보, 공종및거래처정보 등) 앞에 "▣" 기호 추가, 청구 산출 근거의 공급가액계·부가가치세 값을 천단위 콤마가 붙는 숫자 서식으로 변경.';
+        const APP_VERSION = '3.2';
+        const APP_VERSION_DATE = '2026-08-16';
+        const APP_VERSION_NOTE = '최초 실행 온보딩 화면 추가 — 문서가 하나도 없는 최초 실행 시 3단계 안내 모달 표시. 월별 마감 확정 기능 신규 추가 — 문서(현장·월) 단위로 "마감 확정" 시 그 시점 데이터를 무제한 보관, 이후 변경사항 비교(추가/삭제/수정)와 마감본 복원 가능. 헤더에 마감 버튼과 확정 여부 배지 추가, 전체 백업/복원에도 연동.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4329,7 +4421,7 @@
             const phone  = normDigits(c.phone);
 
             // ★ 대표자가 둘 다 입력돼 있는데 서로 다르면, 같은 거래처명이라도 다른 사업자로 간주하고 매칭에서 제외한다.
-            //    (예: "대호건기" 상호로 김찬혁/박근학/박상진 등 대표자가 다른 개별 사업자가 여러 명 존재하는 경우)
+            //    (예: 같은 상호로 대표자가 다른 개별 사업자가 여러 명 존재하는 경우)
             const ceoConflict = (acc) => raw.ceo && acc.ceo && normBizName(acc.ceo) !== norm.ceo;
 
             // 1차: 지정된 우선순위로 완전 일치 탐색 (대표자 불일치 항목은 건너뜀)
@@ -4548,27 +4640,15 @@
             if (savedDocs) {
                 savedDocuments = JSON.parse(savedDocs);
             } else {
-                savedDocuments = [
-                    {
-                        id: "doc-sample-1",
-                        company: "경산개발(주)",
-                        month: "2026년 06월",
-                        site: "원주 캠프롱 현장",
-                        dataset: [
-                            { id: 1, type: "외주비", vendor: "(주)휴먼인텍", ceo: "변병주", supply: 53000, tax: 5300, deduction: 0, prepaid: 0, bank: "기업", account: "420-044521-01-048", holder: "(주)휴먼인텍", phone: "010-1234-5678", note: "계산서발행", status: "완료", biznum: "123-45-67890" },
-                            { id: 2, type: "자재비", vendor: "길한산업", ceo: "유용근", supply: 66000, tax: 6600, deduction: 0, prepaid: 0, bank: "기업", account: "118-039903-04-011", holder: "유용근", phone: "010-9876-5432", note: "부직포 외", status: "대기", biznum: "224-81-11494" },
-                            { id: 3, type: "자재비", vendor: "만우리건축자재", ceo: "문규석", supply: 1391818, tax: 139182, deduction: 0, prepaid: 0, bank: "농협", account: "302-3088-2211-91", holder: "문규석", phone: "010-2222-3333", note: "안전", status: "대기", biznum: "302-12-34567" },
-                            { id: 4, type: "노무비", vendor: "홍길동", ceo: "홍길동", supply: 1500000, tax: 0, deduction: 49500, prepaid: 0, bank: "국민", account: "4444-22-3333-12", holder: "홍길동", phone: "010-3333-5555", note: "노무비 정산", status: "대기", biznum: "" }
-                        ],
-                        period: "2026년 06월 01일 ~ 2026년 06월 30일"
-                    }
-                ];
+                // ★ 배포용 클린 버전 — 최초 실행 시 샘플 데이터 없이 빈 목록으로 시작합니다.
+                //   "새 문서 만들기" 버튼으로 첫 청구서를 등록해 주세요.
+                savedDocuments = [];
             }
 
             if (currentId && savedDocuments.some(doc => doc.id === currentId)) {
                 currentDocId = currentId;
             } else {
-                currentDocId = savedDocuments[0].id;
+                currentDocId = savedDocuments.length ? savedDocuments[0].id : "";
             }
 
             const currentDoc = savedDocuments.find(doc => doc.id === currentDocId);
@@ -4577,11 +4657,8 @@
             if (savedAccounts) {
                 accountDb = JSON.parse(savedAccounts);
             } else {
-                accountDb = [
-                    { id: 1, holder: "(주)휴먼인텍", bank: "기업", account: "420-044521-01-048", ceo: "변병주", vendor: "(주)휴먼인텍", phone: "010-1234-5678", biznum: "123-45-67890" },
-                    { id: 2, holder: "유용근", bank: "기업", account: "118-039903-04-011", ceo: "유용근", vendor: "길한산업", phone: "010-9876-5432", biznum: "224-81-11494" },
-                    { id: 3, holder: "문규석", bank: "농협", account: "302-3088-2211-91", ceo: "문규석", vendor: "만우리건축자재", phone: "010-2222-3333", biznum: "302-12-34567" }
-                ];
+                // ★ 배포용 클린 버전 — 최초 실행 시 계좌 마스터 DB도 빈 목록으로 시작합니다.
+                accountDb = [];
             }
 
             sortAccountDbByName();
@@ -8625,6 +8702,7 @@ function changePrintScale(value) {
                 document.getElementById('req-meta-site').value = currentDoc.site;
             }
             renderApprovalBadge();
+            updateMonthCloseBadge();
             populateMetaDatalists();
             selectedRowIds.clear();
             saveToLocalStorage();
@@ -8649,9 +8727,7 @@ function changePrintScale(value) {
             const dl = document.getElementById('company-datalist');
             if (!dl) return;
             const companies = [...new Set(savedDocuments.map(d => d.company).filter(Boolean))];
-            // 기본값이 없으면 초기 옵션 제공
-            const defaults = ["경산개발(주)", "(합)유일건설"];
-            const merged = [...new Set([...companies, ...defaults])].sort((a, b) => a.localeCompare(b, 'ko-KR'));
+            const merged = [...companies].sort((a, b) => a.localeCompare(b, 'ko-KR'));
             dl.innerHTML = merged.map(c => `<option value="${c}">`).join('');
         }
 
@@ -9828,7 +9904,8 @@ function changePrintScale(value) {
                 ccData: ccLoad(),
                 peData: (typeof peLoad === 'function' ? peLoad() : []),
                 checklistItems: getChecklistItems(),
-                checklistStates
+                checklistStates,
+                monthCloses: (typeof loadMonthCloses === 'function' ? loadMonthCloses() : [])
             };
             const blob = new Blob([JSON.stringify(dataToBackup, null, 2)], { type: 'application/json' });
             const url  = URL.createObjectURL(blob);
@@ -9924,6 +10001,7 @@ function changePrintScale(value) {
                 currentDocId   = parsed.currentDocId || savedDocuments[0].id;
                 if (Array.isArray(parsed.ccData)) { ccData = parsed.ccData; ccSave(); }
                 if (Array.isArray(parsed.peData)) { peData = parsed.peData; peSave(); }
+                if (Array.isArray(parsed.monthCloses) && typeof saveMonthCloses === 'function') { saveMonthCloses(parsed.monthCloses); }
 
                 // ★ 체크리스트 항목 정의 복원 (있으면 전체 대체)
                 if (Array.isArray(parsed.checklistItems) && parsed.checklistItems.length) {
@@ -9988,6 +10066,19 @@ function changePrintScale(value) {
                         localPeIds.add(row.id);
                     });
                     peSave();
+                }
+
+                // ★ 마감 확정본 병합 — 같은 문서(docId) 마감본이 있으면 더 최근 것으로 대체
+                if (Array.isArray(parsed.monthCloses) && parsed.monthCloses.length && typeof loadMonthCloses === 'function') {
+                    const localCloses = loadMonthCloses();
+                    const localMap = new Map(localCloses.map(c => [c.docId, c]));
+                    parsed.monthCloses.forEach(c => {
+                        const existing = localMap.get(c.docId);
+                        if (!existing || new Date(c.closedAt) >= new Date(existing.closedAt)) {
+                            localMap.set(c.docId, c);
+                        }
+                    });
+                    saveMonthCloses([...localMap.values()]);
                 }
 
                 // ★ 체크리스트 항목 병합 — 이미 있는 라벨은 건너뛰고 새 항목만 추가
@@ -10434,6 +10525,203 @@ function changePrintScale(value) {
             );
         }
 
+        /* ══════════════════════════════════════════════════════════
+           ★ 월별 마감 확정 (Month Close)
+           - 기존 "스냅샷"은 복원 작업 시 자동 3개 보관되는 임시 안전장치인 반면,
+             이 기능은 사용자가 명시적으로 "이번 달 마감 끝"이라고 확정하는 용도.
+           - 문서(현장·월) 단위로 무제한 보관되며, 이후 원본과 현재 데이터를 비교하거나
+             실수로 수정된 경우 마감 시점으로 되돌릴 수 있다.
+        ══════════════════════════════════════════════════════════ */
+        const MONTH_CLOSE_KEY = 'cons_month_close_v1';
+
+        function loadMonthCloses() {
+            try { return JSON.parse(localStorage.getItem(MONTH_CLOSE_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function saveMonthCloses(list) {
+            localStorage.setItem(MONTH_CLOSE_KEY, JSON.stringify(list));
+        }
+
+        function openMonthCloseModal() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            const box = document.getElementById('month-close-current-box');
+            if (box) {
+                if (currentDoc) {
+                    box.innerHTML = `<p class="text-[11px] text-amber-700 dark:text-amber-400">현재 열려있는 <b>${currentDoc.company||''} · ${currentDoc.month||''} · ${currentDoc.site||''}</b> 문서를 마감 확정본으로 저장합니다. 확정 이후에도 데이터는 계속 수정할 수 있지만, 확정 시점의 데이터는 그대로 보존되어 나중에 비교·복원할 수 있습니다.</p>`;
+                } else {
+                    box.innerHTML = `<p class="text-[11px] text-rose-600">먼저 마감할 문서를 선택해 주세요.</p>`;
+                }
+            }
+            renderMonthCloseList();
+            document.getElementById('month-close-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeMonthCloseModal() {
+            document.getElementById('month-close-modal').classList.add('hidden');
+        }
+
+        function confirmMonthClose() {
+            const currentDoc = savedDocuments.find(d => d.id === currentDocId);
+            if (!currentDoc) { showToast('마감할 문서가 없습니다.', 'error'); return; }
+
+            const list = loadMonthCloses();
+            const existing = list.find(c => c.docId === currentDocId);
+
+            const doClose = () => {
+                const entry = {
+                    docId: currentDocId,
+                    company: currentDoc.company || '',
+                    site: currentDoc.site || '',
+                    month: currentDoc.month || '',
+                    closedAt: new Date().toLocaleString('ko-KR'),
+                    snapshot: JSON.parse(JSON.stringify(currentDoc)) // 문서 전체(dataset 포함) 그대로 얼려서 보관
+                };
+                const filtered = list.filter(c => c.docId !== currentDocId);
+                filtered.unshift(entry);
+                saveMonthCloses(filtered);
+                renderMonthCloseList();
+                showToast(`[${currentDoc.month} ${currentDoc.site}] 마감 확정 완료`, 'success');
+                updateMonthCloseBadge();
+            };
+
+            if (existing) {
+                showConfirmModal(
+                    '재마감 확인',
+                    `[${currentDoc.month} ${currentDoc.site}]는 ${existing.closedAt}에 이미 마감된 적이 있습니다. 현재 시점으로 다시 마감하시겠습니까? (이전 마감본은 대체됩니다)`,
+                    doClose
+                );
+            } else {
+                doClose();
+            }
+        }
+
+        function renderMonthCloseList() {
+            const el = document.getElementById('month-close-list');
+            if (!el) return;
+            const list = loadMonthCloses();
+            if (!list.length) {
+                el.innerHTML = `<p class="text-[10px] text-slate-400 italic">아직 마감 확정된 문서가 없습니다.</p>`;
+                return;
+            }
+            el.innerHTML = list.map((c, i) => {
+                const stillExists = savedDocuments.some(d => d.id === c.docId);
+                return `<div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-[10px]">
+                    <div class="min-w-0">
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${c.company} · ${c.month} · ${c.site}</span>
+                        <span class="block text-slate-400 mt-0.5">마감일시: ${c.closedAt} ${!stillExists ? '<span class="text-rose-500 font-bold">· 원본 문서 삭제됨</span>' : ''}</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        ${stillExists ? `<button onclick="openMonthCloseDiff('${c.docId}')" class="bg-slate-500 hover:bg-slate-600 text-white px-2 py-1 rounded font-bold transition-all">비교</button>` : ''}
+                        <button onclick="deleteMonthClose('${c.docId}')" class="text-rose-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 현재 열려있는 문서가 마감 확정된 상태인지 표시하는 작은 점 배지 */
+        function updateMonthCloseBadge() {
+            const badge = document.getElementById('month-close-badge');
+            if (!badge) return;
+            const list = loadMonthCloses();
+            const isClosed = list.some(c => c.docId === currentDocId);
+            badge.classList.toggle('hidden', !isClosed);
+        }
+
+        function deleteMonthClose(docId) {
+            if (!confirm('이 마감본을 삭제하시겠습니까? (원본 데이터에는 영향 없습니다)')) return;
+            const list = loadMonthCloses().filter(c => c.docId !== docId);
+            saveMonthCloses(list);
+            renderMonthCloseList();
+        }
+
+        /* 마감 시점 데이터 vs 현재 데이터를 항목 단위로 비교해서 보여준다 */
+        function openMonthCloseDiff(docId) {
+            const list = loadMonthCloses();
+            const entry = list.find(c => c.docId === docId);
+            const currentDoc = savedDocuments.find(d => d.id === docId);
+            if (!entry || !currentDoc) { showToast('비교할 데이터를 찾을 수 없습니다.', 'error'); return; }
+
+            const snap = entry.snapshot;
+            const snapRows = snap.dataset || [];
+            const curRows  = currentDoc.dataset || [];
+
+            const snapMap = new Map(snapRows.map(r => [r.id, r]));
+            const curMap  = new Map(curRows.map(r => [r.id, r]));
+
+            const added   = curRows.filter(r => !snapMap.has(r.id));
+            const removed = snapRows.filter(r => !curMap.has(r.id));
+            const changed = curRows.filter(r => {
+                const before = snapMap.get(r.id);
+                if (!before) return false;
+                return before.supply !== r.supply || before.tax !== r.tax || before.vendor !== r.vendor
+                    || before.deduction !== r.deduction || before.prepaid !== r.prepaid;
+            }).map(r => ({ before: snapMap.get(r.id), after: r }));
+
+            const body = document.getElementById('month-close-diff-body');
+            const won = (n) => Number(n||0).toLocaleString('ko-KR') + '원';
+
+            let html = `<div class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-[11px] text-slate-500 mb-2">
+                마감 시점: <b>${entry.closedAt}</b> · 마감 당시 ${snapRows.length}행 → 현재 ${curRows.length}행
+            </div>`;
+
+            if (!added.length && !removed.length && !changed.length) {
+                html += `<div class="flex items-center gap-2 text-emerald-600 font-bold py-6 justify-center"><i data-lucide="check-circle" class="w-5 h-5"></i> 마감 시점 이후 변경된 내용이 없습니다.</div>`;
+            } else {
+                if (added.length) {
+                    html += `<p class="font-bold text-emerald-600 mb-1">➕ 마감 이후 추가된 항목 (${added.length}건)</p>`;
+                    html += added.map(r => `<div class="pl-3 py-1 border-l-2 border-emerald-300">${r.vendor||''} · ${won((r.supply||0)+(r.tax||0))}</div>`).join('');
+                }
+                if (removed.length) {
+                    html += `<p class="font-bold text-rose-600 mb-1 mt-2">➖ 마감 이후 삭제된 항목 (${removed.length}건)</p>`;
+                    html += removed.map(r => `<div class="pl-3 py-1 border-l-2 border-rose-300">${r.vendor||''} · ${won((r.supply||0)+(r.tax||0))}</div>`).join('');
+                }
+                if (changed.length) {
+                    html += `<p class="font-bold text-amber-600 mb-1 mt-2">✏ 마감 이후 수정된 항목 (${changed.length}건)</p>`;
+                    html += changed.map(({before, after}) => `<div class="pl-3 py-1 border-l-2 border-amber-300">
+                        ${after.vendor||''}<br>
+                        <span class="text-slate-400">이전: ${won((before.supply||0)+(before.tax||0))} → </span>
+                        <span class="text-amber-700 dark:text-amber-400 font-bold">현재: ${won((after.supply||0)+(after.tax||0))}</span>
+                    </div>`).join('');
+                }
+            }
+            body.innerHTML = html;
+
+            const restoreBtn = document.getElementById('month-close-restore-btn');
+            restoreBtn.onclick = () => restoreMonthClose(docId);
+
+            document.getElementById('month-close-diff-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeMonthCloseDiffModal() {
+            document.getElementById('month-close-diff-modal').classList.add('hidden');
+        }
+
+        function restoreMonthClose(docId) {
+            const list = loadMonthCloses();
+            const entry = list.find(c => c.docId === docId);
+            if (!entry) return;
+            showConfirmModal(
+                '마감본으로 되돌리기',
+                `[${entry.company} · ${entry.month} · ${entry.site}]를 ${entry.closedAt} 마감 시점 데이터로 되돌립니다. 현재 데이터는 자동으로 스냅샷에 백업됩니다.`,
+                function() {
+                    saveSnapshot('마감본 복원 전 자동 저장');
+                    const idx = savedDocuments.findIndex(d => d.id === docId);
+                    if (idx >= 0) {
+                        savedDocuments[idx] = JSON.parse(JSON.stringify(entry.snapshot));
+                        if (currentDocId === docId) dataset = savedDocuments[idx].dataset;
+                        saveToLocalStorage();
+                        renderStatementTable();
+                        buildFilterOptions();
+                        updateSavedSheetsSelector();
+                        showToast('마감본으로 복원 완료', 'success');
+                    }
+                    closeMonthCloseDiffModal();
+                    closeMonthCloseModal();
+                }
+            );
+        }
+
         /* ============================================================
            현장별 분리 관리 (V12)
         ============================================================ */
@@ -10462,7 +10750,7 @@ function changePrintScale(value) {
         }
 
         /* 노무비명세서 HTML 텍스트를 파싱해서 {subcontractor, site, month, totalAmount, netAmount, workerCount} 추출
-           예: <h1>(합)유일건설 — 원주 캠프롱 문화체육공원 조성사업 (2026년 7월 노무비명세서)</h1> */
+           예: <h1>OO건설 — OO 현장 조성사업 (2026년 7월 노무비명세서)</h1> */
         function parseLaborStatementHTML(htmlText) {
             const h1Match = /<h1[^>]*>([^<]+)<\/h1>/.exec(htmlText);
             const h1Text = h1Match ? h1Match[1].trim() : '';
@@ -12114,7 +12402,7 @@ function changePrintScale(value) {
                 '','','','',''
             ]);
             stMerges.push({ r1:t1Idx, c1:0, r2:t1Idx, c2:3 });
-            sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[6,10,20,11,14,12,14,12,11,15,10,17,11,8,18] });
+            sheets.push({ name:'청구명세서', rows: stRows, merges: stMerges, colWidths:[7,12,22,12,15,13,15,13,12,16,11,19,12,9,20] });
 
             /* ── 지불의뢰서 요약 시트 (개별 지불의뢰서 카드/시트는 생성하지 않음 — 요약표만) ── */
             const summaryData = [];
@@ -12131,7 +12419,7 @@ function changePrintScale(value) {
                     bankInfo:`${bank} ${account} (${holder})` });
             }
             const { rows: sRows, merges: sMerges } = buildSummaryXlsxRows(site, period, summaryData);
-            sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[18,12,12,15,13,15,26] });
+            sheets.push({ name:'지불의뢰서_요약', rows: sRows, merges: sMerges, colWidths:[20,14,14,16,14,17,34] });
 
             /* ── 마지막 시트: 법인카드 사용내역 (현재 현장, 해당 월 기준) ── */
             const ym = month.match(/(\d{4})년\s*(\d{1,2})월/);
@@ -12164,7 +12452,7 @@ function changePrintScale(value) {
                 ccRows.push([c('합계',XSI.TBL_TOTAL),'','','',fc(`SUM(E${ccStartRow}:E${ccEndRow})`, ccTotal, XSI.TBL_TOTAL),'','']);
                 ccMerges.push({ r1:ccTotalIdx, c1:0, r2:ccTotalIdx, c2:3 });
             }
-            sheets.push({ name:'법인카드', rows: ccRows, merges: ccMerges, colWidths:[6,12,12,26,13,16,30] });
+            sheets.push({ name:'법인카드', rows: ccRows, merges: ccMerges, colWidths:[7,14,14,28,15,18,32] });
 
             /* ── 개인경비 정산 시트 (현재 현장, 해당 월 기준) ── */
             const peAll = (typeof peLoad === 'function') ? peLoad() : [];
@@ -12200,7 +12488,7 @@ function changePrintScale(value) {
                     c(`정산완료 ${peSettledTotal.toLocaleString('ko-KR')} / 미정산 ${pePendingTotal.toLocaleString('ko-KR')}`, XSI.TBL_DATA),'','']);
                 peMerges.push({ r1:peTotalIdx, c1:0, r2:peTotalIdx, c2:3 });
             }
-            sheets.push({ name:'개인경비정산', rows: peRows, merges: peMerges, colWidths:[6,12,10,10,22,13,16,10,22,26] });
+            sheets.push({ name:'개인경비정산', rows: peRows, merges: peMerges, colWidths:[7,14,12,12,24,15,18,12,24,28] });
 
             /* ── 최종적으로 맨 앞에 삽입할 집계표 — 전체 요약(청구명세서/지불의뢰서/법인카드/개인경비 총액) ── */
             const reqTotalAmt = summaryData.reduce((s,sd)=>s+sd.total,0);
@@ -12236,7 +12524,7 @@ function changePrintScale(value) {
                 const ct = catTotals[cat];
                 sumRows.push([c(cat,XSI.VALUE), c(ct.count,XSI.SUM_NUM), c(ct.supply+ct.tax,XSI.SUM_NUM)]);
             });
-            sheets.unshift({ name:'집계표', rows: sumRows, merges: sumMerges, colWidths:[20,10,18] });
+            sheets.unshift({ name:'집계표', rows: sumRows, merges: sumMerges, colWidths:[24,12,20] });
 
             const blob = await makeXlsxBlob(sheets);
             const filename = `${docLabel}_본사보고용_${new Date().toISOString().slice(0,10)}.xlsx`;
@@ -13643,7 +13931,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 // 요약 시트 맨 앞
                 const { rows:sRows, merges:sMerges } = buildSummaryXlsxRows(site, period, summaryData);
                 xlsxSheets.unshift({name:'전체요약', rows:sRows, merges:sMerges,
-                    colWidths:[18,12,12,15,13,15,26]});
+                    colWidths:[20,14,14,16,14,17,34]});
 
                 const blob = await makeXlsxBlob(xlsxSheets);
                 downloadBlob(blob, `${docLabel}_지불의뢰서_전체.xlsx`);
@@ -14060,18 +14348,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 "모든 자료 초기화",
                 "저장된 모든 청구 대장, 계좌 DB, 문서 데이터가 영구 삭제됩니다. 되돌릴 수 없습니다. 계속하시겠습니까?",
                 function() {
-                    savedDocuments = [
-                        {
-                            id: "doc-new-1",
-                            company: "경산개발(주)",
-                            month: new Date().getFullYear() + "년 " + String(new Date().getMonth()+1).padStart(2,'0') + "월",
-                            site: "",
-                            dataset: [],
-                            period: calculateMonthPeriod(new Date().getFullYear() + "년 " + String(new Date().getMonth()+1).padStart(2,'0') + "월")
-                        }
-                    ];
+                    savedDocuments = [];
                     accountDb = [];
-                    currentDocId = "doc-new-1";
+                    currentDocId = "";
                     dataset = [];
                     selectedRowIds.clear();
 
@@ -14243,6 +14522,31 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.body.style.overflow = '';
         }
 
+        /* ── 최초 실행 온보딩 ──
+              savedDocuments가 완전히 비어있고, 과거에 온보딩을 닫은 적도 없을 때만 표시한다.
+              (한 번이라도 문서를 만들었거나, "나중에"를 눌러 닫은 적이 있으면 다시 뜨지 않음) */
+        const ONBOARDING_DISMISSED_KEY = 'cons_onboarding_dismissed_v1';
+        function checkAndShowOnboarding() {
+            const dismissed = localStorage.getItem(ONBOARDING_DISMISSED_KEY) === '1';
+            if (dismissed) return;
+            if (savedDocuments.length > 0) {
+                // 이미 문서가 하나라도 있다면(예: 백업 복원 등) 온보딩이 필요 없는 상태이므로, 다시 뜨지 않도록 표시만 해둔다.
+                localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+                return;
+            }
+            const modal = document.getElementById('onboarding-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        function closeOnboardingModal() {
+            localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+            const modal = document.getElementById('onboarding-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         window.onload = function() {
             // 지불의뢰서 "선지급액 표시" 옵션 저장값 복원
             const prepaidChk = document.getElementById('req-show-prepaid');
@@ -14270,6 +14574,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             populateMetaDatalists();
             updateTrashBadge();
             updateApprovalOwnerDisplay();
+            updateMonthCloseBadge();
+            checkAndShowOnboarding();
             changePrintScale(1.00);
             document.getElementById('print-scale-slider').value = "1.00";
             applyCategoryColor("자재비");
