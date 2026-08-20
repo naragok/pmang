@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V3.2</title>
+    <title>현장 자금관리 PRO V3.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4174,9 +4174,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '3.2';
+        const APP_VERSION = '3.4';
         const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '최초 실행 온보딩 화면 추가 — 문서가 하나도 없는 최초 실행 시 3단계 안내 모달 표시. 월별 마감 확정 기능 신규 추가 — 문서(현장·월) 단위로 "마감 확정" 시 그 시점 데이터를 무제한 보관, 이후 변경사항 비교(추가/삭제/수정)와 마감본 복원 가능. 헤더에 마감 버튼과 확정 여부 배지 추가, 전체 백업/복원에도 연동.';
+        const APP_VERSION_NOTE = '백업/복원 기능 전체 점검 — (1) GitHub 업로드(ghSyncUpload)가 구비서류 체크리스트·월별 마감 확정본을 빠뜨리고 있던 결함 수정(로컬 백업과 동일한 v14 구조로 통일). (2) 문서를 마지막 하나까지 삭제하거나 완전히 빈 백업을 복원할 때 발생할 수 있던 오류 방지 코드 추가. (3) 백업/복원 후 마감 배지가 갱신되지 않던 부분 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -8796,8 +8796,8 @@ function changePrintScale(value) {
                 `"${label}" 문서와 포함된 모든 청구 항목을 삭제합니다. 되돌릴 수 없습니다.`,
                 function() {
                     savedDocuments = savedDocuments.filter(d => d.id !== currentDocId);
-                    currentDocId = savedDocuments[0].id;
-                    dataset = savedDocuments[0].dataset || [];
+                    currentDocId = savedDocuments.length ? savedDocuments[0].id : "";
+                    dataset = savedDocuments.length ? (savedDocuments[0].dataset || []) : [];
                     selectedRowIds.clear();
                     saveToLocalStorage();
                     buildFilterOptions();
@@ -9998,7 +9998,7 @@ function changePrintScale(value) {
             if (mode === 'overwrite') {
                 savedDocuments = parsed.savedDocuments;
                 accountDb      = parsed.accountDb;
-                currentDocId   = parsed.currentDocId || savedDocuments[0].id;
+                currentDocId   = parsed.currentDocId || (savedDocuments.length ? savedDocuments[0].id : "");
                 if (Array.isArray(parsed.ccData)) { ccData = parsed.ccData; ccSave(); }
                 if (Array.isArray(parsed.peData)) { peData = parsed.peData; peSave(); }
                 if (Array.isArray(parsed.monthCloses) && typeof saveMonthCloses === 'function') { saveMonthCloses(parsed.monthCloses); }
@@ -10119,6 +10119,7 @@ function changePrintScale(value) {
             refreshRequestSelector();
             renderSiteDashboard();
             if (typeof ccRender === 'function') ccRender();
+            if (typeof updateMonthCloseBadge === 'function') updateMonthCloseBadge();
             if (curDoc) {
                 document.getElementById('doc-title').value = `(${curDoc.month}) 자금청구명세서`;
                 document.getElementById('meta-site').value = curDoc.site || '';
@@ -10209,10 +10210,22 @@ function changePrintScale(value) {
             ghSyncSetStatus('업로드 중...');
             try {
                 const existing = await ghSyncApiGet(cfg);
+                // ★ 구비 서류 체크리스트 — 항목 정의 + 문서별 체크 상태(localStorage의 chklist_* 전체) 포함
+                //   (로컬 JSON 백업과 완전히 동일한 구성으로 맞춰, 어느 경로로 백업하든 데이터 유실이 없도록 한다)
+                const checklistStates = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('chklist_')) checklistStates[k] = localStorage.getItem(k);
+                }
                 const dataToBackup = {
-                    version: 'v13',
+                    version: 'v14',
                     exportedAt: new Date().toLocaleString('ko-KR'),
-                    savedDocuments, accountDb, currentDocId, ccData: ccLoad(), peData: (typeof peLoad === 'function' ? peLoad() : [])
+                    savedDocuments, accountDb, currentDocId,
+                    ccData: ccLoad(),
+                    peData: (typeof peLoad === 'function' ? peLoad() : []),
+                    checklistItems: getChecklistItems(),
+                    checklistStates,
+                    monthCloses: (typeof loadMonthCloses === 'function' ? loadMonthCloses() : [])
                 };
                 const encodedContent = ghUtf8ToB64(JSON.stringify(dataToBackup, null, 2));
                 const commitMsg = `자금관리 데이터 동기화 — ${new Date().toLocaleString('ko-KR')}`;
@@ -10264,13 +10277,18 @@ function changePrintScale(value) {
         async function ghSyncDownload(mode) {
             const cfg = ghSyncSaveSettings();
             if (!cfg.repo || !cfg.token) { ghSyncSetStatus('저장소(owner/repo)와 토큰을 입력해 주세요.', true); return; }
-            if (mode === 'overwrite' && !confirm('GitHub 백업 내용으로 현재 데이터를 전체 덮어씁니다.\n(복원 전 자동 스냅샷은 남습니다) 계속하시겠습니까?')) return;
             ghSyncSetStatus('불러오는 중...');
             try {
                 const file = await ghSyncApiGet(cfg);
                 if (!file) { ghSyncSetStatus('저장소에 아직 백업 파일이 없습니다. 먼저 다른 PC에서 "GitHub로 업로드"를 실행하세요.', true); return; }
                 const parsed = JSON.parse(ghB64ToUtf8(file.content));
                 if (!parsed.savedDocuments || !parsed.accountDb) throw new Error('백업 파일 형식이 올바르지 않습니다.');
+
+                if (mode === 'overwrite') {
+                    const warnMsg = buildOverwriteWarningMessage(parsed);
+                    if (!confirm(warnMsg)) { ghSyncSetStatus('불러오기를 취소했습니다.'); return; }
+                }
+
                 saveSnapshot('GitHub 동기화 불러오기 전 자동 스냅샷');
                 const stats = applyRestoredData(parsed, mode);
                 ghSyncSetStatus(`불러오기 완료! 추가 ${stats.addedDocs}건 / 건너뜀 ${stats.skippedDocs}건 (계좌 추가 ${stats.addedAccounts}건, 법인카드 추가 ${stats.addedCc||0}건)`);
@@ -10279,6 +10297,37 @@ function changePrintScale(value) {
             } catch (e) {
                 ghSyncSetStatus('불러오기 실패: ' + e.message, true);
             }
+        }
+
+        /* ── 덮어쓰기 전, 백업 파일 시각 + 실제로 변경될 현장명/회사명이 있으면 구체적으로 경고 문구를 만든다.
+              (GitHub 백업이 오래된 것일 경우, 로컬에서 최근에 고친 현장명·공사명이 예전 값으로 되돌아갈 수 있기 때문) */
+        function buildOverwriteWarningMessage(parsed) {
+            const lines = ['GitHub 백업 내용으로 현재 데이터를 전체 덮어씁니다.'];
+            if (parsed.exportedAt) {
+                lines.push(`이 백업의 생성 시각: ${parsed.exportedAt}`);
+            }
+
+            const changedSites = [];
+            (parsed.savedDocuments || []).forEach(backupDoc => {
+                const localDoc = savedDocuments.find(d => d.id === backupDoc.id);
+                if (!localDoc) return; // 로컬에 없던 문서(새로 추가되는 것)는 되돌아갈 값이 없으므로 제외
+                if (localDoc.site !== backupDoc.site || localDoc.company !== backupDoc.company) {
+                    changedSites.push(`· [${localDoc.month||''}] "${localDoc.company||''} ${localDoc.site||''}" → "${backupDoc.company||''} ${backupDoc.site||''}"`);
+                }
+            });
+
+            if (changedSites.length) {
+                lines.push('');
+                lines.push('⚠ 아래 문서의 회사명/현장명이 백업 시점 값으로 되돌아갑니다:');
+                lines.push(...changedSites.slice(0, 5));
+                if (changedSites.length > 5) lines.push(`...외 ${changedSites.length - 5}건`);
+                lines.push('');
+                lines.push('최근에 이 값들을 직접 수정하셨다면, 먼저 "GitHub로 업로드"로 최신 상태를 저장한 뒤 다시 시도하는 것을 권장합니다.');
+            }
+
+            lines.push('');
+            lines.push('(복원 전 자동 스냅샷은 남습니다) 계속하시겠습니까?');
+            return lines.join('\n');
         }
 
         /* ══════════════════════════════════════════════
@@ -10348,7 +10397,6 @@ function changePrintScale(value) {
 
         async function ghSyncDownloadSpecific(path, mode) {
             const cfg = ghSyncSaveSettings();
-            if (mode === 'overwrite' && !confirm('선택한 백업 내용으로 현재 데이터를 전체 덮어씁니다.\n(복원 전 자동 스냅샷은 남습니다) 계속하시겠습니까?')) return;
             closeGhBackupListModal();
             ghSyncSetStatus('선택한 백업 불러오는 중...');
             try {
@@ -10358,6 +10406,12 @@ function changePrintScale(value) {
                 const file = await res.json();
                 const parsed = JSON.parse(ghB64ToUtf8(file.content));
                 if (!parsed.savedDocuments || !parsed.accountDb) throw new Error('백업 파일 형식이 올바르지 않습니다.');
+
+                if (mode === 'overwrite') {
+                    const warnMsg = buildOverwriteWarningMessage(parsed);
+                    if (!confirm(warnMsg)) { ghSyncSetStatus('불러오기를 취소했습니다.'); return; }
+                }
+
                 saveSnapshot('GitHub 선택 불러오기 전 자동 스냅샷');
                 const stats = applyRestoredData(parsed, mode);
                 ghSyncSetStatus(`불러오기 완료! (${path}) 추가 ${stats.addedDocs}건 / 건너뜀 ${stats.skippedDocs}건`);
@@ -10420,13 +10474,6 @@ function changePrintScale(value) {
             const fileInput = document.getElementById('backup-file-input');
             if (fileInput.files.length === 0) { showToast('불러올 JSON 파일을 선택해 주세요.'); return; }
 
-            if (mode === 'overwrite' && !confirm('전체 덮어쓰기를 진행하면 현재 데이터가 백업 파일 내용으로 완전히 대체됩니다.\n(복원 전 자동 스냅샷은 남습니다) 계속하시겠습니까?')) {
-                return;
-            }
-
-            // 복원 전 현재 데이터를 스냅샷으로 자동 저장
-            saveSnapshot(mode === 'merge' ? '병합 전 자동 스냅샷' : '덮어쓰기 전 자동 스냅샷');
-
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -10436,6 +10483,15 @@ function changePrintScale(value) {
                         showToast('유효하지 않은 백업 규격 파일입니다.');
                         return;
                     }
+
+                    // ★ 파일을 먼저 읽은 뒤, 실제로 바뀔 내용(회사명/현장명 변경 여부·백업 생성 시각)을 보여주고 확인받는다.
+                    if (mode === 'overwrite') {
+                        const warnMsg = buildOverwriteWarningMessage(parsed);
+                        if (!confirm(warnMsg)) return;
+                    }
+
+                    // 복원 전 현재 데이터를 스냅샷으로 자동 저장
+                    saveSnapshot(mode === 'merge' ? '병합 전 자동 스냅샷' : '덮어쓰기 전 자동 스냅샷');
 
                     const stats = applyRestoredData(parsed, mode);
                     closeBackupModal();
@@ -10499,7 +10555,7 @@ function changePrintScale(value) {
                     saveSnapshot('스냅샷 복원 전 자동 저장');
                     savedDocuments = snap.savedDocuments;
                     accountDb      = snap.accountDb;
-                    currentDocId   = snap.currentDocId || savedDocuments[0].id;
+                    currentDocId   = snap.currentDocId || (savedDocuments.length ? savedDocuments[0].id : "");
                     const curDoc   = savedDocuments.find(d => d.id === currentDocId);
                     dataset        = curDoc ? curDoc.dataset : [];
                     saveToLocalStorage();
