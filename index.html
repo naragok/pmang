@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V3.6</title>
+    <title>현장 자금관리 PRO V3.7</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4179,9 +4179,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '3.6';
+        const APP_VERSION = '3.7';
         const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '본사 제출용 HTML 개선 — (1) 집계표에 결제금액·공제금액·선지급 합계 카드 추가. (2) 개인경비 정산 섹션 하단에 직원별 요약표(이름/총합계/은행/계좌번호/비고) 신규 추가 — 여러 건이 있는 직원은 자동 합산되어 한눈에 얼마를 보내야 하는지 확인 가능.';
+        const APP_VERSION_NOTE = '본사 제출용 HTML 집계표 카드 순서 조정 — 상단 4개: 결제금액·공제금액·선지급·청구명세서 합계, 하단 3개: 지불의뢰서·법인카드·개인경비 합계.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -13185,15 +13185,15 @@ ${REQ_CARD_CSS}
         <p class="sub-title">생성일: ${esc(new Date().toLocaleString('ko-KR'))}${approvalSummaryText}</p>
         <h2>집계표</h2>
         <div class="summary-box">
-            <div><div class="label">청구명세서 합계</div><div class="value">${won(t1req)}</div><div class="label">${dataset.length}행</div></div>
-            <div><div class="label">지불의뢰서 합계</div><div class="value">${won(reqTotalAmt)}</div><div class="label">${reqCount}건</div></div>
-            <div><div class="label">법인카드 사용 합계</div><div class="value">${won(ccTotal)}</div><div class="label">${ccList.length}건</div></div>
-            <div><div class="label">개인경비 정산</div><div class="value">${won(peSettledTotal+pePendingTotal)}</div><div class="label">정산완료 ${won(peSettledTotal)} · 미정산 ${won(pePendingTotal)}</div></div>
-        </div>
-        <div class="summary-box">
             <div><div class="label">결제금액 합계</div><div class="value">${won(t1supply+t1tax)}</div><div class="label">공급가액+부가세</div></div>
             <div><div class="label">공제금액 합계</div><div class="value">${won(t1ded)}</div><div class="label">청구명세서 기준</div></div>
             <div><div class="label">선지급 합계</div><div class="value">${won(t1pre)}</div><div class="label">청구명세서 기준</div></div>
+            <div><div class="label">청구명세서 합계</div><div class="value">${won(t1req)}</div><div class="label">${dataset.length}행</div></div>
+        </div>
+        <div class="summary-box">
+            <div><div class="label">지불의뢰서 합계</div><div class="value">${won(reqTotalAmt)}</div><div class="label">${reqCount}건</div></div>
+            <div><div class="label">법인카드 사용 합계</div><div class="value">${won(ccTotal)}</div><div class="label">${ccList.length}건</div></div>
+            <div><div class="label">개인경비 정산</div><div class="value">${won(peSettledTotal+pePendingTotal)}</div><div class="label">정산완료 ${won(peSettledTotal)} · 미정산 ${won(pePendingTotal)}</div></div>
         </div>
         ${(acctWarnCount+acctMissingCount) > 0 ? `<div class="summary-box"><div style="flex:none;width:100%;border-color:#fca5a5;background:#fef2f2;"><div class="label" style="color:#dc2626;">⚠ 계좌정보 확인 필요</div><div class="value" style="color:#dc2626;font-size:13px;">대표자 불일치 ${acctWarnCount}건 · 계좌 미등록 ${acctMissingCount}건 — 송금 전 아래 "청구명세서"에서 ⚠/계좌없음 배지를 확인해 주세요.</div></div></div>` : ''}
     </div>
