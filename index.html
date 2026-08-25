@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V3.5</title>
+    <title>현장 자금관리 PRO V3.6</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4179,9 +4179,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '3.5';
+        const APP_VERSION = '3.6';
         const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '(1) 청구명세서 상태에 "선입금" 및 사용자 직접 입력 문구 추가. (2) 현장명·작성월·회사명을 더블클릭 없이 바로 클릭해서 수정 가능하도록 변경. (3) 이상탐지 결과의 계좌번호 중복을 "단순중복(예금주 동일)"과 "위험(예금주 다름)"으로 구분 표시하고, 각 항목에서 바로 계좌 마스터 DB 수정/등록 화면으로 이동하는 버튼 추가.';
+        const APP_VERSION_NOTE = '본사 제출용 HTML 개선 — (1) 집계표에 결제금액·공제금액·선지급 합계 카드 추가. (2) 개인경비 정산 섹션 하단에 직원별 요약표(이름/총합계/은행/계좌번호/비고) 신규 추가 — 여러 건이 있는 직원은 자동 합산되어 한눈에 얼마를 보내야 하는지 확인 가능.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -13115,6 +13115,36 @@ function changePrintScale(value) {
                 <td class="ctr">${statusLabel}</td><td>${acctLine}</td><td>${esc(r.memo)}</td></tr>`;
             }).join('');
 
+            /* ── 개인경비 직원별 요약: 이름 / 총합계 / 은행 / 계좌번호 / 비고(정산상태 등) — 한눈에 보기 쉽게 직원 단위로 묶음 ── */
+            const peByEmployee = {};
+            peList.forEach(r => {
+                const key = r.employee || '(이름 미입력)';
+                if (!peByEmployee[key]) {
+                    peByEmployee[key] = { total: 0, bank: r.bank||'', account: r.account||'', holder: r.holder||'', settledCount: 0, pendingCount: 0, memos: [] };
+                }
+                const g = peByEmployee[key];
+                g.total += Number(r.amount||0);
+                if (!g.bank && r.bank) g.bank = r.bank;
+                if (!g.account && r.account) g.account = r.account;
+                if (!g.holder && r.holder) g.holder = r.holder;
+                if (r.status === 'settled') g.settledCount++; else g.pendingCount++;
+                if (r.memo && r.memo.trim()) g.memos.push(r.memo.trim());
+            });
+            const peSummaryRows = Object.entries(peByEmployee)
+                .sort((a,b) => b[1].total - a[1].total)
+                .map(([name, g]) => {
+                    const noteText = g.pendingCount > 0
+                        ? `미정산 ${g.pendingCount}건${g.settledCount ? ' · 정산완료 '+g.settledCount+'건' : ''}`
+                        : `정산완료 ${g.settledCount}건`;
+                    const memoText = g.memos.length ? g.memos.slice(0,2).join(', ') + (g.memos.length > 2 ? ' 외' : '') : '';
+                    return `<tr><td class="ctr" style="font-weight:700;">${esc(name)}</td>
+                        <td class="num" style="font-weight:800;">${won(g.total)}</td>
+                        <td class="ctr">${esc(g.bank)}</td>
+                        <td>${esc(g.account)}${g.holder ? ' ('+esc(g.holder)+')' : ''}</td>
+                        <td>${esc(noteText)}${memoText ? ' · '+esc(memoText) : ''}</td></tr>`;
+                }).join('');
+            const peSummaryTotal = Object.values(peByEmployee).reduce((s,g)=>s+g.total,0);
+
             const html = `<!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8"><title>${esc(docTitle)} 본사 제출용</title>
 <style>
@@ -13159,6 +13189,11 @@ ${REQ_CARD_CSS}
             <div><div class="label">지불의뢰서 합계</div><div class="value">${won(reqTotalAmt)}</div><div class="label">${reqCount}건</div></div>
             <div><div class="label">법인카드 사용 합계</div><div class="value">${won(ccTotal)}</div><div class="label">${ccList.length}건</div></div>
             <div><div class="label">개인경비 정산</div><div class="value">${won(peSettledTotal+pePendingTotal)}</div><div class="label">정산완료 ${won(peSettledTotal)} · 미정산 ${won(pePendingTotal)}</div></div>
+        </div>
+        <div class="summary-box">
+            <div><div class="label">결제금액 합계</div><div class="value">${won(t1supply+t1tax)}</div><div class="label">공급가액+부가세</div></div>
+            <div><div class="label">공제금액 합계</div><div class="value">${won(t1ded)}</div><div class="label">청구명세서 기준</div></div>
+            <div><div class="label">선지급 합계</div><div class="value">${won(t1pre)}</div><div class="label">청구명세서 기준</div></div>
         </div>
         ${(acctWarnCount+acctMissingCount) > 0 ? `<div class="summary-box"><div style="flex:none;width:100%;border-color:#fca5a5;background:#fef2f2;"><div class="label" style="color:#dc2626;">⚠ 계좌정보 확인 필요</div><div class="value" style="color:#dc2626;font-size:13px;">대표자 불일치 ${acctWarnCount}건 · 계좌 미등록 ${acctMissingCount}건 — 송금 전 아래 "청구명세서"에서 ⚠/계좌없음 배지를 확인해 주세요.</div></div></div>` : ''}
     </div>
@@ -13207,6 +13242,13 @@ ${REQ_CARD_CSS}
         <table>
             <thead><tr><th>No</th><th>사용일자</th><th>직원명</th><th>카테고리</th><th>가맹점명</th><th>금액</th><th>현장</th><th>정산상태</th><th>입금계좌</th><th>메모</th></tr></thead>
             <tbody>${peHtml || '<tr><td colspan="10" class="ctr">해당 현장·월에 해당하는 개인경비 내역이 없습니다.</td></tr>'}</tbody>
+        </table>
+
+        <h2 style="margin-top:24px;">직원별 정산 요약</h2>
+        <table>
+            <thead><tr><th>이름</th><th>금액(총합계)</th><th>은행</th><th>계좌번호</th><th>비고</th></tr></thead>
+            <tbody>${peSummaryRows || '<tr><td colspan="5" class="ctr">해당 현장·월에 해당하는 개인경비 내역이 없습니다.</td></tr>'}</tbody>
+            ${peSummaryRows ? `<tfoot><tr class="grand"><td>합계 (${Object.keys(peByEmployee).length}명)</td><td class="num">${won(peSummaryTotal)}</td><td colspan="3"></td></tr></tfoot>` : ''}
         </table>
     </div>
 </body></html>`;
