@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V3.9</title>
+    <title>현장 자금관리 PRO V4.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4179,9 +4179,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '3.9';
+        const APP_VERSION = '4.2';
         const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '본사 제출용(HTML/Excel) 공종별 집계표를 건수·결제금액·공제금액·선지급·지급요청금액 5개 항목만으로 정리, 외주비·자재비·노무비·장비비·관리비 5대 공종 고정 순서로 표시 (건수 0인 공종도 표시되어 누락 여부를 바로 확인 가능). HTML 버전에는 이 표가 새로 추가됨.';
+        const APP_VERSION_NOTE = '총 투입비 항목 코드 점검 — buildTotalInvestData()에서 청구명세서(예: "2026년 07월")와 법인카드·개인경비(날짜에서 자동 계산되어 "2026년 7월"처럼 0패딩 없이 생성됨)의 월 표기 방식이 서로 달라, 같은 현장·같은 달인데도 서로 다른 그룹(행)으로 갈라져 집계되던 결함 수정. 이제 그룹핑은 항상 0패딩 정규화된 월로 판단하고, 화면에는 원본 표기를 그대로 유지.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -10952,6 +10952,23 @@ function changePrintScale(value) {
                             if (!proceed) { skipCount++; readNext(idx + 1); return; }
                         }
 
+                        // ★ 청구월 불일치 확인 (다른 달 파일을 잘못 올렸을 가능성 — 가장 실수하기 쉬운 부분)
+                        //   "2026년 7월"과 "2026년 07월"처럼 0패딩 표기 차이는 오탐이 나지 않도록 숫자만 추출해서 비교한다.
+                        const normMonth = (s) => {
+                            const mm = /(\d{4})\D+(\d{1,2})/.exec(s || '');
+                            return mm ? `${mm[1]}-${String(mm[2]).padStart(2,'0')}` : '';
+                        };
+                        const parsedMonthNorm  = normMonth(parsed.month);
+                        const currentMonthNorm = normMonth(currentDoc.month);
+                        if (parsedMonthNorm && currentMonthNorm && parsedMonthNorm !== currentMonthNorm) {
+                            const proceed = confirm(
+                                `⚠️ 업로드한 파일의 청구월이 현재 선택된 청구서와 다릅니다.\n\n` +
+                                `파일 내 청구월: ${parsed.month}\n현재 청구서 청구월: ${currentDoc.month}\n\n` +
+                                `그래도 [${currentDoc.month}] 청구서에 등록하시겠습니까?\n(다른 달 파일이면 "취소" 후 해당 월의 청구서를 먼저 선택하세요.)`
+                            );
+                            if (!proceed) { skipCount++; readNext(idx + 1); return; }
+                        }
+
                         // 중복 등록 방지: 같은 회사·현장·월·업체명·파일명 조합이 이미 있으면 건너뜀
                         const list = loadLaborStatements();
                         const isDup = list.some(s =>
@@ -11034,12 +11051,19 @@ function changePrintScale(value) {
         }
 
         function buildTotalInvestData() {
-            const groups = {}; // key: company|site|month
+            const groups = {}; // key: company|site|monthNorm(정규화된 월) — 그룹핑은 정규화 키로, 화면 표시는 최초 등록된 원본 월 문자열로
             const monthKey = (m) => { const mm = /(\d{4}).*?(\d{1,2})/.exec(m || ''); return mm ? parseInt(mm[1],10)*100+parseInt(mm[2],10) : 0; };
+            // ★ "2026년 7월"과 "2026년 07월"처럼 0패딩 표기가 다르면 같은 달인데도 서로 다른 그룹으로 갈라지는 문제를 막기 위해
+            //   그룹 키 생성 시에는 항상 0패딩된 정규화 월 문자열을 사용한다. (화면에 보이는 라벨은 최초 등록된 원본 표기를 그대로 유지)
+            const normMonth = (m) => {
+                const mm = /(\d{4})\D+(\d{1,2})/.exec(m || '');
+                return mm ? `${mm[1]}년 ${String(mm[2]).padStart(2,'0')}월` : (m || '(월 미지정)');
+            };
             const getGroup = (company, site, month) => {
-                const key = `${company||'(회사 미지정)'}|${site||'(현장 미지정)'}|${month||'(월 미지정)'}`;
+                const monthNorm = normMonth(month);
+                const key = `${company||'(회사 미지정)'}|${site||'(현장 미지정)'}|${monthNorm}`;
                 if (!groups[key]) {
-                    groups[key] = { company: company||'(회사 미지정)', site: site||'(현장 미지정)', month: month||'(월 미지정)',
+                    groups[key] = { company: company||'(회사 미지정)', site: site||'(현장 미지정)', month: month||monthNorm,
                         monthKey: monthKey(month), amounts: {}, rows: {} };
                     [...TI_CATEGORIES, '법인카드', '개인경비'].forEach(c => { groups[key].amounts[c] = 0; groups[key].rows[c] = []; });
                 }
@@ -13219,7 +13243,6 @@ ${REQ_CARD_CSS}
             <div><div class="label">법인카드 사용 합계</div><div class="value">${won(ccTotal)}</div><div class="label">${ccList.length}건</div></div>
             <div><div class="label">개인경비 정산</div><div class="value">${won(peSettledTotal+pePendingTotal)}</div><div class="label">정산완료 ${won(peSettledTotal)} · 미정산 ${won(pePendingTotal)}</div></div>
         </div>
-        ${(acctWarnCount+acctMissingCount) > 0 ? `<div class="summary-box"><div style="flex:none;width:100%;border-color:#fca5a5;background:#fef2f2;"><div class="label" style="color:#dc2626;">⚠ 계좌정보 확인 필요</div><div class="value" style="color:#dc2626;font-size:13px;">대표자 불일치 ${acctWarnCount}건 · 계좌 미등록 ${acctMissingCount}건 — 송금 전 아래 "청구명세서"에서 ⚠/계좌없음 배지를 확인해 주세요.</div></div></div>` : ''}
 
         <h2 style="margin-top:18px;">구분(공종)별 청구 내역</h2>
         <table>
