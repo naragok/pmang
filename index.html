@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.3</title>
+    <title>현장 자금관리 PRO V4.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1062,7 +1062,7 @@
                 <button onclick="exportHQReportHTML()" class="hdr-btn hdr-btn-emerald" title="청구명세서·지불의뢰서·법인카드를 인쇄 가능한 HTML 파일 하나로 내보냅니다">
                     <i data-lucide="file-code" class="w-3 h-3"></i><span class="inline btn-label">본사 제출용 HTML</span>
                 </button>
-                <button onclick="exportHQArchiveHTML()" class="hdr-btn hdr-btn-indigo" title="저장된 모든 월의 문서를 한 파일에 담아, 본사에서 좌측 목록을 클릭해 원하는 월을 바로 조회할 수 있게 내보냅니다">
+                <button onclick="openHQArchiveModal()" class="hdr-btn hdr-btn-indigo" title="저장된 문서 중 원하는 회사·월을 선택해, 본사에서 좌측 목록을 클릭해 조회할 수 있는 파일로 내보냅니다">
                     <i data-lucide="archive" class="w-3 h-3"></i><span class="inline btn-label">본사 조회용(전체월)</span>
                 </button>
                 <button onclick="exportToCSV()" class="hdr-btn hdr-btn-slate" title="CSV 내보내기">
@@ -4069,6 +4069,39 @@
         </div>
     </div>
 
+    <!-- 본사 조회용(전체월) HTML 내보내기 — 회사/월 선택 모달 -->
+    <div id="hq-archive-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <i data-lucide="archive" class="w-4 h-4 text-indigo-500"></i> 본사 조회용 내보내기
+                </h3>
+                <button onclick="closeHQArchiveModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 space-y-4 overflow-y-auto">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">회사</label>
+                    <select id="hq-archive-company" onchange="updateHQArchiveMonthOptions()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <option value="__ALL__">전체 회사</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">포함할 월</label>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <button type="button" onclick="setHQArchiveMonthsAll(true)" class="text-[10px] px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800">전체 선택</button>
+                        <button type="button" onclick="setHQArchiveMonthsAll(false)" class="text-[10px] px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800">전체 해제</button>
+                    </div>
+                    <div id="hq-archive-months" class="space-y-1 max-h-48 overflow-y-auto border border-slate-100 dark:border-slate-800 rounded-lg p-2"></div>
+                </div>
+                <p class="text-[10px] text-slate-400">선택한 회사·월의 자료만 파일 하나에 담기며, 본사에서는 좌측 목록을 클릭해 조회할 수 있습니다.</p>
+            </div>
+            <div class="px-5 pb-5 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
+                <button onclick="closeHQArchiveModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">취소</button>
+                <button onclick="exportHQArchiveHTML()" class="px-5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all flex items-center gap-1.5"><i data-lucide="download" class="w-3.5 h-3.5"></i> 내보내기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 최초 실행 온보딩 모달 — savedDocuments가 완전히 비어있는 최초 1회에만 자동으로 뜬다 -->
     <div id="onboarding-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden">
@@ -4182,9 +4215,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.3';
+        const APP_VERSION = '4.4';
         const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '"본사 조회용(전체월)" HTML 내보내기 신규 추가 — 저장된 모든 월의 청구명세서·지불의뢰서·법인카드·개인경비를 파일 하나에 담아, 좌측 목록에서 원하는 월을 클릭해 바로 확인할 수 있음. 최신 월이 상단에 정렬되어 표시되며, 매달 새 파일을 주고받지 않고 이 파일 하나로 전체 이력을 관리 가능.';
+        const APP_VERSION_NOTE = '"본사 조회용(전체월)" 내보내기에 회사·월 선택 모달 추가 — 버튼 클릭 시 회사 드롭다운과 월별 체크박스로 원하는 범위만 선택해 내보낼 수 있음 (기본은 전체 월 체크). 아무 월도 선택하지 않으면 안내 후 내보내기 중단.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -13332,17 +13365,78 @@ ${REQ_CARD_CSS}
            - 파일 하나만 전달하면 되므로, 매달 새 파일을 주고받을 필요가 없고
              본사 입장에서는 지난 이력까지 한 곳에서 확인할 수 있다.
         ============================================================ */
+        /* ── 본사 조회용(전체월) 내보내기 — 회사/월 선택 모달 ── */
+        function openHQArchiveModal() {
+            if (!savedDocuments.length) { showToast('내보낼 문서가 없습니다.', 'error'); return; }
+
+            const companySel = document.getElementById('hq-archive-company');
+            const companies = [...new Set(savedDocuments.map(d => d.company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+            companySel.innerHTML = '<option value="__ALL__">전체 회사</option>' + companies.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            updateHQArchiveMonthOptions();
+            document.getElementById('hq-archive-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeHQArchiveModal() {
+            document.getElementById('hq-archive-modal').classList.add('hidden');
+        }
+
+        /* 선택된 회사에 해당하는 문서들의 월 목록을 체크박스로 갱신 (최신 월이 위로, 기본 전체 체크) */
+        function updateHQArchiveMonthOptions() {
+            const company = document.getElementById('hq-archive-company').value;
+            const docs = savedDocuments.filter(d => company === '__ALL__' || d.company === company);
+            const mk = (m) => { const mm = /(\d{4}).*?(\d{1,2})/.exec(m||''); return mm ? parseInt(mm[1],10)*100+parseInt(mm[2],10) : 0; };
+            const months = [...new Set(docs.map(d => d.month).filter(Boolean))].sort((a,b) => mk(b)-mk(a));
+
+            const box = document.getElementById('hq-archive-months');
+            if (!months.length) {
+                box.innerHTML = '<p class="text-[10px] text-slate-400 italic px-1">해당 회사에 저장된 월이 없습니다.</p>';
+                return;
+            }
+            box.innerHTML = months.map(m => `
+                <label class="flex items-center gap-2 px-1 py-1 text-xs text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded">
+                    <input type="checkbox" class="hq-archive-month-chk" value="${m}" checked>
+                    <span>${m}</span>
+                </label>`).join('');
+        }
+
+        function setHQArchiveMonthsAll(checked) {
+            document.querySelectorAll('.hq-archive-month-chk').forEach(cb => { cb.checked = checked; });
+        }
+
         function exportHQArchiveHTML() {
             const esc = htmlEsc, won = htmlWon;
 
             if (!savedDocuments.length) { showToast('내보낼 문서가 없습니다.', 'error'); return; }
+
+            // ── 모달에서 선택한 회사/월 필터 적용 (모달을 거치지 않고 직접 호출된 경우엔 전체 대상) ──
+            const companySelEl = document.getElementById('hq-archive-company');
+            const selectedCompany = companySelEl ? companySelEl.value : '__ALL__';
+            const monthChks = document.querySelectorAll('.hq-archive-month-chk');
+            const selectedMonths = monthChks.length
+                ? [...monthChks].filter(cb => cb.checked).map(cb => cb.value)
+                : null; // 모달이 없었으면(직접 호출) 월 필터 없음 = 전체
+
+            if (monthChks.length && selectedMonths.length === 0) {
+                showToast('포함할 월을 1개 이상 선택해 주세요.', 'error');
+                return;
+            }
+
+            let targetDocs = savedDocuments;
+            if (selectedCompany && selectedCompany !== '__ALL__') {
+                targetDocs = targetDocs.filter(d => d.company === selectedCompany);
+            }
+            if (selectedMonths) {
+                targetDocs = targetDocs.filter(d => selectedMonths.includes(d.month));
+            }
+            if (!targetDocs.length) { showToast('선택한 조건에 해당하는 문서가 없습니다.', 'error'); return; }
 
             const CAT_ORDER = ['외주비','자재비','노무비','장비비','관리비'];
             const ccAll = (typeof ccLoad === 'function') ? ccLoad() : [];
             const peAll = (typeof peLoad === 'function') ? peLoad() : [];
 
             // 최신 월이 위로 오도록 정렬
-            const sortedDocs = [...savedDocuments].sort((a,b) => {
+            const sortedDocs = [...targetDocs].sort((a,b) => {
                 const mk = (m) => { const mm = /(\d{4}).*?(\d{1,2})/.exec(m||''); return mm ? parseInt(mm[1],10)*100+parseInt(mm[2],10) : 0; };
                 return mk(b.month) - mk(a.month) || (a.company||'').localeCompare(b.company||'','ko-KR');
             });
@@ -13556,7 +13650,8 @@ ${REQ_CARD_CSS}
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const filename = `본사조회용_전체월_${new Date().toISOString().slice(0,10)}.html`;
             downloadBlob(blob, filename);
-            showToast(`본사 조회용 HTML 저장 완료! (전체 ${sortedDocs.length}개월 문서 포함)`);
+            showToast(`본사 조회용 HTML 저장 완료! (${sortedDocs.length}개월 문서 포함)`);
+            closeHQArchiveModal();
         }
 
         /* ============================================================
