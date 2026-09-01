@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.6</title>
+    <title>현장 자금관리 PRO V4.7</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2290,6 +2290,9 @@
                         <button onclick="ccAddRow()" class="ctrl-btn" style="background:#7c3aed;">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
                         </button>
+                        <button onclick="ccApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="현재 필터에 걸린 법인카드 사용액 전체를 현재 열려있는 청구명세서에 관리비 1건으로 합산 반영합니다">
+                            <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 청구명세서에 반영
+                        </button>
                         <button onclick="ccExportExcel()" class="ctrl-btn" style="background:#059669;">
                             <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
                         </button>
@@ -2440,7 +2443,7 @@
                         <button onclick="peAddRow()" class="ctrl-btn" style="background:#db2777;">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
                         </button>
-                        <button onclick="peApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="선택한 정산완료 건을 현재 열려있는 청구명세서에 항목으로 추가합니다">
+                        <button onclick="peApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="선택한 정산완료 건을 직원별로 합산해 현재 열려있는 청구명세서에 관리비 항목으로 추가합니다">
                             <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 청구명세서에 반영
                         </button>
                         <button onclick="peExportExcel()" class="ctrl-btn" style="background:#059669;">
@@ -4215,9 +4218,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.6';
+        const APP_VERSION = '4.7';
         const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '본사 제출용(단일월 HTML·전체월 조회용 HTML·Excel) 상단 요약 카드의 "결제금액 합계"·"청구명세서(지급요청금액) 합계"에도 법인카드+개인경비를 함께 합산 — 공종별 표의 관리비 항목과 동일한 기준으로 통일. Excel은 시트 간 수식 참조로 연결되어 데이터 수정 시 자동 재계산됨.';
+        const APP_VERSION_NOTE = '청구명세서에 관리비 항목으로 직접 반영하는 기능 추가 — 법인카드 탭 "청구명세서에 반영" 버튼은 현재 필터된 법인카드 사용액 전체를 관리비 1건으로 합산 반영. 개인경비 탭은 체크한 정산완료 건을 직원별로 합산해 각각 관리비 1건씩 반영 (기존에는 노무비·건별 개별 반영이었음).';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -17252,6 +17255,50 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             setTimeout(()=>{ win.focus(); win.print(); }, 400);
         }
 
+        /* ── 법인카드 → 청구명세서 반영 ──
+              현재 필터에 걸린 법인카드 사용액 "전체 합계"를 청구명세서에 관리비 1건으로 합산 추가한다.
+              (개인경비처럼 건별로 추가하지 않고, 법인카드는 전체를 하나로 묶어서 반영) */
+        function ccApplyToStatement() {
+            if (typeof dataset === 'undefined' || !currentDocId) {
+                showToast('먼저 청구명세서 탭에서 반영할 문서를 열어주세요.', 'error');
+                return;
+            }
+            const curDoc = savedDocuments.find(d => d.id === currentDocId);
+            if (!curDoc) { showToast('현재 열려있는 청구명세서를 찾을 수 없습니다.', 'error'); return; }
+
+            ccData = ccLoad();
+            const filtered = ccFiltered();
+            if (!filtered.length) { showToast('반영할 법인카드 내역이 없습니다. (필터 조건을 확인하세요)', 'error'); return; }
+
+            const total = filtered.reduce((s,r) => s + Number(r.amount||0), 0);
+            if (!total) { showToast('반영할 금액이 없습니다.', 'error'); return; }
+
+            const monthLabel = document.getElementById('cc-filter-month')?.value || curDoc.month || '';
+            const noteDetail = filtered.length <= 3
+                ? filtered.map(r => `${r.date||''} ${r.merchant||''}`).join(', ')
+                : `${filtered.length}건`;
+
+            const newId = genDatasetId();
+            dataset.push({
+                id: newId,
+                type: '관리비',
+                vendor: '법인카드',
+                ceo: '',
+                supply: total,
+                tax: 0,
+                deduction: 0,
+                prepaid: 0,
+                bank: '', account: '', holder: '', phone: '', biznum: '',
+                status: '대기',
+                note: `법인카드 사용액 반영 · ${monthLabel} · ${noteDetail}`.trim()
+            });
+
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+            showToast(`[${curDoc.month||''}] 청구명세서에 법인카드 사용액 ${filtered.length}건 · ${total.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.`, 'success');
+        }
+
         /* 백업 */
         function ccBackup() {
             ccData = ccLoad();
@@ -17772,6 +17819,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         /* ── 청구명세서에 반영 ──
            체크된 "정산완료 & 미반영" 개인경비 건들을, 현재 열려있는 청구명세서(dataset)에
            노무비 항목으로 자동 추가한다. vendor=직원명, ceo=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용. */
+        /* ── 개인경비 → 청구명세서 반영 ──
+              체크된 "정산완료 & 미반영" 개인경비 건들을, 직원별로 합산해서 청구명세서에
+              관리비 항목으로 추가한다. vendor=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용. */
         function peApplyToStatement() {
             const checked = [...document.querySelectorAll('.pe-row-check:checked')].map(cb => cb.value);
             if (!checked.length) { showToast('반영할 항목을 체크해 주세요. (정산완료 & 미반영 건만 선택 가능)', 'error'); return; }
@@ -17784,45 +17834,62 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!curDoc) { showToast('현재 열려있는 청구명세서를 찾을 수 없습니다.', 'error'); return; }
 
             peData = peLoad();
-            let addedCount = 0, addedTotal = 0;
-            checked.forEach(id => {
-                const idx = peData.findIndex(r => r.id === id);
-                if (idx < 0) return;
-                const r = peData[idx];
-                if (r.status !== 'settled' || r.appliedToStatement) return;
+            const targets = checked
+                .map(id => peData.find(r => r.id === id))
+                .filter(r => r && r.status === 'settled' && !r.appliedToStatement);
 
+            if (!targets.length) { showToast('반영 가능한 항목이 없습니다. (정산완료 & 미반영 상태만 반영 가능)', 'error'); return; }
+
+            // 직원별로 합산
+            const byEmployee = {};
+            targets.forEach(r => {
+                const key = r.employee || '(이름 미입력)';
+                if (!byEmployee[key]) {
+                    byEmployee[key] = { total: 0, bank: r.bank||'', account: r.account||'', holder: r.holder||r.employee||'', items: [] };
+                }
+                byEmployee[key].total += Number(r.amount||0);
+                if (!byEmployee[key].bank && r.bank) byEmployee[key].bank = r.bank;
+                if (!byEmployee[key].account && r.account) byEmployee[key].account = r.account;
+                byEmployee[key].items.push(`${r.date||''} ${r.merchant||''}`);
+            });
+
+            let addedCount = 0, addedTotal = 0;
+            Object.entries(byEmployee).forEach(([name, g]) => {
+                const noteDetail = g.items.length <= 3 ? g.items.join(', ') : `${g.items.length}건`;
                 const newId = genDatasetId();
                 dataset.push({
                     id: newId,
-                    type: '노무비',
-                    vendor: r.employee || '',
-                    ceo: r.employee || '',
-                    supply: Number(r.amount||0),
+                    type: '관리비',
+                    vendor: name,
+                    ceo: name,
+                    supply: g.total,
                     tax: 0,
                     deduction: 0,
                     prepaid: 0,
-                    bank: r.bank || '',
-                    account: r.account || '',
-                    holder: r.holder || r.employee || '',
+                    bank: g.bank || '',
+                    account: g.account || '',
+                    holder: g.holder || name,
                     phone: '',
                     biznum: '',
                     status: '대기',
-                    note: `개인경비 정산 반영 · ${r.date||''} ${r.merchant||''} ${r.cat?'('+r.cat+')':''}`.trim()
+                    note: `개인경비 정산 반영 · ${noteDetail}`.trim()
                 });
-
-                peData[idx] = { ...r, appliedToStatement: true, appliedDocId: currentDocId, appliedDocMonth: curDoc.month || '' };
                 addedCount++;
-                addedTotal += Number(r.amount||0);
+                addedTotal += g.total;
             });
 
-            if (!addedCount) { showToast('반영 가능한 항목이 없습니다. (정산완료 상태만 반영 가능)', 'error'); return; }
+            // 반영 처리된 원본 개인경비 항목들에 표시
+            targets.forEach(r => {
+                const idx = peData.findIndex(x => x.id === r.id);
+                if (idx >= 0) peData[idx] = { ...peData[idx], appliedToStatement: true, appliedDocId: currentDocId, appliedDocMonth: curDoc.month || '' };
+            });
 
             peSave();
             saveToLocalStorage();
             renderStatementTable();
             refreshRequestSelector();
             peRender();
-            showToast(`[${curDoc.month||''}] 청구명세서에 개인경비 ${addedCount}건 · ${addedTotal.toLocaleString('ko-KR')}원 반영 완료!`, 'success');
+            showToast(`[${curDoc.month||''}] 청구명세서에 직원 ${addedCount}명 · ${addedTotal.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.`, 'success');
         }
 
         /* ── 월별 정산 마감 리포트 ── */
