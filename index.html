@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.7</title>
+    <title>현장 자금관리 PRO V4.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4218,9 +4218,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.7';
-        const APP_VERSION_DATE = '2026-08-16';
-        const APP_VERSION_NOTE = '청구명세서에 관리비 항목으로 직접 반영하는 기능 추가 — 법인카드 탭 "청구명세서에 반영" 버튼은 현재 필터된 법인카드 사용액 전체를 관리비 1건으로 합산 반영. 개인경비 탭은 체크한 정산완료 건을 직원별로 합산해 각각 관리비 1건씩 반영 (기존에는 노무비·건별 개별 반영이었음).';
+        const APP_VERSION = '4.9';
+        const APP_VERSION_DATE = '2026-09-02';
+        const APP_VERSION_NOTE = '본사 제출용(HTML/Excel) 첫페이지 구분(공종)별 청구내역에서 관리비 항목 합계에 법인카드·개인경비 정산 금액을 더 이상 합산하지 않도록 수정 (전체 합계 행에는 계속 포함됨).';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -12722,15 +12722,10 @@ function changePrintScale(value) {
             sumRows.push([]);
             sumRows.push([c('구분(공종)별 청구 내역',XSI.SEC_HEAD),'','','','']);
             sumMerges.push({ r1:sumRows.length-1, c1:0, r2:sumRows.length-1, c2:4 });
-            sumRows.push([c('※ 관리비 항목에는 법인카드+개인경비 합산',XSI.LABEL),'','','','','']);
-            sumMerges.push({ r1:sumRows.length-1, c1:0, r2:sumRows.length-1, c2:5 });
             sumRows.push([c('공종',XSI.SUM_HEAD), c('건수',XSI.SUM_HEAD), c('결제금액',XSI.SUM_HEAD), c('공제금액',XSI.SUM_HEAD), c('선지급',XSI.SUM_HEAD), c('지급요청금액',XSI.SUM_HEAD)]);
             CAT_ORDER.forEach(cat => {
-                // 표시 전용 합산본 — 실제 청구명세서 데이터(catTotals)는 그대로 두고, 관리비 행에만 법인카드+개인경비를 더해서 보여준다.
-                const extra = cat === '관리비' ? (ccTotal + peTotal) : 0;
                 const ct = catTotals[cat];
-                const dispCount = ct.count + (cat === '관리비' ? (ccList.length + peList.length) : 0);
-                sumRows.push([c(cat,XSI.VALUE), c(dispCount,XSI.SUM_NUM), c(ct.total+extra,XSI.SUM_NUM), c(ct.ded,XSI.SUM_NUM), c(ct.pre,XSI.SUM_NUM), c(ct.req+extra,XSI.SUM_NUM)]);
+                sumRows.push([c(cat,XSI.VALUE), c(ct.count,XSI.SUM_NUM), c(ct.total,XSI.SUM_NUM), c(ct.ded,XSI.SUM_NUM), c(ct.pre,XSI.SUM_NUM), c(ct.req,XSI.SUM_NUM)]);
             });
             sheets.unshift({ name:'집계표', rows: sumRows, merges: sumMerges, colWidths:[24,12,18,16,16,18] });
 
@@ -13294,17 +13289,11 @@ ${REQ_CARD_CSS}
         </div>
 
         <h2 style="margin-top:18px;">구분(공종)별 청구 내역</h2>
-        <p style="font-size:10px;color:#64748b;margin:-4px 0 6px;">※ 관리비 항목에는 법인카드 사용액과 개인경비 정산액이 함께 합산되어 있습니다.</p>
         <table>
             <thead><tr><th>공종</th><th>건수</th><th>결제금액</th><th>공제금액</th><th>선지급</th><th>지급요청금액</th></tr></thead>
             <tbody>${CAT_ORDER.map(cat => {
-                // 표시 전용 합산본 — 실제 청구명세서 데이터(catTotals)는 그대로 두고, 관리비 행에만 법인카드+개인경비를 더해서 보여준다.
-                const extra = cat === '관리비' ? (ccTotal + peSettledTotal + pePendingTotal) : 0;
                 const ct = catTotals[cat];
-                const dispCount = ct.count + (cat === '관리비' ? (ccList.length + peList.length) : 0);
-                const dispTotal = ct.total + extra;
-                const dispReq   = ct.req + extra;
-                return `<tr><td class="ctr">${esc(cat)}</td><td class="ctr">${dispCount}</td><td class="num">${won(dispTotal)}</td><td class="num">${won(ct.ded)}</td><td class="num">${won(ct.pre)}</td><td class="num">${won(dispReq)}</td></tr>`;
+                return `<tr><td class="ctr">${esc(cat)}</td><td class="ctr">${ct.count}</td><td class="num">${won(ct.total)}</td><td class="num">${won(ct.ded)}</td><td class="num">${won(ct.pre)}</td><td class="num">${won(ct.req)}</td></tr>`;
             }).join('')}</tbody>
             <tfoot><tr class="grand"><td>합계</td>
                 <td class="ctr">${CAT_ORDER.reduce((s,cat)=>s+catTotals[cat].count,0) + ccList.length + peList.length}</td>
@@ -13573,14 +13562,11 @@ ${REQ_CARD_CSS}
                     </div>
 
                     <h2 style="margin-top:16px;">구분(공종)별 청구 내역</h2>
-                    <p style="font-size:10px;color:#64748b;margin:-4px 0 6px;">※ 관리비 항목에는 법인카드 사용액과 개인경비 정산액이 함께 합산되어 있습니다.</p>
                     <table>
                         <thead><tr><th>공종</th><th>건수</th><th>결제금액</th><th>공제금액</th><th>선지급</th><th>지급요청금액</th></tr></thead>
                         <tbody>${CAT_ORDER.map(cat => {
-                            const extra = cat === '관리비' ? (ccTotal + peTotal) : 0;
                             const ct = catTotals[cat];
-                            const dispCount = ct.count + (cat === '관리비' ? (ccList.length + peList.length) : 0);
-                            return `<tr><td class="ctr">${esc(cat)}</td><td class="ctr">${dispCount}</td><td class="num">${won(ct.total+extra)}</td><td class="num">${won(ct.ded)}</td><td class="num">${won(ct.pre)}</td><td class="num">${won(ct.req+extra)}</td></tr>`;
+                            return `<tr><td class="ctr">${esc(cat)}</td><td class="ctr">${ct.count}</td><td class="num">${won(ct.total)}</td><td class="num">${won(ct.ded)}</td><td class="num">${won(ct.pre)}</td><td class="num">${won(ct.req)}</td></tr>`;
                         }).join('')}</tbody>
                     </table>
 
@@ -13670,7 +13656,8 @@ ${REQ_CARD_CSS}
 </body></html>`;
 
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-            const filename = `본사조회용_전체월_${new Date().toISOString().slice(0,10)}.html`;
+            const companyTag = (selectedCompany && selectedCompany !== '__ALL__') ? `_${selectedCompany.replace(/[\\/:*?"<>|]/g,'')}` : '';
+            const filename = `본사조회용_전체월${companyTag}_${new Date().toISOString().slice(0,10)}.html`;
             downloadBlob(blob, filename);
             showToast(`본사 조회용 HTML 저장 완료! (${sortedDocs.length}개월 문서 포함)`);
             closeHQArchiveModal();
