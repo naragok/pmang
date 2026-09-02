@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.1</title>
+    <title>현장 자금관리 PRO V5.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4218,9 +4218,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.1';
+        const APP_VERSION = '5.2';
         const APP_VERSION_DATE = '2026-09-02';
-        const APP_VERSION_NOTE = '개인경비 목록에 행별 원클릭 "반영" 버튼 추가 — 체크박스 선택 없이 클릭 한 번으로 해당 건을 현재 청구명세서에 관리비로 바로 반영 가능.';
+        const APP_VERSION_NOTE = '개인경비 목록에서 정산완료 아닌 건에도 체크박스가 보이도록 수정 (반영 가능 여부는 실제 반영 시 검증, 미정산 건 체크 시 안내 후 제외). 행별 원클릭 반영 버튼은 정산완료 건에만 표시.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -17513,7 +17513,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const appliedBadge = r.appliedToStatement
                         ? `<span class="text-emerald-600 font-bold text-[9px]" title="${r.appliedDocMonth||''} 청구서에 반영됨">반영됨</span>`
                         : (r.status === 'settled' ? `<span class="text-slate-300 text-[9px]">미반영</span>` : `<span class="text-slate-200 text-[9px]">-</span>`);
-                    const canCheck = r.status === 'settled' && !r.appliedToStatement;
+                    const canApply = r.status === 'settled' && !r.appliedToStatement;
+                    const canCheck = !r.appliedToStatement;
                     return `<tr class="${rowBg} hover:bg-pink-50 dark:hover:bg-pink-900/10 transition-colors">
                         <td class="px-1 py-2 text-center no-print">${canCheck ? `<input type="checkbox" class="pe-row-check" value="${r.id}" onchange="peUpdateCheckAllState()">` : ''}</td>
                         <td class="px-2 py-2 text-center text-slate-400 font-mono text-[10px]">${idx+1}</td>
@@ -17531,7 +17532,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-center no-print">
                             <div class="flex items-center justify-center gap-1">
                                 ${r.status !== 'settled' ? `<button onclick="peQuickSettle('${r.id}')" class="p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30" title="정산완료 처리"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>` : ''}
-                                ${canCheck ? `<button onclick="peApplyToStatement(['${r.id}'])" class="p-1 rounded text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="클릭 한 번으로 이 건만 현재 청구명세서에 관리비로 바로 반영"><i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                                ${canApply ? `<button onclick="peApplyToStatement(['${r.id}'])" class="p-1 rounded text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="클릭 한 번으로 이 건만 현재 청구명세서에 관리비로 바로 반영"><i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i></button>` : ''}
                                 <button onclick="peEditRow('${r.id}')" class="p-1 rounded text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="수정"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="peDeleteRow('${r.id}')" class="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
@@ -17828,11 +17829,14 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const mm = /(\d{4}).*?(\d{1,2})/.exec(curDoc.month || '');
             const docMonthKey = mm ? `${mm[1]}-${String(parseInt(mm[2],10)).padStart(2,'0')}` : '';
             const checkedRows = checked.map(id => peData.find(r => r.id === id)).filter(Boolean);
-            const offMonth = checkedRows.filter(r => docMonthKey && !(r.date||'').startsWith(docMonthKey));
+            const notSettled = checkedRows.filter(r => r.status !== 'settled' && !r.appliedToStatement);
+            const offMonth = checkedRows.filter(r => r.status === 'settled' && docMonthKey && !(r.date||'').startsWith(docMonthKey));
             const targets = checkedRows.filter(r => r.status === 'settled' && !r.appliedToStatement && (!docMonthKey || (r.date||'').startsWith(docMonthKey)));
 
             if (!targets.length) {
-                if (offMonth.length) {
+                if (notSettled.length) {
+                    showToast(`체크한 항목 중 정산완료 상태가 아닌 건은 반영할 수 없습니다. (${notSettled.length}건)`, 'error');
+                } else if (offMonth.length) {
                     showToast(`체크한 항목이 현재 청구명세서 월(${curDoc.month||''})과 달라 반영할 수 없습니다.`, 'error');
                 } else {
                     showToast('반영 가능한 항목이 없습니다. (정산완료 & 미반영 & 해당 월 건만 반영 가능)', 'error');
@@ -17890,7 +17894,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             refreshRequestSelector();
             peRender();
             const offNote = offMonth.length ? ` (월 불일치 ${offMonth.length}건 제외)` : '';
-            showToast(`[${curDoc.month||''}] 청구명세서에 직원 ${addedCount}명 · ${addedTotal.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.${offNote}`, 'success');
+            const notSettledNote = notSettled.length ? ` (미정산 ${notSettled.length}건 제외)` : '';
+            showToast(`[${curDoc.month||''}] 청구명세서에 직원 ${addedCount}명 · ${addedTotal.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.${offNote}${notSettledNote}`, 'success');
         }
 
         /* ── 월별 정산 마감 리포트 ── */
