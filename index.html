@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.2</title>
+    <title>현장 자금관리 PRO V5.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1053,21 +1053,31 @@
                     <i data-lucide="file-text" class="w-3 h-3"></i><span class="inline btn-label">PDF/이미지 파싱</span>
                 </button>
                 <input type="file" id="pdf-import-input" accept=".pdf,image/*" class="hidden" onchange="importPdfBill(this)">
-                <button onclick="exportToXLSX()" class="hdr-btn hdr-btn-emerald" title="Excel 내보내기">
-                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i><span class="inline btn-label">Excel</span>
-                </button>
-                <button onclick="exportHQReportXLSX()" class="hdr-btn hdr-btn-emerald" title="청구명세서·지불의뢰서·법인카드를 한 파일로 묶어 본사 보고용으로 내보냅니다">
-                    <i data-lucide="building-2" class="w-3 h-3"></i><span class="inline btn-label">본사 보고용</span>
-                </button>
-                <button onclick="exportHQReportHTML()" class="hdr-btn hdr-btn-emerald" title="청구명세서·지불의뢰서·법인카드를 인쇄 가능한 HTML 파일 하나로 내보냅니다">
-                    <i data-lucide="file-code" class="w-3 h-3"></i><span class="inline btn-label">본사 제출용 HTML</span>
-                </button>
-                <button onclick="openHQArchiveModal()" class="hdr-btn hdr-btn-indigo" title="저장된 문서 중 원하는 회사·월을 선택해, 본사에서 좌측 목록을 클릭해 조회할 수 있는 파일로 내보냅니다">
-                    <i data-lucide="archive" class="w-3 h-3"></i><span class="inline btn-label">본사 조회용(전체월)</span>
-                </button>
-                <button onclick="exportToCSV()" class="hdr-btn hdr-btn-slate" title="CSV 내보내기">
-                    <i data-lucide="file-down" class="w-3 h-3"></i><span class="inline btn-label">CSV</span>
-                </button>
+
+                <div class="relative shrink-0" id="export-menu-wrap">
+                    <button onclick="toggleExportMenu(event)" class="hdr-btn hdr-btn-emerald" title="Excel·HTML·CSV 등 내보내기 메뉴">
+                        <i data-lucide="download" class="w-3 h-3"></i><span class="inline btn-label">내보내기</span><i data-lucide="chevron-down" class="w-3 h-3"></i>
+                    </button>
+                    <div id="export-menu" class="hidden absolute right-0 mt-1 z-50 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1" style="min-width:220px;">
+                        <button onclick="closeExportMenu(); exportToXLSX();" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="Excel 내보내기">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i> Excel
+                        </button>
+                        <button onclick="closeExportMenu(); exportHQReportXLSX();" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="청구명세서·지불의뢰서·법인카드를 한 파일로 묶어 본사 보고용으로 내보냅니다">
+                            <i data-lucide="building-2" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i> 본사 보고용 (Excel)
+                        </button>
+                        <button onclick="closeExportMenu(); exportHQReportHTML();" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="청구명세서·지불의뢰서·법인카드를 인쇄 가능한 HTML 파일 하나로 내보냅니다">
+                            <i data-lucide="file-code" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i> 본사 제출용 HTML
+                        </button>
+                        <button onclick="closeExportMenu(); openHQArchiveModal();" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="저장된 문서 중 원하는 회사·월을 선택해, 본사에서 좌측 목록을 클릭해 조회할 수 있는 파일로 내보냅니다">
+                            <i data-lucide="archive" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i> 본사 조회용 (전체월)
+                        </button>
+                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+                        <button onclick="closeExportMenu(); exportToCSV();" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="CSV 내보내기">
+                            <i data-lucide="file-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i> CSV
+                        </button>
+                    </div>
+                </div>
+
                 <button onclick="openGlobalSearchModal()" class="hdr-btn hdr-btn-slate" title="전체 검색 (Ctrl+K)">
                     <i data-lucide="search" class="w-3 h-3"></i><span class="inline btn-label">검색</span>
                 </button>
@@ -4218,9 +4228,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.2';
+        const APP_VERSION = '5.4';
         const APP_VERSION_DATE = '2026-09-02';
-        const APP_VERSION_NOTE = '개인경비 목록에서 정산완료 아닌 건에도 체크박스가 보이도록 수정 (반영 가능 여부는 실제 반영 시 검증, 미정산 건 체크 시 안내 후 제외). 행별 원클릭 반영 버튼은 정산완료 건에만 표시.';
+        const APP_VERSION_NOTE = '상단 헤더 UI 개선 — Excel/본사 보고용/본사 제출용 HTML/본사 조회용/CSV 5개 내보내기 버튼을 "내보내기" 드롭다운 메뉴 하나로 통합해 헤더 혼잡도 감소.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -17805,9 +17815,6 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (allEl) allEl.checked = boxes.length > 0 && boxes.every(cb => cb.checked);
         }
 
-        /* ── 청구명세서에 반영 ──
-           체크된 "정산완료 & 미반영" 개인경비 건들을, 현재 열려있는 청구명세서(dataset)에
-           노무비 항목으로 자동 추가한다. vendor=직원명, ceo=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용. */
         /* ── 개인경비 → 청구명세서 반영 ──
               체크된(또는 explicitIds로 지정된) "정산완료 & 미반영" 개인경비 건들을, 직원별로 합산해서
               청구명세서에 관리비 항목으로 추가한다. vendor=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용.
@@ -18189,7 +18196,24 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (rmodal && !rmodal.classList.contains('hidden')) { closeCcReceiptModal(); return; }
                 const modal = document.getElementById('cc-modal');
                 if (modal && !modal.classList.contains('hidden')) ccCloseModal();
+                closeExportMenu();
             }
+        });
+
+        /* ── 헤더 "내보내기" 드롭다운 메뉴 ── */
+        function toggleExportMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('export-menu');
+            if (!menu) return;
+            menu.classList.toggle('hidden');
+        }
+        function closeExportMenu() {
+            const menu = document.getElementById('export-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('export-menu-wrap');
+            if (wrap && !wrap.contains(e.target)) closeExportMenu();
         });
 
         /* ══════════════════════════════════════════════
