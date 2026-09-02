@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.9</title>
+    <title>현장 자금관리 PRO V5.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2443,7 +2443,7 @@
                         <button onclick="peAddRow()" class="ctrl-btn" style="background:#db2777;">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
                         </button>
-                        <button onclick="peApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="선택한 정산완료 건을 직원별로 합산해 현재 열려있는 청구명세서에 관리비 항목으로 추가합니다">
+                        <button onclick="peApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="선택한 정산완료 건 중 현재 열려있는 청구명세서와 같은 월(사용일자 기준)인 건만 직원별로 합산해 관리비 항목으로 추가합니다">
                             <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 청구명세서에 반영
                         </button>
                         <button onclick="peExportExcel()" class="ctrl-btn" style="background:#059669;">
@@ -4218,9 +4218,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.9';
+        const APP_VERSION = '5.1';
         const APP_VERSION_DATE = '2026-09-02';
-        const APP_VERSION_NOTE = '본사 제출용(HTML/Excel) 첫페이지 구분(공종)별 청구내역에서 관리비 항목 합계에 법인카드·개인경비 정산 금액을 더 이상 합산하지 않도록 수정 (전체 합계 행에는 계속 포함됨).';
+        const APP_VERSION_NOTE = '개인경비 목록에 행별 원클릭 "반영" 버튼 추가 — 체크박스 선택 없이 클릭 한 번으로 해당 건을 현재 청구명세서에 관리비로 바로 반영 가능.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -17531,6 +17531,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-center no-print">
                             <div class="flex items-center justify-center gap-1">
                                 ${r.status !== 'settled' ? `<button onclick="peQuickSettle('${r.id}')" class="p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30" title="정산완료 처리"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>` : ''}
+                                ${canCheck ? `<button onclick="peApplyToStatement(['${r.id}'])" class="p-1 rounded text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="클릭 한 번으로 이 건만 현재 청구명세서에 관리비로 바로 반영"><i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i></button>` : ''}
                                 <button onclick="peEditRow('${r.id}')" class="p-1 rounded text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="수정"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="peDeleteRow('${r.id}')" class="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
@@ -17807,10 +17808,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
            체크된 "정산완료 & 미반영" 개인경비 건들을, 현재 열려있는 청구명세서(dataset)에
            노무비 항목으로 자동 추가한다. vendor=직원명, ceo=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용. */
         /* ── 개인경비 → 청구명세서 반영 ──
-              체크된 "정산완료 & 미반영" 개인경비 건들을, 직원별로 합산해서 청구명세서에
-              관리비 항목으로 추가한다. vendor=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용. */
-        function peApplyToStatement() {
-            const checked = [...document.querySelectorAll('.pe-row-check:checked')].map(cb => cb.value);
+              체크된(또는 explicitIds로 지정된) "정산완료 & 미반영" 개인경비 건들을, 직원별로 합산해서
+              청구명세서에 관리비 항목으로 추가한다. vendor=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용.
+              explicitIds가 주어지면 체크박스 선택 없이 해당 건만 바로 반영한다 (행별 원클릭 반영용). */
+        function peApplyToStatement(explicitIds) {
+            const checked = explicitIds && explicitIds.length
+                ? explicitIds
+                : [...document.querySelectorAll('.pe-row-check:checked')].map(cb => cb.value);
             if (!checked.length) { showToast('반영할 항목을 체크해 주세요. (정산완료 & 미반영 건만 선택 가능)', 'error'); return; }
 
             if (typeof dataset === 'undefined' || !currentDocId) {
@@ -17821,11 +17825,20 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!curDoc) { showToast('현재 열려있는 청구명세서를 찾을 수 없습니다.', 'error'); return; }
 
             peData = peLoad();
-            const targets = checked
-                .map(id => peData.find(r => r.id === id))
-                .filter(r => r && r.status === 'settled' && !r.appliedToStatement);
+            const mm = /(\d{4}).*?(\d{1,2})/.exec(curDoc.month || '');
+            const docMonthKey = mm ? `${mm[1]}-${String(parseInt(mm[2],10)).padStart(2,'0')}` : '';
+            const checkedRows = checked.map(id => peData.find(r => r.id === id)).filter(Boolean);
+            const offMonth = checkedRows.filter(r => docMonthKey && !(r.date||'').startsWith(docMonthKey));
+            const targets = checkedRows.filter(r => r.status === 'settled' && !r.appliedToStatement && (!docMonthKey || (r.date||'').startsWith(docMonthKey)));
 
-            if (!targets.length) { showToast('반영 가능한 항목이 없습니다. (정산완료 & 미반영 상태만 반영 가능)', 'error'); return; }
+            if (!targets.length) {
+                if (offMonth.length) {
+                    showToast(`체크한 항목이 현재 청구명세서 월(${curDoc.month||''})과 달라 반영할 수 없습니다.`, 'error');
+                } else {
+                    showToast('반영 가능한 항목이 없습니다. (정산완료 & 미반영 & 해당 월 건만 반영 가능)', 'error');
+                }
+                return;
+            }
 
             // 직원별로 합산
             const byEmployee = {};
@@ -17876,7 +17889,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             renderStatementTable();
             refreshRequestSelector();
             peRender();
-            showToast(`[${curDoc.month||''}] 청구명세서에 직원 ${addedCount}명 · ${addedTotal.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.`, 'success');
+            const offNote = offMonth.length ? ` (월 불일치 ${offMonth.length}건 제외)` : '';
+            showToast(`[${curDoc.month||''}] 청구명세서에 직원 ${addedCount}명 · ${addedTotal.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.${offNote}`, 'success');
         }
 
         /* ── 월별 정산 마감 리포트 ── */
