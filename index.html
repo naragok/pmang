@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.4</title>
+    <title>현장 자금관리 PRO V5.5</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2300,7 +2300,7 @@
                         <button onclick="ccAddRow()" class="ctrl-btn" style="background:#7c3aed;">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
                         </button>
-                        <button onclick="ccApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="현재 필터에 걸린 법인카드 사용액 전체를 현재 열려있는 청구명세서에 관리비 1건으로 합산 반영합니다">
+                        <button onclick="ccApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="현재 열려있는 청구명세서와 같은 월(사용일자 기준)의 미반영 법인카드 사용액 전체를 관리비 1건으로 합산 반영합니다 (필터 상태와 무관, 중복 반영 방지)">
                             <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 청구명세서에 반영
                         </button>
                         <button onclick="ccExportExcel()" class="ctrl-btn" style="background:#059669;">
@@ -4228,9 +4228,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.4';
+        const APP_VERSION = '5.5';
         const APP_VERSION_DATE = '2026-09-02';
-        const APP_VERSION_NOTE = '상단 헤더 UI 개선 — Excel/본사 보고용/본사 제출용 HTML/본사 조회용/CSV 5개 내보내기 버튼을 "내보내기" 드롭다운 메뉴 하나로 통합해 헤더 혼잡도 감소.';
+        const APP_VERSION_NOTE = '법인카드 "청구명세서에 반영" 기능 개선 — ①화면 필터와 무관하게 현재 청구명세서와 같은 월의 내역만 반영하도록 수정 ②이미 반영된 건은 appliedToStatement로 추적해 중복 반영 방지 ③목록에 "반영됨" 배지 표시 ④반영된 건 삭제 시 경고 문구 추가.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -16836,7 +16836,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-center text-slate-400 font-mono text-[10px]">${idx+1}</td>
                         <td class="px-2 py-2 text-center text-slate-700 dark:text-slate-300 font-mono text-[11px]">${r.date||''}</td>
                         <td class="px-2 py-2 text-center">${ccCatBadge(r.cat||'기타')}</td>
-                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}</td>
+                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}${r.appliedToStatement ? ` <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold align-middle" title="${r.appliedDocMonth||''} 청구명세서에 반영됨">반영됨</span>` : ''}</td>
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
                         <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company||'<span class="text-slate-300">-</span>'}</td>
                         <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
@@ -16983,8 +16983,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* 행 삭제 */
         function ccDeleteRow(id) {
-            if (!confirm('이 항목을 삭제하시겠습니까?')) return;
             ccData = ccLoad();
+            const r = ccData.find(x=>x.id===id);
+            const msg = r && r.appliedToStatement
+                ? `이 항목은 [${r.appliedDocMonth||''}] 청구명세서에 이미 반영되어 있습니다. 삭제해도 청구명세서에 반영된 금액은 자동으로 조정되지 않습니다. 그래도 삭제하시겠습니까?`
+                : '이 항목을 삭제하시겠습니까?';
+            if (!confirm(msg)) return;
             ccData = ccData.filter(r=>r.id!==id);
             ccSave();
             ccRender();
@@ -17263,17 +17267,27 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const curDoc = savedDocuments.find(d => d.id === currentDocId);
             if (!curDoc) { showToast('현재 열려있는 청구명세서를 찾을 수 없습니다.', 'error'); return; }
 
+            const mm = /(\d{4}).*?(\d{1,2})/.exec(curDoc.month || '');
+            const docMonthKey = mm ? `${mm[1]}-${String(parseInt(mm[2],10)).padStart(2,'0')}` : '';
+            if (!docMonthKey) { showToast('청구명세서의 월 정보를 확인할 수 없습니다.', 'error'); return; }
+
             ccData = ccLoad();
-            const filtered = ccFiltered();
-            if (!filtered.length) { showToast('반영할 법인카드 내역이 없습니다. (필터 조건을 확인하세요)', 'error'); return; }
+            const targets = ccData.filter(r => !r.appliedToStatement && (r.date||'').startsWith(docMonthKey));
+            const alreadyApplied = ccData.filter(r => r.appliedToStatement && r.appliedDocId === currentDocId && (r.date||'').startsWith(docMonthKey));
 
-            const total = filtered.reduce((s,r) => s + Number(r.amount||0), 0);
-            if (!total) { showToast('반영할 금액이 없습니다.', 'error'); return; }
+            if (!targets.length) {
+                if (alreadyApplied.length) {
+                    showToast(`[${curDoc.month||''}] 법인카드 사용액은 이미 반영되어 있습니다. (${alreadyApplied.length}건)`, 'error');
+                } else {
+                    showToast(`[${curDoc.month||''}]에 해당하는 법인카드 사용 내역이 없습니다.`, 'error');
+                }
+                return;
+            }
 
-            const monthLabel = document.getElementById('cc-filter-month')?.value || curDoc.month || '';
-            const noteDetail = filtered.length <= 3
-                ? filtered.map(r => `${r.date||''} ${r.merchant||''}`).join(', ')
-                : `${filtered.length}건`;
+            const total = targets.reduce((s,r) => s + Number(r.amount||0), 0);
+            const noteDetail = targets.length <= 3
+                ? targets.map(r => `${r.date||''} ${r.merchant||''}`).join(', ')
+                : `${targets.length}건`;
 
             const newId = genDatasetId();
             dataset.push({
@@ -17287,13 +17301,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 prepaid: 0,
                 bank: '', account: '', holder: '', phone: '', biznum: '',
                 status: '대기',
-                note: `법인카드 사용액 반영 · ${monthLabel} · ${noteDetail}`.trim()
+                note: `법인카드 사용액 반영 · ${curDoc.month||''} · ${noteDetail}`.trim()
             });
 
+            targets.forEach(r => { r.appliedToStatement = true; r.appliedDocId = currentDocId; r.appliedDocMonth = curDoc.month || ''; });
+            ccSave();
             saveToLocalStorage();
             renderStatementTable();
             refreshRequestSelector();
-            showToast(`[${curDoc.month||''}] 청구명세서에 법인카드 사용액 ${filtered.length}건 · ${total.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.`, 'success');
+            ccRender();
+            showToast(`[${curDoc.month||''}] 청구명세서에 법인카드 사용액 ${targets.length}건 · ${total.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.`, 'success');
         }
 
         /* 백업 */
