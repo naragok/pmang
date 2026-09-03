@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.2</title>
+    <title>현장 자금관리 PRO V1.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4232,9 +4232,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.2';
+        const APP_VERSION = '1.4';
         const APP_VERSION_DATE = '2026-09-03';
-        const APP_VERSION_NOTE = 'HTML 내보내기(본사 제출용/통합) 파일의 인쇄 품질 개선 — 표 헤더(thead) 페이지 넘김 시 반복, 행 잘림 방지(page-break-inside:avoid), 섹션별 페이지 나눔 보강. 통합(전체 월) HTML 내보내기 파일에 전체 인쇄 버튼 추가 및 A4 가로 인쇄 페이지 설정 추가.';
+        const APP_VERSION_NOTE = '본사 조회용(통합) HTML 내보내기 파일의 좌측 목록에 그룹핑 옵션 추가 — "전체 월 목록/현장별/회사별/월별"로 묶어보기를 셀렉트박스로 전환 가능. (내보내기 시점에 만들어지는 정적 HTML 파일 자체에 자바스크립트로 내장됨, 원본 앱 재실행 불필요)';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -13577,7 +13577,7 @@ ${REQ_CARD_CSS}
                 const peHtml = peList.map(r => `<tr><td class="ctr">${esc(r.date)}</td><td class="ctr">${esc(r.employee)}</td><td>${esc(r.merchant)}</td><td class="num">${won(r.amount)}</td><td class="ctr">${r.status==='settled'?'정산완료':'미정산'}</td></tr>`).join('');
 
                 const docLabel = `${doc.company||'(회사 미지정)'} · ${doc.month||'(월 미지정)'} · ${doc.site||'(현장 미지정)'}`;
-                navHtml += `<button class="nav-item ${docIdx===0?'active':''}" onclick="selectDoc('${docId}')" data-doc="${docId}">
+                navHtml += `<button class="nav-item ${docIdx===0?'active':''}" onclick="selectDoc('${docId}')" data-doc="${docId}" data-site="${esc(doc.site||'(현장 미지정)')}" data-company="${esc(doc.company||'(회사 미지정)')}" data-month="${esc(doc.month||'(월 미지정)')}">
                     <div class="nav-month">${esc(doc.month||'-')}</div>
                     <div class="nav-detail">${esc(doc.company||'')} · ${esc(doc.site||'')}</div>
                     <div class="nav-total">${won(t1req)}</div>
@@ -13644,6 +13644,9 @@ ${REQ_CARD_CSS}
     body { font-family:'Malgun Gothic','Noto Sans KR',sans-serif; margin:0; color:#0f172a; background:#f1f5f9; display:flex; min-height:100vh; }
     .nav-panel { width:260px; flex-shrink:0; background:#1e293b; padding:16px 0; overflow-y:auto; height:100vh; position:sticky; top:0; }
     .nav-title { color:#93c5fd; font-weight:800; font-size:13px; padding:0 16px 12px; border-bottom:1px solid #334155; margin-bottom:8px; }
+    .nav-group-select { width:calc(100% - 32px); margin:0 16px 12px; padding:6px 8px; font-size:11px; font-weight:700; border-radius:6px;
+        background:#334155; color:#e2e8f0; border:1px solid #475569; }
+    .nav-group-header { color:#94a3b8; font-weight:800; font-size:10.5px; padding:10px 16px 4px; letter-spacing:.02em; }
     .nav-item { display:block; width:100%; text-align:left; background:none; border:none; color:#cbd5e1; padding:10px 16px; cursor:pointer; border-left:3px solid transparent; }
     .nav-item:hover { background:#334155; }
     .nav-item.active { background:#334155; border-left-color:#3b82f6; color:#fff; }
@@ -13672,8 +13675,7 @@ ${REQ_CARD_CSS}
     @media print {
         .nav-panel { display:none; }
         .content { padding:0; }
-        .doc-section { display:block !important; page-break-after:always; }
-        .doc-section:last-child { page-break-after:auto; }
+        /* 인쇄 시 현재 선택된(active) 월만 출력 — 나머지 doc-section은 display:none 그대로 유지 */
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
         tr, td, th { page-break-inside: avoid; }
@@ -13685,10 +13687,16 @@ ${REQ_CARD_CSS}
     .print-btn:hover { background:#1d4ed8; }
 </style></head>
 <body>
-    <button class="print-btn no-print" onclick="window.print()">🖨 전체 인쇄 / PDF 저장</button>
+    <button class="print-btn no-print" onclick="window.print()">🖨 선택한 월 인쇄 / PDF 저장</button>
     <div class="nav-panel no-print">
         <div class="nav-title">📁 전체 월 목록 (${sortedDocs.length}건)</div>
-        ${navHtml}
+        <select class="nav-group-select" id="nav-group-mode" onchange="renderNavGroups()">
+            <option value="none">전체 월 목록 (그룹 없음)</option>
+            <option value="site">현장별로 묶어보기</option>
+            <option value="company">회사별로 묶어보기</option>
+            <option value="month">월별로 묶어보기</option>
+        </select>
+        <div id="nav-items-wrap">${navHtml}</div>
     </div>
     <div class="content">
         ${sectionsHtml}
@@ -13700,6 +13708,37 @@ ${REQ_CARD_CSS}
             document.getElementById(id).classList.add('active');
             document.querySelector('[data-doc="'+id+'"]').classList.add('active');
             window.scrollTo(0,0);
+        }
+        /* 좌측 목록을 현장별/회사별/월별로 재구성 (그룹 헤더만 삽입, 문서 개수/내용은 동일) */
+        let _navOriginalOrder = null;
+        function renderNavGroups() {
+            const mode = document.getElementById('nav-group-mode').value;
+            const wrap = document.getElementById('nav-items-wrap');
+            if (!_navOriginalOrder) {
+                _navOriginalOrder = Array.from(wrap.querySelectorAll('.nav-item')); // 최초 렌더 순서(최신월 순) 보존
+            }
+            if (mode === 'none') {
+                wrap.innerHTML = '';
+                _navOriginalOrder.forEach(el => wrap.appendChild(el));
+                return;
+            }
+            const keyAttr = mode === 'site' ? 'site' : mode === 'company' ? 'company' : 'month';
+            const groups = {};
+            const order = [];
+            _navOriginalOrder.forEach(el => {
+                const key = el.getAttribute('data-'+keyAttr) || '(미지정)';
+                if (!groups[key]) { groups[key] = []; order.push(key); }
+                groups[key].push(el);
+            });
+            order.sort((a,b) => a.localeCompare(b, 'ko-KR'));
+            wrap.innerHTML = '';
+            order.forEach(key => {
+                const h = document.createElement('div');
+                h.className = 'nav-group-header';
+                h.textContent = '▶ ' + key + ' (' + groups[key].length + '건)';
+                wrap.appendChild(h);
+                groups[key].forEach(el => wrap.appendChild(el));
+            });
         }
     <\/script>
 </body></html>`;
