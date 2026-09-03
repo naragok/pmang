@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.0</title>
+    <title>현장 자금관리 PRO V1.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4232,9 +4232,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.0';
+        const APP_VERSION = '1.1';
         const APP_VERSION_DATE = '2026-09-03';
-        const APP_VERSION_NOTE = '버전 번호 1.0으로 리빌드. 결재 금액 합계(엑셀·HTML 내보내기, 대시보드 전체 합산) 계산 시 청구명세서 관리비 항목에 법인카드/개인경비가 이미 반영되어 있으면 중복으로 더하지 않도록 수정.';
+        const APP_VERSION_NOTE = '상단 문서 선택 드롭다운을 회사별 그룹핑에서 현장별 그룹핑으로 변경 (같은 현장이면 회사가 달라도 하나의 그룹으로 묶여 표시, 그룹 내부는 월→회사 순 정렬).';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -8770,35 +8770,35 @@ function changePrintScale(value) {
                 return;
             }
 
-            // 회사별 그룹화
-            const companyMap = {};
+            // 현장별 그룹화
+            const siteMap = {};
             filteredDocs.forEach(doc => {
-                const key = doc.company || '(회사명 없음)';
-                if (!companyMap[key]) companyMap[key] = [];
-                companyMap[key].push(doc);
+                const key = (doc.site || '').trim() || '(현장명 없음)';
+                if (!siteMap[key]) siteMap[key] = [];
+                siteMap[key].push(doc);
             });
 
-            // 회사명 가나다 정렬
-            const sortedCompanies = Object.keys(companyMap).sort((a, b) =>
+            // 현장명 가나다 정렬
+            const sortedSites = Object.keys(siteMap).sort((a, b) =>
                 a.localeCompare(b, 'ko-KR'));
 
             let selectedFound = false;
 
-            sortedCompanies.forEach(company => {
+            sortedSites.forEach(site => {
                 const group = document.createElement('optgroup');
-                group.label = `▶ ${company}`;
+                group.label = `▶ ${site}`;
 
-                // 같은 회사 내: 년월 오름차순 → 현장명 오름차순
-                const docs = [...companyMap[company]].sort((a, b) => {
+                // 같은 현장 내: 년월 오름차순 → 회사명 오름차순
+                const docs = [...siteMap[site]].sort((a, b) => {
                     const monthCmp = parseMonthToNum(a.month) - parseMonthToNum(b.month);
                     if (monthCmp !== 0) return monthCmp;
-                    return (a.site || '').localeCompare(b.site || '', 'ko-KR');
+                    return (a.company || '').localeCompare(b.company || '', 'ko-KR');
                 });
 
                 docs.forEach(doc => {
                     const opt = document.createElement('option');
                     opt.value = doc.id;
-                    opt.textContent = `[${doc.month}] ${doc.site}`;
+                    opt.textContent = `[${doc.month}] ${doc.company || '(회사명 없음)'}`;
                     if (doc.id === currentDocId) {
                         opt.selected = true;
                         selectedFound = true;
