@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.5</title>
+    <title>현장 자금관리 PRO V5.6</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2493,6 +2493,9 @@
                     <select id="pe-filter-site" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
                         <option value="">전체 현장</option>
                     </select>
+                    <select id="pe-filter-company" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                        <option value="">전체 회사</option>
+                    </select>
                     <select id="pe-filter-status" onchange="peRender()" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
                         <option value="">전체 상태</option>
                         <option value="pending">미정산</option>
@@ -2536,6 +2539,7 @@
                                 <th class="px-2 py-2 text-left w-32 font-bold">가맹점명</th>
                                 <th class="px-2 py-2 text-right w-24 font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onclick="peSort('amount')">금액 ↕</th>
                                 <th class="px-2 py-2 text-center w-24 font-bold">현장</th>
+                                <th class="px-2 py-2 text-center w-20 font-bold">회사</th>
                                 <th class="px-2 py-2 text-left w-40 font-bold">입금계좌(직원)</th>
                                 <th class="px-2 py-2 text-center w-16 font-bold">정산상태</th>
                                 <th class="px-2 py-2 text-center w-20 font-bold">정산일</th>
@@ -2545,7 +2549,7 @@
                             </tr>
                         </thead>
                         <tbody id="pe-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <tr><td colspan="14" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
+                            <tr><td colspan="15" class="py-12 text-center text-slate-400 text-sm">내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.</td></tr>
                         </tbody>
                         <tfoot id="pe-tfoot" class="bg-slate-50 dark:bg-slate-800/50 font-bold border-t-2 border-slate-300 dark:border-slate-600"></tfoot>
                     </table>
@@ -4228,9 +4232,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.5';
+        const APP_VERSION = '5.6';
         const APP_VERSION_DATE = '2026-09-02';
-        const APP_VERSION_NOTE = '법인카드 "청구명세서에 반영" 기능 개선 — ①화면 필터와 무관하게 현재 청구명세서와 같은 월의 내역만 반영하도록 수정 ②이미 반영된 건은 appliedToStatement로 추적해 중복 반영 방지 ③목록에 "반영됨" 배지 표시 ④반영된 건 삭제 시 경고 문구 추가.';
+        const APP_VERSION_NOTE = '개인경비 탭에 "회사" 열과 회사별 필터 추가 (법인카드 탭과 동일한 방식). 목록 표시, 필터, 필터 초기화에 모두 반영. 엑셀 내보내기는 기존부터 회사 열 포함되어 있었음.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -17375,6 +17379,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const employee = document.getElementById('pe-filter-employee')?.value || '';
             const cat      = document.getElementById('pe-filter-cat')?.value || '';
             const site     = document.getElementById('pe-filter-site')?.value || '';
+            const company  = document.getElementById('pe-filter-company')?.value || '';
             const status   = document.getElementById('pe-filter-status')?.value || '';
             const search   = (document.getElementById('pe-filter-search')?.value || '').trim().toLowerCase();
             return peData.filter(r => {
@@ -17382,6 +17387,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (employee && r.employee !== employee) return false;
                 if (cat && r.cat !== cat) return false;
                 if (site && r.site !== site) return false;
+                if (company && r.company !== company) return false;
                 if (status && (r.status||'pending') !== status) return false;
                 if (search && !(
                     (r.employee||'').toLowerCase().includes(search) ||
@@ -17410,7 +17416,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const mSel = document.getElementById('pe-filter-month');
             const eSel = document.getElementById('pe-filter-employee');
             const sSel = document.getElementById('pe-filter-site');
-            const curM = mSel?.value; const curE = eSel?.value; const curS = sSel?.value;
+            const cSel = document.getElementById('pe-filter-company');
+            const curM = mSel?.value; const curE = eSel?.value; const curS = sSel?.value; const curC = cSel?.value;
 
             if (mSel) {
                 mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
@@ -17423,6 +17430,10 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (sSel) {
                 sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${s}">${s}</option>`).join('');
                 if (curS) sSel.value = curS;
+            }
+            if (cSel) {
+                cSel.innerHTML = '<option value="">전체 회사</option>' + companies.map(v=>`<option value="${v}">${v}</option>`).join('');
+                if (curC) cSel.value = curC;
             }
 
             const empDl = document.getElementById('pe-employee-datalist');
@@ -17526,7 +17537,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!tbody) return;
 
             if (!filteredSorted.length) {
-                tbody.innerHTML = `<tr><td colspan="14" class="py-12 text-center text-slate-400 text-sm">${peData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="15" class="py-12 text-center text-slate-400 text-sm">${peData.length ? '필터 결과가 없습니다.' : '내역 추가 버튼을 눌러 첫 번째 항목을 입력하세요.'}</td></tr>`;
                 if (tfoot) tfoot.innerHTML = '';
             } else {
                 let totalAmt = 0, pendingAmt = 0;
@@ -17551,6 +17562,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}</td>
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
                         <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company||'<span class="text-slate-300">-</span>'}</td>
                         <td class="px-2 py-2 text-[10px] text-slate-600 dark:text-slate-400 truncate max-w-[160px]" title="${acctLine.replace(/"/g,'&quot;')}">${acctLine}</td>
                         <td class="px-2 py-2 text-center">${peStatusBadge(r.status)}</td>
                         <td class="px-2 py-2 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400">${r.settleDate||'-'}</td>
@@ -17573,7 +17585,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-right text-sm font-black text-pink-700 dark:text-pink-400">${totalAmt.toLocaleString('ko-KR')}</td>
                         <td colspan="2" class="px-2 py-2"></td>
                         <td class="px-2 py-2 text-right text-[10px] text-rose-600 font-bold">미정산 ${pendingAmt.toLocaleString('ko-KR')}</td>
-                        <td colspan="4" class="px-2 py-2"></td>
+                        <td colspan="5" class="px-2 py-2"></td>
                     </tr>`;
                 }
             }
@@ -18062,7 +18074,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* 필터 초기화 */
         function peClearFilters() {
-            const ids = ['pe-filter-month','pe-filter-employee','pe-filter-cat','pe-filter-site','pe-filter-status','pe-filter-search'];
+            const ids = ['pe-filter-month','pe-filter-employee','pe-filter-cat','pe-filter-site','pe-filter-company','pe-filter-status','pe-filter-search'];
             ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
             peRender();
         }
