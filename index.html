@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.7</title>
+    <title>현장 자금관리 PRO V1.8</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1192,7 +1192,7 @@
                 <i data-lucide="download" class="w-2.5 h-2.5"></i> <span style="font-size:9px;font-weight:700;">홈 화면 설치</span>
             </button>
 
-            <div class="ml-auto hdr-group shrink-0">
+            <div class="ml-auto hdr-group shrink-0" style="display:none;">
                 <button onclick="setDashboardFilter('all')"
                     class="summary-chip border text-[10px] font-bold px-2.5 py-1 flex items-center gap-1"
                     style="background:rgba(37,99,235,0.15);border-color:rgba(59,130,246,0.3);color:#93c5fd;border-radius:20px;" title="전체 보기">
@@ -4262,9 +4262,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.7';
+        const APP_VERSION = '1.8';
         const APP_VERSION_DATE = '2026-09-03';
-        const APP_VERSION_NOTE = '상단 2행(현장/대장/문서/청구항목추가/요약)이 모니터 해상도가 좁아지면 통째로 다음 줄로 밀려 2단이 되던 문제 수정 — 줄바꿈을 막고(flex-wrap:nowrap) 가로 스크롤로 전환. 모든 그룹·칩에 flex-shrink:0을 적용해 좁은 화면에서도 각 요소가 찌그러지지 않고 원래 크기를 유지, 필요 시 좌우로 스크롤해서 확인 가능.';
+        const APP_VERSION_NOTE = '상단 2행 우측의 요약 그룹(전체/완료/대기/보류 칩 + 도넛 차트) 화면에서 숨김 처리. 관련 값을 갱신하는 내부 로직(summary-count 등)이 여전히 참조하고 있어 완전 삭제 대신 display:none으로 처리 — 필요 시 언제든 복원 가능.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
