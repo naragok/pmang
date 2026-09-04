@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.8</title>
+    <title>현장 자금관리 PRO V1.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -438,6 +438,16 @@
             letter-spacing: 0.06em;
             padding-right: 2px;
             white-space: nowrap;
+        }
+        /* 헤더 전체검색 입력창 */
+        #hdr-global-search-input::placeholder { color: #64748b; }
+        .hdr-search-group {
+            transition: border-color 0.15s ease, background 0.15s ease;
+            cursor: pointer;
+        }
+        .hdr-search-group:hover {
+            border-color: rgba(56,189,248,0.4);
+            background: rgba(56,189,248,0.06);
         }
 
         /* 셀렉트 개선 */
@@ -1230,6 +1240,15 @@
                 <span id="donut-total-label" class="hidden"></span>
                 <span id="donut-center-label" class="hidden"></span>
                 <span id="donut-center-sub" class="hidden"></span>
+            </div>
+
+            <div class="ml-auto hdr-group hdr-search-group shrink-0" style="flex:1 1 260px;max-width:340px;" onclick="openGlobalSearchModal()">
+                <i data-lucide="search" class="w-3.5 h-3.5 shrink-0" style="color:#64748b;"></i>
+                <input type="text" id="hdr-global-search-input"
+                    placeholder="전체 검색 (거래처·금액·메모, Ctrl+K)"
+                    readonly
+                    class="bg-transparent outline-none border-none text-[11px] w-full cursor-pointer"
+                    style="color:#cbd5e1;">
             </div>
         </div>
 
@@ -4262,9 +4281,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.8';
+        const APP_VERSION = '1.9';
         const APP_VERSION_DATE = '2026-09-03';
-        const APP_VERSION_NOTE = '상단 2행 우측의 요약 그룹(전체/완료/대기/보류 칩 + 도넛 차트) 화면에서 숨김 처리. 관련 값을 갱신하는 내부 로직(summary-count 등)이 여전히 참조하고 있어 완전 삭제 대신 display:none으로 처리 — 필요 시 언제든 복원 가능.';
+        const APP_VERSION_NOTE = '상단 2행에서 요약 그룹이 있던 자리(우측)에 전체검색 입력창을 추가 — 클릭 시 기존 전체 검색 모달(Ctrl+K)이 열림. 요약 그룹(전체/완료/대기/보류+도넛)은 display:none으로 계속 숨김 유지.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
