@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V1.9</title>
+    <title>현장 자금관리 PRO V2.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1745,6 +1745,9 @@
                         <option value="선입금">선입금</option>
                         <option value="__custom__">기타(직접입력)</option>
                     </select>
+                    <button id="manual-order-reset-btn" onclick="resetManualOrder()" class="hidden shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800" title="드래그로 지정한 순서를 해제하고 구분(공종)별 자동 정렬로 되돌립니다">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> 기본 정렬로
+                    </button>
                     <button onclick="toggleStmtToolbar()" id="stmt-toolbar-toggle"
                         class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all"
                         class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold transition-all" title="상세 옵션">
@@ -1834,14 +1837,6 @@
                         <input type="text" id="doc-title" value="(2026년 06월) 자금청구명세서" onchange="syncMetaValues('doc-title', this.value)"
                             class="font-extrabold text-gray-950 dark:text-slate-100 border-b border-gray-300 dark:border-slate-700 focus:border-blue-600 pb-1.5 flex-1 min-w-0 bg-transparent outline-none"
                             style="font-size:clamp(1.1rem,3vw,1.6rem);">
-
-                        <div class="no-print flex items-center gap-2 shrink-0">
-                            <div class="flex items-center border rounded-lg p-1" style="background:#fff;border-color:#e2e8f0;">
-                                <span class="text-xs font-bold px-2 text-slate-500 dark:text-slate-400">표시 단위</span>
-                                <button onclick="changeMoneyUnit('won')" id="unit-btn-won" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="background:#2563eb;color:#fff;">원</button>
-                                <button onclick="changeMoneyUnit('thousand')" id="unit-btn-thousand" class="text-xs font-bold px-2.5 py-1 rounded transition-all" style="color:#64748b;">천원</button>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm text-gray-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
@@ -3645,7 +3640,7 @@
                         <input type="text" id="modal-db-phone" placeholder="연락처 (선택)" class="border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-xs bg-white dark:bg-slate-800 dark:text-slate-100 outline-none">
                     </div>
                     <p class="text-[10px] text-slate-400">예금주는 위 "대표자" 입력값을 그대로 사용합니다 → <b id="modal-db-holder-preview" class="text-indigo-600 dark:text-indigo-400">예금주 미입력</b>. 이후 다른 청구항목에서도 이 거래처를 선택하면 계좌정보가 자동으로 채워집니다.</p>
-                    <button type="button" onclick="registerVendorFromModal()" class="w-full bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-xs py-1.5 rounded-lg transition-all">거래처 DB에 등록</button>
+                    <button type="button" onclick="registerVendorFromModal()" class="w-full bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs py-1.5 rounded-lg transition-all">거래처 DB에 등록</button>
                 </div>
             </div>
             <div class="flex justify-end gap-2 text-xs mt-2">
@@ -4281,9 +4276,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '1.9';
-        const APP_VERSION_DATE = '2026-09-03';
-        const APP_VERSION_NOTE = '상단 2행에서 요약 그룹이 있던 자리(우측)에 전체검색 입력창을 추가 — 클릭 시 기존 전체 검색 모달(Ctrl+K)이 열림. 요약 그룹(전체/완료/대기/보류+도넛)은 display:none으로 계속 숨김 유지.';
+        const APP_VERSION = '2.4';
+        const APP_VERSION_DATE = '2026-09-04';
+        const APP_VERSION_NOTE = '청구 항목 등록/수정 모달의 "거래처 DB에 등록" 버튼 색상을 인디고에서 빨간색(rose) 계열로 변경해 눈에 잘 띄도록 강조.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4477,8 +4472,7 @@
         let currentDocId = "";
         let pendingConfirmAction = null;
         let requestItems = [];
-        let currentMoneyUnit = 'won';
-        
+
         let selectedRowIds = new Set();
         let _editRowModalId = null;  // null=신규 등록 모드, 값이 있으면 해당 id의 청구 항목 수정 모드
         let dashboardFilterStatus = "all";
@@ -6403,59 +6397,8 @@
             showToast("수정 정보가 전체 대장에 영구 저장되었습니다.");
         }
 
-        function changeMoneyUnit(unit) {
-            currentMoneyUnit = unit;
-            
-            const btnWon = document.getElementById('unit-btn-won');
-            const btnThousand = document.getElementById('unit-btn-thousand');
-            
-            if (unit === 'won') {
-                btnWon.className = "text-xs font-bold px-2.5 py-1 rounded bg-blue-600 text-white transition-all";
-                btnThousand.className = "text-xs font-bold px-2.5 py-1 rounded text-slate-600 dark:text-slate-350 transition-all";
-                
-                document.getElementById('th-supply').textContent = "공급가액(원)";
-                document.getElementById('th-tax').textContent = "부가세(원)";
-                document.getElementById('th-total').textContent = "결제금액(원)";
-                document.getElementById('th-deduction').textContent = "공제금액(원)";
-                document.getElementById('th-prepaid').textContent = "선지급(원)";
-                document.getElementById('th-request').textContent = "지급요청금액(원)";
-
-                if (document.getElementById('th-req-supply')) document.getElementById('th-req-supply').textContent = "공급가액";
-                if (document.getElementById('th-req-tax')) document.getElementById('th-req-tax').textContent = "부가세";
-                if (document.getElementById('th-req-sum')) document.getElementById('th-req-sum').textContent = "합계금액";
-                if (document.getElementById('lbl-req-supply')) document.getElementById('lbl-req-supply').textContent = "공급가액계 :";
-                if (document.getElementById('lbl-req-tax')) document.getElementById('lbl-req-tax').textContent = "부가가치세 :";
-                if (document.getElementById('lbl-req-total')) document.getElementById('lbl-req-total').textContent = "청구 금액 계 :";
-            } else {
-                btnWon.className = "text-xs font-bold px-2.5 py-1 rounded text-slate-600 dark:text-slate-350 transition-all";
-                btnThousand.className = "text-xs font-bold px-2.5 py-1 rounded bg-blue-600 text-white transition-all";
-                
-                document.getElementById('th-supply').textContent = "공급가액(천원)";
-                document.getElementById('th-tax').textContent = "부가세(천원)";
-                document.getElementById('th-total').textContent = "결제금액(천원)";
-                document.getElementById('th-deduction').textContent = "공제금액(천원)";
-                document.getElementById('th-prepaid').textContent = "선지급(천원)";
-                document.getElementById('th-request').textContent = "지급요청금액(천원)";
-
-                if (document.getElementById('th-req-supply')) document.getElementById('th-req-supply').textContent = "공급가액(천원)";
-                if (document.getElementById('th-req-tax')) document.getElementById('th-req-tax').textContent = "부가세(천원)";
-                if (document.getElementById('th-req-sum')) document.getElementById('th-req-sum').textContent = "합계금액(천원)";
-                if (document.getElementById('lbl-req-supply')) document.getElementById('lbl-req-supply').textContent = "공급가액계(천원) :";
-                if (document.getElementById('lbl-req-tax')) document.getElementById('lbl-req-tax').textContent = "부가가치세(천원) :";
-                if (document.getElementById('lbl-req-total')) document.getElementById('lbl-req-total').textContent = "청구 금액 계(천원) :";
-            }
-            
-            renderStatementTable();
-            refreshRequestSelector();
-        }
-
         function formatMoneyByUnit(amount) {
-            if (currentMoneyUnit === 'thousand') {
-                const val = amount / 1000;
-                return val.toLocaleString('ko-KR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + "천";
-            } else {
-                return Number(amount || 0).toLocaleString('ko-KR');
-            }
+            return Number(amount || 0).toLocaleString('ko-KR');
         }
 
         /* ── 항목 메모/적요 태그(#긴급, #확인필요 등) ── */
@@ -6555,6 +6498,10 @@
                     if (typeof vA === 'string') return vA.localeCompare(vB, 'ko-KR') * _sortDir;
                     return (vA - vB) * _sortDir;
                 }
+                // ★ 드래그로 수동 순서를 지정한 경우, dataset 배열 순서(사용자가 정한 순서)를 그대로 유지
+                if (_manualOrder) {
+                    return dataset.indexOf(a) - dataset.indexOf(b);
+                }
                 // 기본: 구분별 우선순위 → 거래처명 순으로 정렬 유지
                 if (a.isNew && !b.isNew) return -1;
                 if (!a.isNew && b.isNew) return 1;
@@ -6569,7 +6516,7 @@
             });
 
             // ★ 구분별 소계 행 삽입 준비 (기본 정렬 - 구분별 그룹 순서일 때만 의미가 있음)
-            const showCatSubtotal = !_sortCol;
+            const showCatSubtotal = !_sortCol && !_manualOrder;
             let gSupply = 0, gTax = 0, gTotal = 0, gDeduction = 0, gPrepaid = 0, gReq = 0, gCount = 0;
             const flushCatSubtotal = (catLabel) => {
                 if (!showCatSubtotal || gCount === 0) return;
@@ -6846,6 +6793,10 @@
             updateSortIcons();
             initDragDrop();
             renderTagChips();
+
+            // ★ 드래그로 수동 순서를 지정한 상태면 "기본 정렬로" 버튼을 노출
+            const manualOrderBtn = document.getElementById('manual-order-reset-btn');
+            if (manualOrderBtn) manualOrderBtn.classList.toggle('hidden', !_manualOrder);
 
             // 대표자명 기준 예금주 자동 채움이 발생했다면 저장 (재렌더링은 호출하지 않음 — 무한루프 방지)
             if (autoFilledHolderCount > 0) {
@@ -7533,15 +7484,45 @@
                 if (idx < 0) { showToast('수정할 항목을 찾을 수 없습니다.', 'error'); closeAddRowModal(); return; }
                 const existing = dataset[idx];
 
-                // 거래처/대표자가 바뀌었거나 계좌 정보가 비어있을 때만 재매칭 (기존 수기 입력값 보존)
+                const dbBankEdit    = document.getElementById('modal-db-bank')?.value.trim() || '';
+                const dbAccountEdit = document.getElementById('modal-db-account')?.value.trim() || '';
+                const dbBiznumEdit  = document.getElementById('modal-db-biznum')?.value.trim() || '';
+                const dbPhoneEdit   = document.getElementById('modal-db-phone')?.value.trim() || '';
+
                 let bank = existing.bank, account = existing.account, holder = existing.holder,
                     phone = existing.phone, biznum = existing.biznum;
-                const infoChanged = (existing.vendor !== vendor) || (existing.ceo !== ceo);
-                if (infoChanged || !account) {
-                    const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
-                    if (matchedAcc) {
-                        bank = matchedAcc.bank; account = matchedAcc.account; holder = matchedAcc.holder;
-                        phone = matchedAcc.phone; biznum = matchedAcc.biznum;
+
+                if (dbAccountEdit) {
+                    // ★ "이 거래처를 계좌 마스터 DB에 등록/수정" 섹션에 값이 입력되어 있으면
+                    //   수정 완료 시 그 값을 청구 항목과 거래처DB 양쪽에 함께 반영
+                    holder = ceo || vendor;
+                    const cleanNewAccount = dbAccountEdit.replace(/[^0-9]/g, '');
+                    const existingByAccount = accountDb.find(acc => acc.account.replace(/[^0-9]/g, '') === cleanNewAccount);
+                    if (existingByAccount && existingByAccount.vendor !== vendor) {
+                        showToast(`⚠️ 이 계좌번호는 이미 [${existingByAccount.vendor}]에 등록되어 있어 거래처DB에는 반영하지 못했습니다. 청구 항목은 입력한 정보로 수정됩니다.`, 'error');
+                    } else {
+                        const existingByVendor = accountDb.find(acc => acc.vendor === vendor);
+                        if (existingByVendor) {
+                            existingByVendor.bank = dbBankEdit || existingByVendor.bank;
+                            existingByVendor.account = dbAccountEdit;
+                            existingByVendor.holder = holder;
+                            existingByVendor.ceo = ceo || existingByVendor.ceo;
+                            existingByVendor.biznum = dbBiznumEdit || existingByVendor.biznum;
+                            existingByVendor.phone = dbPhoneEdit || existingByVendor.phone;
+                        } else {
+                            accountDb.push({ id: genAccountDbId(), holder, bank: dbBankEdit, account: dbAccountEdit, ceo, vendor, biznum: dbBiznumEdit, phone: dbPhoneEdit });
+                        }
+                    }
+                    bank = dbBankEdit; account = dbAccountEdit; phone = dbPhoneEdit; biznum = dbBiznumEdit;
+                } else {
+                    // 거래처/대표자가 바뀌었거나 계좌 정보가 비어있을 때만 재매칭 (기존 수기 입력값 보존)
+                    const infoChanged = (existing.vendor !== vendor) || (existing.ceo !== ceo);
+                    if (infoChanged || !account) {
+                        const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
+                        if (matchedAcc) {
+                            bank = matchedAcc.bank; account = matchedAcc.account; holder = matchedAcc.holder;
+                            phone = matchedAcc.phone; biznum = matchedAcc.biznum;
+                        }
                     }
                 }
 
@@ -7551,19 +7532,55 @@
                 saveToLocalStorage();
                 renderStatementTable();
                 refreshRequestSelector();
+                if (typeof renderAccountDBList === 'function') renderAccountDBList();
                 showToast(`[${vendor}] 청구 항목이 수정되었습니다.`, 'success');
                 return;
             }
 
             // ── 신규 등록 모드 ──
-            // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위 (정규화 포함)
-            const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
+            // ★ "이 거래처를 계좌 마스터 DB에 등록/수정" 섹션에 입력한 값이 있으면
+            //   "표에 추가" 버튼만 눌러도 거래처DB에 함께 반영되도록 처리 (기존엔 별도의
+            //   "거래처 DB에 등록" 버튼을 따로 눌러야만 저장되어, 사업자번호/연락처를
+            //   입력하고 바로 표에 추가하면 그 값이 사라지는 오류가 있었음)
+            const dbBank    = document.getElementById('modal-db-bank')?.value.trim() || '';
+            const dbAccount = document.getElementById('modal-db-account')?.value.trim() || '';
+            const dbBiznum  = document.getElementById('modal-db-biznum')?.value.trim() || '';
+            const dbPhone   = document.getElementById('modal-db-phone')?.value.trim() || '';
 
-            const bank    = matchedAcc ? matchedAcc.bank    : "";
-            const account = matchedAcc ? matchedAcc.account : "";
-            const holder  = matchedAcc ? matchedAcc.holder  : "";
-            const phone   = matchedAcc ? matchedAcc.phone   : "";
-            const biznum  = matchedAcc ? matchedAcc.biznum  : "";
+            let bank, account, holder, phone, biznum;
+
+            if (dbAccount) {
+                // DB 등록 섹션에 계좌번호가 입력되어 있으면 이 값을 우선 사용하고, 거래처DB에도 등록/갱신
+                holder = ceo || vendor;
+                const cleanNewAccount = dbAccount.replace(/[^0-9]/g, '');
+                const existingByAccount = accountDb.find(acc => acc.account.replace(/[^0-9]/g, '') === cleanNewAccount);
+                if (existingByAccount && existingByAccount.vendor !== vendor) {
+                    showToast(`⚠️ 이 계좌번호는 이미 [${existingByAccount.vendor}]에 등록되어 있어 거래처DB에는 반영하지 못했습니다. 청구 항목은 입력한 정보로 추가됩니다.`, 'error');
+                    bank = dbBank; account = dbAccount; phone = dbPhone; biznum = dbBiznum;
+                } else {
+                    const existingByVendor = accountDb.find(acc => acc.vendor === vendor);
+                    if (existingByVendor) {
+                        existingByVendor.bank = dbBank || existingByVendor.bank;
+                        existingByVendor.account = dbAccount;
+                        existingByVendor.holder = holder;
+                        existingByVendor.ceo = ceo || existingByVendor.ceo;
+                        existingByVendor.biznum = dbBiznum || existingByVendor.biznum;
+                        existingByVendor.phone = dbPhone || existingByVendor.phone;
+                    } else {
+                        accountDb.push({ id: genAccountDbId(), holder, bank: dbBank, account: dbAccount, ceo, vendor, biznum: dbBiznum, phone: dbPhone });
+                    }
+                    bank = dbBank; account = dbAccount; phone = dbPhone; biznum = dbBiznum;
+                }
+            } else {
+                // DB 등록 섹션을 사용하지 않았으면 기존처럼 대표자명/거래처명 기준으로 기존 DB에서 자동 매칭
+                // ★ 대표자명(ceo) 1순위 → vendor 2순위 → holder 3순위 (정규화 포함)
+                const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
+                bank    = matchedAcc ? matchedAcc.bank    : "";
+                account = matchedAcc ? matchedAcc.account : "";
+                holder  = matchedAcc ? matchedAcc.holder  : "";
+                phone   = matchedAcc ? matchedAcc.phone   : "";
+                biznum  = matchedAcc ? matchedAcc.biznum  : "";
+            }
 
             const newId = genDatasetId();
             dataset.push({
@@ -7576,6 +7593,7 @@
             saveToLocalStorage();
             renderStatementTable();
             refreshRequestSelector();
+            if (typeof renderAccountDBList === 'function') renderAccountDBList();
             showToast(`[${vendor}] 등록 및 우선순위 자동정렬 완료!`);
         }
 
@@ -7732,9 +7750,9 @@ function changePrintScale(value) {
                                 <tr class="bg-slate-50 font-bold text-slate-700" style="border-bottom:1px solid #94a3b8;">
                                     <th style="padding:5px 4px; border:1px solid #94a3b8; width:40%;">품목명 / 비고</th>
                                     <th style="padding:5px 4px; border:1px solid #94a3b8; width:8%;">수량</th>
-                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">${currentMoneyUnit === 'thousand' ? '공급가액(천원)' : '공급가액'}</th>
-                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">${currentMoneyUnit === 'thousand' ? '부가세(천원)' : '부가세'}</th>
-                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">${currentMoneyUnit === 'thousand' ? '합계금액(천원)' : '합계금액'}</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">공급가액</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">부가세</th>
+                                    <th style="padding:5px 4px; border:1px solid #94a3b8;">합계금액</th>
                                 </tr>
                             </thead>
                             <tbody style="background:#fff;">
@@ -7748,16 +7766,16 @@ function changePrintScale(value) {
                             <p class="font-bold text-slate-800 mb-1">● 청구 산출 근거</p>
                             <div class="space-y-0.5">
                                 <div class="flex justify-between border-b border-slate-200 py-0.5">
-                                    <span>${currentMoneyUnit === 'thousand' ? '공급가액계(천원) :' : '공급가액계 :'}</span>
+                                    <span>공급가액계 :</span>
                                     <span class="font-bold">${formatMoneyByUnit(totalRequestSupply)}</span>
                                 </div>
                                 <div class="flex justify-between border-b border-slate-200 py-0.5">
-                                    <span>${currentMoneyUnit === 'thousand' ? '부가가치세(천원) :' : '부가가치세 :'}</span>
+                                    <span>부가가치세 :</span>
                                     <span class="font-bold">${formatMoneyByUnit(totalRequestTax)}</span>
                                 </div>
                                 <div class="flex justify-between py-0.5 font-bold" style="color:#4338ca;">
-                                    <span>${currentMoneyUnit === 'thousand' ? '청구 금액 계(천원) :' : '청구 금액 계 :'}</span>
-                                    <span>${formatMoneyByUnit(totalCombinedAmt)}${currentMoneyUnit === 'thousand' ? ' 천원' : ' 원'}</span>
+                                    <span>청구 금액 계 :</span>
+                                    <span>${formatMoneyByUnit(totalCombinedAmt)} 원</span>
                                 </div>
                             </div>
                         </div>
@@ -8542,7 +8560,7 @@ function changePrintScale(value) {
             document.getElementById('req-field-contract').value = `일금 ${getKoreanNumber(finalTotal)} 원정 (￦${formatNumber(finalTotal)})`;
             document.getElementById('req-calc-supply').value = formatMoneyByUnit(totalRequestSupply);
             document.getElementById('req-calc-tax').value = formatMoneyByUnit(totalRequestTax);
-            document.getElementById('req-calc-total').value = formatMoneyByUnit(finalTotal) + (currentMoneyUnit === 'thousand' ? " 천원" : " 원");
+            document.getElementById('req-calc-total').value = formatMoneyByUnit(finalTotal) + " 원";
 
             // ── 명세서 원본 금액과 비교해 동기화 상태 뱃지 갱신 ──
             updateItemsSyncBadge(totalRequestSupply, totalRequestTax);
@@ -8866,6 +8884,7 @@ function changePrintScale(value) {
 
         function loadSavedDocument(id) {
             if (!id) return;
+            // ★ 이전 문서의 변경사항을 저장 (문서 전환 시 1회만 — 이후 중복 저장 제거로 속도 개선)
             saveToLocalStorage();
 
             currentDocId = id;
@@ -8889,12 +8908,13 @@ function changePrintScale(value) {
             updateMonthCloseBadge();
             populateMetaDatalists();
             selectedRowIds.clear();
-            saveToLocalStorage();
+            // ★ localStorage 재저장(직렬화)은 무거우므로 생략 — 방금 불러온 문서는 아직 변경사항이 없어 저장할 게 없음.
+            //   다만 집계표·대시보드는 새로 바뀐 dataset 기준으로 다시 그려야 하므로 직접 호출.
             renderStatementTable();
             refreshRequestSelector();
             if (typeof renderDashboard === 'function') renderDashboard();
-            // ★ 집계표·법인카드도 선택된 월(문서)에 맞춰 실시간 갱신
             if (typeof renderVendorStatistics === 'function') renderVendorStatistics();
+            if (typeof renderSiteDashboard === 'function') renderSiteDashboard();
             if (currentDoc && typeof docMonthToYYYYMM === 'function') {
                 const ym = docMonthToYYYYMM(currentDoc.month);
                 const ccMonthSel = document.getElementById('cc-filter-month');
@@ -12386,6 +12406,7 @@ function changePrintScale(value) {
         ============================================================ */
         let _sortCol = null;
         let _sortDir = 1; // 1 = 오름차순, -1 = 내림차순
+        let _manualOrder = false; // 드래그로 직접 순서를 바꾼 경우 true — 구분별 자동정렬을 멈추고 사용자가 정한 순서를 유지
 
         function setSortCol(col) {
             if (_sortCol === col) {
@@ -12395,6 +12416,14 @@ function changePrintScale(value) {
                 _sortDir = 1;
             }
             renderStatementTable();
+        }
+
+        /* 드래그로 지정한 수동 순서를 해제하고 구분(공종)별 자동 정렬로 복원 */
+        function resetManualOrder() {
+            _manualOrder = false;
+            _sortCol = null;
+            renderStatementTable();
+            showToast('구분(공종)별 자동 정렬로 되돌렸습니다.');
         }
 
         function updateSortIcons() {
@@ -12453,9 +12482,13 @@ function changePrintScale(value) {
                     const newTgt  = dataset.findIndex(r => r.id === tgtId);
                     dataset.splice(newTgt, 0, moved);
 
+                    // ★ 드래그로 순서를 직접 바꿨으므로, 이후엔 구분별 자동정렬 대신 이 순서를 유지
+                    _manualOrder = true;
+                    _sortCol = null;
+
                     saveToLocalStorage();
                     renderStatementTable();
-                    showToast('행 순서가 변경되었습니다.');
+                    showToast('행 순서가 변경되었습니다. (자동정렬이 해제되어 지정한 순서가 유지됩니다 — 되돌리려면 "기본 정렬" 버튼을 누르세요)');
                 });
             });
         }
