@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V2.8</title>
+    <title>현장 자금관리 PRO V2.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1879,7 +1879,7 @@
                 </div>
 
                 <div class="table-scroll-container overflow-x-auto overflow-y-auto max-h-[65vh] border border-slate-200 dark:border-slate-800 rounded-lg relative">
-                    <table class="w-full border-collapse text-xs text-left text-gray-750 dark:text-slate-300 min-w-[1300px]" id="statement-master-table" style="font-size: 11px;">
+                    <table class="w-full border-collapse text-xs text-left text-gray-750 dark:text-slate-300 min-w-[1620px]" id="statement-master-table" style="font-size: 11px;">
                         <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm text-slate-850 dark:text-slate-100">
                             <tr class="divide-x divide-slate-200 dark:divide-slate-700 text-center font-bold">
                                 <th class="py-2.5 px-1 w-6 bg-slate-100 dark:bg-slate-850 no-print" title="드래그로 행 순서 변경">
@@ -1888,21 +1888,21 @@
                                 <th class="py-2.5 px-1 w-8 bg-slate-100 dark:bg-slate-850 no-print">
                                     <input type="checkbox" id="header-select-all" onchange="toggleAllRowsSelection(this.checked)" class="w-3.5 h-3.5 rounded cursor-pointer">
                                 </th>
-                                <th class="py-2.5 px-1 w-10 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('num')" id="th-col-num"><span class="flex items-center justify-center gap-0.5">번호<span id="si-num" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-1 w-20 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('type')" id="th-col-type"><span class="flex items-center justify-center gap-0.5">구분(분류)<span id="si-type" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('vendor')" id="th-col-vendor"><span class="flex items-center justify-center gap-0.5">거래처<span id="si-vendor" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-1 w-8 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('num')" id="th-col-num"><span class="flex items-center justify-center gap-0.5">번호<span id="si-num" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-1 w-16 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('type')" id="th-col-type"><span class="flex items-center justify-center gap-0.5">구분(분류)<span id="si-type" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-36 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('vendor')" id="th-col-vendor"><span class="flex items-center justify-center gap-0.5">거래처<span id="si-vendor" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-2 w-16 bg-slate-100 dark:bg-slate-850">대표자</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('supply')" id="th-supply"><span class="flex items-center justify-center gap-0.5">공급가액(원)<span id="si-supply" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('supply')" id="th-supply"><span class="flex items-center justify-center gap-0.5">공급가액(원)<span id="si-supply" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('tax')" id="th-tax"><span class="flex items-center justify-center gap-0.5">부가세(원)<span id="si-tax" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('total')" id="th-total"><span class="flex items-center justify-center gap-0.5">결제금액(원)<span id="si-total" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-32 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('total')" id="th-total"><span class="flex items-center justify-center gap-0.5">결제금액(원)<span id="si-total" class="sort-icon text-[9px]">⇅</span></span></th>
                                 <th class="py-2.5 px-1 w-24 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('deduction')" id="th-deduction"><span class="flex items-center justify-center gap-0.5">공제금액(원)<span id="si-deduction" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-1 w-18 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('prepaid')" id="th-prepaid"><span class="flex items-center justify-center gap-0.5">선지급(원)<span id="si-prepaid" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('request')" id="th-request"><span class="flex items-center justify-center gap-0.5">지급요청금액(원)<span id="si-request" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-1 w-16 bg-slate-100 dark:bg-slate-850">은행</th>
-                                <th class="py-2.5 px-2 w-28 bg-slate-100 dark:bg-slate-850">입금계좌</th>
-                                <th class="py-2.5 px-2 w-24 bg-slate-100 dark:bg-slate-850">예금주(선택)</th>
-                                <th class="py-2.5 px-1 w-20 no-print bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('status')" id="th-col-status"><span class="flex items-center justify-center gap-0.5">상태<span id="si-status" class="sort-icon text-[9px]">⇅</span></span></th>
-                                <th class="py-2.5 px-2 w-20 bg-slate-100 dark:bg-slate-850">비고</th>
+                                <th class="py-2.5 px-1 w-20 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('prepaid')" id="th-prepaid"><span class="flex items-center justify-center gap-0.5">선지급(원)<span id="si-prepaid" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-36 bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('request')" id="th-request"><span class="flex items-center justify-center gap-0.5">지급요청금액(원)<span id="si-request" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-1 w-14 bg-slate-100 dark:bg-slate-850">은행</th>
+                                <th class="py-2.5 px-2 w-36 bg-slate-100 dark:bg-slate-850">입금계좌</th>
+                                <th class="py-2.5 px-2 w-20 bg-slate-100 dark:bg-slate-850">예금주(선택)</th>
+                                <th class="py-2.5 px-1 w-16 no-print bg-slate-100 dark:bg-slate-850 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-700" onclick="setSortCol('status')" id="th-col-status"><span class="flex items-center justify-center gap-0.5">상태<span id="si-status" class="sort-icon text-[9px]">⇅</span></span></th>
+                                <th class="py-2.5 px-2 w-24 bg-slate-100 dark:bg-slate-850">비고</th>
                                 <th class="py-2.5 px-1 w-8 no-print bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" title="행 단위 내부 메모">📝</th>
                                 <th class="py-2.5 px-1 w-12 no-print bg-slate-100 dark:bg-slate-850">작업</th>
                             </tr>
@@ -4340,9 +4340,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '2.8';
+        const APP_VERSION = '2.9';
         const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = 'GitHub 동기화 기능을 기존 "백업/복원" 모달의 좁은 3번째 칸에서 완전히 분리해 별도의 "GitHub 동기화 센터" 모달로 독립. 상단 헤더에 전용 GitHub 버튼 추가, 모달 내부도 ①저장소 연결 설정 → ②동기화(업로드/병합/덮어쓰기/목록조회) 순서로 단계별 구성해 알아보기 쉽게 재정리. 백업/복원 모달에는 "GitHub 동기화 센터 열기" 바로가기 배치.';
+        const APP_VERSION_NOTE = '청구명세서 표의 컬럼 폭을 실제 내용 길이에 맞춰 재조정 — 구분(3글자 고정)·은행(2~4글자)·대표자·예금주·상태는 좁히고, 거래처명·금액 4종(공급가액/부가세/결제금액/지급요청금액)·입금계좌(하이픈 포함 최대 18자)는 넓혀서 잘리거나 남는 공백 없이 자연스럽게 보이도록 개선.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
