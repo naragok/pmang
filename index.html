@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V2.4</title>
+    <title>현장 자금관리 PRO V2.8</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -443,11 +443,11 @@
         #hdr-global-search-input::placeholder { color: #64748b; }
         .hdr-search-group {
             transition: border-color 0.15s ease, background 0.15s ease;
-            cursor: pointer;
         }
-        .hdr-search-group:hover {
-            border-color: rgba(56,189,248,0.4);
-            background: rgba(56,189,248,0.06);
+        .hdr-search-group:hover,
+        .hdr-search-group-focused {
+            border-color: rgba(56,189,248,0.4) !important;
+            background: rgba(56,189,248,0.06) !important;
         }
 
         /* 셀렉트 개선 */
@@ -1117,15 +1117,15 @@
                     </div>
                 </div>
 
-                <button onclick="openGlobalSearchModal()" class="hdr-btn hdr-btn-slate" title="전체 검색 (Ctrl+K)">
-                    <i data-lucide="search" class="w-3 h-3"></i><span class="inline btn-label">검색</span>
-                </button>
                 <button onclick="document.getElementById('quick-import-input').click()" class="hdr-btn hdr-btn-slate" title="다른 컴퓨터에서 작업한 백업 파일을 바로 병합해서 가져옵니다">
                     <i data-lucide="laptop" class="w-3 h-3"></i><span class="inline btn-label">다른PC 가져오기</span>
                 </button>
                 <input type="file" id="quick-import-input" accept=".json" class="hidden" onchange="quickImportFromOtherComputer(this)">
                 <button onclick="openBackupModal()" class="hdr-btn hdr-btn-slate" title="백업 / 복원">
                     <i data-lucide="database" class="w-3 h-3"></i><span class="inline btn-label">백업/복원</span>
+                </button>
+                <button onclick="openGithubSyncModal()" class="hdr-btn" style="background:#1f2937;color:#fff;border:1px solid rgba(255,255,255,0.15);" title="GitHub 저장소로 여러 PC 간 데이터 동기화">
+                    <i data-lucide="github" class="w-3 h-3"></i><span class="inline btn-label">GitHub 동기화</span>
                 </button>
                 <button onclick="showResetConfirm()" class="hdr-btn hdr-btn-rose" title="전체 초기화">
                     <i data-lucide="trash-2" class="w-3 h-3"></i><span class="inline btn-label">초기화</span>
@@ -1242,13 +1242,15 @@
                 <span id="donut-center-sub" class="hidden"></span>
             </div>
 
-            <div class="ml-auto hdr-group hdr-search-group shrink-0" style="flex:1 1 260px;max-width:340px;" onclick="openGlobalSearchModal()">
+            <div class="ml-auto hdr-group hdr-search-group shrink-0" style="flex:1 1 260px;max-width:340px;">
                 <i data-lucide="search" class="w-3.5 h-3.5 shrink-0" style="color:#64748b;"></i>
                 <input type="text" id="hdr-global-search-input"
                     placeholder="전체 검색 (거래처·금액·메모, Ctrl+K)"
-                    readonly
-                    class="bg-transparent outline-none border-none text-[11px] w-full cursor-pointer"
-                    style="color:#cbd5e1;">
+                    oninput="onHdrGlobalSearchInput(this)"
+                    onfocus="this.parentElement.classList.add('hdr-search-group-focused')"
+                    onblur="this.parentElement.classList.remove('hdr-search-group-focused')"
+                    class="bg-transparent outline-none border-none text-[11px] w-full"
+                    style="color:#e2e8f0;">
             </div>
         </div>
 
@@ -1713,6 +1715,12 @@
                 #stmt-toolbar-body.collapsed { max-height:0 !important; opacity:0; pointer-events:none; }
             </style>
             <div class="no-print tab-ctrl-panel mb-2" style="padding:0;">
+                <div class="flex items-center gap-2 px-3 pt-2 pb-1">
+                    <span class="text-[10px] font-bold flex items-center gap-1 px-2 py-1 rounded-full" style="background:rgba(37,99,235,0.1);color:#2563eb;" title="엑셀 등에서 표를 복사한 뒤 이 화면에서 Ctrl+V(붙여넣기)를 누르면 여러 행을 한 번에 등록할 수 있습니다.">
+                        <i data-lucide="clipboard-paste" class="w-3 h-3"></i>
+                        Ctrl+V로 표 붙여넣기 지원 (구분·거래처·대표자·공급가액·부가세·결제금액·공제금액·선지급·지급요청금액 순)
+                    </span>
+                </div>
                 <div class="flex items-center gap-2 px-3 py-2.5">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
@@ -4028,7 +4036,7 @@
             </div>
 
             <div class="p-4 text-xs">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
                     <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/60 rounded-xl p-3 flex flex-col gap-2">
                         <p class="font-extrabold text-blue-800 dark:text-blue-400 flex items-center gap-1.5">
@@ -4074,27 +4082,19 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 dark:bg-black/30 border border-slate-700 dark:border-slate-700 rounded-xl p-3 text-slate-100 flex flex-col gap-2">
-                        <p class="font-extrabold flex items-center gap-1.5">
-                            <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub 동기화 <span class="text-[9px] font-normal bg-slate-700 px-1.5 py-0.5 rounded">여러 PC</span>
-                        </p>
-                        <p class="text-[10px] text-slate-400 leading-snug">GitHub 저장소(비공개 권장)를 온라인 저장 공간으로 사용합니다. 토큰은 이 브라우저에만 저장됩니다.</p>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <input type="text" id="gh-sync-repo" placeholder="owner/repo" class="col-span-2 border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                            <input type="text" id="gh-sync-branch" placeholder="브랜치(main)" class="border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                            <input type="text" id="gh-sync-path" placeholder="data/backup.json" class="border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                            <input type="password" id="gh-sync-token" placeholder="Personal Access Token" class="col-span-2 border border-slate-700 rounded px-2 py-1.5 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                        </div>
-                        <button onclick="ghSyncTestConnection()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="plug-zap" class="w-3 h-3"></i> 연결 테스트/저장</button>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <button onclick="ghSyncUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="cloud-upload" class="w-3 h-3"></i> 업로드</button>
-                            <button onclick="ghSyncDownload('merge')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="git-merge" class="w-3 h-3"></i> 병합 불러오기</button>
-                        </div>
-                        <button onclick="ghSyncDownload('overwrite')" class="bg-rose-900 hover:bg-rose-800 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="triangle-alert" class="w-3 h-3"></i> 덮어쓰기 불러오기</button>
-                        <button onclick="ghSyncListBackups()" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1"><i data-lucide="list" class="w-3 h-3"></i> 백업 목록 조회해서 선택 불러오기</button>
-                        <div id="gh-sync-status" class="text-[9px] text-slate-400 min-h-[1.2em] leading-snug">토큰: <a href="https://github.com/settings/tokens" target="_blank" class="underline text-blue-400">발급 페이지</a></div>
-                    </div>
+                </div>
 
+                <div class="mt-3 flex items-center justify-between gap-2 bg-slate-900 dark:bg-black/30 border border-slate-700 rounded-xl p-3 text-slate-100">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="github" class="w-4 h-4"></i>
+                        <div>
+                            <p class="font-extrabold text-[11px] flex items-center gap-1.5">GitHub 동기화 <span class="text-[9px] font-normal bg-slate-700 px-1.5 py-0.5 rounded">여러 PC</span></p>
+                            <p class="text-[9px] text-slate-400">GitHub 저장소를 온라인 저장 공간으로 사용해 여러 PC 간 데이터를 동기화합니다.</p>
+                        </div>
+                    </div>
+                    <button onclick="closeBackupModal(); openGithubSyncModal();" class="shrink-0 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center gap-1.5">
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> GitHub 동기화 센터 열기
+                    </button>
                 </div>
             </div>
 
@@ -4103,6 +4103,70 @@
             </div>
         </div>
     </div>
+
+    <!-- GitHub 동기화 센터 (기존 백업/복원 모달에서 분리된 독립 모달) -->
+    <div id="github-sync-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
+        <div class="bg-slate-900 dark:bg-black/60 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-2xl text-slate-100">
+
+            <div class="flex justify-between items-center border-b border-slate-700 px-5 py-3">
+                <h3 class="font-extrabold text-sm flex items-center gap-2">
+                    <i data-lucide="github" class="w-4 h-4"></i> GitHub 동기화 센터
+                    <span class="text-[9px] font-normal bg-slate-700 px-1.5 py-0.5 rounded">여러 PC 공용 저장</span>
+                </h3>
+                <button onclick="closeGithubSyncModal()" class="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-800 transition-all">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="p-5 text-xs space-y-4">
+
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    GitHub 저장소(비공개 저장소 권장)를 온라인 저장 공간으로 사용해, 여러 컴퓨터에서 같은 데이터를 이어서 작업할 수 있습니다.
+                    입력한 Personal Access Token은 서버로 전송되지 않고 <b class="text-slate-200">이 브라우저에만</b> 저장됩니다.
+                </p>
+
+                <div>
+                    <p class="font-bold text-slate-200 mb-2 flex items-center gap-1.5"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i> ① 저장소 연결 설정</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="gh-sync-repo" placeholder="owner/repo (예: naragok/pmang-data)" class="col-span-2 border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                        <input type="text" id="gh-sync-branch" placeholder="브랜치(기본 main)" class="border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                        <input type="text" id="gh-sync-path" placeholder="파일 경로(data/backup.json)" class="border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                        <input type="password" id="gh-sync-token" placeholder="Personal Access Token" class="col-span-2 border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                    </div>
+                    <button onclick="ghSyncTestConnection()" class="mt-2 w-full bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
+                        <i data-lucide="plug-zap" class="w-3.5 h-3.5"></i> 연결 테스트 / 설정 저장
+                    </button>
+                </div>
+
+                <div>
+                    <p class="font-bold text-slate-200 mb-2 flex items-center gap-1.5"><i data-lucide="cloud" class="w-3.5 h-3.5"></i> ② 동기화</p>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="ghSyncUpload()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
+                            <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> GitHub로 업로드 (현재 데이터를 저장소에 저장)
+                        </button>
+                        <button onclick="ghSyncDownload('merge')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-2.5 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
+                            <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 병합 불러오기 (다른 PC 데이터와 합치기 — 권장)
+                        </button>
+                        <button onclick="ghSyncDownload('overwrite')" class="bg-rose-900 hover:bg-rose-800 text-white px-3 py-2.5 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
+                            <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i> 덮어쓰기 불러오기 (현재 데이터를 GitHub 백업으로 전체 교체)
+                        </button>
+                        <button onclick="ghSyncListBackups()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2.5 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
+                            <i data-lucide="list" class="w-3.5 h-3.5"></i> 백업 목록 조회해서 선택 불러오기
+                        </button>
+                    </div>
+                </div>
+
+                <div id="gh-sync-status" class="text-[10px] text-slate-400 min-h-[1.2em] leading-relaxed bg-slate-800/60 rounded-lg px-3 py-2">
+                    토큰: <a href="https://github.com/settings/tokens" target="_blank" class="underline text-blue-400">발급 페이지</a>
+                </div>
+            </div>
+
+            <div class="flex justify-end px-5 pb-4">
+                <button onclick="closeGithubSyncModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg font-bold text-xs transition-all">닫기</button>
+            </div>
+        </div>
+    </div>
+
 
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 text-slate-900 dark:text-slate-100">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm p-6">
@@ -4276,9 +4340,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '2.4';
+        const APP_VERSION = '2.8';
         const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = '청구 항목 등록/수정 모달의 "거래처 DB에 등록" 버튼 색상을 인디고에서 빨간색(rose) 계열로 변경해 눈에 잘 띄도록 강조.';
+        const APP_VERSION_NOTE = 'GitHub 동기화 기능을 기존 "백업/복원" 모달의 좁은 3번째 칸에서 완전히 분리해 별도의 "GitHub 동기화 센터" 모달로 독립. 상단 헤더에 전용 GitHub 버튼 추가, 모달 내부도 ①저장소 연결 설정 → ②동기화(업로드/병합/덮어쓰기/목록조회) 순서로 단계별 구성해 알아보기 쉽게 재정리. 백업/복원 모달에는 "GitHub 동기화 센터 열기" 바로가기 배치.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -10055,13 +10119,23 @@ function changePrintScale(value) {
             refreshBackupStats();
             refreshSnapshotList();
             updateLastBackupLabel();
-            ghSyncLoadSettings();
             document.getElementById('backup-modal').classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function closeBackupModal() {
             document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        /* GitHub 동기화 센터 — 기존 백업/복원 모달에서 분리된 독립 모달 */
+        function openGithubSyncModal() {
+            ghSyncLoadSettings();
+            document.getElementById('github-sync-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeGithubSyncModal() {
+            document.getElementById('github-sync-modal').classList.add('hidden');
         }
 
         function refreshBackupStats() {
@@ -12425,6 +12499,109 @@ function changePrintScale(value) {
             renderStatementTable();
             showToast('구분(공종)별 자동 정렬로 되돌렸습니다.');
         }
+
+        /* ============================================================
+           청구명세서 표 Ctrl+V 붙여넣기 — 엑셀 등에서 복사한 표를
+           구분/거래처/대표자/공급가액/부가세/결제금액/공제금액/선지급/지급요청금액
+           순서로 한 번에 여러 행 등록
+        ============================================================ */
+        const STATEMENT_PASTE_COLUMNS = ['type', 'vendor', 'ceo', 'supply', 'tax', 'total', 'deduction', 'prepaid', 'request'];
+        const STATEMENT_PASTE_TYPE_ALIASES = {
+            '외주비': '외주비', '외주': '외주비',
+            '자재비': '자재비', '자재': '자재비',
+            '장비비': '장비비', '장비': '장비비',
+            '노무비': '노무비', '노무': '노무비',
+            '관리비': '관리비', '관리': '관리비'
+        };
+
+        function parseStatementPasteAmount(str) {
+            if (str === undefined || str === null) return 0;
+            const cleaned = String(str).replace(/[^0-9.\-]/g, '');
+            if (!cleaned) return 0;
+            const n = parseFloat(cleaned);
+            return isNaN(n) ? 0 : Math.round(n);
+        }
+
+        /* 붙여넣은 탭 구분 텍스트를 파싱해 dataset에 여러 행을 한 번에 추가 */
+        function handleStatementPaste(e) {
+            // 텍스트 입력창/textarea 등에 포커스가 있을 때는 원래 붙여넣기 동작을 그대로 둔다 (일반 셀 편집 방해 금지)
+            const active = document.activeElement;
+            const isEditableFocus = active && (
+                active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable
+            );
+            if (isEditableFocus) return;
+
+            // 청구명세서 탭이 열려있을 때만 동작
+            const tab = document.getElementById('tab-statement');
+            if (!tab || tab.classList.contains('hidden')) return;
+
+            const text = (e.clipboardData || window.clipboardData)?.getData('text');
+            if (!text || !text.trim()) return;
+
+            // 표 형태(탭 구분, 2줄 이상 또는 여러 컬럼)가 아니면 무시 — 일반 텍스트 붙여넣기와 구분
+            const rows = text.replace(/\r/g, '').split('\n').filter(r => r.trim() !== '');
+            if (!rows.length) return;
+            const looksTabular = rows.some(r => r.includes('\t'));
+            if (!looksTabular) return;
+
+            e.preventDefault();
+
+            let addedCount = 0;
+            let skippedCount = 0;
+
+            rows.forEach(rowText => {
+                const cells = rowText.split('\t').map(c => c.trim());
+                // 완전히 빈 행은 건너뜀
+                if (cells.every(c => c === '')) return;
+
+                const rec = {};
+                STATEMENT_PASTE_COLUMNS.forEach((col, i) => { rec[col] = cells[i] !== undefined ? cells[i] : ''; });
+
+                // 헤더 행("구분", "거래처" 등)이 섞여 들어온 경우 자동으로 건너뜀
+                if (rec.type === '구분' || rec.type === '구분(분류)' || rec.vendor === '거래처' || rec.vendor === '거래처명') {
+                    return;
+                }
+
+                const vendor = rec.vendor || '';
+                if (!vendor) { skippedCount++; return; }
+
+                const typeRaw = (rec.type || '').trim();
+                const type = STATEMENT_PASTE_TYPE_ALIASES[typeRaw] || '자재비';
+                const ceo = (rec.ceo || '').trim();
+                const supply = parseStatementPasteAmount(rec.supply);
+                const tax = parseStatementPasteAmount(rec.tax);
+                const deduction = parseStatementPasteAmount(rec.deduction);
+                const prepaid = parseStatementPasteAmount(rec.prepaid);
+                // 결제금액(total)·지급요청금액(request)은 공급가액+부가세-공제-선지급으로 항상 자동 계산되므로
+                // 붙여넣은 값이 있어도 참고만 하고 실제로는 계산값을 사용한다 (수식 불일치 방지)
+
+                const matchedAcc = findAccountMatch({ ceo, vendor, holder: vendor }, ['ceo', 'vendor', 'holder']);
+                const bank    = matchedAcc ? matchedAcc.bank    : "";
+                const account = matchedAcc ? matchedAcc.account : "";
+                const holder  = matchedAcc ? matchedAcc.holder  : "";
+                const phone   = matchedAcc ? matchedAcc.phone   : "";
+                const biznum  = matchedAcc ? matchedAcc.biznum  : "";
+
+                dataset.push({
+                    id: genDatasetId(), type, vendor, ceo, supply, tax, deduction, prepaid,
+                    bank, account, holder, phone, biznum,
+                    status: "대기", note: ""
+                });
+                addedCount++;
+            });
+
+            if (addedCount === 0) {
+                showToast('붙여넣은 내용에서 등록할 항목을 찾지 못했습니다. (거래처명 칸이 비어있지 않은지 확인해 주세요)', 'error');
+                return;
+            }
+
+            saveToLocalStorage();
+            renderStatementTable();
+            refreshRequestSelector();
+            showToast(`${addedCount}건이 청구명세서에 붙여넣기로 등록되었습니다.${skippedCount ? ` (거래처명 없는 ${skippedCount}건 제외)` : ''}`, 'success');
+        }
+
+        document.addEventListener('paste', handleStatementPaste);
 
         function updateSortIcons() {
             const cols = ['num','type','vendor','supply','tax','total','deduction','prepaid','request','status'];
@@ -16022,6 +16199,28 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             input.value = '';
             if (typeof lucide !== 'undefined') lucide.createIcons();
             setTimeout(() => input.focus(), 30);
+        }
+
+        /* 헤더의 전체검색 입력창에 바로 타이핑하면, 모달을 열고 입력한 값을 그대로 넘겨받아
+           즉시 검색 결과를 보여준다. 이후 타이핑은 모달 안의 입력창으로 이어서 계속할 수 있다. */
+        function onHdrGlobalSearchInput(hdrInput) {
+            const query = hdrInput.value;
+            const modal = document.getElementById('global-search-modal');
+            const modalInput = document.getElementById('global-search-input');
+
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+            modalInput.value = query;
+            runGlobalSearch(query);
+
+            // 헤더 입력창은 다시 비워서 항상 짧게 유지하고, 실제 타이핑은 모달 입력창에서 이어가도록 포커스를 넘김
+            hdrInput.value = '';
+            setTimeout(() => {
+                modalInput.focus();
+                modalInput.setSelectionRange(query.length, query.length);
+            }, 0);
         }
 
         function closeGlobalSearchModal() {
