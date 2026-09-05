@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V2.9</title>
+    <title>현장 자금관리 PRO V3.0</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4127,13 +4127,41 @@
 
                 <div>
                     <p class="font-bold text-slate-200 mb-2 flex items-center gap-1.5"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i> ① 저장소 연결 설정</p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="gh-sync-repo" placeholder="owner/repo (예: naragok/pmang-data)" class="col-span-2 border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                        <input type="text" id="gh-sync-branch" placeholder="브랜치(기본 main)" class="border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                        <input type="text" id="gh-sync-path" placeholder="파일 경로(data/backup.json)" class="border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
-                        <input type="password" id="gh-sync-token" placeholder="Personal Access Token" class="col-span-2 border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-3">
+                        <div class="col-span-2">
+                            <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-300 mb-1">
+                                <i data-lucide="github" class="w-3 h-3"></i> 저장소 (owner/repo)
+                            </label>
+                            <input type="text" id="gh-sync-repo" placeholder="예: naragok/pmang-data" class="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <p class="text-[9px] text-slate-500 mt-1 leading-snug">GitHub 저장소 주소에서 <b class="text-slate-400">사용자(조직)명/저장소명</b> 부분만 입력합니다. 예를 들어 https://github.com/naragok/pmang-data 라면 <b class="text-slate-400">naragok/pmang-data</b>를 입력하세요. 저장소는 미리 GitHub에서 직접 만들어 둬야 합니다.</p>
+                        </div>
+                        <div>
+                            <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-300 mb-1">
+                                <i data-lucide="git-branch" class="w-3 h-3"></i> 브랜치
+                            </label>
+                            <input type="text" id="gh-sync-branch" placeholder="기본값: main" class="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <p class="text-[9px] text-slate-500 mt-1 leading-snug">데이터를 저장할 브랜치명. 잘 모르면 비워두면 <b class="text-slate-400">main</b>으로 자동 설정됩니다.</p>
+                        </div>
+                        <div>
+                            <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-300 mb-1">
+                                <i data-lucide="folder" class="w-3 h-3"></i> 저장 폴더/파일 경로
+                            </label>
+                            <input type="text" id="gh-sync-path" placeholder="예: data/backup.json" class="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <p class="text-[9px] text-slate-500 mt-1 leading-snug">저장소 안에 데이터를 저장할 <b class="text-slate-400">폴더/파일명</b>. 폴더가 없으면 업로드 시 자동으로 만들어집니다.</p>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-300 mb-1">
+                                <i data-lucide="key-round" class="w-3 h-3"></i> Personal Access Token
+                            </label>
+                            <input type="password" id="gh-sync-token" placeholder="ghp_로 시작하는 토큰을 붙여넣으세요" class="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-800 text-slate-100 outline-none focus:border-blue-500 text-[11px]">
+                            <p class="text-[9px] text-slate-500 mt-1 leading-snug">
+                                <a href="https://github.com/settings/tokens" target="_blank" class="underline text-blue-400">GitHub 토큰 발급 페이지</a>에서
+                                "Generate new token" → 위 저장소에 대한 <b class="text-slate-400">Contents: Read and write</b> 권한을 체크해 생성한 토큰을 붙여넣으세요.
+                                이 토큰은 이 브라우저에만 저장되고 서버로 전송되지 않습니다.
+                            </p>
+                        </div>
                     </div>
-                    <button onclick="ghSyncTestConnection()" class="mt-2 w-full bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
+                    <button onclick="ghSyncTestConnection()" class="mt-3 w-full bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1.5">
                         <i data-lucide="plug-zap" class="w-3.5 h-3.5"></i> 연결 테스트 / 설정 저장
                     </button>
                 </div>
@@ -4157,7 +4185,7 @@
                 </div>
 
                 <div id="gh-sync-status" class="text-[10px] text-slate-400 min-h-[1.2em] leading-relaxed bg-slate-800/60 rounded-lg px-3 py-2">
-                    토큰: <a href="https://github.com/settings/tokens" target="_blank" class="underline text-blue-400">발급 페이지</a>
+                    연결 상태가 여기에 표시됩니다. 위 항목을 입력한 뒤 "연결 테스트 / 설정 저장"을 눌러주세요.
                 </div>
             </div>
 
@@ -4340,9 +4368,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '2.9';
+        const APP_VERSION = '3.0';
         const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = '청구명세서 표의 컬럼 폭을 실제 내용 길이에 맞춰 재조정 — 구분(3글자 고정)·은행(2~4글자)·대표자·예금주·상태는 좁히고, 거래처명·금액 4종(공급가액/부가세/결제금액/지급요청금액)·입금계좌(하이픈 포함 최대 18자)는 넓혀서 잘리거나 남는 공백 없이 자연스럽게 보이도록 개선.';
+        const APP_VERSION_NOTE = 'GitHub 동기화 센터의 "① 저장소 연결 설정"에 각 입력칸(저장소/브랜치/저장 경로/토큰)마다 라벨과 상세 안내 문구 추가 — 무엇을 어떻게 입력해야 하는지, 토큰 발급 시 어떤 권한이 필요한지 등을 명확히 안내. 연결 상태 표시 영역의 스타일도 항상 일관되게 유지되도록 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -10425,7 +10453,7 @@ function changePrintScale(value) {
             const el = document.getElementById('gh-sync-status');
             if (!el) return;
             el.textContent = msg;
-            el.className = 'text-[10px] mt-2 min-h-[1.2em] ' + (isError ? 'text-rose-400' : 'text-emerald-400');
+            el.className = 'text-[10px] min-h-[1.2em] leading-relaxed bg-slate-800/60 rounded-lg px-3 py-2 ' + (isError ? 'text-rose-400' : 'text-emerald-400');
         }
 
         // UTF-8(한글) 안전 Base64 인코딩/디코딩
