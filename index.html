@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V3.0</title>
+    <title>현장 자금관리 PRO V3.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1821,6 +1821,14 @@
                     <button onclick="applyBulkStatus('선입금')" class="bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
                         <i data-lucide="banknote" class="w-3.5 h-3.5"></i> 선입금
                     </button>
+                    <select onchange="if(this.value){applyBulkStatus(this.value); this.value='';}" class="text-[11px] font-bold px-2 py-1.5 rounded-lg bg-slate-700 text-white border border-slate-600 outline-none" title="추가 상태로 일괄 변경">
+                        <option value="">더 보기...</option>
+                        <option value="계산서발행">계산서발행</option>
+                        <option value="부분지급">부분지급</option>
+                        <option value="이의제기">이의제기</option>
+                        <option value="반려">반려</option>
+                        <option value="취소">취소</option>
+                    </select>
                     <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
                     <button onclick="openRowTransferModal('copy')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
                         <i data-lucide="copy" class="w-3.5 h-3.5"></i> 복사
@@ -4368,9 +4376,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '3.0';
+        const APP_VERSION = '3.1';
         const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = 'GitHub 동기화 센터의 "① 저장소 연결 설정"에 각 입력칸(저장소/브랜치/저장 경로/토큰)마다 라벨과 상세 안내 문구 추가 — 무엇을 어떻게 입력해야 하는지, 토큰 발급 시 어떤 권한이 필요한지 등을 명확히 안내. 연결 상태 표시 영역의 스타일도 항상 일관되게 유지되도록 수정.';
+        const APP_VERSION_NOTE = '청구명세서 상태값에 5가지 추가 — 계산서발행(계산서만 발행, 입금 전) · 부분지급(일부만 지급됨) · 이의제기(금액/내역 분쟁 중) · 반려(자료미제출 등으로 반려) · 취소(청구 자체가 취소됨). 각 상태별 배지 색상 지정, 일괄 상태변경 툴바에 "더 보기" 드롭다운으로 추가 상태 선택 가능.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4564,6 +4572,9 @@
         let currentDocId = "";
         let pendingConfirmAction = null;
         let requestItems = [];
+
+        // 청구 항목 상태값 프리셋 목록 (기본 제공 상태 — 이 외 값은 사용자가 직접 입력한 커스텀 상태로 취급)
+        const STATEMENT_STATUS_PRESETS = ['대기', '완료', '보류', '선입금', '계산서발행', '부분지급', '이의제기', '반려', '취소'];
 
         let selectedRowIds = new Set();
         let _editRowModalId = null;  // null=신규 등록 모드, 값이 있으면 해당 id의 청구 항목 수정 모드
@@ -6560,7 +6571,7 @@
                 if (filterType !== "ALL" && row.type !== filterType) return false;
                 if (filterStatus !== "ALL") {
                     if (filterStatus === "__custom__") {
-                        if (['대기','완료','보류','선입금'].includes(row.status||'대기')) return false;
+                        if (STATEMENT_STATUS_PRESETS.includes(row.status||'대기')) return false;
                     } else if (row.status !== filterStatus) return false;
                 }
                 if (window._anomalyOnly) {
@@ -6676,8 +6687,13 @@
                 if (row.status === "완료") statusBg = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-450 font-semibold";
                 if (row.status === "보류") statusBg = "bg-rose-100 text-rose-850 dark:bg-rose-950/40 dark:text-rose-450 font-semibold";
                 if (row.status === "선입금") statusBg = "bg-sky-100 text-sky-800 dark:bg-sky-950/40 dark:text-sky-400 font-semibold";
-                // 기본 상태(대기/완료/보류/선입금) 외의 값은 사용자가 직접 입력한 문구로 간주
-                const isCustomStatus = row.status && !['대기','완료','보류','선입금'].includes(row.status);
+                if (row.status === "계산서발행") statusBg = "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-400 font-semibold";
+                if (row.status === "부분지급") statusBg = "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold";
+                if (row.status === "이의제기") statusBg = "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400 font-semibold";
+                if (row.status === "반려") statusBg = "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400 font-semibold";
+                if (row.status === "취소") statusBg = "bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500 line-through";
+                // 기본 상태(대기/완료/보류/선입금/계산서발행/부분지급/이의제기/반려/취소) 외의 값은 사용자가 직접 입력한 문구로 간주
+                const isCustomStatus = row.status && !STATEMENT_STATUS_PRESETS.includes(row.status);
                 if (isCustomStatus) statusBg = "bg-violet-100 text-violet-800 dark:bg-violet-950/40 dark:text-violet-400 font-semibold";
                 const customStatusEsc = isCustomStatus ? String(row.status).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
 
@@ -6800,6 +6816,11 @@
                             <option value="완료" ${row.status === '완료' ? 'selected' : ''}>완료</option>
                             <option value="보류" ${row.status === '보류' ? 'selected' : ''}>보류</option>
                             <option value="선입금" ${row.status === '선입금' ? 'selected' : ''}>선입금</option>
+                            <option value="계산서발행" ${row.status === '계산서발행' ? 'selected' : ''}>계산서발행</option>
+                            <option value="부분지급" ${row.status === '부분지급' ? 'selected' : ''}>부분지급</option>
+                            <option value="이의제기" ${row.status === '이의제기' ? 'selected' : ''}>이의제기</option>
+                            <option value="반려" ${row.status === '반려' ? 'selected' : ''}>반려</option>
+                            <option value="취소" ${row.status === '취소' ? 'selected' : ''}>취소</option>
                             <option value="__custom__" ${isCustomStatus ? 'selected' : ''}>${isCustomStatus ? customStatusEsc : '✏ 직접 입력...'}</option>
                         </select>
                     </td>
@@ -6993,7 +7014,7 @@
             const value = selectEl.value;
             if (value === '__custom__') {
                 const row = dataset.find(item => item.id === id);
-                const current = row && !['대기','완료','보류','선입금'].includes(row.status || '') ? row.status : '';
+                const current = row && !STATEMENT_STATUS_PRESETS.includes(row.status || '') ? row.status : '';
                 const input = prompt('상태에 표시할 문구를 입력하세요. (예: 세금계산서 대기, 익월 지급 예정 등)', current || '');
                 if (input === null) { renderStatementTable(); return; } // 취소 시 원래 값으로 되돌림
                 const trimmed = input.trim();
@@ -12359,7 +12380,7 @@ function changePrintScale(value) {
             }
 
             // ── 대장별 내역 테이블 ──
-            const STATUS_COLOR = { 완료:'emerald', 대기:'indigo', 보류:'rose' };
+            const STATUS_COLOR = { 완료:'emerald', 대기:'indigo', 보류:'rose', 선입금:'sky', 계산서발행:'cyan', 이의제기:'orange', 부분지급:'amber', 반려:'red', 취소:'slate' };
             const tbody = document.getElementById('vh-history-tbody');
             tbody.innerHTML = allRows.map(({ doc, row: r }) => {
                 const reqAmt = (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
