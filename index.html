@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.1</title>
+    <title>현장 자금관리 PRO V4.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4426,9 +4426,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.1';
+        const APP_VERSION = '4.2';
         const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = '청구명세서 일괄 액션 툴바에 선택 항목 "위로/아래로" 이동 버튼 추가 — 여러 건을 선택해도 상대 순서를 유지한 채 한 덩어리로 위/아래 이동. 클릭 시 구분별 자동정렬이 해제되고(기존 드래그 순서변경과 동일한 수동 순서 모드), "기본 정렬로" 버튼으로 언제든 복원 가능. 기존 "이동"(다른 문서로) 버튼은 명확한 구분을 위해 "다른대장 이동"으로 라벨 변경.';
+        const APP_VERSION_NOTE = '총 투입비 탭 HTML 내보내기에 현장(회사)별 소계 행 추가 — 같은 회사+현장 그룹의 월별 데이터가 끝날 때마다 "▶ 회사 / 현장 소계 (N개월)" 행을 자동 삽입해 외주비/노무비/장비대/자재비/관리비/법인카드/개인경비/합계를 한 번에 확인 가능. 여러 현장·회사를 한 표에서 조회할 때 특히 유용.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -11602,23 +11602,63 @@ function changePrintScale(value) {
             filtered.sort((a,b) => a.company.localeCompare(b.company,'ko-KR') || a.site.localeCompare(b.site,'ko-KR') || monthKeyOf(a) - monthKeyOf(b));
 
             const gTotal = { '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0,'개인경비':0 };
-            const bodyRows = filtered.map(g => {
+            const emptyCatTotals = () => ({ '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0,'개인경비':0 });
+
+            // ★ 회사/현장이 바뀔 때마다 소계 행을 끼워 넣기 위해, 같은 회사+현장 그룹끼리 먼저 묶는다
+            const siteCell = (label, cat) => {
+                const v = label[cat] || 0;
+                return `<td style="text-align:right;color:${v>0?TI_CAT_COLOR[cat]:'#cbd5e1'};">${v>0 ? v.toLocaleString('ko-KR')+'원' : '-'}</td>`;
+            };
+
+            let bodyRows = '';
+            let prevKey = null;
+            let siteSub = emptyCatTotals();
+            let siteMonthCount = 0;
+
+            const flushSiteSubtotal = (companyLabel, siteLabel) => {
+                if (siteMonthCount === 0) return '';
+                const siteMonthTotal = TI_CATEGORIES.reduce((s,c)=>s+(siteSub[c]||0),0) + (siteSub['법인카드']||0) + (siteSub['개인경비']||0);
+                return `<tr style="background:#eef2ff;font-weight:800;">
+                    <td colspan="2" style="text-align:right;color:#4338ca;">▶ ${htmlEsc(companyLabel)} / ${htmlEsc(siteLabel)} 소계 (${siteMonthCount}개월)</td>
+                    <td></td>
+                    ${TI_CATEGORIES.concat(['법인카드','개인경비']).map(c => siteCell(siteSub, c)).join('')}
+                    <td style="text-align:right;color:#4338ca;background:#e0e7ff;">${siteMonthTotal.toLocaleString('ko-KR')}원</td>
+                </tr>`;
+            };
+
+            filtered.forEach(g => {
+                const key = g.company + '␟' + g.site;
+                if (prevKey !== null && key !== prevKey) {
+                    const [prevCompany, prevSite] = prevKey.split('␟');
+                    bodyRows += flushSiteSubtotal(prevCompany, prevSite);
+                    siteSub = emptyCatTotals();
+                    siteMonthCount = 0;
+                }
+                prevKey = key;
+
                 const monthTotal = TI_CATEGORIES.reduce((s,c)=>s+(g.amounts[c]||0),0) + (g.amounts['법인카드']||0) + (g.amounts['개인경비']||0);
-                TI_CATEGORIES.forEach(c => gTotal[c] += (g.amounts[c]||0));
-                gTotal['법인카드'] += (g.amounts['법인카드']||0);
-                gTotal['개인경비'] += (g.amounts['개인경비']||0);
+                TI_CATEGORIES.forEach(c => { gTotal[c] += (g.amounts[c]||0); siteSub[c] += (g.amounts[c]||0); });
+                gTotal['법인카드'] += (g.amounts['법인카드']||0); siteSub['법인카드'] += (g.amounts['법인카드']||0);
+                gTotal['개인경비'] += (g.amounts['개인경비']||0); siteSub['개인경비'] += (g.amounts['개인경비']||0);
+                siteMonthCount++;
+
                 const cell = (c) => {
                     const v = g.amounts[c] || 0;
                     return `<td style="text-align:right;color:${v>0?TI_CAT_COLOR[c]:'#cbd5e1'};">${v>0 ? v.toLocaleString('ko-KR')+'원' : '-'}</td>`;
                 };
-                return `<tr>
+                bodyRows += `<tr>
                     <td style="font-weight:700;">${htmlEsc(g.company)}</td>
                     <td style="font-weight:700;">${htmlEsc(g.site)}</td>
                     <td style="color:#64748b;">${htmlEsc(g.month)}</td>
                     ${cell('외주비')}${cell('노무비')}${cell('장비비')}${cell('자재비')}${cell('관리비')}${cell('법인카드')}${cell('개인경비')}
                     <td style="text-align:right;font-weight:800;color:#047857;background:#ecfdf5;">${monthTotal.toLocaleString('ko-KR')}원</td>
                 </tr>`;
-            }).join('');
+            });
+            // 마지막 그룹의 소계도 반영
+            if (prevKey !== null) {
+                const [lastCompany, lastSite] = prevKey.split('␟');
+                bodyRows += flushSiteSubtotal(lastCompany, lastSite);
+            }
 
             const grandTotal = Object.values(gTotal).reduce((s,v)=>s+v,0);
             const filterLabel = [companyFilter, siteFilter].filter(Boolean).join(' · ') || '전체';
