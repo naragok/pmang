@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.2</title>
+    <title>현장 자금관리 PRO V4.3</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1313,6 +1313,13 @@
                     <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">총 투입비</span>
                 </button>
 
+                <button id="tab-btn-docarchive" onclick="switchTab('docarchive')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">6</span>
+                    <i data-lucide="archive" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">문서 보관함</span>
+                </button>
+
             </div>
 
             <div id="sidebar-footer" class="px-3 py-2 text-[9px] font-bold" style="color:#334155;border-top:1px solid rgba(255,255,255,0.06);">
@@ -1508,6 +1515,11 @@
                     <i data-lucide="pie-chart" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">총 투입비</div>
                     <div class="dash-tab-card-count" id="dash-cnt-totalinvest">&nbsp;</div>
+                </button>
+                <button onclick="switchTab('docarchive')" class="dash-tab-card group" style="--dc:#4f46e5;">
+                    <i data-lucide="archive" class="w-4 h-4"></i>
+                    <div class="dash-tab-card-label">문서 보관함</div>
+                    <div class="dash-tab-card-count" id="dash-cnt-docarchive">0건</div>
                 </button>
             </div>
 
@@ -2840,6 +2852,49 @@
             <p class="text-[10px] text-slate-400 mt-2">💡 항목의 금액을 클릭하면 세부 내역이 열립니다. 금액이 0원인 칸은 클릭할 수 없습니다. (선지급액은 실제 지급된 금액이므로 총 투입비에 포함되며, 공제액은 실제 지출이 아니므로 제외됩니다)</p>
         </div>
 
+        <!-- ══════════ 문서 보관함 ══════════ -->
+        <div id="tab-docarchive" class="hidden">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="archive" class="w-4 h-4 text-indigo-600"></i> 문서 보관함
+                    <span class="text-[10px] font-normal text-slate-400">거래처별 세금계산서·계약서 사진/PDF 보관</span>
+                </h2>
+                <button onclick="daOpenUploadModal()" class="ctrl-btn" style="background:#4f46e5;">
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> 문서 등록
+                </button>
+            </div>
+
+            <div class="tab-ctrl-panel mb-3 flex items-center gap-2 flex-wrap px-3 py-2.5">
+                <div class="relative flex-1 min-w-[180px]">
+                    <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
+                    <input type="text" id="da-search-keyword" oninput="daRender()"
+                        placeholder="거래처명·메모 검색..."
+                        class="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                </div>
+                <select id="da-filter-vendor" onchange="daRender()" class="text-xs font-semibold px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none">
+                    <option value="">전체 거래처</option>
+                </select>
+                <select id="da-filter-type" onchange="daRender()" class="text-xs font-semibold px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none">
+                    <option value="">전체 문서종류</option>
+                    <option value="세금계산서">세금계산서</option>
+                    <option value="계약서">계약서</option>
+                    <option value="견적서">견적서</option>
+                    <option value="통장사본">통장사본</option>
+                    <option value="사업자등록증">사업자등록증</option>
+                    <option value="기타">기타</option>
+                </select>
+                <span id="da-count-label" class="text-[10.5px] text-slate-400 font-semibold ml-auto"></span>
+            </div>
+
+            <div id="da-grid" class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));">
+                <!-- 문서 카드가 여기 렌더링됨 -->
+            </div>
+            <div id="da-empty-msg" class="hidden text-center text-slate-400 text-xs py-16">
+                <i data-lucide="folder-open" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                등록된 문서가 없습니다. "문서 등록" 버튼으로 세금계산서·계약서 등을 거래처별로 보관해보세요.
+            </div>
+        </div>
+
         <!-- 총 투입비 세부내역 모달 -->
         <div id="ti-detail-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[80vh] flex flex-col">
@@ -2858,6 +2913,79 @@
                 <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                     <span class="text-xs font-bold text-slate-500">합계: <span id="ti-detail-total" class="text-emerald-600 dark:text-emerald-400 font-extrabold"></span></span>
                     <button onclick="closeTiDetailModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200">닫기</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 문서 보관함 — 문서 등록 모달 -->
+        <div id="da-upload-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="upload" class="w-4 h-4 text-indigo-600"></i> 문서 등록
+                    </h3>
+                    <button onclick="daCloseUploadModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-5 text-xs space-y-3">
+                    <div>
+                        <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">거래처명 *</label>
+                        <input type="text" id="da-form-vendor" list="da-vendor-datalist" placeholder="거래처명 입력 또는 선택" class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none">
+                        <datalist id="da-vendor-datalist"></datalist>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">문서 종류</label>
+                            <select id="da-form-type" class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none">
+                                <option value="세금계산서">세금계산서</option>
+                                <option value="계약서">계약서</option>
+                                <option value="견적서">견적서</option>
+                                <option value="통장사본">통장사본</option>
+                                <option value="사업자등록증">사업자등록증</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">문서 날짜</label>
+                            <input type="date" id="da-form-date" class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">메모</label>
+                        <input type="text" id="da-form-memo" placeholder="예: 2026년 3월분 자재대금" class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">파일 (이미지 또는 PDF, 최대 8MB)</label>
+                        <input type="file" id="da-form-file" accept="image/*,.pdf" onchange="daHandleFileSelect(event)" class="w-full text-[11px] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                        <div id="da-file-preview" class="hidden mt-2 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-center">
+                            <img id="da-file-preview-img" class="hidden max-h-32 mx-auto rounded" />
+                            <div id="da-file-preview-pdf" class="hidden text-[11px] text-slate-500 flex items-center justify-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i> <span id="da-file-preview-name"></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 px-5 pb-4">
+                    <button onclick="daCloseUploadModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-4 py-2 rounded-lg font-bold text-xs transition-all">취소</button>
+                    <button onclick="daSaveDocument()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> 등록
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 문서 보관함 — 문서 보기 모달 -->
+        <div id="da-view-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl max-h-[88vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 id="da-view-title" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm"></h3>
+                    <button onclick="daCloseViewModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="da-view-body" class="flex-1 overflow-auto p-3 flex items-center justify-center bg-slate-50 dark:bg-slate-950/40"></div>
+                <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <span id="da-view-meta" class="text-[10.5px] text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button id="da-view-download-btn" class="px-3 py-1.5 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 flex items-center gap-1"><i data-lucide="download" class="w-3.5 h-3.5"></i> 다운로드</button>
+                        <button id="da-view-delete-btn" class="px-3 py-1.5 text-xs font-bold bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4426,9 +4554,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.2';
-        const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = '총 투입비 탭 HTML 내보내기에 현장(회사)별 소계 행 추가 — 같은 회사+현장 그룹의 월별 데이터가 끝날 때마다 "▶ 회사 / 현장 소계 (N개월)" 행을 자동 삽입해 외주비/노무비/장비대/자재비/관리비/법인카드/개인경비/합계를 한 번에 확인 가능. 여러 현장·회사를 한 표에서 조회할 때 특히 유용.';
+        const APP_VERSION = '4.3';
+        const APP_VERSION_DATE = '2026-09-05';
+        const APP_VERSION_NOTE = '새 메뉴 "문서 보관함" 추가 — 거래처별로 세금계산서·계약서·견적서·통장사본·사업자등록증 등의 사진/PDF를 등록·조회·다운로드·삭제할 수 있는 독립 탭 신설. 사이드바 6번 메뉴 및 대시보드 바로가기 카드에 반영. 이미지 첨부 시 자동 리사이즈+압축(법인카드 영수증 첨부와 동일 방식), PDF는 8MB 이하로 그대로 보관. 데이터는 localStorage(docArchive 키)에 savedDocuments와 독립적으로 저장.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4629,6 +4757,250 @@
         let selectedRowIds = new Set();
         let _editRowModalId = null;  // null=신규 등록 모드, 값이 있으면 해당 id의 청구 항목 수정 모드
         let dashboardFilterStatus = "all";
+
+        /* ============================================================
+           문서 보관함 — 거래처별 세금계산서/계약서 등 이미지·PDF 보관
+           localStorage 키: docArchive (savedDocuments와 독립적으로 관리)
+        ============================================================ */
+        let docArchive = [];
+        let _daTempFile = null; // 등록 모달에서 선택했지만 아직 저장 전인 파일
+        let _daCurrentViewId = null;
+
+        function daLoad() {
+            try {
+                const raw = localStorage.getItem('docArchive');
+                docArchive = raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                docArchive = [];
+            }
+            return docArchive;
+        }
+
+        function daSave() {
+            try {
+                localStorage.setItem('docArchive', JSON.stringify(docArchive));
+            } catch (e) {
+                showToast('문서 보관함 저장에 실패했습니다. 저장 공간이 부족할 수 있습니다.', 'error');
+            }
+        }
+
+        function daGenId() {
+            return 'doc-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+        }
+
+        function daOpenUploadModal() {
+            _daTempFile = null;
+            document.getElementById('da-form-vendor').value = '';
+            document.getElementById('da-form-type').value = '세금계산서';
+            document.getElementById('da-form-date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('da-form-memo').value = '';
+            document.getElementById('da-form-file').value = '';
+            document.getElementById('da-file-preview').classList.add('hidden');
+            document.getElementById('da-file-preview-img').classList.add('hidden');
+            document.getElementById('da-file-preview-pdf').classList.add('hidden');
+
+            // 거래처DB 기반 자동완성 채우기
+            const datalist = document.getElementById('da-vendor-datalist');
+            if (datalist && typeof accountDb !== 'undefined') {
+                const names = [...new Set(accountDb.map(a => a.vendor).filter(Boolean))];
+                datalist.innerHTML = names.map(n => `<option value="${String(n).replace(/"/g,'&quot;')}">`).join('');
+            }
+
+            document.getElementById('da-upload-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function daCloseUploadModal() {
+            document.getElementById('da-upload-modal').classList.add('hidden');
+        }
+
+        /* 파일 선택 → 이미지는 리사이즈+압축, PDF는 그대로 base64 인코딩 (법인카드 영수증 첨부와 동일한 방식) */
+        function daHandleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('da-file-preview');
+            const previewImg = document.getElementById('da-file-preview-img');
+            const previewPdf = document.getElementById('da-file-preview-pdf');
+            const previewName = document.getElementById('da-file-preview-name');
+
+            if (file.type === 'application/pdf') {
+                if (file.size > 8 * 1024 * 1024) { showToast('PDF 파일은 8MB 이하만 첨부할 수 있습니다.', 'error'); e.target.value = ''; return; }
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    _daTempFile = { dataUrl: ev.target.result, type: 'application/pdf', name: file.name };
+                    previewImg.classList.add('hidden');
+                    previewPdf.classList.remove('hidden');
+                    previewName.textContent = file.name;
+                    preview.classList.remove('hidden');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const MAX = 1600;
+                        let w = img.width, h = img.height;
+                        if (w > MAX || h > MAX) {
+                            const ratio = Math.min(MAX / w, MAX / h);
+                            w = Math.round(w * ratio); h = Math.round(h * ratio);
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                        _daTempFile = { dataUrl, type: 'image/jpeg', name: file.name };
+                        previewImg.src = dataUrl;
+                        previewImg.classList.remove('hidden');
+                        previewPdf.classList.add('hidden');
+                        preview.classList.remove('hidden');
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showToast('이미지 또는 PDF 파일만 첨부할 수 있습니다.', 'error');
+                e.target.value = '';
+            }
+        }
+
+        function daSaveDocument() {
+            const vendor = document.getElementById('da-form-vendor').value.trim();
+            if (!vendor) { showToast('거래처명을 입력해주세요.', 'error'); return; }
+            if (!_daTempFile) { showToast('첨부할 파일을 선택해주세요.', 'error'); return; }
+
+            const type = document.getElementById('da-form-type').value;
+            const date = document.getElementById('da-form-date').value;
+            const memo = document.getElementById('da-form-memo').value.trim();
+
+            daLoad();
+            docArchive.push({
+                id: daGenId(),
+                vendor, type, date, memo,
+                fileType: _daTempFile.type,
+                fileName: _daTempFile.name,
+                dataUrl: _daTempFile.dataUrl,
+                createdAt: new Date().toISOString()
+            });
+            daSave();
+            daCloseUploadModal();
+            daRender();
+            showToast(`[${vendor}] ${type} 문서가 등록되었습니다.`, 'success');
+        }
+
+        function daDeleteDocument(id) {
+            showConfirmModal(
+                '문서 삭제',
+                '이 문서를 문서 보관함에서 완전히 삭제하시겠습니까?',
+                function() {
+                    daLoad();
+                    docArchive = docArchive.filter(d => d.id !== id);
+                    daSave();
+                    daCloseViewModal();
+                    daRender();
+                    showToast('문서가 삭제되었습니다.');
+                }
+            );
+        }
+
+        function daOpenViewModal(id) {
+            daLoad();
+            const doc = docArchive.find(d => d.id === id);
+            if (!doc) return;
+            _daCurrentViewId = id;
+
+            document.getElementById('da-view-title').textContent = `${doc.vendor} · ${doc.type}`;
+            document.getElementById('da-view-meta').textContent = `${doc.date || ''} ${doc.memo ? ' · ' + doc.memo : ''}`;
+
+            const body = document.getElementById('da-view-body');
+            if (doc.fileType === 'application/pdf') {
+                body.innerHTML = `<embed src="${doc.dataUrl}" type="application/pdf" style="width:100%;height:60vh;border-radius:8px;">`;
+            } else {
+                body.innerHTML = `<img src="${doc.dataUrl}" style="max-width:100%;max-height:60vh;border-radius:8px;object-fit:contain;">`;
+            }
+
+            const downloadBtn = document.getElementById('da-view-download-btn');
+            downloadBtn.onclick = () => {
+                const a = document.createElement('a');
+                a.href = doc.dataUrl;
+                a.download = doc.fileName || (doc.vendor + '_' + doc.type);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+            document.getElementById('da-view-delete-btn').onclick = () => daDeleteDocument(id);
+
+            document.getElementById('da-view-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function daCloseViewModal() {
+            document.getElementById('da-view-modal').classList.add('hidden');
+            document.getElementById('da-view-body').innerHTML = '';
+            _daCurrentViewId = null;
+        }
+
+        function daRender() {
+            daLoad();
+            const grid = document.getElementById('da-grid');
+            const emptyMsg = document.getElementById('da-empty-msg');
+            const countLabel = document.getElementById('da-count-label');
+            if (!grid) return;
+
+            // 거래처 필터 옵션 채우기
+            const vendorSelect = document.getElementById('da-filter-vendor');
+            const vendors = [...new Set(docArchive.map(d => d.vendor).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko-KR'));
+            const curVendorFilter = vendorSelect.value;
+            vendorSelect.innerHTML = '<option value="">전체 거래처</option>' + vendors.map(v => `<option value="${v}" ${v===curVendorFilter?'selected':''}>${v}</option>`).join('');
+
+            const keyword = (document.getElementById('da-search-keyword')?.value || '').trim().toLowerCase();
+            const vendorFilter = vendorSelect.value;
+            const typeFilter = document.getElementById('da-filter-type')?.value || '';
+
+            let filtered = docArchive.filter(d => {
+                if (vendorFilter && d.vendor !== vendorFilter) return false;
+                if (typeFilter && d.type !== typeFilter) return false;
+                if (keyword && !((d.vendor||'').toLowerCase().includes(keyword) || (d.memo||'').toLowerCase().includes(keyword))) return false;
+                return true;
+            });
+            filtered.sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+
+            countLabel.textContent = `총 ${filtered.length}건`;
+
+            if (!filtered.length) {
+                grid.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            emptyMsg.classList.add('hidden');
+
+            const typeColor = {
+                '세금계산서':'#0ea5e9', '계약서':'#7c3aed', '견적서':'#f59e0b',
+                '통장사본':'#059669', '사업자등록증':'#dc2626', '기타':'#64748b'
+            };
+
+            grid.innerHTML = filtered.map(d => {
+                const color = typeColor[d.type] || '#64748b';
+                const thumb = d.fileType === 'application/pdf'
+                    ? `<div class="w-full h-24 flex items-center justify-center rounded-lg" style="background:${color}1a;"><i data-lucide="file-text" class="w-8 h-8" style="color:${color};"></i></div>`
+                    : `<img src="${d.dataUrl}" class="w-full h-24 object-cover rounded-lg">`;
+                return `
+                <div onclick="daOpenViewModal('${d.id}')" class="cursor-pointer bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+                    ${thumb}
+                    <div class="mt-2">
+                        <div class="flex items-center gap-1">
+                            <span class="text-[8.5px] font-bold px-1.5 py-0.5 rounded shrink-0" style="background:${color}1a;color:${color};">${d.type}</span>
+                        </div>
+                        <div class="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate mt-1">${d.vendor}</div>
+                        <div class="text-[9.5px] text-slate-400 truncate">${d.date || ''}${d.memo ? ' · ' + d.memo : ''}</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
 
         /* ============================================================
            계좌 자동 매칭 — 공통 유틸리티 (보완)
@@ -5284,6 +5656,7 @@
             const tabCorpcard = document.getElementById('tab-corpcard');
             const tabPersonalexp = document.getElementById('tab-personalexp');
             const tabTotalInvest = document.getElementById('tab-totalinvest');
+            const tabDocArchive = document.getElementById('tab-docarchive');
 
             const btnDashboard = document.getElementById('tab-btn-dashboard');
             const btnStatement = document.getElementById('tab-btn-statement');
@@ -5292,6 +5665,7 @@
             const btnCorpcard = document.getElementById('tab-btn-corpcard');
             const btnPersonalexp = document.getElementById('tab-btn-personalexp');
             const btnTotalInvest = document.getElementById('tab-btn-totalinvest');
+            const btnDocArchive = document.getElementById('tab-btn-docarchive');
 
             if (tabDashboard) tabDashboard.classList.add('hidden');
             tabStatement.classList.add('hidden');
@@ -5300,9 +5674,10 @@
             if (tabCorpcard) tabCorpcard.classList.add('hidden');
             if (tabPersonalexp) tabPersonalexp.classList.add('hidden');
             if (tabTotalInvest) tabTotalInvest.classList.add('hidden');
+            if (tabDocArchive) tabDocArchive.classList.add('hidden');
 
             // 모든 탭 버튼 비활성화 (상단 탭바 & 사이드바 공용)
-            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard, btnPersonalexp, btnTotalInvest].forEach(b => {
+            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard, btnPersonalexp, btnTotalInvest, btnDocArchive].forEach(b => {
                 if (b) {
                     b.classList.remove('tab-active');
                     b.classList.remove('sidebar-tab-active');
@@ -5340,6 +5715,11 @@
                 if (btnTotalInvest) btnTotalInvest.classList.add('tab-active','sidebar-tab-active');
                 renderTotalInvestTab();
                 renderLaborStatementList();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else if (tabId === 'docarchive') {
+                if (tabDocArchive) tabDocArchive.classList.remove('hidden');
+                if (btnDocArchive) btnDocArchive.classList.add('tab-active','sidebar-tab-active');
+                if (typeof daRender === 'function') daRender();
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
         }
@@ -15952,6 +16332,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 elTi.textContent = fmt(tiGrand);
             }
 
+            // 문서 보관함 카드 — 전체 등록 문서 건수 표시
+            if (typeof daLoad === 'function') {
+                daLoad();
+                setCnt('dash-cnt-docarchive', docArchive.length);
+            }
+
             // 6) 현재 현장 정보
             const siteInfoEl = document.getElementById('dash-site-info');
             if (siteInfoEl) {
@@ -18862,6 +19248,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'bulk-issue-modal':    closeBulkIssueModal,
             'bulk-tag-modal':      closeBulkTagModal,
             'cc-receipt-modal':    closeCcReceiptModal,
+            'da-upload-modal':     daCloseUploadModal,
+            'da-view-modal':       daCloseViewModal,
             'cc-modal':            ccCloseModal,
             'print-preview-modal': closePrintPreviewModal,
             'vendor-history-modal':closeVendorHistoryModal,
