@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V3.6</title>
+    <title>현장 자금관리 PRO V3.8</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1821,6 +1821,8 @@
                         <option value="이의제기">이의제기</option>
                         <option value="반려">반려</option>
                         <option value="취소">취소</option>
+                        <option value="직불">직불</option>
+                        <option value="현장지급">현장지급</option>
                     </select>
                     <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
                     <button onclick="openRowTransferModal('copy')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
@@ -4411,9 +4413,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '3.6';
+        const APP_VERSION = '3.8';
         const APP_VERSION_DATE = '2026-09-04';
-        const APP_VERSION_NOTE = 'PDF 파싱 기능 완전 삭제 — 헤더의 "PDF 파싱" 버튼과 파일 입력창 제거, triggerPdfImport()/importPdfBill()/getPageText()/parsePdfTextAndInsert() 함수 전체 삭제, pdf.js 라이브러리 로드 및 워커 설정 제거. 세금계산서/청구서 PDF를 업로드해 자동으로 청구 항목을 등록하던 기능이 더 이상 제공되지 않으며, 항목은 수동 등록 또는 Ctrl+V 표 붙여넣기로 입력.';
+        const APP_VERSION_NOTE = '백업/복원(JSON 덮어쓰기, GitHub 동기화 덮어쓰기 불러오기, 스냅샷 복원) 시 문서 제목의 작성월이 예상과 다르게 바뀌는 문제 수정 — 실제로는 날짜 값이 손상된 게 아니라, 백업 파일 안의 currentDocId(백업을 만들 당시 열려있던 문서)로 화면이 강제 전환되던 것이 원인이었음. 이제 복원 직전 화면에 열려있던 문서가 백업 파일 안에도 있으면 그 문서를 계속 보여주도록 개선.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4609,7 +4611,7 @@
         let requestItems = [];
 
         // 청구 항목 상태값 프리셋 목록 (기본 제공 상태 — 이 외 값은 사용자가 직접 입력한 커스텀 상태로 취급)
-        const STATEMENT_STATUS_PRESETS = ['대기', '완료', '보류', '선입금', '계산서발행', '부분지급', '이의제기', '반려', '취소'];
+        const STATEMENT_STATUS_PRESETS = ['대기', '완료', '보류', '선입금', '계산서발행', '부분지급', '이의제기', '반려', '취소', '직불', '현장지급'];
 
         let selectedRowIds = new Set();
         let _editRowModalId = null;  // null=신규 등록 모드, 값이 있으면 해당 id의 청구 항목 수정 모드
@@ -6523,6 +6525,8 @@
                 if (row.status === "이의제기") statusBg = "bg-orange-100 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400 font-semibold";
                 if (row.status === "반려") statusBg = "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400 font-semibold";
                 if (row.status === "취소") statusBg = "bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500 line-through";
+                if (row.status === "직불") statusBg = "bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-400 font-semibold";
+                if (row.status === "현장지급") statusBg = "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-400 font-semibold";
                 // 기본 상태(대기/완료/보류/선입금/계산서발행/부분지급/이의제기/반려/취소) 외의 값은 사용자가 직접 입력한 문구로 간주
                 const isCustomStatus = row.status && !STATEMENT_STATUS_PRESETS.includes(row.status);
                 if (isCustomStatus) statusBg = "bg-violet-100 text-violet-800 dark:bg-violet-950/40 dark:text-violet-400 font-semibold";
@@ -6652,6 +6656,8 @@
                             <option value="이의제기" ${row.status === '이의제기' ? 'selected' : ''}>이의제기</option>
                             <option value="반려" ${row.status === '반려' ? 'selected' : ''}>반려</option>
                             <option value="취소" ${row.status === '취소' ? 'selected' : ''}>취소</option>
+                            <option value="직불" ${row.status === '직불' ? 'selected' : ''}>직불</option>
+                            <option value="현장지급" ${row.status === '현장지급' ? 'selected' : ''}>현장지급</option>
                             <option value="__custom__" ${isCustomStatus ? 'selected' : ''}>${isCustomStatus ? customStatusEsc : '✏ 직접 입력...'}</option>
                         </select>
                     </td>
@@ -10308,9 +10314,19 @@ function changePrintScale(value) {
             const docIdRemap = {}; // 병합 모드에서 id 충돌로 새 id를 받은 문서의 이전id→새id 매핑 (체크리스트 상태 키 재매핑용)
 
             if (mode === 'overwrite') {
+                // ★ 복원 직전에 화면에 열려있던 문서를 기억해 둔다 — 백업 파일 안에도 동일한 문서(id 기준)가
+                //   있으면 복원 후에도 계속 그 문서를 보여주기 위함. (그렇지 않으면 화면이 백업 시점에
+                //   "마지막으로 열려있던 문서"로 튀어서, 사용자 눈엔 청구서 작성월이 바뀐 것처럼 보임)
+                const previouslyOpenDocId = currentDocId;
+
                 savedDocuments = parsed.savedDocuments;
                 accountDb      = parsed.accountDb;
-                currentDocId   = parsed.currentDocId || (savedDocuments.length ? savedDocuments[0].id : "");
+
+                const stillExists = previouslyOpenDocId && savedDocuments.some(d => d.id === previouslyOpenDocId);
+                currentDocId = stillExists
+                    ? previouslyOpenDocId
+                    : (parsed.currentDocId || (savedDocuments.length ? savedDocuments[0].id : ""));
+
                 if (Array.isArray(parsed.ccData)) { ccData = parsed.ccData; ccSave(); }
                 if (Array.isArray(parsed.peData)) { peData = parsed.peData; peSave(); }
                 if (Array.isArray(parsed.monthCloses) && typeof saveMonthCloses === 'function') { saveMonthCloses(parsed.monthCloses); }
@@ -10864,10 +10880,13 @@ function changePrintScale(value) {
                 '스냅샷 복원',
                 `"${snap.label} (${snap.time})" 시점으로 복원합니다. 현재 데이터는 새 스냅샷으로 보관됩니다.`,
                 function() {
+                    // ★ 복원 직전 화면에 열려있던 문서를 우선 유지 (스냅샷 안에도 있으면)
+                    const previouslyOpenDocId = currentDocId;
                     saveSnapshot('스냅샷 복원 전 자동 저장');
                     savedDocuments = snap.savedDocuments;
                     accountDb      = snap.accountDb;
-                    currentDocId   = snap.currentDocId || (savedDocuments.length ? savedDocuments[0].id : "");
+                    const stillExists = previouslyOpenDocId && savedDocuments.some(d => d.id === previouslyOpenDocId);
+                    currentDocId   = stillExists ? previouslyOpenDocId : (snap.currentDocId || (savedDocuments.length ? savedDocuments[0].id : ""));
                     const curDoc   = savedDocuments.find(d => d.id === currentDocId);
                     dataset        = curDoc ? curDoc.dataset : [];
                     saveToLocalStorage();
@@ -12380,7 +12399,7 @@ function changePrintScale(value) {
             }
 
             // ── 대장별 내역 테이블 ──
-            const STATUS_COLOR = { 완료:'emerald', 대기:'indigo', 보류:'rose', 선입금:'sky', 계산서발행:'cyan', 이의제기:'orange', 부분지급:'amber', 반려:'red', 취소:'slate' };
+            const STATUS_COLOR = { 완료:'emerald', 대기:'indigo', 보류:'rose', 선입금:'sky', 계산서발행:'cyan', 이의제기:'orange', 부분지급:'amber', 반려:'red', 취소:'slate', 직불:'purple', 현장지급:'teal' };
             const tbody = document.getElementById('vh-history-tbody');
             tbody.innerHTML = allRows.map(({ doc, row: r }) => {
                 const reqAmt = (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
