@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.3</title>
+    <title>현장 자금관리 PRO V4.5</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -1117,9 +1117,6 @@
                 <button onclick="openBackupModal()" class="hdr-btn hdr-btn-slate" title="백업 / 복원">
                     <i data-lucide="database" class="w-3 h-3"></i><span class="inline btn-label">백업/복원</span>
                 </button>
-                <button onclick="openGithubSyncModal()" class="hdr-btn" style="background:#1f2937;color:#fff;border:1px solid rgba(255,255,255,0.15);" title="GitHub 저장소로 여러 PC 간 데이터 동기화">
-                    <i data-lucide="github" class="w-3 h-3"></i><span class="inline btn-label">GitHub 동기화</span>
-                </button>
                 <button onclick="showResetConfirm()" class="hdr-btn hdr-btn-rose" title="전체 초기화">
                     <i data-lucide="trash-2" class="w-3 h-3"></i><span class="inline btn-label">초기화</span>
                 </button>
@@ -1131,6 +1128,9 @@
                 </button>
                 <button onclick="window.print()" class="hdr-btn hdr-btn-blue" title="인쇄 / PDF 저장">
                     <i data-lucide="printer" class="w-3 h-3"></i><span class="inline btn-label">인쇄/PDF</span>
+                </button>
+                <button onclick="openGithubSyncModal()" class="hdr-btn" style="background:#1f2937;color:#fff;border:1px solid rgba(255,255,255,0.15);" title="GitHub 저장소로 여러 PC 간 데이터 동기화">
+                    <i data-lucide="github" class="w-3 h-3"></i><span class="inline btn-label">GitHub 동기화</span>
                 </button>
             </div>
         </div>
@@ -1290,6 +1290,13 @@
                     <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">3</span>
                     <i data-lucide="file-check" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
                     <span class="sidebar-tab-label text-[11px] font-semibold leading-tight">지불의뢰서</span>
+                </button>
+
+                <button id="tab-btn-payment" onclick="switchTab('payment')"
+                    class="sidebar-tab-btn group flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all w-full">
+                    <span class="sidebar-tab-num flex items-center justify-center rounded-full text-[9px] font-black shrink-0" style="width:18px;height:18px;">3.5</span>
+                    <i data-lucide="wallet" class="w-4 h-4 shrink-0 sidebar-tab-icon"></i>
+                    <span class="sidebar-tab-label text-[11px] font-semibold leading-tight whitespace-nowrap">대금지급현황</span>
                 </button>
 
                 <button id="tab-btn-corpcard" onclick="switchTab('corpcard')"
@@ -1500,6 +1507,11 @@
                     <i data-lucide="file-check" class="w-4 h-4"></i>
                     <div class="dash-tab-card-label">지불의뢰서</div>
                     <div class="dash-tab-card-count" id="dash-cnt-request">0건</div>
+                </button>
+                <button onclick="switchTab('payment')" class="dash-tab-card group" style="--dc:#0d9488;">
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                    <div class="dash-tab-card-label">대금지급현황</div>
+                    <div class="dash-tab-card-count" id="dash-cnt-payment">0건</div>
                 </button>
                 <button onclick="switchTab('corpcard')" class="dash-tab-card group" style="--dc:#f59e0b;">
                     <i data-lucide="credit-card" class="w-4 h-4"></i>
@@ -2278,6 +2290,64 @@
                 </style>
 
             </div>
+        </div>
+
+        <!-- ══════════ 대금지급현황 ══════════ -->
+        <div id="tab-payment" class="hidden">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="wallet" class="w-4 h-4 text-teal-600"></i> 대금지급현황
+                    <span class="text-[10px] font-normal text-slate-400">청구명세서 연동 — 지급일·지급금액 관리</span>
+                </h2>
+                <div class="flex items-center gap-2">
+                    <button onclick="pmSyncFromStatement()" class="ctrl-btn" style="background:#0d9488;">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 청구명세서에서 불러오기
+                    </button>
+                    <button onclick="pmExportExcel()" class="ctrl-btn" style="background:#16a34a;">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 엑셀 내보내기
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-ctrl-panel mb-3 flex items-center gap-2 flex-wrap px-3 py-2.5">
+                <div class="relative flex-1 min-w-[180px]">
+                    <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#94a3b8;"></i>
+                    <input type="text" id="pm-search-keyword" oninput="pmRender()"
+                        placeholder="업체명·대표자·적요 검색..."
+                        class="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                </div>
+                <select id="pm-filter-status" onchange="pmRender()" class="text-xs font-semibold px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none">
+                    <option value="">전체 상태</option>
+                    <option value="완납">완납</option>
+                    <option value="부분지급">부분지급</option>
+                    <option value="미지급">미지급</option>
+                </select>
+                <span id="pm-summary-label" class="text-[10.5px] text-slate-500 dark:text-slate-400 font-semibold ml-auto"></span>
+            </div>
+
+            <div class="table-scroll-container overflow-x-auto overflow-y-auto max-h-[65vh] border border-slate-200 dark:border-slate-800 rounded-lg relative">
+                <table class="w-full border-collapse text-xs text-left text-gray-750 dark:text-slate-300 min-w-[1100px]" style="font-size:11px;">
+                    <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm text-slate-850 dark:text-slate-100">
+                        <tr class="divide-x divide-slate-200 dark:divide-slate-700 text-center font-bold">
+                            <th class="py-2.5 px-2 w-36">업체명</th>
+                            <th class="py-2.5 px-2 w-16">대표자</th>
+                            <th class="py-2.5 px-2 w-32">적요</th>
+                            <th class="py-2.5 px-2 w-32">청구금액</th>
+                            <th class="py-2.5 px-2 w-28">지급일</th>
+                            <th class="py-2.5 px-2 w-32">지급금액</th>
+                            <th class="py-2.5 px-2 w-32">잔금</th>
+                            <th class="py-2.5 px-2 w-32">비고</th>
+                            <th class="py-2.5 px-1 w-12 no-print">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pm-tbody" class="divide-y divide-slate-200 dark:divide-slate-850 bg-white dark:bg-slate-900 text-slate-850 dark:text-slate-100"></tbody>
+                </table>
+            </div>
+            <div id="pm-empty-msg" class="hidden text-center text-slate-400 text-xs py-16">
+                <i data-lucide="wallet" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                등록된 지급 현황이 없습니다. "청구명세서에서 불러오기" 버튼으로 현재 청구명세서의 항목을 가져와보세요.
+            </div>
+            <p class="text-[10px] text-slate-400 mt-2">💡 청구금액은 청구명세서의 지급요청금액(공급가액+부가세-공제-선지급) 기준으로 자동 계산됩니다. 지급일·지급금액·비고를 입력하면 잔금이 자동 계산됩니다.</p>
         </div>
 
 
@@ -4554,9 +4624,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.3';
+        const APP_VERSION = '4.5';
         const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '새 메뉴 "문서 보관함" 추가 — 거래처별로 세금계산서·계약서·견적서·통장사본·사업자등록증 등의 사진/PDF를 등록·조회·다운로드·삭제할 수 있는 독립 탭 신설. 사이드바 6번 메뉴 및 대시보드 바로가기 카드에 반영. 이미지 첨부 시 자동 리사이즈+압축(법인카드 영수증 첨부와 동일 방식), PDF는 8MB 이하로 그대로 보관. 데이터는 localStorage(docArchive 키)에 savedDocuments와 독립적으로 저장.';
+        const APP_VERSION_NOTE = '지불의뢰서 아래에 새 메뉴 "대금지급현황" 추가 (사이드바 3.5번) — 업체명·대표자·적요·청구금액·지급일·지급금액·잔금·비고 컬럼으로 구성. "청구명세서에서 불러오기" 버튼으로 현재 청구명세서 항목을 자동 반영(청구금액은 지급요청금액 기준으로 자동 계산), 지급일·지급금액·비고만 직접 입력하면 잔금과 완납/부분지급/미지급 상태가 자동 계산됨. 엑셀 내보내기 지원. 데이터는 localStorage(paymentStatus 키)에 독립 저장.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5000,6 +5070,186 @@
             }).join('');
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* ============================================================
+           대금지급현황 — 청구명세서 연동, 지급일/지급금액/비고 관리
+           localStorage 키: paymentStatus (거래처 청구 항목 id 기준으로 매핑)
+        ============================================================ */
+        let paymentStatus = [];
+
+        function pmLoad() {
+            try {
+                const raw = localStorage.getItem('paymentStatus');
+                paymentStatus = raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                paymentStatus = [];
+            }
+            return paymentStatus;
+        }
+
+        function pmSave() {
+            try {
+                localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
+            } catch (e) {
+                showToast('대금지급현황 저장에 실패했습니다.', 'error');
+            }
+        }
+
+        /* 현재 열려있는 청구명세서(dataset)의 항목들을 대금지급현황으로 불러온다.
+           이미 등록된 항목(같은 sourceRowId)은 청구금액·업체명·대표자·적요만 최신값으로 갱신하고
+           지급일/지급금액/비고는 기존 입력값을 그대로 보존한다. */
+        function pmSyncFromStatement() {
+            if (typeof dataset === 'undefined' || !dataset.length) {
+                showToast('현재 열려있는 청구명세서에 항목이 없습니다.');
+                return;
+            }
+            pmLoad();
+            let addedCount = 0, updatedCount = 0;
+
+            dataset.forEach(row => {
+                const claimAmount = (row.supply||0) + (row.tax||0) - (row.deduction||0) - (row.prepaid||0);
+                const existing = paymentStatus.find(p => p.sourceRowId === row.id);
+                if (existing) {
+                    existing.vendor = row.vendor || existing.vendor;
+                    existing.ceo = row.ceo || existing.ceo;
+                    existing.note = row.note || existing.note;
+                    existing.claimAmount = claimAmount;
+                    updatedCount++;
+                } else {
+                    paymentStatus.push({
+                        id: 'pm-' + Date.now() + '-' + Math.floor(Math.random()*10000),
+                        sourceRowId: row.id,
+                        vendor: row.vendor || '',
+                        ceo: row.ceo || '',
+                        note: row.note || '',
+                        claimAmount: claimAmount,
+                        payDate: '',
+                        payAmount: 0,
+                        memo: ''
+                    });
+                    addedCount++;
+                }
+            });
+
+            pmSave();
+            pmRender();
+            showToast(`청구명세서에서 ${addedCount}건 신규 추가, ${updatedCount}건 갱신했습니다.`, 'success');
+        }
+
+        function pmUpdateField(id, field, value) {
+            pmLoad();
+            const item = paymentStatus.find(p => p.id === id);
+            if (!item) return;
+            if (field === 'payAmount') {
+                item[field] = parseStatementPasteAmount(value);
+            } else {
+                item[field] = value;
+            }
+            pmSave();
+            pmRender();
+        }
+
+        function pmDeleteItem(id) {
+            showConfirmModal(
+                '지급 현황 삭제',
+                '이 항목을 대금지급현황에서 삭제하시겠습니까? (청구명세서 원본 데이터는 삭제되지 않습니다)',
+                function() {
+                    pmLoad();
+                    paymentStatus = paymentStatus.filter(p => p.id !== id);
+                    pmSave();
+                    pmRender();
+                    showToast('삭제되었습니다.');
+                }
+            );
+        }
+
+        function pmRender() {
+            pmLoad();
+            const tbody = document.getElementById('pm-tbody');
+            const emptyMsg = document.getElementById('pm-empty-msg');
+            const summaryLabel = document.getElementById('pm-summary-label');
+            if (!tbody) return;
+
+            const keyword = (document.getElementById('pm-search-keyword')?.value || '').trim().toLowerCase();
+            const statusFilter = document.getElementById('pm-filter-status')?.value || '';
+
+            const withStatus = paymentStatus.map(p => {
+                const balance = (p.claimAmount||0) - (p.payAmount||0);
+                let status;
+                if ((p.payAmount||0) <= 0) status = '미지급';
+                else if (balance <= 0) status = '완납';
+                else status = '부분지급';
+                return { ...p, balance, status };
+            });
+
+            let filtered = withStatus.filter(p => {
+                if (statusFilter && p.status !== statusFilter) return false;
+                if (keyword && !((p.vendor||'').toLowerCase().includes(keyword) || (p.ceo||'').toLowerCase().includes(keyword) || (p.note||'').toLowerCase().includes(keyword))) return false;
+                return true;
+            });
+
+            const totalClaim = filtered.reduce((s,p)=>s+(p.claimAmount||0),0);
+            const totalPaid = filtered.reduce((s,p)=>s+(p.payAmount||0),0);
+            const totalBalance = totalClaim - totalPaid;
+            summaryLabel.textContent = `총 ${filtered.length}건 · 청구 ${totalClaim.toLocaleString('ko-KR')}원 · 지급 ${totalPaid.toLocaleString('ko-KR')}원 · 잔금 ${totalBalance.toLocaleString('ko-KR')}원`;
+
+            if (!filtered.length) {
+                tbody.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            emptyMsg.classList.add('hidden');
+
+            const statusColor = { '완납':'#059669', '부분지급':'#d97706', '미지급':'#dc2626' };
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="divide-x divide-slate-100 dark:divide-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td class="px-2 py-1.5 font-semibold">${p.vendor||''}</td>
+                    <td class="px-2 py-1.5 text-center">${p.ceo||''}</td>
+                    <td class="px-2 py-1.5">
+                        <input type="text" value="${(p.note||'').replace(/"/g,'&quot;')}" onchange="pmUpdateField('${p.id}','note',this.value)"
+                            class="w-full bg-transparent outline-none text-[11px]" placeholder="적요">
+                    </td>
+                    <td class="px-2 py-1.5 text-right font-semibold">${(p.claimAmount||0).toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1.5 text-center">
+                        <input type="date" value="${p.payDate||''}" onchange="pmUpdateField('${p.id}','payDate',this.value)"
+                            class="w-full bg-transparent outline-none text-[10.5px]">
+                    </td>
+                    <td class="px-2 py-1.5 text-right">
+                        <input type="text" value="${(p.payAmount||0).toLocaleString('ko-KR')}" onfocus="this.value=(this.value.replace(/[^0-9]/g,''))" onchange="pmUpdateField('${p.id}','payAmount',this.value)"
+                            class="w-full bg-transparent outline-none text-right text-[11px]">
+                    </td>
+                    <td class="px-2 py-1.5 text-right font-bold" style="color:${p.balance>0?'#dc2626':'#059669'};">${p.balance.toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1.5">
+                        <input type="text" value="${(p.memo||'').replace(/"/g,'&quot;')}" onchange="pmUpdateField('${p.id}','memo',this.value)"
+                            class="w-full bg-transparent outline-none text-[11px]" placeholder="비고">
+                    </td>
+                    <td class="px-1 py-1.5 text-center no-print">
+                        <button onclick="pmDeleteItem('${p.id}')" class="text-slate-300 hover:text-rose-500" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </td>
+                </tr>`).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /* 대금지급현황을 엑셀로 내보내기 */
+        function pmExportExcel() {
+            pmLoad();
+            if (!paymentStatus.length) { showToast('내보낼 데이터가 없습니다.'); return; }
+            const header = ['업체명', '대표자', '적요', '청구금액', '지급일', '지급금액', '잔금', '비고'];
+            const aoa = [header];
+            paymentStatus.forEach(p => {
+                const balance = (p.claimAmount||0) - (p.payAmount||0);
+                aoa.push([p.vendor||'', p.ceo||'', p.note||'', p.claimAmount||0, p.payDate||'', p.payAmount||0, balance, p.memo||'']);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = [{wch:18},{wch:10},{wch:20},{wch:14},{wch:12},{wch:14},{wch:14},{wch:20}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '대금지급현황');
+            const ts = new Date().toISOString().slice(0,10);
+            XLSX.writeFile(wb, `대금지급현황_${ts}.xlsx`);
+            showToast('대금지급현황을 엑셀로 내보냈습니다.', 'success');
         }
 
         /* ============================================================
@@ -5653,6 +5903,7 @@
             const tabStatement = document.getElementById('tab-statement');
             const tabRequest = document.getElementById('tab-request');
             const tabStats = document.getElementById('tab-stats');
+            const tabPayment = document.getElementById('tab-payment');
             const tabCorpcard = document.getElementById('tab-corpcard');
             const tabPersonalexp = document.getElementById('tab-personalexp');
             const tabTotalInvest = document.getElementById('tab-totalinvest');
@@ -5662,6 +5913,7 @@
             const btnStatement = document.getElementById('tab-btn-statement');
             const btnRequest = document.getElementById('tab-btn-request');
             const btnStats = document.getElementById('tab-btn-stats');
+            const btnPayment = document.getElementById('tab-btn-payment');
             const btnCorpcard = document.getElementById('tab-btn-corpcard');
             const btnPersonalexp = document.getElementById('tab-btn-personalexp');
             const btnTotalInvest = document.getElementById('tab-btn-totalinvest');
@@ -5671,13 +5923,14 @@
             tabStatement.classList.add('hidden');
             tabRequest.classList.add('hidden');
             tabStats.classList.add('hidden');
+            if (tabPayment) tabPayment.classList.add('hidden');
             if (tabCorpcard) tabCorpcard.classList.add('hidden');
             if (tabPersonalexp) tabPersonalexp.classList.add('hidden');
             if (tabTotalInvest) tabTotalInvest.classList.add('hidden');
             if (tabDocArchive) tabDocArchive.classList.add('hidden');
 
             // 모든 탭 버튼 비활성화 (상단 탭바 & 사이드바 공용)
-            [btnDashboard, btnStatement, btnRequest, btnStats, btnCorpcard, btnPersonalexp, btnTotalInvest, btnDocArchive].forEach(b => {
+            [btnDashboard, btnStatement, btnRequest, btnStats, btnPayment, btnCorpcard, btnPersonalexp, btnTotalInvest, btnDocArchive].forEach(b => {
                 if (b) {
                     b.classList.remove('tab-active');
                     b.classList.remove('sidebar-tab-active');
@@ -5700,6 +5953,11 @@
                 tabStats.classList.remove('hidden');
                 btnStats.classList.add('tab-active','sidebar-tab-active');
                 renderVendorStatistics();
+            } else if (tabId === 'payment') {
+                if (tabPayment) tabPayment.classList.remove('hidden');
+                if (btnPayment) btnPayment.classList.add('tab-active','sidebar-tab-active');
+                if (typeof pmRender === 'function') pmRender();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             } else if (tabId === 'corpcard') {
                 if (tabCorpcard) tabCorpcard.classList.remove('hidden');
                 if (btnCorpcard) btnCorpcard.classList.add('tab-active','sidebar-tab-active');
@@ -16336,6 +16594,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (typeof daLoad === 'function') {
                 daLoad();
                 setCnt('dash-cnt-docarchive', docArchive.length);
+            }
+
+            // 대금지급현황 카드 — 전체 등록 건수 표시
+            if (typeof pmLoad === 'function') {
+                pmLoad();
+                setCnt('dash-cnt-payment', paymentStatus.length);
             }
 
             // 6) 현재 현장 정보
