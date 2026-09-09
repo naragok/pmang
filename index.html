@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.2</title>
+    <title>현장 자금관리 PRO V5.4</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2323,6 +2323,9 @@
                 <select id="pm-filter-month" onchange="pmRender()" class="text-xs font-semibold px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none">
                     <option value="">전체 월</option>
                 </select>
+                <button onclick="pmDeleteMonth()" id="pm-delete-month-btn" class="hidden text-xs font-bold px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-all flex items-center gap-1" title="선택한 월의 대금지급현황 항목을 전체 삭제합니다 (청구명세서 원본 데이터는 삭제되지 않음)">
+                    <i data-lucide="calendar-x" class="w-3.5 h-3.5"></i> <span id="pm-delete-month-label">이 월 삭제</span>
+                </button>
                 <select id="pm-filter-status" onchange="pmRender()" class="text-xs font-semibold px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 outline-none">
                     <option value="">전체 상태</option>
                     <option value="완납">완납</option>
@@ -2385,6 +2388,29 @@
                     <button onclick="pmCloseBankImportModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-4 py-2 rounded-lg font-bold text-xs transition-all">취소</button>
                     <button onclick="pmApplyBankImportCandidates()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5">
                         <i data-lucide="check" class="w-3.5 h-3.5"></i> 선택 항목 적용
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 대금지급현황 — 지급금액 클릭 시 통장거래 이력 선택 모달 (청구금액과 5만원 초과 차이날 때) -->
+        <div id="pm-payment-picker-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md max-h-[80vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 id="pm-picker-title" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="list-checks" class="w-4 h-4 text-rose-600"></i> 지급금액 선택
+                    </h3>
+                    <button onclick="pmClosePaymentPickerModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="p-5 text-xs flex-1 overflow-auto">
+                    <p id="pm-picker-summary" class="mb-3 text-[11px] font-bold text-slate-600 dark:text-slate-300"></p>
+                    <p class="text-[10.5px] text-slate-400 mb-2">이 업체와 매칭되어 반영된 통장거래 내역입니다. 지급금액에 포함할 항목을 체크하세요.</p>
+                    <div id="pm-picker-list" class="space-y-1"></div>
+                </div>
+                <div class="flex justify-end gap-2 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
+                    <button onclick="pmClosePaymentPickerModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-4 py-2 rounded-lg font-bold text-xs transition-all">취소</button>
+                    <button onclick="pmConfirmPaymentPicker()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> 지급금액에 반영
                     </button>
                 </div>
             </div>
@@ -4664,9 +4690,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.2';
+        const APP_VERSION = '5.4';
         const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '통장거래내역 업로드에서 "자동 매칭된 항목이 없습니다"로 나오던 문제 수정 — 원인은 거래일자(은행 이체일)와 청구월이 다르면 무조건 매칭을 건너뛰던 로직이 너무 엄격했기 때문(예: 7월분 청구를 8월에 이체한 경우 전부 실패 처리됨). 이제 거래일이 다른 월이어도 이름이 일치하면 일단 매칭 후보로 보여주고(⚠다른 월 거래일 표시), 결과 모달에서 체크박스로 항목별 확인 후 "선택 항목 적용" 버튼을 눌러야 실제 저장되도록 변경. 같은 월 거래는 기본 체크됨, 다른 월 거래는 기본 체크 해제된 상태로 사용자 확인을 유도.';
+        const APP_VERSION_NOTE = '통장거래내역 매칭 로직 개선 3가지 — ① 매칭 우선순위를 회사(업체명) 1순위에서 이름(대표자) 1순위·회사 2순위로 변경, ② 청구금액-지급금액 차액이 5만원을 넘으면 별도 표시(빨간색 경고)하고 기본 체크 해제, ③ 표에서 청구금액과 지급금액이 5만원 넘게 차이나는 항목의 지급금액 칸에 경고 아이콘이 뜨고 클릭하면 그 항목에 반영됐던 통장거래 이력 중에서 다시 골라 지급금액을 재계산할 수 있는 선택 모달 신설.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5230,6 +5256,35 @@
             );
         }
 
+        /* 상단 "청구월" 필터에서 선택한 월의 대금지급현황 항목을 전체 삭제 (청구명세서 원본은 그대로 유지) */
+        function pmDeleteMonth() {
+            const monthSelect = document.getElementById('pm-filter-month');
+            const targetMonth = monthSelect?.value || '';
+            if (!targetMonth) {
+                showToast('삭제할 청구월을 먼저 선택해주세요.', 'error');
+                return;
+            }
+            pmLoad();
+            const count = paymentStatus.filter(p => p.month === targetMonth).length;
+            if (!count) {
+                showToast(`"${targetMonth}"에 등록된 대금지급현황 항목이 없습니다.`);
+                return;
+            }
+
+            showConfirmModal(
+                `"${targetMonth}" 전체 삭제`,
+                `"${targetMonth}"의 대금지급현황 항목 ${count}건을 모두 삭제하시겠습니까? (청구명세서 원본 데이터는 삭제되지 않으며, 다시 "청구명세서에서 불러오기"로 재등록할 수 있습니다)`,
+                function() {
+                    pmLoad();
+                    paymentStatus = paymentStatus.filter(p => p.month !== targetMonth);
+                    pmSave();
+                    monthSelect.value = ''; // 삭제한 월은 더 이상 없으므로 필터를 전체 월로 되돌림
+                    pmRender();
+                    showToast(`"${targetMonth}"의 대금지급현황 ${count}건이 삭제되었습니다.`, 'success');
+                }
+            );
+        }
+
         function pmRender() {
             pmLoad();
             const tbody = document.getElementById('pm-tbody');
@@ -5248,6 +5303,19 @@
             const keyword = (document.getElementById('pm-search-keyword')?.value || '').trim().toLowerCase();
             const statusFilter = document.getElementById('pm-filter-status')?.value || '';
             const monthFilter = monthSelect.value;
+
+            // 특정 월이 선택되어 있을 때만 "이 월 삭제" 버튼을 노출하고, 그 월의 건수를 라벨에 표시
+            const deleteMonthBtn = document.getElementById('pm-delete-month-btn');
+            const deleteMonthLabel = document.getElementById('pm-delete-month-label');
+            if (deleteMonthBtn) {
+                if (monthFilter) {
+                    const countInMonth = paymentStatus.filter(p => p.month === monthFilter).length;
+                    deleteMonthBtn.classList.remove('hidden');
+                    if (deleteMonthLabel) deleteMonthLabel.textContent = `${monthFilter} 삭제 (${countInMonth}건)`;
+                } else {
+                    deleteMonthBtn.classList.add('hidden');
+                }
+            }
 
             const withStatus = paymentStatus.map(p => {
                 const balance = (p.claimAmount||0) - (p.payAmount||0);
@@ -5296,9 +5364,15 @@
                         <input type="date" value="${p.payDate||''}" onchange="pmUpdateField('${p.id}','payDate',this.value)"
                             class="w-full bg-transparent outline-none text-[10.5px]">
                     </td>
-                    <td class="px-2 py-1.5 text-right">
-                        <input type="text" value="${(p.payAmount||0).toLocaleString('ko-KR')}" onfocus="this.value=(this.value.replace(/[^0-9]/g,''))" onchange="pmUpdateField('${p.id}','payAmount',this.value)"
-                            class="w-full bg-transparent outline-none text-right text-[11px]">
+                    <td class="px-2 py-1.5 text-right relative">
+                        <div class="flex items-center justify-end gap-1">
+                            <input type="text" value="${(p.payAmount||0).toLocaleString('ko-KR')}" onfocus="this.value=(this.value.replace(/[^0-9]/g,''))" onchange="pmUpdateField('${p.id}','payAmount',this.value)"
+                                class="w-full bg-transparent outline-none text-right text-[11px]">
+                            ${Math.abs((p.claimAmount||0) - (p.payAmount||0)) > 50000 && Array.isArray(p.bankLog) && p.bankLog.length ? `
+                                <button onclick="pmOpenPaymentPickerModal('${p.id}')" class="shrink-0 text-rose-500 hover:text-rose-700" title="청구금액과 5만원 넘게 차이납니다 — 클릭해 통장거래내역 중에서 다시 선택">
+                                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                                </button>` : ''}
+                        </div>
                     </td>
                     <td class="px-2 py-1.5 text-right font-bold" style="color:${p.balance>0?'#dc2626':'#059669'};">${p.balance.toLocaleString('ko-KR')}</td>
                     <td class="px-2 py-1.5">
@@ -5416,10 +5490,11 @@
                     pmLoad();
                     // ★ 선택한 청구월에 해당하는 대금지급현황 항목으로만 매칭 대상을 제한 (다른 월 항목은 아예 건드리지 않음)
                     const pool = paymentStatus.filter(p => p.month === targetMonth);
+                    const AMOUNT_TOLERANCE = 50000; // 청구금액-지급금액 차액 허용 범위(원) — 이 안이면 "일치"로 간주
 
                     // 여기서는 바로 저장하지 않고 "후보" 목록만 만든다 — 실제 반영은 결과 모달에서
                     // 사용자가 항목별로 확인하고 "적용" 버튼을 눌러야 이루어진다.
-                    const candidates = []; // { targetId, vendor, ceo, date, amount, record, claimAmount, isOtherMonth }
+                    const candidates = []; // { targetId, vendor, ceo, date, amount, record, claimAmount, isOtherMonth, isAmountMismatch }
                     const unmatched = [];
 
                     for (let i = headerRowIdx + 1; i < rows.length; i++) {
@@ -5433,27 +5508,28 @@
                         const txMonthLabel = pmDateToMonthLabel(dateStr);
                         const isOtherMonth = !!(txMonthLabel && txMonthLabel !== targetMonth);
 
-                        // 매칭 우선순위: ① 괄호 안 상호명 ↔ 업체명(vendor) 완전일치
-                        //             ② 괄호 앞 이름 ↔ 대표자(ceo) 완전일치
-                        //             ③ 업체명에 이름이 포함되는 경우
+                        // ★ 매칭 우선순위 변경: ① 이름(대표자) 완전일치 → ② 회사(업체명, 괄호 안 상호명) 완전일치
+                        //                    → ③ 업체명에 이름이 포함되는 경우
                         let target = null;
-                        if (paren) {
-                            target = pool.find(p => (p.vendor||'').replace(/\s/g,'') === paren.replace(/\s/g,''));
-                        }
-                        if (!target && name) {
+                        if (name) {
                             target = pool.find(p => (p.ceo||'').replace(/\s/g,'') === name.replace(/\s/g,''));
+                        }
+                        if (!target && paren) {
+                            target = pool.find(p => (p.vendor||'').replace(/\s/g,'') === paren.replace(/\s/g,''));
                         }
                         if (!target && name) {
                             target = pool.find(p => (p.vendor||'').includes(name) || name.includes(p.vendor||''));
                         }
 
                         if (target) {
+                            const claimAmount = target.claimAmount || 0;
+                            const newTotal = (target.payAmount || 0) + outAmount;
+                            const isAmountMismatch = Math.abs(claimAmount - newTotal) > AMOUNT_TOLERANCE;
                             candidates.push({
                                 targetId: target.id, vendor: target.vendor, ceo: target.ceo,
                                 date: dateStr, amount: outAmount, record: String(recordRaw),
-                                claimAmount: target.claimAmount || 0,
-                                existingPayAmount: target.payAmount || 0,
-                                isOtherMonth
+                                claimAmount, existingPayAmount: target.payAmount || 0,
+                                isOtherMonth, isAmountMismatch
                             });
                         } else {
                             unmatched.push({ date: dateStr, amount: outAmount, record: String(recordRaw), isOtherMonth });
@@ -5483,24 +5559,46 @@
             const matchedWrap = document.getElementById('pm-bank-import-matched');
             matchedWrap.innerHTML = candidates.length ? candidates.map((c, idx) => {
                 const newTotal = c.existingPayAmount + c.amount;
-                const isMismatch = c.claimAmount !== newTotal;
                 const diff = newTotal - c.claimAmount;
+                const isExactMatch = diff === 0;
+                const isWithinTolerance = !c.isAmountMismatch; // 5만원 이내 차액은 "허용 범위 내 일치"로 간주
                 const diffLabel = diff > 0 ? `+${diff.toLocaleString('ko-KR')}` : diff.toLocaleString('ko-KR');
+                const rowStyle = c.isOtherMonth
+                    ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800'
+                    : (c.isAmountMismatch ? 'bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900' : 'bg-emerald-50 dark:bg-emerald-950/20');
+                let statusIcon, statusLabel, statusColorClass;
+                if (c.isOtherMonth) {
+                    statusIcon = '<i data-lucide="calendar-clock" class="w-3 h-3 text-amber-500 shrink-0"></i>';
+                } else if (c.isAmountMismatch) {
+                    statusIcon = '<i data-lucide="alert-triangle" class="w-3 h-3 text-rose-500 shrink-0"></i>';
+                } else {
+                    statusIcon = '<i data-lucide="check" class="w-3 h-3 text-emerald-500 shrink-0"></i>';
+                }
+                if (c.isAmountMismatch) {
+                    statusLabel = `차액 ${diffLabel}원 (5만원 초과)`;
+                    statusColorClass = 'text-rose-600 dark:text-rose-400';
+                } else if (isExactMatch) {
+                    statusLabel = '금액 완전일치 ✓';
+                    statusColorClass = 'text-emerald-600 dark:text-emerald-400';
+                } else {
+                    statusLabel = `일치 (차액 ${diffLabel}원, 허용범위 내) ✓`;
+                    statusColorClass = 'text-emerald-600 dark:text-emerald-400';
+                }
                 return `
-                <label class="flex items-start gap-2 px-2.5 py-1.5 rounded-lg text-[11px] cursor-pointer ${c.isOtherMonth ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800' : (isMismatch ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900' : 'bg-emerald-50 dark:bg-emerald-950/20')}">
-                    <input type="checkbox" class="pm-bank-candidate-check mt-0.5 shrink-0" data-idx="${idx}" ${c.isOtherMonth ? '' : 'checked'}>
+                <label class="flex items-start gap-2 px-2.5 py-1.5 rounded-lg text-[11px] cursor-pointer ${rowStyle}">
+                    <input type="checkbox" class="pm-bank-candidate-check mt-0.5 shrink-0" data-idx="${idx}" ${(c.isOtherMonth || c.isAmountMismatch) ? '' : 'checked'}>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
                             <span class="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 truncate">
-                                ${c.isOtherMonth ? '<i data-lucide="calendar-clock" class="w-3 h-3 text-amber-500 shrink-0"></i>' : (isMismatch ? '<i data-lucide="alert-triangle" class="w-3 h-3 text-amber-500 shrink-0"></i>' : '<i data-lucide="check" class="w-3 h-3 text-emerald-500 shrink-0"></i>')}
+                                ${statusIcon}
                                 ${c.vendor || c.record}${c.ceo ? ' ('+c.ceo+')' : ''}
                             </span>
                             <span class="text-slate-400 shrink-0">${c.date}</span>
-                            <span class="font-bold shrink-0 ${isMismatch ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}">+${c.amount.toLocaleString('ko-KR')}원</span>
+                            <span class="font-bold shrink-0 ${c.isAmountMismatch ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}">+${c.amount.toLocaleString('ko-KR')}원</span>
                         </div>
                         <div class="flex items-center justify-between mt-1 pt-1 border-t border-black/5 dark:border-white/5 text-[10px] text-slate-500 dark:text-slate-400">
                             <span>청구금액 ${c.claimAmount.toLocaleString('ko-KR')}원 · 적용시 누적지급 ${newTotal.toLocaleString('ko-KR')}원</span>
-                            ${c.isOtherMonth ? `<span class="font-bold text-amber-600 dark:text-amber-400">⚠ 거래일이 다른 월(${pmDateToMonthLabel(c.date)})</span>` : (isMismatch ? `<span class="font-bold text-amber-600 dark:text-amber-400">차액 ${diffLabel}원</span>` : `<span class="font-bold text-emerald-600 dark:text-emerald-400">일치 ✓</span>`)}
+                            <span class="font-bold ${c.isOtherMonth ? 'text-amber-600 dark:text-amber-400' : statusColorClass}">${c.isOtherMonth ? `⚠ 거래일이 다른 월(${pmDateToMonthLabel(c.date)})` : statusLabel}</span>
                         </div>
                     </div>
                 </label>`;
@@ -5545,6 +5643,10 @@
                 target.payDate = c.date || target.payDate;
                 target.payAmount = (target.payAmount || 0) + c.amount;
                 target.memo = target.memo ? `${target.memo}, ${c.record}` : c.record;
+                // ★ 이 항목에 실제로 반영된 통장거래 이력을 남겨둔다 — 나중에 지급금액이 청구금액과
+                //   5만원 넘게 차이날 때, 지급금액 칸을 클릭하면 이 이력 중에서 다시 선택할 수 있게 하기 위함
+                if (!Array.isArray(target.bankLog)) target.bankLog = [];
+                target.bankLog.push({ date: c.date, amount: c.amount, record: c.record });
                 appliedCount++;
             });
 
@@ -5562,6 +5664,64 @@
             const checks = document.querySelectorAll('.pm-bank-candidate-check');
             const allChecked = [...checks].every(c => c.checked);
             checks.forEach(c => { c.checked = !allChecked; });
+        }
+
+        /* ============================================================
+           대금지급현황 — 지급금액이 청구금액과 5만원 넘게 차이날 때,
+           지급금액 칸을 클릭하면 반영된 통장거래 이력 중에서 다시 선택하는 모달
+        ============================================================ */
+        let _pmPickerTargetId = null;
+
+        function pmOpenPaymentPickerModal(id) {
+            pmLoad();
+            const target = paymentStatus.find(p => p.id === id);
+            if (!target || !Array.isArray(target.bankLog) || !target.bankLog.length) {
+                showToast('이 항목에 반영된 통장거래 이력이 없습니다.');
+                return;
+            }
+            _pmPickerTargetId = id;
+
+            document.getElementById('pm-picker-title').textContent = `${target.vendor || ''}${target.ceo ? ' ('+target.ceo+')' : ''} — 지급금액 선택`;
+            document.getElementById('pm-picker-summary').textContent =
+                `청구금액 ${(target.claimAmount||0).toLocaleString('ko-KR')}원 · 현재 지급금액 ${(target.payAmount||0).toLocaleString('ko-KR')}원 (차액 ${((target.payAmount||0)-(target.claimAmount||0)).toLocaleString('ko-KR')}원)`;
+
+            const list = document.getElementById('pm-picker-list');
+            list.innerHTML = target.bankLog.map((log, idx) => `
+                <label class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] bg-slate-50 dark:bg-slate-800/40 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <input type="checkbox" class="pm-picker-check shrink-0" data-idx="${idx}" checked>
+                    <span class="flex-1 min-w-0 truncate text-slate-700 dark:text-slate-200">${log.record || '(내용없음)'}</span>
+                    <span class="text-slate-400 shrink-0">${log.date || ''}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-200 shrink-0">${(log.amount||0).toLocaleString('ko-KR')}원</span>
+                </label>`).join('');
+
+            document.getElementById('pm-payment-picker-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function pmClosePaymentPickerModal() {
+            document.getElementById('pm-payment-picker-modal').classList.add('hidden');
+            _pmPickerTargetId = null;
+        }
+
+        /* 체크된 통장거래 이력만 합산해서 지급금액을 다시 계산 — 체크 해제한 건은 지급금액에서 제외됨 */
+        function pmConfirmPaymentPicker() {
+            if (!_pmPickerTargetId) return;
+            pmLoad();
+            const target = paymentStatus.find(p => p.id === _pmPickerTargetId);
+            if (!target) return;
+
+            const checks = document.querySelectorAll('.pm-picker-check');
+            const selectedIdxs = [...checks].filter(c => c.checked).map(c => parseInt(c.dataset.idx, 10));
+
+            const newAmount = selectedIdxs.reduce((sum, idx) => sum + (target.bankLog[idx]?.amount || 0), 0);
+            target.payAmount = newAmount;
+            // 체크 해제한 이력은 목록에서도 제거해, 다음에 다시 열었을 때 선택 상태가 유지되도록 함
+            target.bankLog = selectedIdxs.map(idx => target.bankLog[idx]);
+
+            pmSave();
+            pmRender();
+            pmClosePaymentPickerModal();
+            showToast('지급금액이 선택한 내역 기준으로 갱신되었습니다.', 'success');
         }
 
         /* ============================================================
@@ -19829,6 +19989,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'da-upload-modal':     daCloseUploadModal,
             'da-view-modal':       daCloseViewModal,
             'pm-bank-import-modal': pmCloseBankImportModal,
+            'pm-payment-picker-modal': pmClosePaymentPickerModal,
             'cc-modal':            ccCloseModal,
             'print-preview-modal': closePrintPreviewModal,
             'vendor-history-modal':closeVendorHistoryModal,
