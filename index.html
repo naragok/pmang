@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.1</title>
+    <title>현장 자금관리 PRO V5.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2370,7 +2370,10 @@
                 <div class="p-5 text-xs flex-1 overflow-auto">
                     <div id="pm-bank-import-summary" class="mb-3 text-[11px] font-bold text-slate-600 dark:text-slate-300"></div>
                     <div id="pm-bank-import-matched-wrap" class="mb-3">
-                        <p class="font-bold text-emerald-700 dark:text-emerald-400 mb-1.5 flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 자동 매칭된 항목</p>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <p class="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 자동 매칭된 항목 (체크된 것만 적용됩니다)</p>
+                            <button onclick="pmToggleAllBankCandidates(this)" class="text-[10px] font-bold text-blue-600 hover:underline">전체 선택/해제</button>
+                        </div>
                         <div id="pm-bank-import-matched" class="space-y-1"></div>
                     </div>
                     <div id="pm-bank-import-unmatched-wrap" class="hidden">
@@ -2379,7 +2382,10 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
-                    <button onclick="pmCloseBankImportModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-4 py-2 rounded-lg font-bold text-xs transition-all">확인 완료</button>
+                    <button onclick="pmCloseBankImportModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-slate-600 px-4 py-2 rounded-lg font-bold text-xs transition-all">취소</button>
+                    <button onclick="pmApplyBankImportCandidates()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> 선택 항목 적용
+                    </button>
                 </div>
             </div>
         </div>
@@ -4658,9 +4664,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.1';
+        const APP_VERSION = '5.2';
         const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '대금지급현황의 청구금액 계산식 변경 — 기존에는 공급가액+부가세-공제금액-선지급으로 선지급을 뺀 지급요청금액 기준이었는데, 이제는 선지급을 빼지 않고(공급가액+부가세-공제금액) 계산해 이미 지급된 선지급금도 청구금액에 포함되어 표시됨. "청구명세서에서 불러오기"를 다시 실행하면 기존 항목의 청구금액도 새 기준으로 갱신됨.';
+        const APP_VERSION_NOTE = '통장거래내역 업로드에서 "자동 매칭된 항목이 없습니다"로 나오던 문제 수정 — 원인은 거래일자(은행 이체일)와 청구월이 다르면 무조건 매칭을 건너뛰던 로직이 너무 엄격했기 때문(예: 7월분 청구를 8월에 이체한 경우 전부 실패 처리됨). 이제 거래일이 다른 월이어도 이름이 일치하면 일단 매칭 후보로 보여주고(⚠다른 월 거래일 표시), 결과 모달에서 체크박스로 항목별 확인 후 "선택 항목 적용" 버튼을 눌러야 실제 저장되도록 변경. 같은 월 거래는 기본 체크됨, 다른 월 거래는 기본 체크 해제된 상태로 사용자 확인을 유도.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5373,7 +5379,7 @@
             const file = input.files[0];
             if (!file) return;
 
-            // ★ 화면에서 선택한 "청구월" 필터를 기준으로만 매칭 — 선택 안 했으면(전체 월) 업로드를 막아
+            // ★ 화면에서 선택한 "청구월" 필터를 기준으로 매칭 대상(pool)을 정함 — 선택 안 했으면(전체 월) 업로드를 막아
             //   의도치 않게 여러 월의 데이터가 한꺼번에 뒤섞이는 것을 방지한다.
             const targetMonth = document.getElementById('pm-filter-month')?.value || '';
             if (!targetMonth) {
@@ -5408,12 +5414,13 @@
                     }
 
                     pmLoad();
-                    const matched = [];
-                    const unmatched = [];
-                    let skippedOtherMonth = 0;
-
-                    // ★ 선택한 청구월에 해당하는 대금지급현황 항목으로만 매칭 대상을 제한
+                    // ★ 선택한 청구월에 해당하는 대금지급현황 항목으로만 매칭 대상을 제한 (다른 월 항목은 아예 건드리지 않음)
                     const pool = paymentStatus.filter(p => p.month === targetMonth);
+
+                    // 여기서는 바로 저장하지 않고 "후보" 목록만 만든다 — 실제 반영은 결과 모달에서
+                    // 사용자가 항목별로 확인하고 "적용" 버튼을 눌러야 이루어진다.
+                    const candidates = []; // { targetId, vendor, ceo, date, amount, record, claimAmount, isOtherMonth }
+                    const unmatched = [];
 
                     for (let i = headerRowIdx + 1; i < rows.length; i++) {
                         const row = rows[i];
@@ -5423,13 +5430,8 @@
                         const dateStr = pmExcelDateToStr(row[colDate]);
                         const recordRaw = colRecord >= 0 ? row[colRecord] : '';
                         const { name, paren } = pmParseBankRecordName(recordRaw);
-
-                        // 거래일자가 선택한 청구월과 다르면 건너뜀 (선택한 월과 무관한 거래는 반영하지 않음)
                         const txMonthLabel = pmDateToMonthLabel(dateStr);
-                        if (txMonthLabel && txMonthLabel !== targetMonth) {
-                            skippedOtherMonth++;
-                            continue;
-                        }
+                        const isOtherMonth = !!(txMonthLabel && txMonthLabel !== targetMonth);
 
                         // 매칭 우선순위: ① 괄호 안 상호명 ↔ 업체명(vendor) 완전일치
                         //             ② 괄호 앞 이름 ↔ 대표자(ceo) 완전일치
@@ -5446,21 +5448,19 @@
                         }
 
                         if (target) {
-                            target.payDate = dateStr || target.payDate;
-                            target.payAmount = (target.payAmount || 0) + outAmount; // 선택한 월 안에서 여러 번 입금된 경우만 합산
-                            target.memo = target.memo ? `${target.memo}, ${String(recordRaw)}` : String(recordRaw);
-                            matched.push({
-                                vendor: target.vendor, ceo: target.ceo, date: dateStr, amount: outAmount, record: String(recordRaw),
-                                claimAmount: target.claimAmount || 0, totalPayAmount: target.payAmount || 0
+                            candidates.push({
+                                targetId: target.id, vendor: target.vendor, ceo: target.ceo,
+                                date: dateStr, amount: outAmount, record: String(recordRaw),
+                                claimAmount: target.claimAmount || 0,
+                                existingPayAmount: target.payAmount || 0,
+                                isOtherMonth
                             });
                         } else {
-                            unmatched.push({ date: dateStr, amount: outAmount, record: String(recordRaw) });
+                            unmatched.push({ date: dateStr, amount: outAmount, record: String(recordRaw), isOtherMonth });
                         }
                     }
 
-                    pmSave();
-                    pmRender();
-                    _pmBankImportResult = { matched, unmatched, targetMonth, skippedOtherMonth };
+                    _pmBankImportResult = { candidates, unmatched, targetMonth };
                     pmShowBankImportResult();
                 } catch (err) {
                     showToast('엑셀 파일을 읽는 중 오류가 발생했습니다. 형식을 확인해주세요.', 'error');
@@ -5473,45 +5473,48 @@
 
         function pmShowBankImportResult() {
             if (!_pmBankImportResult) return;
-            const { matched, unmatched, targetMonth, skippedOtherMonth } = _pmBankImportResult;
+            const { candidates, unmatched, targetMonth } = _pmBankImportResult;
 
-            const mismatchCount = matched.filter(m => m.claimAmount !== m.totalPayAmount).length;
-            const skippedLabel = skippedOtherMonth ? ` (선택한 "${targetMonth}"이 아닌 거래 ${skippedOtherMonth}건은 반영하지 않음)` : '';
-            const mismatchLabel = mismatchCount ? ` · ⚠ 청구금액과 지급금액이 다른 항목 ${mismatchCount}건` : ' · 전체 금액 일치 확인됨';
+            const otherMonthCount = candidates.filter(c => c.isOtherMonth).length;
+            const otherMonthLabel = otherMonthCount ? ` (이 중 거래일자가 "${targetMonth}"이 아닌 항목 ${otherMonthCount}건 — 노란색으로 표시)` : '';
             document.getElementById('pm-bank-import-summary').textContent =
-                `[${targetMonth}] 대상 — 출금 내역 ${matched.length + unmatched.length}건 중 ${matched.length}건 자동 등록, ${unmatched.length}건 매칭 실패${skippedLabel}${mismatchLabel}`;
+                `[${targetMonth}] 대상 — 출금 내역 ${candidates.length + unmatched.length}건 중 ${candidates.length}건 자동 매칭됨${otherMonthLabel}. 아래에서 확인 후 반영할 항목을 선택해 "적용"을 눌러주세요.`;
 
             const matchedWrap = document.getElementById('pm-bank-import-matched');
-            matchedWrap.innerHTML = matched.length ? matched.map(m => {
-                const isMismatch = m.claimAmount !== m.totalPayAmount;
-                const diff = m.totalPayAmount - m.claimAmount;
+            matchedWrap.innerHTML = candidates.length ? candidates.map((c, idx) => {
+                const newTotal = c.existingPayAmount + c.amount;
+                const isMismatch = c.claimAmount !== newTotal;
+                const diff = newTotal - c.claimAmount;
                 const diffLabel = diff > 0 ? `+${diff.toLocaleString('ko-KR')}` : diff.toLocaleString('ko-KR');
                 return `
-                <div class="px-2.5 py-1.5 rounded-lg text-[11px] ${isMismatch ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900' : 'bg-emerald-50 dark:bg-emerald-950/20'}">
-                    <div class="flex items-center justify-between">
-                        <span class="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1">
-                            ${isMismatch ? '<i data-lucide="alert-triangle" class="w-3 h-3 text-amber-500"></i>' : '<i data-lucide="check" class="w-3 h-3 text-emerald-500"></i>'}
-                            ${m.vendor || m.record}${m.ceo ? ' ('+m.ceo+')' : ''}
-                        </span>
-                        <span class="text-slate-400">${m.date}</span>
-                        <span class="font-bold ${isMismatch ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}">+${m.amount.toLocaleString('ko-KR')}원</span>
+                <label class="flex items-start gap-2 px-2.5 py-1.5 rounded-lg text-[11px] cursor-pointer ${c.isOtherMonth ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800' : (isMismatch ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900' : 'bg-emerald-50 dark:bg-emerald-950/20')}">
+                    <input type="checkbox" class="pm-bank-candidate-check mt-0.5 shrink-0" data-idx="${idx}" ${c.isOtherMonth ? '' : 'checked'}>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 truncate">
+                                ${c.isOtherMonth ? '<i data-lucide="calendar-clock" class="w-3 h-3 text-amber-500 shrink-0"></i>' : (isMismatch ? '<i data-lucide="alert-triangle" class="w-3 h-3 text-amber-500 shrink-0"></i>' : '<i data-lucide="check" class="w-3 h-3 text-emerald-500 shrink-0"></i>')}
+                                ${c.vendor || c.record}${c.ceo ? ' ('+c.ceo+')' : ''}
+                            </span>
+                            <span class="text-slate-400 shrink-0">${c.date}</span>
+                            <span class="font-bold shrink-0 ${isMismatch ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}">+${c.amount.toLocaleString('ko-KR')}원</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-1 pt-1 border-t border-black/5 dark:border-white/5 text-[10px] text-slate-500 dark:text-slate-400">
+                            <span>청구금액 ${c.claimAmount.toLocaleString('ko-KR')}원 · 적용시 누적지급 ${newTotal.toLocaleString('ko-KR')}원</span>
+                            ${c.isOtherMonth ? `<span class="font-bold text-amber-600 dark:text-amber-400">⚠ 거래일이 다른 월(${pmDateToMonthLabel(c.date)})</span>` : (isMismatch ? `<span class="font-bold text-amber-600 dark:text-amber-400">차액 ${diffLabel}원</span>` : `<span class="font-bold text-emerald-600 dark:text-emerald-400">일치 ✓</span>`)}
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between mt-1 pt-1 border-t border-black/5 dark:border-white/5 text-[10px] text-slate-500 dark:text-slate-400">
-                        <span>청구금액 ${m.claimAmount.toLocaleString('ko-KR')}원 · 누적지급 ${m.totalPayAmount.toLocaleString('ko-KR')}원</span>
-                        ${isMismatch ? `<span class="font-bold text-amber-600 dark:text-amber-400">차액 ${diffLabel}원</span>` : `<span class="font-bold text-emerald-600 dark:text-emerald-400">일치 ✓</span>`}
-                    </div>
-                </div>`;
-            }).join('') : '<div class="text-slate-400 text-[11px] py-2">자동 매칭된 항목이 없습니다.</div>';
+                </label>`;
+            }).join('') : '<div class="text-slate-400 text-[11px] py-2">자동 매칭된 항목이 없습니다. 대금지급현황에 등록된 업체명·대표자명과 통장거래내역의 거래기록사항 표기가 다른지 확인해주세요.</div>';
 
             const unmatchedWrap = document.getElementById('pm-bank-import-unmatched-wrap');
             const unmatchedList = document.getElementById('pm-bank-import-unmatched');
             if (unmatched.length) {
                 unmatchedWrap.classList.remove('hidden');
                 unmatchedList.innerHTML = unmatched.map(u => `
-                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 text-[11px]">
+                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-[11px]">
                         <span class="font-semibold text-slate-700 dark:text-slate-200">${u.record || '(내용없음)'}</span>
-                        <span class="text-slate-400">${u.date}</span>
-                        <span class="font-bold text-amber-700 dark:text-amber-400">${u.amount.toLocaleString('ko-KR')}원</span>
+                        <span class="text-slate-400">${u.date}${u.isOtherMonth ? ' · 다른 월' : ''}</span>
+                        <span class="font-bold text-slate-500 dark:text-slate-400">${u.amount.toLocaleString('ko-KR')}원</span>
                     </div>`).join('');
             } else {
                 unmatchedWrap.classList.add('hidden');
@@ -5519,12 +5522,46 @@
 
             document.getElementById('pm-bank-import-modal').classList.remove('hidden');
             if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
 
-            showToast(`통장거래내역에서 ${matched.length}건을 대금지급현황에 자동 등록했습니다.`, 'success');
+        /* 결과 모달에서 체크된 후보만 실제로 대금지급현황에 반영 */
+        function pmApplyBankImportCandidates() {
+            if (!_pmBankImportResult) return;
+            const { candidates } = _pmBankImportResult;
+            const checks = document.querySelectorAll('.pm-bank-candidate-check');
+            const selectedIdxs = [...checks].filter(c => c.checked).map(c => parseInt(c.dataset.idx, 10));
+
+            if (!selectedIdxs.length) {
+                showToast('적용할 항목을 하나 이상 선택해주세요.', 'error');
+                return;
+            }
+
+            pmLoad();
+            let appliedCount = 0;
+            selectedIdxs.forEach(idx => {
+                const c = candidates[idx];
+                const target = paymentStatus.find(p => p.id === c.targetId);
+                if (!target) return;
+                target.payDate = c.date || target.payDate;
+                target.payAmount = (target.payAmount || 0) + c.amount;
+                target.memo = target.memo ? `${target.memo}, ${c.record}` : c.record;
+                appliedCount++;
+            });
+
+            pmSave();
+            pmRender();
+            pmCloseBankImportModal();
+            showToast(`선택한 ${appliedCount}건을 대금지급현황에 반영했습니다.`, 'success');
         }
 
         function pmCloseBankImportModal() {
             document.getElementById('pm-bank-import-modal').classList.add('hidden');
+        }
+
+        function pmToggleAllBankCandidates(btn) {
+            const checks = document.querySelectorAll('.pm-bank-candidate-check');
+            const allChecked = [...checks].every(c => c.checked);
+            checks.forEach(c => { c.checked = !allChecked; });
         }
 
         /* ============================================================
