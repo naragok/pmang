@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V4.9</title>
+    <title>현장 자금관리 PRO V5.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2355,7 +2355,7 @@
                 <i data-lucide="wallet" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
                 등록된 지급 현황이 없습니다. "청구명세서에서 불러오기" 버튼으로 현재 청구명세서의 항목을 가져와보세요.
             </div>
-            <p class="text-[10px] text-slate-400 mt-2">💡 청구금액은 청구명세서의 지급요청금액(공급가액+부가세-공제-선지급) 기준으로 자동 계산됩니다. 지급일·지급금액·비고를 입력하면 잔금이 자동 계산됩니다.</p>
+            <p class="text-[10px] text-slate-400 mt-2">💡 청구금액은 공급가액+부가세-공제금액 기준으로 자동 계산됩니다(선지급도 포함되어 표시됨). 지급일·지급금액·비고를 입력하면 잔금이 자동 계산됩니다.</p>
         </div>
 
         <!-- 대금지급현황 — 통장거래내역 업로드 결과 모달 -->
@@ -4658,9 +4658,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '4.9';
+        const APP_VERSION = '5.1';
         const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '통장거래내역 업로드 결과 모달에서 자동 매칭된 항목마다 청구금액과 누적지급금액을 함께 표시하고 일치 여부를 검증할 수 있도록 개선 — 금액이 일치하면 초록색 "일치 ✓", 다르면 노란색 경고 아이콘과 함께 차액(+/-)을 표시. 요약줄에도 전체 중 금액이 다른 항목 건수를 안내해 자동 매칭 결과를 한눈에 확인 가능.';
+        const APP_VERSION_NOTE = '대금지급현황의 청구금액 계산식 변경 — 기존에는 공급가액+부가세-공제금액-선지급으로 선지급을 뺀 지급요청금액 기준이었는데, 이제는 선지급을 빼지 않고(공급가액+부가세-공제금액) 계산해 이미 지급된 선지급금도 청구금액에 포함되어 표시됨. "청구명세서에서 불러오기"를 다시 실행하면 기존 항목의 청구금액도 새 기준으로 갱신됨.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5133,6 +5133,26 @@
         /* 현재 열려있는 청구명세서(dataset)의 항목들을 대금지급현황으로 불러온다.
            이미 등록된 항목(같은 sourceRowId)은 청구금액·업체명·대표자·적요만 최신값으로 갱신하고
            지급일/지급금액/비고는 기존 입력값을 그대로 보존한다. */
+        /* 대금지급현황 탭을 열 때, 현재 청구명세서 문서의 월로 청구월 필터를 자동 세팅해
+           그 월의 회사(항목)만 곧바로 보이게 한다. 해당 월 데이터가 아직 없으면(청구명세서에서
+           불러온 적 없는 월) 필터를 건드리지 않고 기존 선택을 유지한다. */
+        function pmSyncMonthFilterFromStatement() {
+            const monthSelect = document.getElementById('pm-filter-month');
+            if (!monthSelect) return;
+            const currentDocMonth = document.getElementById('meta-month')?.value || '';
+            if (!currentDocMonth) return;
+            pmLoad();
+            const hasThisMonth = paymentStatus.some(p => p.month === currentDocMonth);
+            if (!hasThisMonth) return;
+
+            // select의 옵션 목록을 먼저 최신 상태로 채운 뒤(값 설정이 무시되지 않도록) 선택값을 지정
+            const months = [...new Set(paymentStatus.map(p => p.month).filter(Boolean))]
+                .sort((a,b) => b.localeCompare(a, 'ko-KR'));
+            monthSelect.innerHTML = '<option value="">전체 월</option>' +
+                months.map(m => `<option value="${m}">${m}</option>`).join('');
+            monthSelect.value = currentDocMonth;
+        }
+
         function pmSyncFromStatement() {
             if (typeof dataset === 'undefined' || !dataset.length) {
                 showToast('현재 열려있는 청구명세서에 항목이 없습니다.');
@@ -5144,7 +5164,9 @@
             const docMonth = document.getElementById('meta-month')?.value || '';
 
             dataset.forEach(row => {
-                const claimAmount = (row.supply||0) + (row.tax||0) - (row.deduction||0) - (row.prepaid||0);
+                // ★ 청구금액에는 선지급도 포함(빼지 않음) — 이미 지급된 선지급금도 청구금액에 잡혀 보이도록 함
+                //   (공제금액만 제외: 원천세 등 실제 지출이 아닌 항목이므로)
+                const claimAmount = (row.supply||0) + (row.tax||0) - (row.deduction||0);
                 const existing = paymentStatus.find(p => p.sourceRowId === row.id);
                 if (existing) {
                     existing.vendor = row.vendor || existing.vendor;
@@ -6209,6 +6231,8 @@
             } else if (tabId === 'payment') {
                 if (tabPayment) tabPayment.classList.remove('hidden');
                 if (btnPayment) btnPayment.classList.add('tab-active','sidebar-tab-active');
+                // ★ 대금지급현황을 열면 현재 청구명세서에서 보고 있는 월로 자동 필터링해, 그 월 회사들만 표시
+                if (typeof pmSyncMonthFilterFromStatement === 'function') pmSyncMonthFilterFromStatement();
                 if (typeof pmRender === 'function') pmRender();
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             } else if (tabId === 'corpcard') {
