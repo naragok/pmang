@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.7</title>
+    <title>현장 자금관리 PRO V5.8</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4694,9 +4694,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.7';
+        const APP_VERSION = '5.8';
         const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '대금지급현황이 상단 대장 선택과 다른 월(예: 08월 문서를 열었는데 07월 항목이 섞여 보임)로 표시되던 버그 수정 — 원인은 해당 월에 아직 대금지급 데이터가 없으면 월 필터 옵션 자체가 생성되지 않아 선택값이 초기화되던 것. 이제 현재 열려있는 청구명세서 문서의 월을 항상 필터 옵션에 포함시켜, 데이터가 아직 없어도 그 월로 필터가 정확히 유지되고 다른 월 항목이 섞여 보이지 않음.';
+        const APP_VERSION_NOTE = '통장거래내역 업로드 시 대표자명이 같은 대금지급현황 항목이 여러 건 있을 때 전부 첫 번째 항목에만 매칭되던 문제 수정 — 매칭 우선순위를 ①이름+회사(괄호 안 상호명) 정밀일치 → ②회사 일치 → ③이름 일치 → ④포함관계 순으로 세분화하고, 동일 조건의 후보가 여러 개면 이번 업로드에서 아직 적게 매칭된 항목을 우선 선택하도록 개선해 여러 건이 각각 올바른 항목으로 골고루 분산 매칭됨.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5504,6 +5504,19 @@
                     // ★ 선택한 청구월에 해당하는 대금지급현황 항목으로만 매칭 대상을 제한 (다른 월 항목은 아예 건드리지 않음)
                     const pool = paymentStatus.filter(p => p.month === targetMonth);
                     const AMOUNT_TOLERANCE = 50000; // 청구금액-지급금액 차액 허용 범위(원) — 이 안이면 "일치"로 간주
+                    const norm = s => (s || '').replace(/\s/g, '');
+
+                    // ★ 대표자명이 같은 항목이 여러 건 있을 때(예: 박상진(대호건기), 김찬혁(대호건기)처럼
+                    //   서로 다른 사람 이름 + 같은 회사, 또는 같은 사람 이름 + 다른 청구 건) 전부 같은
+                    //   첫 번째 항목으로만 몰리지 않도록, 이번 업로드 안에서 이미 몇 번 쓰였는지 세어
+                    //   가장 적게 쓰인(아직 매칭 안 된) 항목을 우선 선택한다.
+                    const usedCount = new Map(); // paymentStatus 항목 id -> 이번 업로드에서 매칭에 사용된 횟수
+                    const pickLeastUsed = (arr) => {
+                        if (!arr.length) return null;
+                        return arr.reduce((best, cur) =>
+                            (usedCount.get(cur.id) || 0) < (usedCount.get(best.id) || 0) ? cur : best
+                        );
+                    };
 
                     // 여기서는 바로 저장하지 않고 "후보" 목록만 만든다 — 실제 반영은 결과 모달에서
                     // 사용자가 항목별로 확인하고 "적용" 버튼을 눌러야 이루어진다.
@@ -5528,17 +5541,30 @@
                         if (seenInThisFile.has(rowKey)) continue;
                         seenInThisFile.add(rowKey);
 
-                        // ★ 매칭 우선순위 변경: ① 이름(대표자) 완전일치 → ② 회사(업체명, 괄호 안 상호명) 완전일치
-                        //                    → ③ 업체명에 이름이 포함되는 경우
+                        // ★ 매칭 우선순위:
+                        //   ① 이름(대표자) + 회사(괄호 안 상호명) 모두 일치 — 가장 정확
+                        //   ② 회사(업체명) 완전일치
+                        //   ③ 이름(대표자) 완전일치 — 동명이인 등으로 여러 건이면 아직 안 쓰인 항목 우선
+                        //   ④ 업체명에 이름이 포함되는 경우
                         let target = null;
-                        if (name) {
-                            target = pool.find(p => (p.ceo||'').replace(/\s/g,'') === name.replace(/\s/g,''));
+                        if (name && paren) {
+                            const exact = pool.filter(p => norm(p.ceo) === norm(name) && norm(p.vendor) === norm(paren));
+                            target = pickLeastUsed(exact);
                         }
                         if (!target && paren) {
-                            target = pool.find(p => (p.vendor||'').replace(/\s/g,'') === paren.replace(/\s/g,''));
+                            const byCompany = pool.filter(p => norm(p.vendor) === norm(paren));
+                            target = pickLeastUsed(byCompany);
                         }
                         if (!target && name) {
-                            target = pool.find(p => (p.vendor||'').includes(name) || name.includes(p.vendor||''));
+                            const byName = pool.filter(p => norm(p.ceo) === norm(name));
+                            target = pickLeastUsed(byName);
+                        }
+                        if (!target && name) {
+                            const byInclude = pool.filter(p => (p.vendor||'').includes(name) || name.includes(p.vendor||''));
+                            target = pickLeastUsed(byInclude);
+                        }
+                        if (target) {
+                            usedCount.set(target.id, (usedCount.get(target.id) || 0) + 1);
                         }
 
                         if (target) {
