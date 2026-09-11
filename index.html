@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.9</title>
+    <title>현장 자금관리 PRO V6.1</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4715,9 +4715,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.9';
-        const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '대금지급현황에 3가지 기능 추가 — ① 지급예정일 컬럼 신설, 예정일이 지났는데 미완납이면 해당 셀이 빨간색으로 강조되고 대시보드에 "🚨 지급예정일 경과 미지급 N건" 경고 카드 표시. ② (위 지급예정일과 연동) 대시보드 알림 클릭 시 대금지급현황 탭으로 바로 이동. ③ "거래처별 통계" 버튼 신설 — 전체 월을 통틀어 업체별 누적 청구/지급/잔금과 월별 추이를 한눈에 보는 모달. 엑셀 내보내기에도 지급예정일 컬럼 추가.';
+        const APP_VERSION = '6.1';
+        const APP_VERSION_DATE = '2026-09-11';
+        const APP_VERSION_NOTE = '청구명세서 "다른 문서로 이동/복사" 모달에서 대상 문서 목록의 월 정보가 현장명·회사명에 밀려 말줄임표(...)로 잘려 안 보이던 문제 수정 — 월을 파란색 배지로 분리해 항상 고정 노출되도록 하고, 현장명/회사명만 길면 뒤에서 잘리도록 레이아웃 재구성.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5538,14 +5538,22 @@
 
                     // ★ 대표자명이 같은 항목이 여러 건 있을 때(예: 박상진(대호건기), 김찬혁(대호건기)처럼
                     //   서로 다른 사람 이름 + 같은 회사, 또는 같은 사람 이름 + 다른 청구 건) 전부 같은
-                    //   첫 번째 항목으로만 몰리지 않도록, 이번 업로드 안에서 이미 몇 번 쓰였는지 세어
-                    //   가장 적게 쓰인(아직 매칭 안 된) 항목을 우선 선택한다.
+                    //   첫 번째 항목으로만 몰리지 않도록, 이 거래의 금액과 청구금액(잔여 예상 지급액)이
+                    //   가장 가까운 항목을 1순위로 선택한다. 금액 차이가 동일하면 이번 업로드에서
+                    //   아직 적게 매칭된(덜 사용된) 항목을 우선한다.
                     const usedCount = new Map(); // paymentStatus 항목 id -> 이번 업로드에서 매칭에 사용된 횟수
-                    const pickLeastUsed = (arr) => {
+                    const pickBestMatch = (arr, txAmount) => {
                         if (!arr.length) return null;
-                        return arr.reduce((best, cur) =>
-                            (usedCount.get(cur.id) || 0) < (usedCount.get(best.id) || 0) ? cur : best
-                        );
+                        if (arr.length === 1) return arr[0];
+                        return arr.reduce((best, cur) => {
+                            const bestRemain = (best.claimAmount || 0) - (best.payAmount || 0);
+                            const curRemain = (cur.claimAmount || 0) - (cur.payAmount || 0);
+                            const bestDiff = Math.abs(bestRemain - txAmount);
+                            const curDiff = Math.abs(curRemain - txAmount);
+                            if (curDiff !== bestDiff) return curDiff < bestDiff ? cur : best;
+                            // 금액 차이가 같으면 아직 덜 쓰인 항목 우선
+                            return (usedCount.get(cur.id) || 0) < (usedCount.get(best.id) || 0) ? cur : best;
+                        });
                     };
 
                     // 여기서는 바로 저장하지 않고 "후보" 목록만 만든다 — 실제 반영은 결과 모달에서
@@ -5574,24 +5582,25 @@
                         // ★ 매칭 우선순위:
                         //   ① 이름(대표자) + 회사(괄호 안 상호명) 모두 일치 — 가장 정확
                         //   ② 회사(업체명) 완전일치
-                        //   ③ 이름(대표자) 완전일치 — 동명이인 등으로 여러 건이면 아직 안 쓰인 항목 우선
+                        //   ③ 이름(대표자) 완전일치
                         //   ④ 업체명에 이름이 포함되는 경우
+                        //   각 단계에서 후보가 여러 개면, 거래 금액이 청구금액(잔여 예상액)에 가장 가까운 것을 우선 선택
                         let target = null;
                         if (name && paren) {
                             const exact = pool.filter(p => norm(p.ceo) === norm(name) && norm(p.vendor) === norm(paren));
-                            target = pickLeastUsed(exact);
+                            target = pickBestMatch(exact, outAmount);
                         }
                         if (!target && paren) {
                             const byCompany = pool.filter(p => norm(p.vendor) === norm(paren));
-                            target = pickLeastUsed(byCompany);
+                            target = pickBestMatch(byCompany, outAmount);
                         }
                         if (!target && name) {
                             const byName = pool.filter(p => norm(p.ceo) === norm(name));
-                            target = pickLeastUsed(byName);
+                            target = pickBestMatch(byName, outAmount);
                         }
                         if (!target && name) {
                             const byInclude = pool.filter(p => (p.vendor||'').includes(name) || name.includes(p.vendor||''));
-                            target = pickLeastUsed(byInclude);
+                            target = pickBestMatch(byInclude, outAmount);
                         }
                         if (target) {
                             usedCount.set(target.id, (usedCount.get(target.id) || 0) + 1);
@@ -16461,12 +16470,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 listEl.innerHTML = '<p class="text-xs text-slate-400 dark:text-slate-500 italic text-center py-4">다른 문서가 없습니다.<br>좌측 사이드바에서 새 문서를 먼저 생성하세요.</p>';
             } else {
                 listEl.innerHTML = otherDocs.map(doc => {
-                    const label = [doc.site, doc.company, doc.month].filter(Boolean).join(' / ') || '(제목 없는 문서)';
+                    const siteCompanyLabel = [doc.site, doc.company].filter(Boolean).join(' / ') || '(제목 없는 문서)';
+                    const monthLabel = doc.month || '';
                     const cnt = (doc.dataset || []).length;
                     return '<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20 cursor-pointer transition-all rt-doc-item">' +
-                        '<input type="radio" name="rt-doc-radio" value="' + doc.id + '" onchange="selectTransferTarget(this.value)" class="w-4 h-4 accent-blue-500">' +
+                        '<input type="radio" name="rt-doc-radio" value="' + doc.id + '" onchange="selectTransferTarget(this.value)" class="w-4 h-4 accent-blue-500 shrink-0">' +
                         '<div class="flex-1 min-w-0">' +
-                        '<p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">' + label + '</p>' +
+                        '<div class="flex items-center gap-1.5">' +
+                        (monthLabel ? '<span class="shrink-0 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300">' + monthLabel + '</span>' : '') +
+                        '<p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">' + siteCompanyLabel + '</p>' +
+                        '</div>' +
                         '<p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">현재 ' + cnt + '개 행</p>' +
                         '</div></label>';
                 }).join('');
