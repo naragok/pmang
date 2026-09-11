@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V5.8</title>
+    <title>현장 자금관리 PRO V5.9</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -2310,6 +2310,9 @@
                     <button onclick="pmExportExcel()" class="ctrl-btn" style="background:#16a34a;">
                         <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 엑셀 내보내기
                     </button>
+                    <button onclick="pmOpenVendorStatsModal()" class="ctrl-btn" style="background:#7c3aed;">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> 거래처별 통계
+                    </button>
                 </div>
             </div>
 
@@ -2344,6 +2347,7 @@
                             <th class="py-2.5 px-2 w-16">대표자</th>
                             <th class="py-2.5 px-2 w-32">적요</th>
                             <th class="py-2.5 px-2 w-32">청구금액</th>
+                            <th class="py-2.5 px-2 w-28">지급예정일</th>
                             <th class="py-2.5 px-2 w-28">지급일</th>
                             <th class="py-2.5 px-2 w-32">지급금액</th>
                             <th class="py-2.5 px-2 w-32">잔금</th>
@@ -2417,6 +2421,23 @@
                         <i data-lucide="check" class="w-3.5 h-3.5"></i> 지급금액에 반영
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- 대금지급현황 — 거래처별 누적 통계 모달 -->
+        <div id="pm-vendor-stats-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-violet-600"></i> 거래처별 누적 지급 통계
+                    </h3>
+                    <button onclick="pmCloseVendorStatsModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="px-5 pt-3">
+                    <input type="text" id="pm-vendor-stats-search" oninput="pmRenderVendorStats()" placeholder="업체명·대표자 검색..."
+                        class="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                </div>
+                <div id="pm-vendor-stats-body" class="p-5 text-xs flex-1 overflow-auto space-y-2"></div>
             </div>
         </div>
 
@@ -4694,9 +4715,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '5.8';
+        const APP_VERSION = '5.9';
         const APP_VERSION_DATE = '2026-09-05';
-        const APP_VERSION_NOTE = '통장거래내역 업로드 시 대표자명이 같은 대금지급현황 항목이 여러 건 있을 때 전부 첫 번째 항목에만 매칭되던 문제 수정 — 매칭 우선순위를 ①이름+회사(괄호 안 상호명) 정밀일치 → ②회사 일치 → ③이름 일치 → ④포함관계 순으로 세분화하고, 동일 조건의 후보가 여러 개면 이번 업로드에서 아직 적게 매칭된 항목을 우선 선택하도록 개선해 여러 건이 각각 올바른 항목으로 골고루 분산 매칭됨.';
+        const APP_VERSION_NOTE = '대금지급현황에 3가지 기능 추가 — ① 지급예정일 컬럼 신설, 예정일이 지났는데 미완납이면 해당 셀이 빨간색으로 강조되고 대시보드에 "🚨 지급예정일 경과 미지급 N건" 경고 카드 표시. ② (위 지급예정일과 연동) 대시보드 알림 클릭 시 대금지급현황 탭으로 바로 이동. ③ "거래처별 통계" 버튼 신설 — 전체 월을 통틀어 업체별 누적 청구/지급/잔금과 월별 추이를 한눈에 보는 모달. 엑셀 내보내기에도 지급예정일 컬럼 추가.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5361,7 +5382,11 @@
 
             const statusColor = { '완납':'#059669', '부분지급':'#d97706', '미지급':'#dc2626' };
 
-            tbody.innerHTML = filtered.map(p => `
+            const todayStr = new Date().toISOString().slice(0, 10);
+
+            tbody.innerHTML = filtered.map(p => {
+                const isOverdue = p.status !== '완납' && p.payDueDate && p.payDueDate < todayStr;
+                return `
                 <tr class="divide-x divide-slate-100 dark:divide-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td class="px-2 py-1.5 text-center text-slate-500 dark:text-slate-400 whitespace-nowrap">${p.month||'-'}</td>
                     <td class="px-2 py-1.5 font-semibold">${p.vendor||''}</td>
@@ -5373,6 +5398,10 @@
                             class="w-full bg-transparent outline-none text-[11px]" placeholder="적요">
                     </td>
                     <td class="px-2 py-1.5 text-right font-semibold">${(p.claimAmount||0).toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1.5 text-center ${isOverdue ? 'bg-rose-50 dark:bg-rose-950/30' : ''}">
+                        <input type="date" value="${p.payDueDate||''}" onchange="pmUpdateField('${p.id}','payDueDate',this.value)"
+                            class="w-full bg-transparent outline-none text-[10.5px] ${isOverdue ? 'text-rose-600 dark:text-rose-400 font-bold' : ''}" title="${isOverdue ? '⚠ 지급예정일이 지났는데 아직 완납되지 않았습니다' : ''}">
+                    </td>
                     <td class="px-2 py-1.5 text-center">
                         <input type="date" value="${p.payDate||''}" onchange="pmUpdateField('${p.id}','payDate',this.value)"
                             class="w-full bg-transparent outline-none text-[10.5px]">
@@ -5395,7 +5424,8 @@
                     <td class="px-1 py-1.5 text-center no-print">
                         <button onclick="pmDeleteItem('${p.id}')" class="text-slate-300 hover:text-rose-500" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                     </td>
-                </tr>`).join('');
+                </tr>`;
+            }).join('');
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
@@ -5404,15 +5434,15 @@
         function pmExportExcel() {
             pmLoad();
             if (!paymentStatus.length) { showToast('내보낼 데이터가 없습니다.'); return; }
-            const header = ['청구월', '업체명', '대표자', '적요', '청구금액', '지급일', '지급금액', '잔금', '비고'];
+            const header = ['청구월', '업체명', '대표자', '적요', '청구금액', '지급예정일', '지급일', '지급금액', '잔금', '비고'];
             const aoa = [header];
             const sorted = [...paymentStatus].sort((a,b) => (b.month||'').localeCompare(a.month||'', 'ko-KR') || (a.vendor||'').localeCompare(b.vendor||'', 'ko-KR'));
             sorted.forEach(p => {
                 const balance = (p.claimAmount||0) - (p.payAmount||0);
-                aoa.push([p.month||'', p.vendor||'', p.ceo||'', p.note||'', p.claimAmount||0, p.payDate||'', p.payAmount||0, balance, p.memo||'']);
+                aoa.push([p.month||'', p.vendor||'', p.ceo||'', p.note||'', p.claimAmount||0, p.payDueDate||'', p.payDate||'', p.payAmount||0, balance, p.memo||'']);
             });
             const ws = XLSX.utils.aoa_to_sheet(aoa);
-            ws['!cols'] = [{wch:10},{wch:18},{wch:10},{wch:20},{wch:14},{wch:12},{wch:14},{wch:14},{wch:20}];
+            ws['!cols'] = [{wch:10},{wch:18},{wch:10},{wch:20},{wch:14},{wch:12},{wch:12},{wch:14},{wch:14},{wch:20}];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '대금지급현황');
             const ts = new Date().toISOString().slice(0,10);
@@ -5791,6 +5821,89 @@
             pmRender();
             pmClosePaymentPickerModal();
             showToast('지급금액이 선택한 내역 기준으로 갱신되었습니다.', 'success');
+        }
+
+        /* ============================================================
+           대금지급현황 — 거래처별 누적 지급 통계 (전체 월 대상, 월별 추이)
+        ============================================================ */
+        function pmOpenVendorStatsModal() {
+            document.getElementById('pm-vendor-stats-search').value = '';
+            document.getElementById('pm-vendor-stats-modal').classList.remove('hidden');
+            pmRenderVendorStats();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function pmCloseVendorStatsModal() {
+            document.getElementById('pm-vendor-stats-modal').classList.add('hidden');
+        }
+
+        function pmRenderVendorStats() {
+            pmLoad();
+            const body = document.getElementById('pm-vendor-stats-body');
+            const keyword = (document.getElementById('pm-vendor-stats-search')?.value || '').trim().toLowerCase();
+
+            // 업체명(없으면 대표자명) 기준으로 그룹핑 — 전체 월 대상
+            const groups = {};
+            paymentStatus.forEach(p => {
+                const key = p.vendor || p.ceo || '(거래처 미입력)';
+                if (!groups[key]) groups[key] = { vendor: p.vendor, ceo: p.ceo, byMonth: {}, totalClaim: 0, totalPaid: 0 };
+                const g = groups[key];
+                const monthKey = p.month || '(월 미지정)';
+                if (!g.byMonth[monthKey]) g.byMonth[monthKey] = { claim: 0, paid: 0 };
+                g.byMonth[monthKey].claim += (p.claimAmount || 0);
+                g.byMonth[monthKey].paid += (p.payAmount || 0);
+                g.totalClaim += (p.claimAmount || 0);
+                g.totalPaid += (p.payAmount || 0);
+            });
+
+            let list = Object.entries(groups).map(([key, g]) => ({ key, ...g }));
+            if (keyword) {
+                list = list.filter(g => (g.vendor||'').toLowerCase().includes(keyword) || (g.ceo||'').toLowerCase().includes(keyword));
+            }
+            // 누적 청구금액이 큰 순서로 정렬
+            list.sort((a, b) => b.totalClaim - a.totalClaim);
+
+            if (!list.length) {
+                body.innerHTML = '<div class="text-center text-slate-400 py-10">표시할 거래처 데이터가 없습니다.</div>';
+                return;
+            }
+
+            body.innerHTML = list.map(g => {
+                const months = Object.keys(g.byMonth).sort((a,b) => a.localeCompare(b, 'ko-KR'));
+                const balance = g.totalClaim - g.totalPaid;
+                const monthRows = months.map(m => {
+                    const d = g.byMonth[m];
+                    const mb = d.claim - d.paid;
+                    return `<div class="flex items-center justify-between text-[10.5px] px-2 py-1 rounded bg-slate-50 dark:bg-slate-800/40">
+                        <span class="text-slate-500 dark:text-slate-400">${m}</span>
+                        <span class="text-slate-600 dark:text-slate-300">청구 ${d.claim.toLocaleString('ko-KR')}</span>
+                        <span class="text-emerald-600 dark:text-emerald-400">지급 ${d.paid.toLocaleString('ko-KR')}</span>
+                        <span class="font-bold ${mb>0?'text-rose-600 dark:text-rose-400':'text-slate-400'}">잔금 ${mb.toLocaleString('ko-KR')}</span>
+                    </div>`;
+                }).join('');
+                return `
+                <div class="border border-slate-200 dark:border-slate-800 rounded-xl p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-extrabold text-slate-800 dark:text-slate-100">${g.vendor || '(업체명 미입력)'}${g.ceo ? ` <span class="font-normal text-slate-400">(${g.ceo})</span>` : ''}</span>
+                        <span class="text-[10px] text-slate-400">${months.length}개월 거래</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-2 text-center">
+                        <div class="bg-slate-50 dark:bg-slate-800/40 rounded-lg py-1.5">
+                            <div class="text-[9px] text-slate-400">누적 청구</div>
+                            <div class="font-bold text-slate-700 dark:text-slate-200">${g.totalClaim.toLocaleString('ko-KR')}원</div>
+                        </div>
+                        <div class="bg-emerald-50 dark:bg-emerald-950/20 rounded-lg py-1.5">
+                            <div class="text-[9px] text-emerald-600 dark:text-emerald-400">누적 지급</div>
+                            <div class="font-bold text-emerald-700 dark:text-emerald-400">${g.totalPaid.toLocaleString('ko-KR')}원</div>
+                        </div>
+                        <div class="${balance>0?'bg-rose-50 dark:bg-rose-950/20':'bg-slate-50 dark:bg-slate-800/40'} rounded-lg py-1.5">
+                            <div class="text-[9px] ${balance>0?'text-rose-600 dark:text-rose-400':'text-slate-400'}">누적 잔금</div>
+                            <div class="font-bold ${balance>0?'text-rose-700 dark:text-rose-400':'text-slate-500'}">${balance.toLocaleString('ko-KR')}원</div>
+                        </div>
+                    </div>
+                    <div class="space-y-1">${monthRows}</div>
+                </div>`;
+            }).join('');
         }
 
         /* ============================================================
@@ -17232,6 +17345,19 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const pePendingTotal = pePending.reduce((s,r)=>s+Number(r.amount||0),0);
                     alerts.push(`<button onclick="switchTab('personalexp')" class="w-full flex items-center gap-2 bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-300 rounded-lg px-3 py-2 text-left hover:bg-pink-100 dark:hover:bg-pink-950/40 transition-colors"><i data-lucide="user-round" class="w-3.5 h-3.5 shrink-0"></i><span>미정산 개인경비 <b>${pePending.length}건</b> · ${Number(pePendingTotal).toLocaleString('ko-KR')}원</span></button>`);
                 }
+                // ── 대금지급현황 연체(지급예정일 경과 + 미완납) 알림 ──
+                if (typeof pmLoad === 'function') {
+                    pmLoad();
+                    const todayStr2 = new Date().toISOString().slice(0, 10);
+                    const overdueItems = paymentStatus.filter(p => {
+                        const balance = (p.claimAmount||0) - (p.payAmount||0);
+                        return balance > 0 && p.payDueDate && p.payDueDate < todayStr2;
+                    });
+                    if (overdueItems.length > 0) {
+                        const overdueTotal = overdueItems.reduce((s,p)=>s+((p.claimAmount||0)-(p.payAmount||0)),0);
+                        alerts.push(`<button onclick="switchTab('payment')" class="w-full flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 rounded-lg px-3 py-2 text-left hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors font-bold"><i data-lucide="calendar-x" class="w-3.5 h-3.5 shrink-0"></i><span>🚨 지급예정일 경과 미지급 <b>${overdueItems.length}건</b> · 잔금 ${overdueTotal.toLocaleString('ko-KR')}원</span></button>`);
+                    }
+                }
                 if (!alerts.length) {
                     alerts.push(`<div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg px-3 py-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i><span>확인이 필요한 항목이 없습니다.</span></div>`);
                 }
@@ -20059,6 +20185,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             'da-view-modal':       daCloseViewModal,
             'pm-bank-import-modal': pmCloseBankImportModal,
             'pm-payment-picker-modal': pmClosePaymentPickerModal,
+            'pm-vendor-stats-modal': pmCloseVendorStatsModal,
             'cc-modal':            ccCloseModal,
             'print-preview-modal': closePrintPreviewModal,
             'vendor-history-modal':closeVendorHistoryModal,
