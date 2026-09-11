@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1280">
-    <title>현장 자금관리 PRO V6.1</title>
+    <title>현장 자금관리 PRO V6.2</title>
 
     <!-- 홈화면 아이콘 / PWA 메타 (PC 파비콘 · iOS 홈화면 · 태블릿 · 안드로이드 공통) -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAB/klEQVRIiWP0d3vKQEvARFPTRy0gBrBgFWVjY3Tx4OLgYCTSlK9f/+3Z+f3vn//EWuDmxZWSyU+k6RDAyMi4Y8tXTHHsQcTDS3LQCQhi14LdBxBw+MD3PTu+ETTa1ZPLxp4Tlyw+C3h4mMQlmQlawM2Nz7v4LDA0YTc0YSdoAX6Az4I7D19cu/OEoBFaKjIq8hLkWCAjLsTFid0HzMzMnOysEDYXBxseQ/BZ8OTlO1w+4OXmdLTQxqOXKAtU5CXw+J1IgM+Cv//+//v3j6ARTExMzEw48zw+C5iZGJmZCCdTAtYTVPHj7IfUiPcnvzH8uvAxO+hF7txff/7/21P7Imfurz9EWIDPBxDw8ubvDx9+d4b+YPr3/y8jA8PqNxHrGf/9+c/y6/eH/2wihMpDwj6QjxRONWJUTxJONmB2qRAw4+bIaOOR5+YsbOImaDpRPni4/O3cC/9/nX9z8z8D4+WPDH/+n6748f8fw8R6NtV2wnYQ4YMo0UX1XHxCzEIyPG0bJKpcmQQFmSWDRZZ2EOUDooplNnU25c9/vymyyrEwKmmwfnr7X1WHlcjkRTiIGBgYGAW46jZxQdic3sKrvYkzm4GBYcAq/Y8fCGdgNPD5I3Yt2INo1/ZvjIwMIqLEZuN3b//u2o697sNuwd8//7dtwlKDkwGGfsNr6FsAAJ1ojfGjVK7uAAAAAElFTkSuQmCC">
@@ -4158,7 +4158,7 @@
                     </div>
                     <div class="px-5 py-4 space-y-3">
                         <p class="text-xs font-bold text-slate-600 dark:text-slate-400">대상 문서 선택</p>
-                        <div id="rt-doc-list" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+                        <div id="rt-doc-list" class="space-y-2 max-h-[26rem] overflow-y-auto pr-1"></div>
                         <div class="pt-1">
                             <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">
                                 <input type="checkbox" id="rt-reset-status" class="w-3.5 h-3.5 rounded">
@@ -4715,9 +4715,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '6.1';
+        const APP_VERSION = '6.2';
         const APP_VERSION_DATE = '2026-09-11';
-        const APP_VERSION_NOTE = '청구명세서 "다른 문서로 이동/복사" 모달에서 대상 문서 목록의 월 정보가 현장명·회사명에 밀려 말줄임표(...)로 잘려 안 보이던 문제 수정 — 월을 파란색 배지로 분리해 항상 고정 노출되도록 하고, 현장명/회사명만 길면 뒤에서 잘리도록 레이아웃 재구성.';
+        const APP_VERSION_NOTE = '"다른 문서로 이동/복사" 모달의 대상 문서 목록을 월(파란 배지) / 회사명(굵게) / 공사명(현장명) 3줄 구조로 명확히 구분해 표시하고, truncate(말줄임표) 없이 줄바꿈으로 전체 텍스트가 다 보이도록 변경. 목록 영역 높이도 약간 넓혀 스크롤 없이 더 많은 문서를 한눈에 볼 수 있음.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -16470,17 +16470,19 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 listEl.innerHTML = '<p class="text-xs text-slate-400 dark:text-slate-500 italic text-center py-4">다른 문서가 없습니다.<br>좌측 사이드바에서 새 문서를 먼저 생성하세요.</p>';
             } else {
                 listEl.innerHTML = otherDocs.map(doc => {
-                    const siteCompanyLabel = [doc.site, doc.company].filter(Boolean).join(' / ') || '(제목 없는 문서)';
-                    const monthLabel = doc.month || '';
+                    const monthLabel = doc.month || '(월 미지정)';
+                    const companyLabel = doc.company || '(회사명 미지정)';
+                    const siteLabel = doc.site || '(공사명 미지정)';
                     const cnt = (doc.dataset || []).length;
                     return '<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20 cursor-pointer transition-all rt-doc-item">' +
                         '<input type="radio" name="rt-doc-radio" value="' + doc.id + '" onchange="selectTransferTarget(this.value)" class="w-4 h-4 accent-blue-500 shrink-0">' +
                         '<div class="flex-1 min-w-0">' +
-                        '<div class="flex items-center gap-1.5">' +
-                        (monthLabel ? '<span class="shrink-0 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300">' + monthLabel + '</span>' : '') +
-                        '<p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">' + siteCompanyLabel + '</p>' +
+                        '<div class="flex items-center gap-1.5 flex-wrap">' +
+                        '<span class="shrink-0 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300">' + monthLabel + '</span>' +
+                        '<span class="text-xs font-bold text-slate-800 dark:text-slate-100">' + companyLabel + '</span>' +
                         '</div>' +
-                        '<p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">현재 ' + cnt + '개 행</p>' +
+                        '<p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-snug break-words">' + siteLabel + '</p>' +
+                        '<p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">현재 ' + cnt + '개 행</p>' +
                         '</div></label>';
                 }).join('');
             }
