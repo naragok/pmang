@@ -1891,9 +1891,12 @@
                                 <input type="text" id="meta-site" list="meta-site-list" value="" onchange="syncMetaValues('meta-site', this.value)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-indigo-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]" placeholder="현장명을 입력하세요">
                                 <datalist id="meta-site-list"></datalist>
                             </div>
-                            <div class="flex items-center gap-1.5 min-w-0 group/meta">
+                            <div class="flex items-center gap-1.5 min-w-0 group/meta relative">
                                 <span class="shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">작성월</span>
-                                <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-emerald-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]">
+                                <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" onkeydown="handleMetaMonthKeydown(event, this);" title="→ 키 또는 ▼ 버튼을 누르면 작성된 명세서 목록이 나옵니다" class="border-b border-transparent group-hover/meta:border-emerald-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]">
+                                <button type="button" onclick="event.stopPropagation(); openMetaMonthDropdown(document.getElementById('meta-month'));" title="작성된 명세서 목록" class="no-print shrink-0 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400">
+                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </button>
                                 <datalist id="meta-month-list"></datalist>
                             </div>
                             <div class="flex items-center gap-1.5 min-w-0 group/meta">
@@ -10568,6 +10571,68 @@ function changePrintScale(value) {
             buildFilterOptions();
             updateSavedSheetsSelector();
             populateMetaDatalists();
+        }
+
+        /* ── 작성월 입력칸: 맨 끝에서 → 키를 누르면 작성된 명세서 목록을 보여준다 ── */
+        function handleMetaMonthKeydown(e, inputEl) {
+            if (e.key === 'Enter') { inputEl.blur(); return; }
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                openMetaMonthDropdown(inputEl);
+            } else if (e.key === 'Escape') {
+                closeMetaMonthDropdown();
+            }
+        }
+
+        function openMetaMonthDropdown(inputEl) {
+            closeMetaMonthDropdown();
+
+            // 현재 선택된 현장 기준으로 작성된 명세서 목록을 모은다 (현장명이 비어 있으면 전체)
+            const site = (document.getElementById('meta-site')?.value || '').trim();
+            let docs = (savedDocuments || []).slice();
+            if (site) docs = docs.filter(d => (d.site || '').trim() === site);
+
+            if (docs.length === 0) {
+                showToast('작성된 명세서가 없습니다.', 'error');
+                return;
+            }
+
+            docs.sort((a, b) => {
+                const monthCmp = parseMonthToNum(a.month) - parseMonthToNum(b.month);
+                if (monthCmp !== 0) return monthCmp;
+                return (a.company || '').localeCompare(b.company || '', 'ko-KR');
+            });
+
+            const dropdown = document.createElement('div');
+            dropdown.id = 'meta-month-dropdown';
+            dropdown.className = 'absolute z-50 top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-xl max-h-56 overflow-y-auto text-[12px] min-w-[200px]';
+
+            docs.forEach(doc => {
+                const item = document.createElement('div');
+                const isCurrent = doc.id === currentDocId;
+                item.className = 'px-3 py-1.5 cursor-pointer flex items-center justify-between gap-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 ' +
+                    (isCurrent ? 'bg-emerald-100 dark:bg-emerald-900/40 font-bold text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200');
+                item.innerHTML = `<span>${doc.month || '(월 미지정)'}</span><span class="text-slate-400 dark:text-slate-500 truncate">${doc.company || '(회사명 없음)'}</span>`;
+                item.onclick = () => {
+                    loadSavedDocument(doc.id);
+                    closeMetaMonthDropdown();
+                };
+                dropdown.appendChild(item);
+            });
+
+            inputEl.parentElement.appendChild(dropdown);
+            setTimeout(() => document.addEventListener('mousedown', handleMetaMonthDropdownOutsideClick), 0);
+        }
+
+        function handleMetaMonthDropdownOutsideClick(e) {
+            const dd = document.getElementById('meta-month-dropdown');
+            if (dd && !dd.contains(e.target) && e.target.id !== 'meta-month') closeMetaMonthDropdown();
+        }
+
+        function closeMetaMonthDropdown() {
+            const dd = document.getElementById('meta-month-dropdown');
+            if (dd) dd.remove();
+            document.removeEventListener('mousedown', handleMetaMonthDropdownOutsideClick);
         }
 
         /* 현장명/작성월/회사명 입력칸의 자동완성 목록을 과거 등록된 모든 문서 기준으로 채운다 */
