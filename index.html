@@ -4716,9 +4716,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '6.9';
+        const APP_VERSION = '7.0';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '청구명세서 현장명·작성월·회사명 입력칸에 드롭다운 추가 — → 키 또는 ▼ 버튼으로 목록을 열어(↑↓ 이동, Enter 선택, Esc 닫기) 해당 현장/명세서/회사의 청구서로 바로 이동.';
+        const APP_VERSION_NOTE = '대시보드 날짜 계산 오류 수정 — 월별 자금 흐름 차트가 한 달씩 밀려 이번 달이 빠지던 문제, 이번 달 판정/지급 연체 알림이 매월 1일 오전에 전월 기준으로 계산되던 문제를 로컬(한국) 시간 기준으로 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -4954,7 +4954,7 @@
             _daTempFile = null;
             document.getElementById('da-form-vendor').value = '';
             document.getElementById('da-form-type').value = '세금계산서';
-            document.getElementById('da-form-date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('da-form-date').value = localDateStr();
             document.getElementById('da-form-memo').value = '';
             document.getElementById('da-form-file').value = '';
             document.getElementById('da-file-preview').classList.add('hidden');
@@ -5383,7 +5383,7 @@
 
             const statusColor = { '완납':'#059669', '부분지급':'#d97706', '미지급':'#dc2626' };
 
-            const todayStr = new Date().toISOString().slice(0, 10);
+            const todayStr = localDateStr();
 
             tbody.innerHTML = filtered.map(p => {
                 const isOverdue = p.status !== '완납' && p.payDueDate && p.payDueDate < todayStr;
@@ -5446,7 +5446,7 @@
             ws['!cols'] = [{wch:10},{wch:18},{wch:10},{wch:20},{wch:14},{wch:12},{wch:12},{wch:14},{wch:14},{wch:20}];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '대금지급현황');
-            const ts = new Date().toISOString().slice(0,10);
+            const ts = localDateStr();
             XLSX.writeFile(wb, `대금지급현황_${ts}.xlsx`);
             showToast('대금지급현황을 엑셀로 내보냈습니다.', 'success');
         }
@@ -9340,12 +9340,22 @@ function changePrintScale(value) {
             }, 80);
         }
 
+        // ★ 로컬(한국) 시간 기준 날짜/월 문자열 — toISOString()은 UTC 기준이라 KST에서
+        //   매월 1일 00~09시 및 "월 첫날 Date 객체"가 전월로 밀리는 오류가 있어 대체
+        function localDateStr(d) {
+            d = d || new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        function localMonthStr(d) {
+            return localDateStr(d).slice(0, 7);
+        }
+
         // YYYY년 MM월 형식 → YYYY-MM 변환
         function docMonthToYYYYMM(monthStr) {
-            if (!monthStr) return new Date().toISOString().slice(0,7);
+            if (!monthStr) return localMonthStr();
             const m = String(monthStr).match(/(\d{4})\s*년?\s*(\d{1,2})\s*월?/);
             if (m) return `${m[1]}-${m[2].padStart(2,'0')}`;
-            return new Date().toISOString().slice(0,7);
+            return localMonthStr();
         }
 
         /* 거래처별 지급 누계 배지 갱신 (자금청구 현재 문서 + 지불의뢰 발행이력 이번 달 기준) */
@@ -9768,7 +9778,7 @@ function changePrintScale(value) {
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `구비서류체크리스트_백업_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `구비서류체크리스트_백업_${localDateStr()}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
             showToast(`체크리스트 항목 ${items.length}개 백업 완료`, 'success');
@@ -11630,7 +11640,7 @@ function changePrintScale(value) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `계좌DB_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("download", `계좌DB_${localDateStr()}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -11794,7 +11804,7 @@ function changePrintScale(value) {
             const blob = new Blob([JSON.stringify(dataToBackup, null, 2)], { type: 'application/json' });
             const url  = URL.createObjectURL(blob);
             const a    = document.createElement('a');
-            const ts   = new Date().toISOString().slice(0, 10);
+            const ts   = localDateStr();
             a.href     = url;
             a.download = `자금관리_전체백업_${ts}.json`;
             document.body.appendChild(a); a.click(); a.remove();
@@ -11815,7 +11825,7 @@ function changePrintScale(value) {
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url  = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url; link.download = `계좌DB_백업_${new Date().toISOString().slice(0,10)}.csv`;
+            link.href = url; link.download = `계좌DB_백업_${localDateStr()}.csv`;
             document.body.appendChild(link); link.click(); link.remove();
             showToast('계좌 DB CSV 백업 완료!');
         }
@@ -13095,7 +13105,7 @@ function changePrintScale(value) {
             XLSX.utils.book_append_sheet(wb, ws, '총투입비');
 
             const filterLabel = [companyFilter, siteFilter].filter(Boolean).join('_') || '전체';
-            XLSX.writeFile(wb, `총투입비_${filterLabel.replace(/[\\/*?:"<>|]/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `총투입비_${filterLabel.replace(/[\\/*?:"<>|]/g,'_')}_${localDateStr()}.xlsx`);
             showToast('엑셀 내보내기 완료', 'success');
         }
 
@@ -13223,7 +13233,7 @@ function changePrintScale(value) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `총투입비_${filterLabel.replace(/[\\/*?:"<>|]/g,'_')}_${new Date().toISOString().slice(0,10)}.html`;
+            a.download = `총투입비_${filterLabel.replace(/[\\/*?:"<>|]/g,'_')}_${localDateStr()}.html`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -14681,7 +14691,7 @@ function changePrintScale(value) {
             sheets.unshift({ name:'집계표', rows: sumRows, merges: sumMerges, colWidths:[24,12,18,16,16,18] });
 
             const blob = await makeXlsxBlob(sheets);
-            const filename = `${docLabel}_본사보고용_${new Date().toISOString().slice(0,10)}.xlsx`;
+            const filename = `${docLabel}_본사보고용_${localDateStr()}.xlsx`;
             downloadBlob(blob, filename);
             showToast(`본사 보고용 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${summaryData.length}건 · 법인카드 ${ccList.length}건 · 개인경비 ${peList.length}건)`);
         }
@@ -14958,7 +14968,7 @@ function changePrintScale(value) {
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const filename = mode === 'current'
                 ? `지불의뢰서_${docLabel}_${(document.getElementById('req-field-vendor')?.value||'').trim()}.html`
-                : `지불의뢰서_전체_${docLabel}_${new Date().toISOString().slice(0,10)}.html`;
+                : `지불의뢰서_전체_${docLabel}_${localDateStr()}.html`;
             downloadBlob(blob, filename);
             showToast(`지불의뢰서 HTML 저장 완료! (${count}건)`);
         }
@@ -15328,7 +15338,7 @@ ${REQ_CARD_CSS}
 </body></html>`;
 
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-            const filename = `${docLabel}_본사제출용_${new Date().toISOString().slice(0,10)}.html`;
+            const filename = `${docLabel}_본사제출용_${localDateStr()}.html`;
             downloadBlob(blob, filename);
             showToast(`본사 제출용 HTML 파일 저장 완료! (청구 ${dataset.length}행 · 지불의뢰서 ${reqCount}건 · 법인카드 ${ccList.length}건 · 개인경비 ${peList.length}건)`);
         }
@@ -15680,7 +15690,7 @@ ${REQ_CARD_CSS}
 
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const companyTag = (selectedCompany && selectedCompany !== '__ALL__') ? `_${selectedCompany.replace(/[\\/:*?"<>|]/g,'')}` : '';
-            const filename = `본사조회용_전체월${companyTag}_${new Date().toISOString().slice(0,10)}.html`;
+            const filename = `본사조회용_전체월${companyTag}_${localDateStr()}.html`;
             downloadBlob(blob, filename);
             showToast(`본사 조회용 HTML 저장 완료! (${sortedDocs.length}개월 문서 포함)`);
             closeHQArchiveModal();
@@ -17407,7 +17417,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             //   KPI는 계속 "오늘 기준 이번달" 데이터만 보여주는 불일치가 있었음.
             //   현재 선택된 문서(currentDoc)의 월을 기준으로 계산한다.
             const currentDoc = (typeof savedDocuments !== 'undefined') ? savedDocuments.find(d => d.id === currentDocId) : null;
-            const thisMonth = currentDoc ? docMonthToYYYYMM(currentDoc.month) : new Date().toISOString().slice(0,7); // YYYY-MM
+            const thisMonth = currentDoc ? docMonthToYYYYMM(currentDoc.month) : localMonthStr(); // YYYY-MM
             const fmt = n => Number(n||0).toLocaleString('ko-KR') + '원';
 
             // ★ 법인카드 데이터는 해당 탭을 열기 전까지 ccData가 비어있을 수 있으므로
@@ -17572,7 +17582,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 // ── 대금지급현황 연체(지급예정일 경과 + 미완납) 알림 ──
                 if (typeof pmLoad === 'function') {
                     pmLoad();
-                    const todayStr2 = new Date().toISOString().slice(0, 10);
+                    const todayStr2 = localDateStr();
                     const overdueItems = paymentStatus.filter(p => {
                         const balance = (p.claimAmount||0) - (p.payAmount||0);
                         return balance > 0 && p.payDueDate && p.payDueDate < todayStr2;
@@ -17607,7 +17617,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 const now = new Date();
                 for (let i = 5; i >= 0; i--) {
                     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                    months.push(d.toISOString().slice(0,7));
+                    months.push(localMonthStr(d));
                 }
                 const monthTotals = {};
                 months.forEach(m => monthTotals[m] = 0);
@@ -18115,7 +18125,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '전체검색결과');
             const q = (document.getElementById('global-search-input')?.value || '검색').trim().replace(/[\\/*?:"<>|]/g, '_');
-            const ts = new Date().toISOString().slice(0,10);
+            const ts = localDateStr();
             XLSX.writeFile(wb, `전체검색_${q}_${ts}.xlsx`);
             showToast(`검색 결과 ${_globalSearchLastResults.length}건을 엑셀로 내보냈습니다.`, 'success');
         }
@@ -18300,7 +18310,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (mEl) {
                 const m = period.match(/(\d{4})년\s*(\d{2})월/);
                 if (m) mEl.value = m[1]+'-'+m[2];
-                else mEl.value = new Date().toISOString().slice(0,7);
+                else mEl.value = localMonthStr();
             }
             if (document.getElementById('rh-save-vendor')) document.getElementById('rh-save-vendor').value = vendor || '(거래처 미입력)';
             if (document.getElementById('rh-save-memo'))   document.getElementById('rh-save-memo').value = '';
@@ -18564,7 +18574,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             ws['!cols'] = [5,10,18,12,20,28,12,16,14,12,12,18,12,20,20].map(w=>({wch:w}));
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '발행이력');
-            XLSX.writeFile(wb, `지불의뢰서_발행이력_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `지불의뢰서_발행이력_${localDateStr()}.xlsx`);
             showToast('Excel 파일이 저장되었습니다.');
         }
 
@@ -18687,7 +18697,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         /* KPI 카드 갱신 */
         function ccUpdateKpi(filtered) {
             const total = ccData.reduce((s,r)=>s+Number(r.amount||0),0);
-            const thisMonth = new Date().toISOString().slice(0,7);
+            const thisMonth = localMonthStr();
             const monthTotal = ccData.filter(r=>(r.date||'').startsWith(thisMonth)).reduce((s,r)=>s+Number(r.amount||0),0);
             const count = filtered.length;
             const catCount = {};
@@ -19043,7 +19053,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             ccRefreshFilterOptions();
             document.getElementById('cc-edit-id').value = '';
             document.getElementById('cc-modal-title').textContent = '법인카드 내역 추가';
-            document.getElementById('cc-edit-date').value = new Date().toISOString().slice(0,10);
+            document.getElementById('cc-edit-date').value = localDateStr();
             document.getElementById('cc-edit-cat').value = '유류비';
             document.getElementById('cc-edit-prooftype').value = '';
             document.getElementById('cc-edit-merchant').value = '';
@@ -19346,7 +19356,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             });
 
             const fileCompanyPart = companyVal ? `_${companyVal}` : '';
-            XLSX.writeFile(wb, `법인카드경비${fileCompanyPart}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `법인카드경비${fileCompanyPart}_${localDateStr()}.xlsx`);
             showToast(`엑셀 내보내기 완료 (${companyLabel} · ${filtered.length}건)`, 'success');
         }
 
@@ -19473,7 +19483,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const blob = new Blob([JSON.stringify(ccData, null, 2)], { type:'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `법인카드경비_백업_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `법인카드경비_백업_${localDateStr()}.json`;
             a.click();
             showToast('백업 파일 다운로드 완료', 'success');
         }
@@ -19769,7 +19779,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!wrap) return;
             if (status === 'settled') {
                 wrap.style.opacity = '1';
-                if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+                if (dateInput && !dateInput.value) dateInput.value = localDateStr();
             } else {
                 wrap.style.opacity = '0.5';
             }
@@ -19787,7 +19797,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             peRefreshFilterOptions();
             document.getElementById('pe-edit-id').value = '';
             document.getElementById('pe-modal-title').textContent = '개인경비 내역 추가';
-            document.getElementById('pe-edit-date').value = new Date().toISOString().slice(0,10);
+            document.getElementById('pe-edit-date').value = localDateStr();
             document.getElementById('pe-edit-employee').value = '';
             document.getElementById('pe-edit-cat').value = '유류비';
             document.getElementById('pe-edit-merchant').value = '';
@@ -19931,7 +19941,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const holder   = document.getElementById('pe-edit-holder').value.trim();
             const account  = document.getElementById('pe-edit-account').value.trim();
             const status   = document.getElementById('pe-edit-status').value;
-            const settleDate = status === 'settled' ? (document.getElementById('pe-edit-settledate').value || new Date().toISOString().slice(0,10)) : '';
+            const settleDate = status === 'settled' ? (document.getElementById('pe-edit-settledate').value || localDateStr()) : '';
             const memo     = document.getElementById('pe-edit-memo').value.trim();
 
             if (!date)     { showToast('사용일자를 입력하세요.', 'error'); return; }
@@ -19967,7 +19977,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (!confirm('입금계좌가 등록되어 있지 않습니다. 그래도 정산완료로 처리하시겠습니까?')) return;
             }
             peData[idx].status = 'settled';
-            peData[idx].settleDate = new Date().toISOString().slice(0,10);
+            peData[idx].settleDate = localDateStr();
             peSave();
             peRender();
             showToast(`[${peData[idx].employee}] 정산완료 처리되었습니다.`, 'success');
@@ -20088,7 +20098,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             peData = peLoad();
             const months = [...new Set(peData.map(r => (r.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
             const sel = document.getElementById('pe-close-month');
-            const thisMonth = new Date().toISOString().slice(0,7);
+            const thisMonth = localMonthStr();
             sel.innerHTML = '<option value="">전체 기간</option>' + months.map(m=>`<option value="${m}" ${m===thisMonth?'selected':''}>${m}</option>`).join('');
             sel.onchange = peUpdateClosePreview;
             peUpdateClosePreview();
@@ -20272,7 +20282,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 XLSX.utils.book_append_sheet(wb, ws2, '미정산_이체실행용');
             }
 
-            XLSX.writeFile(wb, `개인경비정산_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `개인경비정산_${localDateStr()}.xlsx`);
             showToast(`엑셀 내보내기 완료 (${filtered.length}건)`, 'success');
         }
 
@@ -20343,7 +20353,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const blob = new Blob([JSON.stringify(peData, null, 2)], { type:'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `개인경비정산_백업_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `개인경비정산_백업_${localDateStr()}.json`;
             a.click();
             showToast('백업 파일 다운로드 완료', 'success');
         }
