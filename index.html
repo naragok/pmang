@@ -1886,23 +1886,29 @@
                             style="font-size:1.15rem;">
 
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-gray-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 flex-1">
-                            <div class="flex items-center gap-1.5 min-w-0 group/meta">
+                            <div class="flex items-center gap-1.5 min-w-0 group/meta relative">
                                 <span class="shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">현장명</span>
-                                <input type="text" id="meta-site" list="meta-site-list" value="" onchange="syncMetaValues('meta-site', this.value)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-indigo-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]" placeholder="현장명을 입력하세요">
+                                <input type="text" id="meta-site" list="meta-site-list" value="" onchange="syncMetaValues('meta-site', this.value)" onkeydown="handleMetaFieldKeydown(event, this, 'site');" title="→ 키 또는 ▼ 버튼: 현장 목록 열기 (↑↓ 이동, Enter 선택, Esc 닫기)" class="border-b border-transparent group-hover/meta:border-indigo-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]" placeholder="현장명을 입력하세요">
+                                <button type="button" data-meta-dd-btn="1" onclick="event.stopPropagation(); toggleMetaDropdown('site');" title="현장 목록" class="no-print shrink-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </button>
                                 <datalist id="meta-site-list"></datalist>
                             </div>
                             <div class="flex items-center gap-1.5 min-w-0 group/meta relative">
                                 <span class="shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">작성월</span>
-                                <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" onkeydown="handleMetaMonthKeydown(event, this);" title="→ 키 또는 ▼ 버튼: 명세서 목록 열기 (↑↓ 이동, Enter 선택, Esc 닫기)" class="border-b border-transparent group-hover/meta:border-emerald-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]">
-                                <button type="button" onclick="event.stopPropagation(); openMetaMonthDropdown(document.getElementById('meta-month'));" title="작성된 명세서 목록" class="no-print shrink-0 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400">
+                                <input type="text" id="meta-month" list="meta-month-list" value="2026년 06월" onchange="syncMetaValues('meta-month', this.value)" onkeydown="handleMetaFieldKeydown(event, this, 'month');" title="→ 키 또는 ▼ 버튼: 명세서 목록 열기 (↑↓ 이동, Enter 선택, Esc 닫기)" class="border-b border-transparent group-hover/meta:border-emerald-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]">
+                                <button type="button" data-meta-dd-btn="1" onclick="event.stopPropagation(); toggleMetaDropdown('month');" title="작성된 명세서 목록" class="no-print shrink-0 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400">
                                     <i data-lucide="chevron-down" class="w-3 h-3"></i>
                                 </button>
                                 <datalist id="meta-month-list"></datalist>
                             </div>
-                            <div class="flex items-center gap-1.5 min-w-0 group/meta">
+                            <div class="flex items-center gap-1.5 min-w-0 group/meta relative">
                                 <span class="shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300">회사명</span>
-                                <input type="text" id="meta-company" list="meta-company-list" value="" onchange="syncMetaValues('meta-company', this.value)" onkeydown="if(event.key==='Enter')this.blur();" class="border-b border-transparent group-hover/meta:border-amber-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]" placeholder="회사명을 입력하세요">
+                                <input type="text" id="meta-company" list="meta-company-list" value="" onchange="syncMetaValues('meta-company', this.value)" onkeydown="handleMetaFieldKeydown(event, this, 'company');" title="→ 키 또는 ▼ 버튼: 회사 목록 열기 (↑↓ 이동, Enter 선택, Esc 닫기)" class="border-b border-transparent group-hover/meta:border-amber-300 px-0.5 py-0.5 focus:border-blue-500 font-bold w-full text-slate-800 dark:text-slate-100 bg-transparent truncate outline-none text-[12.5px]" placeholder="회사명을 입력하세요">
                                 <datalist id="meta-company-list"></datalist>
+                                <button type="button" data-meta-dd-btn="1" onclick="event.stopPropagation(); toggleMetaDropdown('company');" title="회사 목록" class="no-print shrink-0 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400">
+                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </button>
                                 <button type="button" onclick="event.stopPropagation(); openMoveDocCompanyModal();" class="no-print shrink-0 text-slate-300 hover:text-amber-500" title="이 청구서를 다른 회사로 이동">
                                     <i data-lucide="arrow-right-left" class="w-3 h-3"></i>
                                 </button>
@@ -4710,9 +4716,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '6.8';
-        const APP_VERSION_DATE = '2026-09-20';
-        const APP_VERSION_NOTE = '청구명세서 표가 해상도와 무관하게 가로 스크롤 없이 화면 폭에 모두 보이도록 개선 — 고정폭(min-w-[1680px]) 제거하고 table-layout:fixed로 전환해 각 열이 컨테이너 폭에 비례해 자동 축소되도록 함.';
+        const APP_VERSION = '6.9';
+        const APP_VERSION_DATE = '2026-09-28';
+        const APP_VERSION_NOTE = '청구명세서 현장명·작성월·회사명 입력칸에 드롭다운 추가 — → 키 또는 ▼ 버튼으로 목록을 열어(↑↓ 이동, Enter 선택, Esc 닫기) 해당 현장/명세서/회사의 청구서로 바로 이동.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -10573,147 +10579,196 @@ function changePrintScale(value) {
             populateMetaDatalists();
         }
 
-        /* ── 작성월 입력칸: → 키 또는 ▼ 버튼을 누르면 작성된 명세서 목록을 보여준다 ── */
-        let metaMonthDropdownDocs = [];
-        let metaMonthDropdownIndex = -1;
+        /* ── 현장명 / 작성월 / 회사명 입력칸: → 키 또는 ▼ 버튼을 누르면 목록 드롭다운 ──
+           - 현장명: 등록된 현장 목록 → 선택 시 그 현장의 (같은 월 우선) 명세서로 이동
+           - 작성월: 현재 현장의 작성된 명세서 목록 → 선택 시 해당 명세서로 이동
+           - 회사명: 현재 현장의 회사 목록 → 선택 시 그 회사의 (같은 월 우선) 명세서로 이동 */
+        const META_DD_THEME = {
+            site:    { title: '현장 선택',   icon: 'map-pin',        badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300', active: ['bg-indigo-50', 'dark:bg-indigo-900/40'], cur: 'text-indigo-700 dark:text-indigo-300' },
+            month:   { title: '명세서',      icon: 'calendar-clock', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300', active: ['bg-emerald-50', 'dark:bg-emerald-900/40'], cur: 'text-emerald-700 dark:text-emerald-300' },
+            company: { title: '회사 선택',   icon: 'building-2',     badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300', active: ['bg-amber-50', 'dark:bg-amber-900/40'], cur: 'text-amber-700 dark:text-amber-300' }
+        };
+        const META_DD_INPUT_ID = { site: 'meta-site', month: 'meta-month', company: 'meta-company' };
+        let metaDd = { field: null, items: [], index: -1 };
 
-        function handleMetaMonthKeydown(e, inputEl) {
-            const dd = document.getElementById('meta-month-dropdown');
+        function escapeMetaHtml(v) {
+            return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        /* 후보 문서들 중 이동할 문서 선택: 같은 월(+같은 회사) 우선, 없으면 가장 최근 월 */
+        function pickMetaTargetDoc(docs, preferMonth, preferCompany) {
+            if (!docs.length) return null;
+            let hit = null;
+            if (preferCompany) hit = docs.find(d => d.month === preferMonth && d.company === preferCompany);
+            if (!hit) hit = docs.find(d => d.month === preferMonth);
+            if (!hit) hit = docs.slice().sort((a, b) => parseMonthToNum(b.month) - parseMonthToNum(a.month))[0];
+            return hit;
+        }
+
+        function buildMetaDropdownData(field) {
+            const allDocs = savedDocuments || [];
+            const curDoc = allDocs.find(d => d.id === currentDocId) || {};
+            const site = (document.getElementById('meta-site')?.value || '').trim();
+            const month = (document.getElementById('meta-month')?.value || '').trim();
+            const company = (document.getElementById('meta-company')?.value || '').trim();
+            const siteDocs = site ? allDocs.filter(d => (d.site || '').trim() === site) : allDocs.slice();
+
+            if (field === 'month') {
+                const docs = siteDocs.slice().sort((a, b) => {
+                    const c = parseMonthToNum(a.month) - parseMonthToNum(b.month);
+                    return c !== 0 ? c : (a.company || '').localeCompare(b.company || '', 'ko-KR');
+                });
+                return {
+                    header: `${site || '전체 현장'} 명세서`,
+                    items: docs.map(d => {
+                        const y = (d.month || '').match(/\d{4}/);
+                        return { docId: d.id, title: d.month || '(월 미지정)', sub: d.company || '(회사명 없음)', group: (y ? y[0] : '기타') + '년', isCurrent: d.id === currentDocId };
+                    })
+                };
+            }
+
+            if (field === 'site') {
+                const map = new Map();
+                allDocs.forEach(d => { const k = (d.site || '').trim(); if (k) { if (!map.has(k)) map.set(k, []); map.get(k).push(d); } });
+                const items = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ko-KR')).map(([name, docs]) => {
+                    const latest = docs.slice().sort((a, b) => parseMonthToNum(b.month) - parseMonthToNum(a.month))[0];
+                    const target = pickMetaTargetDoc(docs, month, company);
+                    return { docId: target ? target.id : null, title: name, sub: `${docs.length}건 · 최근 ${latest.month || '-'}`, isCurrent: name === site };
+                });
+                return { header: '등록된 현장', items };
+            }
+
+            // company
+            const map = new Map();
+            siteDocs.forEach(d => { const k = (d.company || '').trim(); if (k) { if (!map.has(k)) map.set(k, []); map.get(k).push(d); } });
+            const items = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ko-KR')).map(([name, docs]) => {
+                const target = pickMetaTargetDoc(docs, month, null);
+                return { docId: target ? target.id : null, title: name, sub: `${docs.length}개월 작성`, isCurrent: name === company };
+            });
+            return { header: `${site || '전체 현장'} 회사`, items };
+        }
+
+        function handleMetaFieldKeydown(e, inputEl, field) {
+            const dd = document.getElementById('meta-dd');
             if (dd) {
-                // 드롭다운이 열려 있는 동안엔 위/아래로 항목 이동, Enter로 선택
-                if (e.key === 'ArrowDown') { e.preventDefault(); moveMetaMonthDropdownSelection(1); return; }
-                if (e.key === 'ArrowUp')   { e.preventDefault(); moveMetaMonthDropdownSelection(-1); return; }
-                if (e.key === 'Enter')     { e.preventDefault(); confirmMetaMonthDropdownSelection(); return; }
-                if (e.key === 'Escape')    { e.preventDefault(); closeMetaMonthDropdown(); return; }
-                if (e.key === 'ArrowRight') { e.preventDefault(); return; }
+                if (e.key === 'ArrowDown') { e.preventDefault(); moveMetaDropdownSelection(1); return; }
+                if (e.key === 'ArrowUp')   { e.preventDefault(); moveMetaDropdownSelection(-1); return; }
+                if (e.key === 'Enter')     { e.preventDefault(); confirmMetaDropdownSelection(); return; }
+                if (e.key === 'Escape')    { e.preventDefault(); closeMetaDropdown(); return; }
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); return; }
                 return;
             }
             if (e.key === 'Enter') { inputEl.blur(); return; }
             if (e.key === 'ArrowRight') {
                 e.preventDefault();
-                openMetaMonthDropdown(inputEl);
+                openMetaDropdown(field);
             }
         }
 
-        function openMetaMonthDropdown(inputEl) {
-            closeMetaMonthDropdown();
+        function toggleMetaDropdown(field) {
+            if (document.getElementById('meta-dd') && metaDd.field === field) closeMetaDropdown();
+            else openMetaDropdown(field);
+        }
 
-            // 현재 선택된 현장 기준으로 작성된 명세서 목록을 모은다 (현장명이 비어 있으면 전체)
-            const site = (document.getElementById('meta-site')?.value || '').trim();
-            let docs = (savedDocuments || []).slice();
-            if (site) docs = docs.filter(d => (d.site || '').trim() === site);
+        function openMetaDropdown(field) {
+            closeMetaDropdown();
+            const inputEl = document.getElementById(META_DD_INPUT_ID[field]);
+            if (!inputEl) return;
 
-            if (docs.length === 0) {
-                showToast('작성된 명세서가 없습니다.', 'error');
+            const data = buildMetaDropdownData(field);
+            if (!data.items.length) {
+                showToast(field === 'month' ? '작성된 명세서가 없습니다.' : '등록된 항목이 없습니다.', 'error');
                 return;
             }
-
-            docs.sort((a, b) => {
-                const monthCmp = parseMonthToNum(a.month) - parseMonthToNum(b.month);
-                if (monthCmp !== 0) return monthCmp;
-                return (a.company || '').localeCompare(b.company || '', 'ko-KR');
-            });
-
-            metaMonthDropdownDocs = docs;
-            metaMonthDropdownIndex = Math.max(0, docs.findIndex(d => d.id === currentDocId));
+            const theme = META_DD_THEME[field];
+            metaDd = { field, items: data.items, index: Math.max(0, data.items.findIndex(i => i.isCurrent)) };
 
             const wrap = document.createElement('div');
-            wrap.id = 'meta-month-dropdown';
-            wrap.className = 'absolute z-50 top-full left-0 mt-1.5 w-64 max-w-[80vw] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-2xl text-[12px] opacity-0 scale-95 origin-top-left transition duration-100 ease-out overflow-hidden';
+            wrap.id = 'meta-dd';
+            wrap.className = 'absolute z-50 top-full left-0 mt-1.5 w-64 max-w-[80vw] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-2xl text-[12px] opacity-0 scale-95 origin-top-left transition duration-100 ease-out overflow-hidden no-print';
 
-            // 말풍선 꼭짓점
             const caret = document.createElement('div');
             caret.className = 'absolute -top-1.5 left-4 w-3 h-3 bg-white dark:bg-slate-800 border-t border-l border-slate-200 dark:border-slate-600 rotate-45';
             wrap.appendChild(caret);
 
-            // 상단 헤더
             const header = document.createElement('div');
             header.className = 'relative px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2';
-            header.innerHTML = `<span class="flex items-center gap-1.5 font-bold text-slate-600 dark:text-slate-300"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${site ? site : '전체 현장'} 명세서</span>
-                                 <span class="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold">${docs.length}건</span>`;
+            header.innerHTML = `<span class="flex items-center gap-1.5 font-bold text-slate-600 dark:text-slate-300 min-w-0"><i data-lucide="${theme.icon}" class="w-3.5 h-3.5 shrink-0"></i><span class="truncate">${escapeMetaHtml(data.header)}</span></span>
+                                <span class="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-bold ${theme.badge}">${data.items.length}건</span>`;
             wrap.appendChild(header);
 
-            // 목록 (연도별 그룹핑)
             const listBox = document.createElement('div');
-            listBox.id = 'meta-month-dropdown-list';
+            listBox.id = 'meta-dd-list';
             listBox.className = 'max-h-64 overflow-y-auto py-1';
 
-            let lastYear = null;
-            docs.forEach((doc, idx) => {
-                const yearMatch = (doc.month || '').match(/\d{4}/);
-                const year = yearMatch ? yearMatch[0] : '기타';
-                if (year !== lastYear) {
-                    const yearHead = document.createElement('div');
-                    yearHead.className = 'sticky top-0 px-3 pt-1.5 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800';
-                    yearHead.textContent = year + '년';
-                    listBox.appendChild(yearHead);
-                    lastYear = year;
+            let lastGroup = null;
+            data.items.forEach((it, idx) => {
+                if (it.group && it.group !== lastGroup) {
+                    const gh = document.createElement('div');
+                    gh.className = 'sticky top-0 px-3 pt-1.5 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800';
+                    gh.textContent = it.group;
+                    listBox.appendChild(gh);
+                    lastGroup = it.group;
                 }
-
-                const isCurrent = doc.id === currentDocId;
-                const item = document.createElement('div');
-                item.dataset.idx = idx;
-                item.className = 'meta-month-dd-item mx-1 px-2.5 py-1.5 rounded-lg cursor-pointer flex items-center gap-2 ' +
-                    (isCurrent ? 'text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-700 dark:text-slate-200');
-                item.innerHTML = `
-                    <span class="w-3.5 shrink-0 flex items-center justify-center">${isCurrent ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}</span>
+                const row = document.createElement('div');
+                row.dataset.idx = idx;
+                row.className = 'meta-dd-item mx-1 px-2.5 py-1.5 rounded-lg cursor-pointer flex items-center gap-2 ' + (it.isCurrent ? theme.cur + ' font-bold' : 'text-slate-700 dark:text-slate-200');
+                row.innerHTML = `
+                    <span class="w-3.5 shrink-0 flex items-center justify-center">${it.isCurrent ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}</span>
                     <span class="flex-1 min-w-0">
-                        <span class="block truncate">${doc.month || '(월 미지정)'}</span>
-                        <span class="block truncate text-[10px] font-normal text-slate-400 dark:text-slate-500">${doc.company || '(회사명 없음)'}</span>
+                        <span class="block truncate">${escapeMetaHtml(it.title)}</span>
+                        <span class="block truncate text-[10px] font-normal text-slate-400 dark:text-slate-500">${escapeMetaHtml(it.sub)}</span>
                     </span>`;
-                item.onclick = () => {
-                    loadSavedDocument(doc.id);
-                    closeMetaMonthDropdown();
-                };
-                item.onmouseenter = () => setMetaMonthDropdownIndex(idx, false);
-                listBox.appendChild(item);
+                row.onclick = () => { setMetaDropdownIndex(idx, false); confirmMetaDropdownSelection(); };
+                row.onmouseenter = () => setMetaDropdownIndex(idx, false);
+                listBox.appendChild(row);
             });
             wrap.appendChild(listBox);
 
             inputEl.parentElement.appendChild(wrap);
             if (window.lucide) lucide.createIcons();
             requestAnimationFrame(() => wrap.classList.remove('opacity-0', 'scale-95'));
-
-            setMetaMonthDropdownIndex(metaMonthDropdownIndex, true);
-            setTimeout(() => document.addEventListener('mousedown', handleMetaMonthDropdownOutsideClick), 0);
+            setMetaDropdownIndex(metaDd.index, true);
+            setTimeout(() => document.addEventListener('mousedown', handleMetaDropdownOutsideClick), 0);
         }
 
-        function setMetaMonthDropdownIndex(idx, scrollIntoView) {
-            const listBox = document.getElementById('meta-month-dropdown-list');
+        function setMetaDropdownIndex(idx, scrollIntoView) {
+            const listBox = document.getElementById('meta-dd-list');
             if (!listBox) return;
-            metaMonthDropdownIndex = idx;
-            listBox.querySelectorAll('.meta-month-dd-item').forEach(el => {
+            metaDd.index = idx;
+            const theme = META_DD_THEME[metaDd.field];
+            listBox.querySelectorAll('.meta-dd-item').forEach(el => {
                 const active = Number(el.dataset.idx) === idx;
-                el.classList.toggle('bg-emerald-50', active);
-                el.classList.toggle('dark:bg-emerald-900/40', active);
+                theme.active.forEach(c => el.classList.toggle(c, active));
                 if (active && scrollIntoView) el.scrollIntoView({ block: 'nearest' });
             });
         }
 
-        function moveMetaMonthDropdownSelection(delta) {
-            if (!metaMonthDropdownDocs.length) return;
-            let next = metaMonthDropdownIndex + delta;
-            next = Math.max(0, Math.min(metaMonthDropdownDocs.length - 1, next));
-            setMetaMonthDropdownIndex(next, true);
+        function moveMetaDropdownSelection(delta) {
+            if (!metaDd.items.length) return;
+            setMetaDropdownIndex(Math.max(0, Math.min(metaDd.items.length - 1, metaDd.index + delta)), true);
         }
 
-        function confirmMetaMonthDropdownSelection() {
-            const doc = metaMonthDropdownDocs[metaMonthDropdownIndex];
-            if (doc) loadSavedDocument(doc.id);
-            closeMetaMonthDropdown();
+        function confirmMetaDropdownSelection() {
+            const it = metaDd.items[metaDd.index];
+            closeMetaDropdown();
+            if (it && it.docId && it.docId !== currentDocId) loadSavedDocument(it.docId);
         }
 
-        function handleMetaMonthDropdownOutsideClick(e) {
-            const dd = document.getElementById('meta-month-dropdown');
-            if (dd && !dd.contains(e.target) && e.target.id !== 'meta-month') closeMetaMonthDropdown();
+        function handleMetaDropdownOutsideClick(e) {
+            const dd = document.getElementById('meta-dd');
+            if (!dd) return;
+            if (dd.contains(e.target)) return;
+            if (e.target.closest && e.target.closest('[data-meta-dd-btn]')) return; // ▼ 버튼은 toggle 이 처리
+            if (e.target.id && Object.values(META_DD_INPUT_ID).includes(e.target.id)) return;
+            closeMetaDropdown();
         }
 
-        function closeMetaMonthDropdown() {
-            const dd = document.getElementById('meta-month-dropdown');
+        function closeMetaDropdown() {
+            const dd = document.getElementById('meta-dd');
             if (dd) dd.remove();
-            metaMonthDropdownDocs = [];
-            metaMonthDropdownIndex = -1;
-            document.removeEventListener('mousedown', handleMetaMonthDropdownOutsideClick);
+            metaDd = { field: null, items: [], index: -1 };
+            document.removeEventListener('mousedown', handleMetaDropdownOutsideClick);
         }
 
         /* 현장명/작성월/회사명 입력칸의 자동완성 목록을 과거 등록된 모든 문서 기준으로 채운다 */
