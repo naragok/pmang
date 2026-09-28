@@ -4716,9 +4716,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '7.0';
+        const APP_VERSION = '7.1';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '대시보드 날짜 계산 오류 수정 — 월별 자금 흐름 차트가 한 달씩 밀려 이번 달이 빠지던 문제, 이번 달 판정/지급 연체 알림이 매월 1일 오전에 전월 기준으로 계산되던 문제를 로컬(한국) 시간 기준으로 수정.';
+        const APP_VERSION_NOTE = '지불의뢰서 오류 수정 — 품목명에 " 가 있으면 입력칸이 잘리던 문제, 개별 행 의뢰서에서 같은 거래처 다른 행의 선지급까지 차감되던 문제, 직접 입력 선택/새로고침 시 빈 품목행이 누적되던 문제.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -9857,7 +9857,9 @@ function changePrintScale(value) {
                     document.getElementById('quick-vendor-name').textContent = "미지정";
                 }
                 
-                requestItems.push({ item: "", qty: "1.0", supply: 0, tax: 0 });
+                if (!isSameKey) {
+                    requestItems = [{ item: "", qty: "1.0", supply: 0, tax: 0 }];
+                }
                 renderRequestItemsTable();
                 return;
             }
@@ -10002,6 +10004,11 @@ function changePrintScale(value) {
             renderRequestItemsTable();
         }
 
+        // HTML 속성값 이스케이프 — 품목명에 " (인치 표기 등)나 < > & 가 들어가도 입력칸이 깨지지 않게 함
+        function escapeAttrReq(v) {
+            return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
         function renderRequestItemsTable() {
             const tbody = document.getElementById('req-items-tbody');
             if (!tbody) return;
@@ -10019,10 +10026,10 @@ function changePrintScale(value) {
                 tr.className = "divide-x divide-slate-300 dark:divide-slate-700 text-slate-850 dark:text-slate-100";
                 tr.innerHTML = `
                     <td class="py-2 px-1">
-                        <input type="text" value="${item.item}" onchange="updateRequestItem(${index}, 'item', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-800 dark:text-slate-250 outline-none">
+                        <input type="text" value="${escapeAttrReq(item.item)}" onchange="updateRequestItem(${index}, 'item', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-800 dark:text-slate-250 outline-none">
                     </td>
                     <td class="py-2 px-1">
-                        <input type="text" value="${item.qty}" onchange="updateRequestItem(${index}, 'qty', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-bold dark:text-slate-300 outline-none">
+                        <input type="text" value="${escapeAttrReq(item.qty)}" onchange="updateRequestItem(${index}, 'qty', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-bold dark:text-slate-300 outline-none">
                     </td>
                     <td class="py-2 px-1">
                         <input type="text" value="${Number(item.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'supply', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-bold text-slate-900 dark:text-slate-100 px-1.5 outline-none">
@@ -10049,9 +10056,17 @@ function changePrintScale(value) {
             if (showPrepaid) {
                 const vendorName = document.getElementById('req-field-vendor')?.value?.trim() || '';
                 const ceoName    = document.getElementById('req-field-ceo')?.value?.trim() || '';
-                prepaidSum = dataset
-                    .filter(r => r.vendor === vendorName && (r.ceo||'') === ceoName)
-                    .reduce((s, r) => s + (r.prepaid || 0), 0);
+                const selKey     = document.getElementById('request-selector')?.value || '';
+                let prepaidRows;
+                if (selKey.startsWith('row-')) {
+                    // 개별 행 의뢰서 — 그 행의 선지급만 차감 (같은 거래처의 다른 행 선지급까지 빼던 오류 수정)
+                    prepaidRows = dataset.filter(r => r.id == selKey.replace('row-', ''));
+                } else if (selKey.startsWith('combine-')) {
+                    prepaidRows = dataset.filter(r => r.vendor === selKey.replace('combine-', ''));
+                } else {
+                    prepaidRows = dataset.filter(r => r.vendor === vendorName && (r.ceo||'') === ceoName);
+                }
+                prepaidSum = prepaidRows.reduce((s, r) => s + (Number(r.prepaid) || 0), 0);
             }
             const finalTotal = finalSupplyTax - prepaidSum;
 
