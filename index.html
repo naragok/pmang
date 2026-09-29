@@ -4784,9 +4784,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '7.2';
+        const APP_VERSION = '7.5';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '지불의뢰서 표지 개선 — "사용자 입력 표지" 추가(제목·문구·제출일자·하단 항목 직접 입력/추가·삭제, 구성 자동 저장). 표지 창이 외부 CDN에 의존하지 않도록 수정해 스타일 깨짐/빈 화면 인쇄 방지.';
+        const APP_VERSION_NOTE = '청구명세서 항목 표 오류 수정 — 거래처명·적요에 " 나 <, > 가 들어가면 입력칸 값이 잘리고 표 구조 자체가 깨지던 문제(거래처 이력 버튼 포함).';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -7773,6 +7773,12 @@
             renderStatementTable();
         }
 
+        // 표 입력칸의 value="..." 속성 안에 들어갈 텍스트 이스케이프 — htmlEsc는 따옴표(")를 escape하지 않아
+        // 거래처명·적요에 "가 들어가면 입력칸 값이 잘리고 표가 깨지는 문제가 있어 별도로 둔다.
+        function escAttr(v) {
+            return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
         function renderStatementTable() {
             checkDuplicateContracts();
 
@@ -7987,7 +7993,7 @@
                     <td class="py-1 px-1 group/vendor">
                         <div class="flex items-center gap-0.5">
                             <div class="vendor-ac-wrap">
-                                <input type="text" value="${row.vendor || ''}" placeholder="기입" autocomplete="off"
+                                <input type="text" value="${escAttr(row.vendor)}" placeholder="기입" autocomplete="off"
                                     ondblclick="if(this.value) openVendorHistoryModal(this.value)"
                                     onblur="hideVendorAcDelayed(${row.id})"
                                     oninput="showVendorAc(this, ${row.id})"
@@ -7997,7 +8003,7 @@
                                     class="w-full bg-transparent text-left font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 outline-none">
                                 <div class="vendor-ac-dropdown" id="vac-${row.id}"></div>
                             </div>
-                            ${row.vendor ? `<button onclick="openVendorHistoryModal('${row.vendor.replace(/'/g,"\\'")}')" class="no-print shrink-0 opacity-0 group-hover/vendor:opacity-100 bg-blue-500 hover:bg-blue-600 text-white p-0.5 rounded transition-all" title="${row.vendor} 거래 이력 보기"><i data-lucide="history" class="w-3 h-3"></i></button>` : ''}
+                            ${row.vendor ? `<button onclick="openVendorHistoryModal('${escAttr(row.vendor).replace(/'/g,"\\'")}')" class="no-print shrink-0 opacity-0 group-hover/vendor:opacity-100 bg-blue-500 hover:bg-blue-600 text-white p-0.5 rounded transition-all" title="${escAttr(row.vendor)} 거래 이력 보기"><i data-lucide="history" class="w-3 h-3"></i></button>` : ''}
                         </div>
                     </td>
                     <td class="py-1 px-1">
@@ -8063,13 +8069,13 @@
                         </select>
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${row.note || ''}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                        <input type="text" value="${escAttr(row.note)}" placeholder="적요 기입" onblur="completeEditing(${row.id})" onchange="updateCell(${row.id}, 'note', this.value)" class="w-full bg-transparent text-left text-[11px] focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
                     </td>
                     <td class="py-1 px-1 no-print">
                         <button onclick="openMemoModal(${row.id})"
                             class="w-full flex items-center justify-center rounded transition-all ${row.memo ? 'hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'}"
                             style="${row.memo && extractTags(row.memo).length ? `color:${tagColor(extractTags(row.memo)[0])};` : (row.memo ? 'color:#f59e0b;' : '')}"
-                            title="${row.memo ? '메모 있음: ' + row.memo.substring(0, 30) + (row.memo.length > 30 ? '…' : '') : '메모 추가'}">
+                            title="${row.memo ? '메모 있음: ' + escAttr(row.memo.substring(0, 30)) + (row.memo.length > 30 ? '…' : '') : '메모 추가'}">
                             <i data-lucide="${row.memo ? 'message-square' : 'message-square-plus'}" class="w-3.5 h-3.5"></i>
                         </button>
                     </td>
@@ -13005,7 +13011,10 @@ function changePrintScale(value) {
                 });
             });
 
-            (typeof ccLoad === 'function' ? ccLoad() : []).forEach(r => {
+            // ★ 청구명세서에 이미 반영된(appliedToStatement) 법인카드/개인경비 건은 위 savedDocuments 순회에서
+            //   "관리비" 항목(예: 법인카드 사용액 반영, 개인경비 정산 반영)으로 이미 합산되었으므로 여기서 또 더하면
+            //   금액이 두 배로 집계된다. 아직 반영되지 않은 건만 법인카드/개인경비 항목에 별도로 더한다.
+            (typeof ccLoad === 'function' ? ccLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
                 const ym = (r.date || '').slice(0,7);
                 if (!ym) return;
                 const month = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
@@ -13014,8 +13023,9 @@ function changePrintScale(value) {
                 g.rows['법인카드'].push({ merchant: r.merchant||'', cat: r.cat||'', date: r.date||'', amount: Number(r.amount||0), memo: r.memo||'' });
             });
 
-            // ★ 개인경비 정산 — 정산완료 여부와 무관하게 실제 발생(사용)한 경비는 투입비에 포함
-            (typeof peLoad === 'function' ? peLoad() : []).forEach(r => {
+            // ★ 개인경비 정산 — 정산완료 여부와 무관하게 실제 발생(사용)한 경비는 투입비에 포함하되,
+            //   청구명세서에 이미 반영된 건은 위와 같은 이유로 제외한다.
+            (typeof peLoad === 'function' ? peLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
                 const ym = (r.date || '').slice(0,7);
                 if (!ym) return;
                 const month = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
@@ -18838,17 +18848,31 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             '기타':     { bg:'#f8fafc', text:'#475569', border:'#e2e8f0' },
         };
 
+        // ── 법인카드·개인경비 공통 헬퍼 ──
+        // HTML 이스케이프 — 가맹점명/메모 등에 < > & " 가 있어도 표·인쇄물이 깨지지 않게 함
+        function escCc(v) {
+            return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        // localStorage 저장 — 용량 초과(영수증 첨부 등) 시 예외로 죽지 않고 안내 후 false 반환
+        function safeLsSet(key, value) {
+            try { localStorage.setItem(key, value); return true; }
+            catch (e) {
+                showToast('브라우저 저장 공간이 부족해 저장하지 못했습니다. 큰 영수증(PDF/사진)이 첨부된 내역을 정리하거나, 백업 후 다시 시도해 주세요.', 'error');
+                return false;
+            }
+        }
+
         function ccLoad() {
             try { return JSON.parse(localStorage.getItem(CC_KEY) || '[]'); } catch(e) { return []; }
         }
         function ccSave() {
-            localStorage.setItem(CC_KEY, JSON.stringify(ccData));
+            return safeLsSet(CC_KEY, JSON.stringify(ccData));
         }
 
         /* 카테고리 뱃지 HTML */
         function ccCatBadge(cat) {
             const c = CC_CAT_COLORS[cat] || CC_CAT_COLORS['기타'];
-            return `<span style="background:${c.bg};color:${c.text};border:1px solid ${c.border};padding:1px 7px;border-radius:20px;font-weight:700;font-size:10px;white-space:nowrap;">${cat}</span>`;
+            return `<span style="background:${c.bg};color:${c.text};border:1px solid ${c.border};padding:1px 7px;border-radius:20px;font-weight:700;font-size:10px;white-space:nowrap;">${escCc(cat)}</span>`;
         }
 
         /* 적격증빙 구분 배지 — 공제가능/불가/미확인 3단계 색상 */
@@ -18906,27 +18930,27 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const curM = mSel?.value; const curS = sSel?.value; const curCo = coSel?.value;
 
             if (mSel) {
-                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${escCc(m)}">${escCc(m)}</option>`).join('');
                 if (curM) mSel.value = curM;
             }
             if (sSel) {
-                sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${s}">${s}</option>`).join('');
+                sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${escCc(s)}">${escCc(s)}</option>`).join('');
                 if (curS) sSel.value = curS;
             }
             if (coSel) {
-                coSel.innerHTML = '<option value="">전체 회사</option>' + companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+                coSel.innerHTML = '<option value="">전체 회사</option>' + companies.map(c=>`<option value="${escCc(c)}">${escCc(c)}</option>`).join('');
                 if (curCo) coSel.value = curCo;
             }
 
             // datalist 갱신
             const dl = document.getElementById('cc-site-datalist');
-            if (dl) dl.innerHTML = sites.map(s=>`<option value="${s}">`).join('');
+            if (dl) dl.innerHTML = sites.map(s=>`<option value="${escCc(s)}">`).join('');
 
             // ★ 법인카드 입력 폼(추가/수정 모달)의 회사 선택 옵션도 함께 갱신
             const editCoSel = document.getElementById('cc-edit-company');
             if (editCoSel) {
                 const curEditCo = editCoSel.value;
-                editCoSel.innerHTML = '<option value="">회사 미지정</option>' + companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+                editCoSel.innerHTML = '<option value="">회사 미지정</option>' + companies.map(c=>`<option value="${escCc(c)}">${escCc(c)}</option>`).join('');
                 if (curEditCo) editCoSel.value = curEditCo;
             }
         }
@@ -18963,7 +18987,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 siteEl.innerHTML = sorted.length ? sorted.map(([k,v])=>`
                     <div>
                         <div class="flex justify-between text-[10px] font-semibold mb-0.5">
-                            <span class="text-slate-700 dark:text-slate-300 truncate max-w-[60%]">${k}</span>
+                            <span class="text-slate-700 dark:text-slate-300 truncate max-w-[60%]">${escCc(k)}</span>
                             <span class="text-violet-600 font-bold">${ccFmt(v)}</span>
                         </div>
                         <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -18983,7 +19007,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const c = CC_CAT_COLORS[k]||CC_CAT_COLORS['기타'];
                     return `<div>
                         <div class="flex justify-between text-[10px] font-semibold mb-0.5">
-                            <span style="color:${c.text}" class="font-bold">${k}</span>
+                            <span style="color:${c.text}" class="font-bold">${escCc(k)}</span>
                             <span class="text-slate-600 dark:text-slate-300">${ccFmt(v)} <span class="text-slate-400">(${Math.round(v/catTotal*100)}%)</span></span>
                         </div>
                         <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -19236,11 +19260,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-2 py-2 text-center text-slate-400 font-mono text-[10px]">${idx+1}</td>
                         <td class="px-2 py-2 text-center text-slate-700 dark:text-slate-300 font-mono text-[11px]">${r.date||''}</td>
                         <td class="px-2 py-2 text-center">${ccCatBadge(r.cat||'기타')}</td>
-                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}${r.appliedToStatement ? ` <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold align-middle" title="${r.appliedDocMonth||''} 청구명세서에 반영됨">반영됨</span>` : ''}</td>
+                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${escCc(r.merchant)}${r.appliedToStatement ? ` <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold align-middle" title="${r.appliedDocMonth||''} 청구명세서에 반영됨">반영됨</span>` : ''}</td>
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
-                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company||'<span class="text-slate-300">-</span>'}</td>
-                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
-                        <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company?escCc(r.company):'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site?escCc(r.site):'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${escCc(r.memo)}</td>
                         <td class="px-2 py-2 text-center">${ccProofBadge(r.proofType)}</td>
                         <td class="px-2 py-2 text-center">
                             ${r.receipt ? `<button onclick="ccViewReceipt('${r.id}')" class="no-print p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30" title="영수증 보기"><i data-lucide="receipt" class="w-4 h-4"></i></button><span class="text-emerald-600 font-bold text-[11px]">✓</span>` : '<span class="text-slate-300 text-[10px]">-</span>'}
@@ -19370,7 +19394,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
             // 날짜 정렬
             ccData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-            ccSave();
+            if (!ccSave()) { ccData = ccLoad(); return; }   // 저장 실패 → 입력 내용 유지(모달 닫지 않음)
             ccCloseModal();
             ccRender();
             showToast('저장 완료!', 'success');
@@ -19403,7 +19427,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!file) return;
 
             if (file.type === 'application/pdf') {
-                if (file.size > 8 * 1024 * 1024) { showToast('PDF 파일은 8MB 이하만 첨부할 수 있습니다.', 'error'); e.target.value=''; return; }
+                if (file.size > 2 * 1024 * 1024) { showToast('PDF 파일은 2MB 이하만 첨부할 수 있습니다. (브라우저 저장 공간 제한)', 'error'); e.target.value=''; return; }
                 const reader = new FileReader();
                 reader.onload = ev => {
                     ccTempReceipt = { dataUrl: ev.target.result, type: 'application/pdf', name: file.name };
@@ -19580,6 +19604,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             // 현장별 시트 (필터링된 대상 회사 기준)
             const siteMap = {};
             filtered.forEach(r=>{ const k=r.site||'(미배분)'; (siteMap[k]=siteMap[k]||[]).push(r); });
+            const usedSheetNames = new Set(['법인카드경비']);
             Object.entries(siteMap).forEach(([site, list])=>{
                 const srows = list.map((r,i)=>({
                     'No': i+1, '사용일자': r.date||'', '카테고리': r.cat||'',
@@ -19588,7 +19613,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 const total = list.reduce((s,r)=>s+Number(r.amount||0),0);
                 srows.push({'No':'합계','사용일자':'','카테고리':'','가맹점명':'','금액':total,'메모':''});
                 const ws2 = XLSX.utils.json_to_sheet(srows);
-                const sheetName = (site.length>28 ? site.slice(0,28) : site).replace(/[\\/*?:\[\]]/g,'_');
+                // 시트명은 31자 제한 + 대소문자 무시 중복 불가 → 긴 현장명이 앞부분만 같아도 충돌하지 않게 번호를 붙임
+                const baseName = ((site.length>28 ? site.slice(0,28) : site).replace(/[\\/*?:\[\]]/g,'_')) || '시트';
+                let sheetName = baseName, sn = 2;
+                while (usedSheetNames.has(sheetName.toLowerCase())) { const suf = '_' + (sn++); sheetName = baseName.slice(0, 31 - suf.length) + suf; }
+                usedSheetNames.add(sheetName.toLowerCase());
                 XLSX.utils.book_append_sheet(wb, ws2, sheetName);
             });
 
@@ -19610,15 +19639,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 <tr style="background:${i%2?'#f8fafc':'#fff'};">
                     <td style="text-align:center;color:#94a3b8;font-size:10px;">${i+1}</td>
                     <td style="text-align:center;font-family:monospace;">${r.date||''}</td>
-                    <td style="text-align:center;">${r.cat||''}</td>
-                    <td>${r.merchant||''}</td>
+                    <td style="text-align:center;">${escCc(r.cat)}</td>
+                    <td>${escCc(r.merchant)}</td>
                     <td style="text-align:right;font-weight:700;">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
-                    <td style="text-align:center;color:#64748b;">${r.site||''}</td>
-                    <td style="color:#64748b;font-size:10px;">${r.memo||''}</td>
+                    <td style="text-align:center;color:#64748b;">${escCc(r.site)}</td>
+                    <td style="color:#64748b;font-size:10px;">${escCc(r.memo)}</td>
                     <td style="text-align:center;">${r.receipt ? ((r.receiptType||'').includes('pdf') ? '<span style="font-size:9px;color:#475569;">PDF 첨부</span>' : `<img src="${r.receipt}" style="max-width:46px;max-height:46px;border:1px solid #e2e8f0;border-radius:4px;">`) : '<span style="color:#cbd5e1;">-</span>'}</td>
                 </tr>`).join('');
 
             const win = window.open('','_blank','width=1000,height=800');
+            if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
             win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
                 <title>법인카드 경비 관리대장 - ${monthLabel}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
@@ -19672,7 +19702,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!docMonthKey) { showToast('청구명세서의 월 정보를 확인할 수 없습니다.', 'error'); return; }
 
             ccData = ccLoad();
-            const targets = ccData.filter(r => !r.appliedToStatement && (r.date||'').startsWith(docMonthKey));
+            // ★ 회사가 지정된 법인카드 내역은 현재 청구명세서의 회사 것만 합산 (회사 미지정 내역은 포함)
+            //   기존엔 다른 회사 카드 사용액까지 한 청구서에 전부 합쳐져 금액이 부풀려졌음
+            const docCompany = (curDoc.company || '').trim();
+            const sameCompany = r => !docCompany || !(r.company || '').trim() || (r.company || '').trim() === docCompany;
+            const monthUnapplied = ccData.filter(r => !r.appliedToStatement && (r.date||'').startsWith(docMonthKey));
+            const targets = monthUnapplied.filter(sameCompany);
+            const otherCompanyCnt = monthUnapplied.length - targets.length;
             const alreadyApplied = ccData.filter(r => r.appliedToStatement && r.appliedDocId === currentDocId && (r.date||'').startsWith(docMonthKey));
 
             if (!targets.length) {
@@ -19710,7 +19746,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             renderStatementTable();
             refreshRequestSelector();
             ccRender();
-            showToast(`[${curDoc.month||''}] 청구명세서에 법인카드 사용액 ${targets.length}건 · ${total.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.`, 'success');
+            const otherNote = otherCompanyCnt ? ` (다른 회사 ${otherCompanyCnt}건 제외)` : '';
+            showToast(`[${curDoc.month||''}] 청구명세서에 법인카드 사용액 ${targets.length}건 · ${total.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.${otherNote}`, 'success');
         }
 
         /* 백업 */
@@ -19735,7 +19772,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     if (!Array.isArray(arr)) throw new Error();
                     if (!confirm(`${arr.length}건을 복원합니다. 기존 데이터는 덮어씁니다.`)) return;
                     ccData = arr;
-                    ccSave();
+                    if (!ccSave()) { ccData = ccLoad(); return; }
                     ccRender();
                     showToast(`${arr.length}건 복원 완료`, 'success');
                 } catch { showToast('유효하지 않은 파일입니다.', 'error'); }
@@ -19758,7 +19795,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             try { return JSON.parse(localStorage.getItem(PE_KEY) || '[]'); } catch(e) { return []; }
         }
         function peSave() {
-            localStorage.setItem(PE_KEY, JSON.stringify(peData));
+            return safeLsSet(PE_KEY, JSON.stringify(peData));
         }
 
         function peFmt(n) { return Number(n||0).toLocaleString('ko-KR') + '원'; }
@@ -19816,36 +19853,36 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const curM = mSel?.value; const curE = eSel?.value; const curS = sSel?.value; const curC = cSel?.value;
 
             if (mSel) {
-                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+                mSel.innerHTML = '<option value="">전체 월</option>' + months.map(m=>`<option value="${escCc(m)}">${escCc(m)}</option>`).join('');
                 if (curM) mSel.value = curM;
             }
             if (eSel) {
-                eSel.innerHTML = '<option value="">전체 직원</option>' + employees.map(v=>`<option value="${v}">${v}</option>`).join('');
+                eSel.innerHTML = '<option value="">전체 직원</option>' + employees.map(v=>`<option value="${escCc(v)}">${escCc(v)}</option>`).join('');
                 if (curE) eSel.value = curE;
             }
             if (sSel) {
-                sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${s}">${s}</option>`).join('');
+                sSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${escCc(s)}">${escCc(s)}</option>`).join('');
                 if (curS) sSel.value = curS;
             }
             if (cSel) {
-                cSel.innerHTML = '<option value="">전체 회사</option>' + companies.map(v=>`<option value="${v}">${v}</option>`).join('');
+                cSel.innerHTML = '<option value="">전체 회사</option>' + companies.map(v=>`<option value="${escCc(v)}">${escCc(v)}</option>`).join('');
                 if (curC) cSel.value = curC;
             }
 
             const empDl = document.getElementById('pe-employee-datalist');
-            if (empDl) empDl.innerHTML = employees.map(v=>`<option value="${v}">`).join('');
+            if (empDl) empDl.innerHTML = employees.map(v=>`<option value="${escCc(v)}">`).join('');
 
             const editSiteSel = document.getElementById('pe-edit-site');
             if (editSiteSel) {
                 const curEditSite = editSiteSel.value;
-                editSiteSel.innerHTML = '<option value="">현장 미지정</option>' + allSites.map(s=>`<option value="${s}">${s}</option>`).join('');
+                editSiteSel.innerHTML = '<option value="">현장 미지정</option>' + allSites.map(s=>`<option value="${escCc(s)}">${escCc(s)}</option>`).join('');
                 if (curEditSite) editSiteSel.value = curEditSite;
             }
 
             const editCoSel = document.getElementById('pe-edit-company');
             if (editCoSel) {
                 const curEditCo = editCoSel.value;
-                editCoSel.innerHTML = '<option value="">회사 미지정</option>' + companies.map(c=>`<option value="${c}">${c}</option>`).join('');
+                editCoSel.innerHTML = '<option value="">회사 미지정</option>' + companies.map(c=>`<option value="${escCc(c)}">${escCc(c)}</option>`).join('');
                 if (curEditCo) editCoSel.value = curEditCo;
             }
         }
@@ -19882,7 +19919,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const pendingPct = Math.round(v.pending/total*100);
                     return `<div>
                         <div class="flex justify-between text-[10px] font-semibold mb-0.5">
-                            <span class="text-slate-700 dark:text-slate-300 truncate max-w-[50%]">${k}</span>
+                            <span class="text-slate-700 dark:text-slate-300 truncate max-w-[50%]">${escCc(k)}</span>
                             <span class="text-slate-500">미정산 <b class="text-rose-600">${peFmt(v.pending)}</b> · 정산 <b class="text-emerald-600">${peFmt(v.settled)}</b></span>
                         </div>
                         <div class="h-2 bg-emerald-200 dark:bg-emerald-900/40 rounded-full overflow-hidden">
@@ -19901,7 +19938,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 catEl.innerHTML = sorted.length ? sorted.map(([k,v])=>`
                     <div>
                         <div class="flex justify-between text-[10px] font-semibold mb-0.5">
-                            <span class="text-slate-700 dark:text-slate-300">${k}</span>
+                            <span class="text-slate-700 dark:text-slate-300">${escCc(k)}</span>
                             <span class="text-slate-500">${peFmt(v)} <span class="text-slate-400">(${Math.round(v/catTotal*100)}%)</span></span>
                         </div>
                         <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -19941,11 +19978,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     totalAmt += Number(r.amount||0);
                     if ((r.status||'pending') !== 'settled') pendingAmt += Number(r.amount||0);
                     const rowBg = idx%2===0 ? '' : 'bg-slate-50 dark:bg-slate-800/30';
-                    const acctLine = (r.bank || r.account || r.holder)
+                    const acctText = (r.bank || r.account || r.holder)
                         ? `${r.bank||''} ${r.account||''}${r.holder ? ' ('+r.holder+')' : ''}`.trim()
-                        : '<span class="text-slate-300">미등록</span>';
+                        : '';
+                    const acctLine = acctText ? escCc(acctText) : '<span class="text-slate-300">미등록</span>';
                     const appliedBadge = r.appliedToStatement
-                        ? `<span class="text-emerald-600 font-bold text-[9px]" title="${r.appliedDocMonth||''} 청구서에 반영됨">반영됨</span>`
+                        ? `<span class="text-emerald-600 font-bold text-[9px]" title="${escCc(r.appliedDocMonth)} 청구서에 반영됨">반영됨</span>`
                         : (r.status === 'settled' ? `<span class="text-slate-300 text-[9px]">미반영</span>` : `<span class="text-slate-200 text-[9px]">-</span>`);
                     const canApply = r.status === 'settled' && !r.appliedToStatement;
                     const canCheck = !r.appliedToStatement;
@@ -19953,16 +19991,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <td class="px-1 py-2 text-center no-print">${canCheck ? `<input type="checkbox" class="pe-row-check" value="${r.id}" onchange="peUpdateCheckAllState()">` : ''}</td>
                         <td class="px-2 py-2 text-center text-slate-400 font-mono text-[10px]">${idx+1}</td>
                         <td class="px-2 py-2 text-center text-slate-700 dark:text-slate-300 font-mono text-[11px]">${r.date||''}</td>
-                        <td class="px-2 py-2 text-center text-slate-800 dark:text-slate-100 font-bold text-[11px]">${r.employee||''}</td>
-                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.cat||'기타'}</td>
-                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${r.merchant||''}</td>
+                        <td class="px-2 py-2 text-center text-slate-800 dark:text-slate-100 font-bold text-[11px]">${escCc(r.employee)}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${escCc(r.cat||'기타')}</td>
+                        <td class="px-2 py-2 text-slate-800 dark:text-slate-100 font-semibold text-[11px]">${escCc(r.merchant)}</td>
                         <td class="px-2 py-2 text-right font-bold text-slate-800 dark:text-slate-100">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
-                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site||'<span class="text-slate-300">-</span>'}</td>
-                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company||'<span class="text-slate-300">-</span>'}</td>
-                        <td class="px-2 py-2 text-[10px] text-slate-600 dark:text-slate-400 truncate max-w-[160px]" title="${acctLine.replace(/"/g,'&quot;')}">${acctLine}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.site?escCc(r.site):'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-center text-[10px] text-slate-500 dark:text-slate-400">${r.company?escCc(r.company):'<span class="text-slate-300">-</span>'}</td>
+                        <td class="px-2 py-2 text-[10px] text-slate-600 dark:text-slate-400 truncate max-w-[160px]" title="${escCc(acctText)}">${acctLine}</td>
                         <td class="px-2 py-2 text-center">${peStatusBadge(r.status)}</td>
                         <td class="px-2 py-2 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400">${r.settleDate||'-'}</td>
-                        <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||''}</td>
+                        <td class="px-2 py-2 text-slate-600 dark:text-slate-400 text-[10px] max-w-xs truncate" title="${(r.memo||'').replace(/"/g,'&quot;')}">${escCc(r.memo)}</td>
                         <td class="px-2 py-2 text-center">${appliedBadge}</td>
                         <td class="px-2 py-2 text-center no-print">
                             <div class="flex items-center justify-center gap-1">
@@ -20194,7 +20232,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 peData.push({ id: 'pe-' + Date.now(), date, employee, cat, merchant, amount, site, company, bank, holder, account, status, settleDate, memo });
             }
             peData.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-            peSave();
+            if (!peSave()) { peData = peLoad(); return; }   // 저장 실패 → 입력 내용 유지(모달 닫지 않음)
             peCloseModal();
             peRender();
             showToast('저장 완료!', 'success');
@@ -20289,6 +20327,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 byEmployee[key].items.push(`${r.date||''} ${r.merchant||''}`);
             });
 
+            // 다른 회사로 등록된 개인경비를 현재 청구명세서에 넣으려는 경우 확인
+            const peDocCompany = (curDoc.company || '').trim();
+            const companyMismatch = targets.filter(r => peDocCompany && (r.company || '').trim() && (r.company || '').trim() !== peDocCompany);
+            if (companyMismatch.length && !confirm(`선택한 항목 중 ${companyMismatch.length}건은 다른 회사로 등록된 개인경비입니다.\n현재 청구명세서(${peDocCompany})에 그대로 반영할까요?`)) return;
+
             let addedCount = 0, addedTotal = 0;
             Object.entries(byEmployee).forEach(([name, g]) => {
                 const noteDetail = g.items.length <= 3 ? g.items.join(', ') : `${g.items.length}건`;
@@ -20372,7 +20415,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             // 직원별 집계
             const empMap = {};
-            list.forEach(r => {
+            [...list].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(r => {   // 날짜 오름차순 → 최신 계좌가 마지막에 덮어씀
                 const k = r.employee || '(직원 미입력)';
                 if (!empMap[k]) empMap[k] = { pending:0, settled:0, count:0, bank:'', account:'', holder:'' };
                 empMap[k][(r.status==='settled')?'settled':'pending'] += Number(r.amount||0);
@@ -20386,25 +20429,26 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             const empRowsHtml = empRows.map(([name, v]) => `
                 <tr>
-                    <td style="font-weight:700;">${name}</td>
+                    <td style="font-weight:700;">${escCc(name)}</td>
                     <td style="text-align:center;">${v.count}건</td>
                     <td style="text-align:right;color:#059669;">${v.settled.toLocaleString('ko-KR')}원</td>
                     <td style="text-align:right;color:#e11d48;">${v.pending.toLocaleString('ko-KR')}원</td>
-                    <td style="text-align:center;font-size:10px;color:#64748b;">${v.bank||''} ${v.account||''}${v.holder?' ('+v.holder+')':''}</td>
+                    <td style="text-align:center;font-size:10px;color:#64748b;">${escCc(v.bank)} ${escCc(v.account)}${v.holder?' ('+v.holder+')':''}</td>
                 </tr>`).join('');
 
             const detailRowsHtml = [...list].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map((r,i) => `
                 <tr style="background:${i%2?'#f8fafc':'#fff'};">
                     <td style="text-align:center;font-size:10px;color:#94a3b8;">${i+1}</td>
                     <td style="text-align:center;font-family:monospace;">${r.date||''}</td>
-                    <td style="text-align:center;font-weight:700;">${r.employee||''}</td>
-                    <td style="text-align:center;">${r.cat||''}</td>
-                    <td>${r.merchant||''}</td>
+                    <td style="text-align:center;font-weight:700;">${escCc(r.employee)}</td>
+                    <td style="text-align:center;">${escCc(r.cat)}</td>
+                    <td>${escCc(r.merchant)}</td>
                     <td style="text-align:right;font-weight:700;">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
                     <td style="text-align:center;">${r.status==='settled'?'정산완료':'미정산'}</td>
                 </tr>`).join('');
 
             const win = window.open('','_blank','width=1000,height=800');
+            if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
             win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
                 <title>개인경비 월 마감 리포트 - ${monthLabel}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
@@ -20536,16 +20580,17 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 <tr style="background:${i%2?'#f8fafc':'#fff'};">
                     <td style="text-align:center;color:#94a3b8;font-size:10px;">${i+1}</td>
                     <td style="text-align:center;font-family:monospace;">${r.date||''}</td>
-                    <td style="text-align:center;font-weight:700;">${r.employee||''}</td>
-                    <td style="text-align:center;">${r.cat||''}</td>
-                    <td>${r.merchant||''}</td>
+                    <td style="text-align:center;font-weight:700;">${escCc(r.employee)}</td>
+                    <td style="text-align:center;">${escCc(r.cat)}</td>
+                    <td>${escCc(r.merchant)}</td>
                     <td style="text-align:right;font-weight:700;">${Number(r.amount||0).toLocaleString('ko-KR')}</td>
-                    <td style="text-align:center;color:#64748b;font-size:10px;">${r.bank||''} ${r.account||''}</td>
+                    <td style="text-align:center;color:#64748b;font-size:10px;">${escCc(r.bank)} ${escCc(r.account)}</td>
                     <td style="text-align:center;">${r.status==='settled' ? '정산완료' : '미정산'}</td>
-                    <td style="color:#64748b;font-size:10px;">${r.memo||''}</td>
+                    <td style="color:#64748b;font-size:10px;">${escCc(r.memo)}</td>
                 </tr>`).join('');
 
             const win = window.open('','_blank','width=1000,height=800');
+            if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
             win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
                 <title>개인경비 정산 관리대장 - ${monthLabel}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
@@ -20605,7 +20650,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     if (!Array.isArray(arr)) throw new Error();
                     if (!confirm(`${arr.length}건을 복원합니다. 기존 데이터는 덮어씁니다.`)) return;
                     peData = arr;
-                    peSave();
+                    if (!peSave()) { peData = peLoad(); return; }
                     peRender();
                     showToast(`${arr.length}건 복원 완료`, 'success');
                 } catch { showToast('유효하지 않은 파일입니다.', 'error'); }
