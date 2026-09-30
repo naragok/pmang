@@ -3913,8 +3913,23 @@
                 </div>
             </div>
             <div class="flex justify-end gap-2 text-xs mt-6">
+                <button onclick="openDupMergeModal()" class="mr-auto bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 px-3 py-2 rounded font-semibold flex items-center gap-1" title="현장명·회사명·월이 같은 청구서가 여러 개 있으면 찾아서 하나로 합칩니다"><i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 중복 문서 병합</button>
                 <button onclick="toggleNewDocModal()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-slate-600 px-4 py-2 rounded font-semibold">취소</button>
                 <button onclick="createNewDocument()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold transition-all">신규 청구서 생성</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 중복 청구서(현장명·회사명·월 동일) 찾아서 병합하는 모달 -->
+    <div id="dup-merge-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-5 py-3">
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5"><i data-lucide="git-merge" class="w-4 h-4 text-amber-600"></i> 중복 청구서 병합</h3>
+                <button onclick="closeDupMergeModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="overflow-y-auto flex-1 px-5 py-4 space-y-3">
+                <p id="dup-merge-empty" class="hidden text-xs text-slate-400 text-center py-8">현장명·회사명·월이 겹치는 청구서가 없습니다.</p>
+                <div id="dup-merge-list" class="space-y-3"></div>
             </div>
         </div>
     </div>
@@ -4784,9 +4799,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '7.5';
+        const APP_VERSION = '7.6';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '청구명세서 항목 표 오류 수정 — 거래처명·적요에 " 나 <, > 가 들어가면 입력칸 값이 잘리고 표 구조 자체가 깨지던 문제(거래처 이력 버튼 포함).';
+        const APP_VERSION_NOTE = '새 청구서 등록 시 현장명·회사명·월이 같은 청구서 중복 등록 방지 — 신규 생성 시 기존 청구서를 열어주고, 이월 복사 시 병합 여부를 물음. 이미 존재하는 중복 청구서를 찾아 하나로 합치는 "중복 문서 병합" 기능 추가.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -8807,6 +8822,32 @@
                 });
             }
 
+            const existingDup = findDuplicateDoc(site, company, formattedMonth, currentDocId);
+            if (existingDup) {
+                if (!confirm(`이미 [${company||'회사 미지정'} · ${site} · ${formattedMonth}] 청구서가 있습니다 (기존 ${(existingDup.dataset||[]).length}건).\n지금 복사한 ${copiedDataset.length}건을 그 청구서에 병합할까요?\n(취소하면 새로 만들지 않습니다)`)) return;
+                mergeDatasetIntoDoc(existingDup, copiedDataset);
+                currentDocId = existingDup.id;
+                dataset = existingDup.dataset;
+                sortDatasetByPriority();
+
+                document.getElementById('doc-title').value = `(${existingDup.month}) 자금청구명세서`;
+                document.getElementById('meta-site').value = existingDup.site;
+                document.getElementById('meta-month').value = existingDup.month;
+                document.getElementById('meta-company').value = existingDup.company;
+                document.getElementById('req-meta-period').value = existingDup.period || calculateMonthPeriod(existingDup.month);
+                document.getElementById('req-meta-site').value = existingDup.site;
+
+                closeDuplicateDocModal();
+                saveToLocalStorage();
+                buildFilterOptions();
+                updateSavedSheetsSelector();
+                renderStatementTable();
+                refreshRequestSelector();
+                renderApprovalBadge();
+                showToast(`[${company}] 기존 청구서에 ${copiedDataset.length}건이 병합되었습니다.`, 'success');
+                return;
+            }
+
             const newId = "doc-" + Date.now();
             const autoPeriod = calculateMonthPeriod(formattedMonth);
             const newDoc = {
@@ -10605,6 +10646,103 @@ function changePrintScale(value) {
             );
         }
 
+        // ── 청구서(현장·회사·월) 중복 등록 방지 + 병합 ──
+        // "2026년 7월"과 "2026년 07월"처럼 0패딩 표기가 달라도 같은 달로 인식하도록 정규화
+        function dupNormMonth(m) {
+            const mm = /(\d{4})\D+(\d{1,2})/.exec(m || '');
+            return mm ? `${mm[1]}-${String(mm[2]).padStart(2, '0')}` : (m || '').trim();
+        }
+        // 같은 현장명·회사명·월의 청구서가 이미 있는지 찾는다 (excludeId로 자기 자신은 제외)
+        function findDuplicateDoc(site, company, month, excludeId) {
+            const s1 = (site || '').trim(), c1 = (company || '').trim(), m1 = dupNormMonth(month);
+            return savedDocuments.find(d =>
+                d.id !== excludeId &&
+                (d.site || '').trim() === s1 &&
+                (d.company || '').trim() === c1 &&
+                dupNormMonth(d.month) === m1
+            ) || null;
+        }
+        // incomingRows(청구 항목 배열)를 targetDoc에 합친다 — id 충돌 방지를 위해 새 id를 다시 부여
+        function mergeDatasetIntoDoc(targetDoc, incomingRows) {
+            if (!targetDoc.dataset) targetDoc.dataset = [];
+            (incomingRows || []).forEach(row => {
+                targetDoc.dataset.push({ ...row, id: genDatasetId() });
+            });
+            return (incomingRows || []).length;
+        }
+        // 현재 저장된 모든 청구서 중, 현장명·회사명·월이 같은 것끼리 묶어서 중복 그룹을 찾는다
+        function findDuplicateDocGroups() {
+            const map = new Map();
+            savedDocuments.forEach(d => {
+                const key = `${(d.site||'').trim()}|${(d.company||'').trim()}|${dupNormMonth(d.month)}`;
+                if (!map.has(key)) map.set(key, []);
+                map.get(key).push(d);
+            });
+            return [...map.values()].filter(g => g.length > 1);
+        }
+
+        function openDupMergeModal() {
+            const groups = findDuplicateDocGroups();
+            const listEl = document.getElementById('dup-merge-list');
+            const emptyEl = document.getElementById('dup-merge-empty');
+            if (!groups.length) {
+                listEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                listEl.innerHTML = groups.map((g, gi) => {
+                    const site = g[0].site || '(현장 미지정)';
+                    const company = g[0].company || '(회사 미지정)';
+                    const month = g[0].month || '(월 미지정)';
+                    const docsHtml = g.map((d, di) => `
+                        <label class="flex items-center gap-2 py-1">
+                            <input type="radio" name="dup-primary-${gi}" value="${d.id}" ${di===0?'checked':''} class="w-3.5 h-3.5 accent-blue-500">
+                            <span class="text-[11px] text-slate-700 dark:text-slate-200">문서 ${di+1} · 항목 ${(d.dataset||[]).length}건</span>
+                        </label>`).join('');
+                    return `<div class="border border-slate-200 dark:border-slate-700 rounded-lg p-3 space-y-1.5" data-dup-group='${JSON.stringify(g.map(d=>d.id))}'>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-100">${escapeMetaHtml(site)} · ${escapeMetaHtml(company)} · ${escapeMetaHtml(month)}</div>
+                        <p class="text-[10px] text-slate-400">병합 후 남길 문서(기준)를 선택하세요. 나머지 문서의 항목은 기준 문서로 합쳐지고, 나머지 문서는 삭제됩니다.</p>
+                        ${docsHtml}
+                        <button onclick="mergeDupGroup(this)" class="mt-1 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold">이 그룹 병합하기</button>
+                    </div>`;
+                }).join('');
+            }
+            document.getElementById('dup-merge-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeDupMergeModal() {
+            document.getElementById('dup-merge-modal').classList.add('hidden');
+        }
+        function mergeDupGroup(btn) {
+            const groupBox = btn.closest('[data-dup-group]');
+            const ids = JSON.parse(groupBox.dataset.dupGroup);
+            const primaryId = groupBox.querySelector('input[type="radio"]:checked')?.value;
+            if (!primaryId) return;
+            const primaryDoc = savedDocuments.find(d => d.id === primaryId);
+            if (!primaryDoc) return;
+            const others = ids.filter(id => id !== primaryId).map(id => savedDocuments.find(d => d.id === id)).filter(Boolean);
+            if (!others.length) { showToast('병합할 다른 문서가 없습니다.', 'error'); return; }
+            const totalItems = others.reduce((s,d)=>s+(d.dataset||[]).length, 0);
+            if (!confirm(`선택한 기준 문서로 ${others.length}개 문서(${totalItems}건)를 병합합니다.\n병합되는 문서는 삭제되며 되돌릴 수 없습니다. 계속할까요?`)) return;
+
+            others.forEach(d => mergeDatasetIntoDoc(primaryDoc, d.dataset));
+            const removedIds = new Set(others.map(d => d.id));
+            savedDocuments = savedDocuments.filter(d => !removedIds.has(d.id));
+            if (removedIds.has(currentDocId)) {
+                currentDocId = primaryDoc.id;
+                dataset = primaryDoc.dataset;
+            } else if (currentDocId === primaryDoc.id) {
+                dataset = primaryDoc.dataset;
+            }
+            saveToLocalStorage();
+            buildFilterOptions();
+            updateSavedSheetsSelector();
+            if (currentDocId === primaryDoc.id) renderStatementTable();
+            refreshRequestSelector();
+            showToast(`${others.length}개 문서를 병합했습니다. (총 ${totalItems}건 이동)`, 'success');
+            openDupMergeModal(); // 목록 새로고침
+        }
+
         function createNewDocument() {
             const company = document.getElementById('new-doc-company').value.trim();
             const year = document.getElementById('new-doc-year').value;
@@ -10619,6 +10757,14 @@ function changePrintScale(value) {
             }
             if (!site) {
                 showToast("현장명은 필수 입력 항목입니다.");
+                return;
+            }
+
+            const existingDup = findDuplicateDoc(site, company, formattedMonth, null);
+            if (existingDup) {
+                toggleNewDocModal();
+                loadSavedDocument(existingDup.id);
+                showToast(`이미 [${company||'회사 미지정'} · ${site} · ${formattedMonth}] 청구서가 있어 새로 만들지 않고 기존 청구서를 열었습니다.`, 'error');
                 return;
             }
 
