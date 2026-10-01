@@ -1054,6 +1054,9 @@
         
             .tab-btn { padding: 8px 10px; font-size: 10px; }
         }
+        .site-mgr-tab-btn { color: #94a3b8; border-color: transparent; }
+        .site-mgr-tab-btn.site-mgr-tab-active { color: #2563eb; border-color: #2563eb; }
+        .dark .site-mgr-tab-btn.site-mgr-tab-active { color: #60a5fa; border-color: #60a5fa; }
     </style>
 </head>
 <body class="text-slate-800 dark:text-slate-100 antialiased font-sans dark:bg-slate-950 transition-colors duration-200" id="app-body" style="display:flex;flex-direction:column;height:100dvh;overflow:hidden;">
@@ -4090,7 +4093,7 @@
     </div>
 
     <div id="site-manager-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-[1280px] max-h-[90vh] flex flex-col">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-[1280px] h-[90vh] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 px-6 py-4 shrink-0">
                 <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
                     <i data-lucide="construction" class="w-5 h-5 text-rose-500"></i> 공사 현장 관리
@@ -4100,10 +4103,22 @@
                 </button>
             </div>
 
-            <div class="flex-1 overflow-auto p-6 space-y-5 text-xs">
+            <div class="flex-1 overflow-hidden p-5 pb-0 flex flex-col text-xs min-h-0">
 
-                <div>
-                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div class="flex items-center gap-1.5 mb-3 shrink-0 border-b border-slate-100 dark:border-slate-800">
+                    <button onclick="switchSiteManagerTab('compare')" id="site-tab-btn-compare" class="site-mgr-tab-btn px-3 py-2 text-[11.5px] font-bold border-b-2 -mb-px flex items-center gap-1.5">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> 자금 집행 비교표
+                    </button>
+                    <button onclick="switchSiteManagerTab('timeline')" id="site-tab-btn-timeline" class="site-mgr-tab-btn px-3 py-2 text-[11.5px] font-bold border-b-2 -mb-px flex items-center gap-1.5">
+                        <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i> 월별 집행 타임라인
+                    </button>
+                    <button onclick="switchSiteManagerTab('budget')" id="site-tab-btn-budget" class="site-mgr-tab-btn px-3 py-2 text-[11.5px] font-bold border-b-2 -mb-px flex items-center gap-1.5">
+                        <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> 현장 예산 등록
+                    </button>
+                </div>
+
+                <div id="site-mgr-panel-compare" class="site-mgr-panel flex-1 min-h-0 flex flex-col">
+                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2 shrink-0">
                         <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i> 현장별 자금 집행 비교표
                         </h4>
@@ -4115,37 +4130,37 @@
                             </button>
                         </div>
                     </div>
-                    <div id="site-company-group-view" class="hidden space-y-4 mb-3"></div>
-                    <div id="site-all-table-wrap" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-                        <table class="border-collapse text-[11px]" style="width:100%;min-width:1290px;table-layout:fixed;">
+                    <div id="site-company-group-view" class="hidden flex-1 min-h-0 overflow-y-auto space-y-4 mb-3"></div>
+                    <div id="site-all-table-wrap" class="flex-1 min-h-0 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                        <table class="border-collapse text-[11px]" style="width:100%;table-layout:fixed;">
                             <colgroup>
-                                <col style="width:190px;">
-                                <col style="width:130px;">
-                                <col style="width:70px;">
-                                <col style="width:80px;">
-                                <col style="width:120px;">
-                                <col style="width:130px;">
-                                <col style="width:110px;">
-                                <col style="width:110px;">
-                                <col style="width:130px;">
-                                <col style="width:90px;">
-                                <col style="width:160px;">
-                                <col style="width:90px;">
+                                <col style="width:16%;">
+                                <col style="width:11%;">
+                                <col style="width:6%;">
+                                <col style="width:7%;">
+                                <col style="width:10%;">
+                                <col style="width:10%;">
+                                <col style="width:8%;">
+                                <col style="width:8%;">
+                                <col style="width:10%;">
+                                <col style="width:7%;">
+                                <col style="width:12%;">
+                                <col style="width:7%;">
                             </colgroup>
                             <thead>
                                 <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-center font-bold text-slate-700 dark:text-slate-200">
-                                    <th class="py-2.5 px-3 text-left">현장명</th>
-                                    <th class="py-2.5 px-3">회사</th>
-                                    <th class="py-2.5 px-3">대장 수</th>
-                                    <th class="py-2.5 px-3">총 청구건</th>
-                                    <th class="py-2.5 px-3">공급가액 합계</th>
-                                    <th class="py-2.5 px-3">지급요청 합계</th>
-                                    <th class="py-2.5 px-3 text-amber-700 dark:text-amber-400">선지급</th>
-                                    <th class="py-2.5 px-3">법인카드</th>
-                                    <th class="py-2.5 px-3 bg-emerald-100 dark:bg-emerald-900/40">총 투입비</th>
-                                    <th class="py-2.5 px-3">집행률</th>
-                                    <th class="py-2.5 px-3">바로가기</th>
-                                    <th class="py-2.5 px-3">보고서</th>
+                                    <th class="py-2.5 px-2 text-left sticky top-0 bg-slate-100 dark:bg-slate-800">현장명</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">회사</th>
+                                    <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">대장 수</th>
+                                    <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">총 청구건</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">공급가액 합계</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">지급요청 합계</th>
+                                    <th class="py-2.5 px-2 text-amber-700 dark:text-amber-400 sticky top-0 bg-slate-100 dark:bg-slate-800">선지급</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">법인카드</th>
+                                    <th class="py-2.5 px-2 bg-emerald-100 dark:bg-emerald-900/40 sticky top-0">총 투입비</th>
+                                    <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">집행률</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">바로가기</th>
+                                    <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">보고서</th>
                                 </tr>
                             </thead>
                             <tbody id="site-comparison-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
@@ -4154,19 +4169,21 @@
                     </div>
                 </div>
 
-                <div>
-                    <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                <div id="site-mgr-panel-timeline" class="site-mgr-panel hidden flex-1 min-h-0 flex flex-col">
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2 shrink-0">
                         <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-indigo-500"></i> 현장별 월별 집행 타임라인
                     </h4>
-                    <div id="site-timeline" class="space-y-3"></div>
+                    <div id="site-timeline" class="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1"></div>
                 </div>
 
-                <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-800 rounded-xl p-4">
-                    <h4 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-3">
-                        <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> 현장 예산 등록 (집행률 계산용)
-                    </h4>
-                    <div id="site-budget-list" class="space-y-2"></div>
-                    <p class="text-[10px] text-amber-700 dark:text-amber-500 mt-2">※ 예산을 등록하면 현장 카드에 예산 대비 집행률 진행바가 표시됩니다.</p>
+                <div id="site-mgr-panel-budget" class="site-mgr-panel hidden flex-1 min-h-0 flex flex-col">
+                    <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-800 rounded-xl p-4 flex-1 min-h-0 flex flex-col">
+                        <h4 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-3 shrink-0">
+                            <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> 현장 예산 등록 (집행률 계산용)
+                        </h4>
+                        <div id="site-budget-list" class="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1"></div>
+                        <p class="text-[10px] text-amber-700 dark:text-amber-500 mt-2 shrink-0">※ 예산을 등록하면 현장 카드에 예산 대비 집행률 진행바가 표시됩니다.</p>
+                    </div>
                 </div>
             </div>
 
@@ -4799,9 +4816,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '7.6';
+        const APP_VERSION = '7.9';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '새 청구서 등록 시 현장명·회사명·월이 같은 청구서 중복 등록 방지 — 신규 생성 시 기존 청구서를 열어주고, 이월 복사 시 병합 여부를 물음. 이미 존재하는 중복 청구서를 찾아 하나로 합치는 "중복 문서 병합" 기능 추가.';
+        const APP_VERSION_NOTE = '배포용 전체 초기화 보완 — 기존 "전체 초기화"가 청구 대장·계좌 DB만 지우고 법인카드·개인경비·대금지급현황·지불의뢰서 이력·백업 설정·GitHub 연동 토큰 등은 남겨두던 문제 수정. 이제 다른 현장에 넘기기 전 한 번의 초기화로 이 기기에 저장된 모든 자료를 깨끗이 지울 수 있음.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5306,23 +5323,32 @@
             let addedCount = 0, updatedCount = 0;
             // ★ 같은 거래처라도 청구월이 다르면 서로 다른 지급 건으로 관리하기 위해 월 정보를 함께 기록
             const docMonth = document.getElementById('meta-month')?.value || '';
+            // ★ 항목 id(row.id)는 문서(청구명세서)마다 1,2,3...으로 새로 매겨지므로, 다른 문서의 항목과 id가
+            //   겹칠 수 있다. 반드시 현재 문서 id(sourceDocId)까지 함께 비교해야 서로 다른 문서의 항목이
+            //   같은 건으로 잘못 매칭되어 데이터가 뒤섞이는 것을 막을 수 있다.
+            const docId = currentDocId;
 
             dataset.forEach(row => {
                 // ★ 청구금액에는 선지급도 포함(빼지 않음) — 이미 지급된 선지급금도 청구금액에 잡혀 보이도록 함
                 //   (공제금액만 제외: 원천세 등 실제 지출이 아닌 항목이므로)
                 const claimAmount = (row.supply||0) + (row.tax||0) - (row.deduction||0);
-                const existing = paymentStatus.find(p => p.sourceRowId === row.id);
+                // sourceDocId가 있는 기존 데이터는 문서+항목id로 정확히 매칭하고,
+                // sourceDocId가 없는 과거(업데이트 이전) 데이터는 월까지 같을 때만 매칭해 하위호환을 유지한다.
+                const existing = paymentStatus.find(p => p.sourceRowId === row.id &&
+                    (p.sourceDocId ? p.sourceDocId === docId : p.month === docMonth));
                 if (existing) {
+                    existing.sourceDocId = docId;
                     existing.vendor = row.vendor || existing.vendor;
                     existing.ceo = row.ceo || existing.ceo;
                     existing.note = row.note || existing.note;
                     existing.claimAmount = claimAmount;
-                    existing.month = existing.month || docMonth;
+                    existing.month = docMonth || existing.month;
                     updatedCount++;
                 } else {
                     paymentStatus.push({
                         id: 'pm-' + Date.now() + '-' + Math.floor(Math.random()*10000),
                         sourceRowId: row.id,
+                        sourceDocId: docId,
                         month: docMonth,
                         vendor: row.vendor || '',
                         ceo: row.ceo || '',
@@ -5473,7 +5499,7 @@
                 return `
                 <tr class="divide-x divide-slate-100 dark:divide-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td class="px-2 py-1.5 text-center text-slate-500 dark:text-slate-400 whitespace-nowrap">${p.month||'-'}</td>
-                    <td class="px-2 py-1.5 font-semibold">${p.vendor||''}</td>
+                    <td class="px-2 py-1.5 font-semibold">${escCc(p.vendor)}</td>
                     <td class="px-2 py-1.5 text-center">
                         <span onclick="pmOpenPaymentPickerModal('${p.id}')" class="${Array.isArray(p.bankLog) && p.bankLog.length ? 'cursor-pointer underline decoration-dotted text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300' : ''}" title="${Array.isArray(p.bankLog) && p.bankLog.length ? '클릭하면 이 업체와 매칭된 통장 거래 내역을 볼 수 있습니다' : ''}">${p.ceo||''}</span>
                     </td>
@@ -13530,6 +13556,7 @@ function changePrintScale(value) {
             const tw = document.getElementById('site-all-table-wrap');
             if (gv) gv.classList.add('hidden');
             if (tw) tw.classList.remove('hidden');
+            switchSiteManagerTab('compare');
             renderSiteComparisonTable();
             renderSiteTimeline();
             renderSiteBudgetForm();
@@ -13538,6 +13565,20 @@ function changePrintScale(value) {
         }
         function closeSiteManagerModal() {
             document.getElementById('site-manager-modal').classList.add('hidden');
+        }
+
+        /* ── 공사 현장 관리: 비교표/타임라인/예산 탭 전환 — 세 섹션을 한 화면에 다 쌓지 않고
+           하나씩만 보여줘서 모달 안에서 스크롤 없이 볼 수 있게 함 ── */
+        function switchSiteManagerTab(tab) {
+            ['compare', 'timeline', 'budget'].forEach(t => {
+                const panel = document.getElementById('site-mgr-panel-' + t);
+                const btn = document.getElementById('site-tab-btn-' + t);
+                if (!panel || !btn) return;
+                const active = t === tab;
+                panel.classList.toggle('hidden', !active);
+                btn.classList.toggle('site-mgr-tab-active', active);
+                btn.classList.toggle('text-slate-400', !active);
+            });
         }
 
         /* ── 회사별 현장 필터 ── */
@@ -17346,8 +17387,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         function showResetConfirm() {
             showConfirmModal(
-                "모든 자료 초기화",
-                "저장된 모든 청구 대장, 계좌 DB, 문서 데이터가 영구 삭제됩니다. 되돌릴 수 없습니다. 계속하시겠습니까?",
+                "모든 자료 초기화 (배포용 초기화)",
+                "저장된 모든 청구 대장·계좌 DB·지불의뢰서·법인카드·개인경비·대금지급현황·백업 설정 등 이 기기(브라우저)에 저장된 모든 자료가 영구 삭제됩니다. 다른 현장에 배포하기 전 초기화할 때 사용하세요. 되돌릴 수 없습니다. 계속하시겠습니까?",
                 function() {
                     savedDocuments = [];
                     accountDb = [];
@@ -17355,9 +17396,29 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     dataset = [];
                     selectedRowIds.clear();
 
-                    localStorage.removeItem('cons_accounts_v3');
-                    localStorage.removeItem('cons_saved_docs_v3');
-                    localStorage.removeItem('cons_current_doc_id_v3');
+                    // ★ "전체 초기화"가 실제로 지우는 localStorage 키 전체 목록.
+                    //   이 앱이 쓰는 키가 새로 생기면 반드시 이 목록에도 추가해야
+                    //   "배포용 초기화" 시 다른 현장(설치)의 자료가 남지 않는다.
+                    //   (함수 호출 시점에 평가해야 아래 *_KEY 상수들이 모두 초기화된 뒤이므로 안전함)
+                    const fixedKeys = [
+                        'cons_accounts_v3', 'cons_saved_docs_v3', 'cons_current_doc_id_v3',
+                        'docArchive', 'paymentStatus', CHECKLIST_ITEMS_KEY, TRASH_KEY,
+                        REQ_SHOW_PREPAID_KEY, APPROVAL_OWNER_KEY, SNAPSHOT_KEY,
+                        BACKUP_LAST_KEY, BACKUP_LAST_ISO_KEY, SITE_BUDGET_KEY,
+                        MONTH_CLOSE_KEY, LABOR_STMT_KEY, REPEAT_KEY, COVER_LAYOUT_KEY,
+                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY,
+                        GH_SYNC_KEYS.repo, GH_SYNC_KEYS.branch, GH_SYNC_KEYS.path, GH_SYNC_KEYS.token
+                    ];
+                    // 문서별·건별로 동적으로 만들어지는 키(체크리스트 상태, 지불의뢰서 담당자 메모 등)는
+                    // 접두사로 찾아서 함께 지운다.
+                    const prefixes = ['chklist_', 'req-memo:'];
+
+                    fixedKeys.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+                    try {
+                        Object.keys(localStorage)
+                            .filter(k => prefixes.some(p => k.startsWith(p)))
+                            .forEach(k => localStorage.removeItem(k));
+                    } catch (e) {}
 
                     saveToLocalStorage();
                     buildFilterOptions();
@@ -17365,7 +17426,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     renderStatementTable();
                     renderAccountDBList();
                     refreshRequestSelector();
-                    showToast("모든 자료가 초기화되었습니다.");
+                    showToast("모든 자료가 초기화되었습니다. 이제 다른 현장에서 새로 시작할 수 있습니다.");
                 }
             );
         }
