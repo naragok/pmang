@@ -1689,6 +1689,9 @@
                     <button onclick="openRowTransferModal('move')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
                         <i data-lucide="folder-input" class="w-3.5 h-3.5"></i> 다른대장 이동
                     </button>
+                    <button onclick="openLaborNextMonthModal()" class="bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all" title="같은 인원이 계속 투입될 때, 선택한 노무비 항목을 다음 달 청구서로 그대로 넘깁니다 (금액은 초기화)">
+                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> 노무비 다음달 등록
+                    </button>
                     <div class="w-px h-5" style="background:rgba(99,102,241,0.4);"></div>
                     <button onclick="openBulkIssueModal(true)" class="bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
                         <i data-lucide="layers-3" class="w-3.5 h-3.5"></i> 일괄 발행
@@ -2861,7 +2864,7 @@
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 mb-1">금액 (원) <span class="text-rose-500">*</span></label>
-                            <input type="number" id="pe-edit-amount" placeholder="0" oninput="peFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            <input type="text" inputmode="numeric" id="pe-edit-amount" placeholder="0" oninput="formatMoneyInputLive(this); peFormatAmtPreview();" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-pink-500">
                             <span id="pe-amt-preview" class="text-[10px] text-pink-600 mt-0.5 block font-semibold"></span>
                         </div>
                     </div>
@@ -3301,7 +3304,7 @@
                             </label>
                         </div>
                         <div id="cc-amt-simple-wrap">
-                            <input type="number" id="cc-edit-amount" placeholder="0" oninput="ccFormatAmtPreview()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                            <input type="text" inputmode="numeric" id="cc-edit-amount" placeholder="0" oninput="formatMoneyInputLive(this); ccFormatAmtPreview();" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                             <span id="cc-amt-preview" class="text-[10px] text-violet-600 mt-0.5 block font-semibold"></span>
                         </div>
                         <div id="cc-amt-vat-wrap" class="hidden grid grid-cols-2 gap-2">
@@ -4274,6 +4277,43 @@
                 </div>
             </div>
 
+            <!-- 노무비 다음달 등록 모달 — 같은 인원이 계속 투입될 때, 선택한 노무비 항목을 다음 달 청구서로 바로 넘긴다 -->
+            <div id="labor-next-month-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeLaborNextMonthModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md">
+                    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                        <div class="p-2 rounded-xl bg-rose-500">
+                            <i data-lucide="calendar-plus" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">노무비 다음달 등록</p>
+                            <p id="lnm-subtitle" class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5"></p>
+                        </div>
+                        <button onclick="closeLaborNextMonthModal()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="px-5 py-4 space-y-3 text-xs">
+                        <div id="lnm-target-box" class="rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 px-3 py-2.5 text-rose-700 dark:text-rose-300 font-bold flex items-center gap-2">
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5 shrink-0"></i>
+                            <span id="lnm-target-label"></span>
+                        </div>
+                        <div id="lnm-row-list" class="space-y-1 max-h-48 overflow-y-auto pr-1"></div>
+                        <label class="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer select-none pt-1">
+                            <input type="checkbox" id="lnm-reset-amount" checked class="w-3.5 h-3.5 rounded">
+                            <span>금액(공급가액/세액/공제/선지급)을 <strong>0</strong>으로 초기화 — 성명·계좌정보·적요는 그대로 유지</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                            <input type="checkbox" id="lnm-switch-doc" checked class="w-3.5 h-3.5 rounded">
+                            <span>등록 후 그 달 청구서로 바로 이동</span>
+                        </label>
+                    </div>
+                    <div class="flex gap-2 px-5 pb-5">
+                        <button onclick="closeLaborNextMonthModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">취소</button>
+                        <button onclick="confirmLaborNextMonth()" class="flex-1 py-2.5 rounded-lg text-white text-xs font-bold transition-all bg-rose-500 hover:bg-rose-600">다음달로 등록 →</button>
+                    </div>
+                </div>
+            </div>
+
     <div id="vendor-history-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeVendorHistoryModal()">
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[92vh] flex flex-col">
 
@@ -4816,9 +4856,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '7.9';
+        const APP_VERSION = '8.3';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '배포용 전체 초기화 보완 — 기존 "전체 초기화"가 청구 대장·계좌 DB만 지우고 법인카드·개인경비·대금지급현황·지불의뢰서 이력·백업 설정·GitHub 연동 토큰 등은 남겨두던 문제 수정. 이제 다른 현장에 넘기기 전 한 번의 초기화로 이 기기에 저장된 모든 자료를 깨끗이 지울 수 있음.';
+        const APP_VERSION_NOTE = '법인카드·개인경비 금액 입력칸에 천 단위 콤마 실시간 적용 — 기존엔 숫자 전용(type=number) 입력이라 타이핑 중 콤마 없이 숫자만 보였는데, 청구명세서 금액칸처럼 입력하는 즉시 1,500,000 형태로 보이도록 통일.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -8802,6 +8842,23 @@
             updateCompanyDatalist();
             document.getElementById('dup-doc-company').value = currentDoc.company || "";
             document.getElementById('dup-doc-site').value = currentDoc.site || "";
+            // ★ 복사 대상 월 기본값 = 현재 문서의 다음 달 (가장 흔한 이월 시나리오). 다음 달을 알 수
+            //   없으면 오늘 날짜 기준 현재 월로 대체한다.
+            const suggestedNext = nextMonthLabel(currentDoc.month);
+            const nm = /(\d{4})\D+(\d{1,2})/.exec(suggestedNext || '');
+            if (nm) {
+                const yearSel = document.getElementById('dup-doc-year');
+                if (yearSel && ![...yearSel.options].some(o => o.value === nm[1])) {
+                    const opt = document.createElement('option');
+                    opt.value = nm[1]; opt.textContent = nm[1] + '년';
+                    yearSel.appendChild(opt);
+                }
+                if (yearSel) yearSel.value = nm[1];
+                const monthSel = document.getElementById('dup-doc-month');
+                if (monthSel) monthSel.value = String(nm[2]).padStart(2, '0');
+            } else {
+                setYearMonthSelectToNow('dup-doc-year', 'dup-doc-month');
+            }
             document.getElementById('duplicate-doc-modal').classList.remove('hidden');
             lucide.createIcons();
         }
@@ -10594,10 +10651,32 @@ function changePrintScale(value) {
             dl.innerHTML = merged.map(c => `<option value="${c}">`).join('');
         }
 
+        // ★ 청구년도/청구월 select를 오늘 날짜 기준 현재 월로 기본 선택 — 연도 select에 고정된
+        //   미래 연도가 없는 경우(예: 2029년 이후)에도 깨지지 않도록 현재 연도를 직접 추가해준다.
+        function setYearMonthSelectToNow(yearSelId, monthSelId) {
+            const now = new Date();
+            const y = String(now.getFullYear());
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const yearSel = document.getElementById(yearSelId);
+            const monthSel = document.getElementById(monthSelId);
+            if (yearSel) {
+                if (![...yearSel.options].some(o => o.value === y)) {
+                    const opt = document.createElement('option');
+                    opt.value = y; opt.textContent = y + '년';
+                    yearSel.appendChild(opt);
+                }
+                yearSel.value = y;
+            }
+            if (monthSel) monthSel.value = m;
+        }
+
         function toggleNewDocModal() {
+            const modal = document.getElementById('new-doc-modal');
+            const willOpen = modal.classList.contains('hidden');
             updateCompanyDatalist();
             populateSiteDatalist();       // 현장명 datalist + 칩 갱신
-            document.getElementById('new-doc-modal').classList.toggle('hidden');
+            if (willOpen) setYearMonthSelectToNow('new-doc-year', 'new-doc-month');
+            modal.classList.toggle('hidden');
         }
 
         /* 현장명 datalist 및 최근 현장 칩 목록 생성 */
@@ -11333,7 +11412,7 @@ function changePrintScale(value) {
             (typeof ccLoad === 'function' ? ccLoad() : []).filter(r => r.site === site).forEach(r => {
                 const ym = (r.date || '').slice(0,7); // YYYY-MM
                 if (!ym) return;
-                const label = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
+                const label = `${ym.slice(0,4)}년 ${ym.slice(5,7)}월`;
                 ccByMonth[label] = (ccByMonth[label] || 0) + Number(r.amount || 0);
             });
 
@@ -13189,7 +13268,7 @@ function changePrintScale(value) {
             (typeof ccLoad === 'function' ? ccLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
                 const ym = (r.date || '').slice(0,7);
                 if (!ym) return;
-                const month = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
+                const month = `${ym.slice(0,4)}년 ${ym.slice(5,7)}월`;
                 const g = getGroup(r.company, r.site, month);
                 g.amounts['법인카드'] += Number(r.amount||0);
                 g.rows['법인카드'].push({ merchant: r.merchant||'', cat: r.cat||'', date: r.date||'', amount: Number(r.amount||0), memo: r.memo||'' });
@@ -13200,7 +13279,7 @@ function changePrintScale(value) {
             (typeof peLoad === 'function' ? peLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
                 const ym = (r.date || '').slice(0,7);
                 if (!ym) return;
-                const month = `${ym.slice(0,4)}년 ${Number(ym.slice(5,7))}월`;
+                const month = `${ym.slice(0,4)}년 ${ym.slice(5,7)}월`;
                 const g = getGroup(r.company, r.site, month);
                 g.amounts['개인경비'] += Number(r.amount||0);
                 g.rows['개인경비'].push({ employee: r.employee||'', merchant: r.merchant||'', cat: r.cat||'', date: r.date||'',
@@ -17185,6 +17264,107 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             showToast((isCopy ? '📋 ' : '📂 ') + selectedRows.length + '개 행을 [' + targetLabel + ']에 ' + (isCopy ? '복사' : '이동') + '했습니다.');
         }
 
+        // ── 노무비 다음달 등록: 같은 인원이 계속 투입될 때, 선택한 노무비 항목을 다음 달 청구서로 바로 넘긴다 ──
+        // "2026년 9월" / "2026년 09월" 등 표기가 달라도 다음 달을 정확히 계산 (12월 → 다음해 1월 처리 포함)
+        function nextMonthLabel(monthStr) {
+            const m = /(\d{4})\D+(\d{1,2})/.exec(monthStr || '');
+            if (!m) return '';
+            let y = parseInt(m[1], 10), mo = parseInt(m[2], 10) + 1;
+            if (mo > 12) { mo = 1; y += 1; }
+            return `${y}년 ${String(mo).padStart(2, '0')}월`;
+        }
+
+        function openLaborNextMonthModal() {
+            if (selectedRowIds.size === 0) { showToast('먼저 다음달로 넘길 노무비 항목을 선택하세요.'); return; }
+            const selectedRows = dataset.filter(r => selectedRowIds.has(r.id));
+            const nonLabor = selectedRows.filter(r => r.type !== '노무비');
+            if (nonLabor.length) {
+                showToast('선택한 항목 중 노무비가 아닌 항목이 있습니다. 노무비 항목만 선택해주세요.', 'error');
+                return;
+            }
+            const site = document.getElementById('meta-site')?.value || '';
+            const company = document.getElementById('meta-company')?.value || '';
+            const curMonth = document.getElementById('meta-month')?.value || '';
+            const nextMonth = nextMonthLabel(curMonth);
+            if (!nextMonth) { showToast('현재 청구서의 작성월을 먼저 확인해주세요.', 'error'); return; }
+
+            const existing = findDuplicateDoc(site, company, nextMonth, null);
+            document.getElementById('lnm-target-label').textContent =
+                `[${nextMonth}] ${site}${company ? ' · ' + company : ''}` + (existing ? ` (기존 청구서에 추가 · 현재 ${(existing.dataset||[]).length}건)` : ' (새 청구서 생성)');
+            document.getElementById('lnm-subtitle').textContent = `선택한 노무비 ${selectedRows.length}건을 다음 달로 넘깁니다.`;
+            document.getElementById('lnm-row-list').innerHTML = selectedRows.map(r =>
+                `<div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                    <span class="font-bold text-slate-700 dark:text-slate-200">${escCc(r.vendor || '(성명 미입력)')}</span>
+                    <span class="text-slate-400">${(r.supply||0).toLocaleString('ko-KR')}원</span>
+                </div>`
+            ).join('');
+
+            document.getElementById('labor-next-month-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeLaborNextMonthModal() {
+            document.getElementById('labor-next-month-modal').classList.add('hidden');
+        }
+
+        function confirmLaborNextMonth() {
+            const selectedRows = dataset.filter(r => selectedRowIds.has(r.id));
+            if (!selectedRows.length) { closeLaborNextMonthModal(); return; }
+
+            const site = document.getElementById('meta-site')?.value || '';
+            const company = document.getElementById('meta-company')?.value || '';
+            const curMonth = document.getElementById('meta-month')?.value || '';
+            const nextMonth = nextMonthLabel(curMonth);
+            const resetAmount = document.getElementById('lnm-reset-amount').checked;
+            const switchDoc = document.getElementById('lnm-switch-doc').checked;
+
+            let targetDoc = findDuplicateDoc(site, company, nextMonth, null);
+            let createdNew = false;
+            if (!targetDoc) {
+                targetDoc = {
+                    id: 'doc-' + Date.now(),
+                    company: company,
+                    month: nextMonth,
+                    site: site,
+                    dataset: [],
+                    period: calculateMonthPeriod(nextMonth)
+                };
+                savedDocuments.push(targetDoc);
+                createdNew = true;
+            }
+
+            if (!targetDoc.dataset) targetDoc.dataset = [];
+            const targetMaxId = targetDoc.dataset.reduce((m, r) => Math.max(m, r.id || 0), 0);
+
+            const rowsToCopy = selectedRows.map((row, i) => {
+                const newRow = { ...row, id: targetMaxId + i + 1, status: '대기' };
+                if (resetAmount) {
+                    newRow.supply = 0;
+                    newRow.tax = 0;
+                    newRow.deduction = 0;
+                    newRow.prepaid = 0;
+                    if (newRow.vendorItems && newRow.vendorItems.length > 0) {
+                        newRow.vendorItems = newRow.vendorItems.map(it => ({ ...it, supply: 0, tax: 0 }));
+                    }
+                }
+                return newRow;
+            });
+            targetDoc.dataset.push(...rowsToCopy);
+
+            saveToLocalStorage();
+            selectedRowIds.clear();
+            closeLaborNextMonthModal();
+
+            if (switchDoc) {
+                loadSavedDocument(targetDoc.id);
+            } else {
+                buildFilterOptions();
+                updateSavedSheetsSelector();
+                renderStatementTable();
+            }
+            showToast(`노무비 ${rowsToCopy.length}건을 [${nextMonth}] 청구서${createdNew ? '(신규 생성)' : ''}에 등록했습니다.`, 'success');
+        }
+
         // ── 거래처 이력 요약 복사 ──
         function copyVendorSummary() {
             const name = document.getElementById('vh-vendor-name').textContent;
@@ -19057,6 +19237,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         // ── 법인카드·개인경비 공통 헬퍼 ──
         // HTML 이스케이프 — 가맹점명/메모 등에 < > & " 가 있어도 표·인쇄물이 깨지지 않게 함
+        // 금액 입력칸에 타이핑하는 즉시 천 단위 콤마를 넣어준다 (커서는 입력칸 맨 끝에 유지 —
+        // 이 입력칸들은 금액을 끝에서부터 입력하는 짧은 모달용이라 끝 고정으로 충분함)
+        function formatMoneyInputLive(el) {
+            const digitsOnly = el.value.replace(/[^0-9]/g, '');
+            el.value = digitsOnly ? Number(digitsOnly).toLocaleString('ko-KR') : '';
+        }
+
         function escCc(v) {
             return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
@@ -19555,7 +19742,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-cat').value = r.cat||'기타';
             document.getElementById('cc-edit-prooftype').value = r.proofType||'';
             document.getElementById('cc-edit-merchant').value = r.merchant||'';
-            document.getElementById('cc-edit-amount').value = r.amount||'';
+            document.getElementById('cc-edit-amount').value = r.amount ? Number(r.amount).toLocaleString('ko-KR') : '';
             document.getElementById('cc-edit-site').value = r.site||'';
             document.getElementById('cc-edit-company').value = r.company||'';
             document.getElementById('cc-edit-memo').value = r.memo||'';
@@ -19579,7 +19766,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const vatApplied = document.getElementById('cc-edit-vat-toggle').checked;
             const supply   = vatApplied ? (Number(document.getElementById('cc-edit-supply').value) || 0) : null;
             const tax      = vatApplied ? (Number(document.getElementById('cc-edit-tax').value) || 0) : null;
-            const amount   = Number(document.getElementById('cc-edit-amount').value) || 0;
+            const amount   = Number((document.getElementById('cc-edit-amount').value || '').replace(/,/g, '')) || 0;
             const site     = document.getElementById('cc-edit-site').value.trim();
             const company  = document.getElementById('cc-edit-company').value.trim();
             const memo     = document.getElementById('cc-edit-memo').value.trim();
@@ -19742,7 +19929,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* 금액 미리보기 */
         function ccFormatAmtPreview() {
-            const v = Number(document.getElementById('cc-edit-amount').value)||0;
+            const v = Number((document.getElementById('cc-edit-amount').value || '').replace(/,/g, ''))||0;
             const el = document.getElementById('cc-amt-preview');
             if (!el) return;
             if (!v) { el.textContent = ''; return; }
@@ -19766,7 +19953,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const supply = Number(document.getElementById('cc-edit-supply').value) || 0;
             const tax = Number(document.getElementById('cc-edit-tax').value) || 0;
             const total = supply + tax;
-            document.getElementById('cc-edit-amount').value = total || '';
+            document.getElementById('cc-edit-amount').value = total ? Number(total).toLocaleString('ko-KR') : '';
             const el = document.getElementById('cc-vat-total-preview');
             if (el) el.textContent = total ? `합계 금액: ${total.toLocaleString('ko-KR')}원` : '';
         }
@@ -19840,7 +20027,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!filtered.length) { showToast('출력할 데이터가 없습니다.', 'error'); return; }
 
             const monthVal = document.getElementById('cc-filter-month')?.value || '';
-            const monthLabel = monthVal ? `${monthVal.slice(0,4)}년 ${Number(monthVal.slice(5,7))}월분` : '전체 기간';
+            const monthLabel = monthVal ? `${monthVal.slice(0,4)}년 ${monthVal.slice(5,7)}월분` : '전체 기간';
             const totalAmt = filtered.reduce((s,r)=>s+Number(r.amount||0),0);
             const rows = filtered.map((r,i)=>`
                 <tr style="background:${i%2?'#f8fafc':'#fff'};">
@@ -20269,7 +20456,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* 금액 미리보기(한글금액) */
         function peFormatAmtPreview() {
-            const amt = Number(document.getElementById('pe-edit-amount')?.value) || 0;
+            const amt = Number((document.getElementById('pe-edit-amount')?.value || '').replace(/,/g, '')) || 0;
             const el = document.getElementById('pe-amt-preview');
             if (el) el.textContent = amt ? peFmt(amt) : '';
         }
@@ -20313,7 +20500,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('pe-edit-employee').value = r.employee||'';
             document.getElementById('pe-edit-cat').value = r.cat||'기타';
             document.getElementById('pe-edit-merchant').value = r.merchant||'';
-            document.getElementById('pe-edit-amount').value = r.amount||'';
+            document.getElementById('pe-edit-amount').value = r.amount ? Number(r.amount).toLocaleString('ko-KR') : '';
             document.getElementById('pe-edit-site').value = r.site||'';
             document.getElementById('pe-edit-company').value = r.company||'';
             document.getElementById('pe-edit-bank').value = r.bank||'';
@@ -20416,7 +20603,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const employee = document.getElementById('pe-edit-employee').value.trim();
             const cat      = document.getElementById('pe-edit-cat').value;
             const merchant = document.getElementById('pe-edit-merchant').value.trim();
-            const amount   = Number(document.getElementById('pe-edit-amount').value) || 0;
+            const amount   = Number((document.getElementById('pe-edit-amount').value || '').replace(/,/g, '')) || 0;
             const site     = document.getElementById('pe-edit-site').value.trim();
             const company  = document.getElementById('pe-edit-company').value.trim();
             const bank     = document.getElementById('pe-edit-bank').value.trim();
@@ -20618,7 +20805,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const list = peData.filter(r => !month || (r.date||'').startsWith(month));
             if (!list.length) { showToast('해당 기간에 데이터가 없습니다.', 'error'); return; }
 
-            const monthLabel = month ? `${month.slice(0,4)}년 ${Number(month.slice(5,7))}월` : '전체 기간';
+            const monthLabel = month ? `${month.slice(0,4)}년 ${month.slice(5,7)}월` : '전체 기간';
 
             // 직원별 집계
             const empMap = {};
@@ -20781,7 +20968,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (!filtered.length) { showToast('출력할 데이터가 없습니다.', 'error'); return; }
 
             const monthVal = document.getElementById('pe-filter-month')?.value || '';
-            const monthLabel = monthVal ? `${monthVal.slice(0,4)}년 ${Number(monthVal.slice(5,7))}월분` : '전체 기간';
+            const monthLabel = monthVal ? `${monthVal.slice(0,4)}년 ${monthVal.slice(5,7)}월분` : '전체 기간';
             const totalAmt = filtered.reduce((s,r)=>s+Number(r.amount||0),0);
             const rows = filtered.map((r,i)=>`
                 <tr style="background:${i%2?'#f8fafc':'#fff'};">
