@@ -4125,35 +4125,50 @@
                         <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i> 현장별 자금 집행 비교표
                         </h4>
-                        <div class="flex items-center gap-1.5 flex-wrap" id="site-company-filter-bar">
-                            <span class="text-[10px] text-slate-400 font-bold shrink-0">회사별:</span>
-                            <button onclick="filterSiteByCompany('ALL')" id="site-co-btn-ALL"
-                                class="site-co-btn px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all bg-blue-600 text-white border-blue-600">
-                                전체
-                            </button>
+                        <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            <div class="flex items-center gap-1.5 flex-wrap" id="site-company-filter-bar">
+                                <span class="text-[10px] text-slate-400 font-bold shrink-0">회사별:</span>
+                                <button onclick="filterSiteByCompany('ALL')" id="site-co-btn-ALL"
+                                    class="site-co-btn px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all bg-blue-600 text-white border-blue-600">
+                                    전체
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                                <button onclick="exportSiteComparisonExcel()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-1" title="현재 보이는 비교표를 엑셀 파일로 내보냅니다">
+                                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i> 엑셀
+                                </button>
+                                <button onclick="printSiteComparison()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1" title="비교표를 인쇄하거나 PDF로 저장합니다">
+                                    <i data-lucide="printer" class="w-3 h-3"></i> 인쇄/공유
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    <div id="site-budget-alert-banner" class="hidden shrink-0"></div>
                     <div id="site-company-group-view" class="hidden flex-1 min-h-0 overflow-y-auto space-y-4 mb-3"></div>
                     <div id="site-all-table-wrap" class="flex-1 min-h-0 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
                         <table class="border-collapse text-[11px]" style="width:100%;table-layout:fixed;">
                             <colgroup>
-                                <col style="width:16%;">
                                 <col style="width:11%;">
-                                <col style="width:6%;">
                                 <col style="width:7%;">
-                                <col style="width:10%;">
-                                <col style="width:10%;">
+                                <col style="width:9%;">
+                                <col style="width:4%;">
+                                <col style="width:5%;">
                                 <col style="width:8%;">
                                 <col style="width:8%;">
-                                <col style="width:10%;">
-                                <col style="width:7%;">
-                                <col style="width:12%;">
-                                <col style="width:7%;">
+                                <col style="width:5%;">
+                                <col style="width:5%;">
+                                <col style="width:8%;">
+                                <col style="width:5%;">
+                                <col style="width:8%;">
+                                <col style="width:4%;">
+                                <col style="width:8%;">
+                                <col style="width:4%;">
                             </colgroup>
                             <thead>
                                 <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-center font-bold text-slate-700 dark:text-slate-200">
                                     <th class="py-2.5 px-2 text-left sticky top-0 bg-slate-100 dark:bg-slate-800">현장명</th>
                                     <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">회사</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">상태 / 준공예정</th>
                                     <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">대장 수</th>
                                     <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">총 청구건</th>
                                     <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">공급가액 합계</th>
@@ -4162,6 +4177,8 @@
                                     <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">법인카드</th>
                                     <th class="py-2.5 px-2 bg-emerald-100 dark:bg-emerald-900/40 sticky top-0">총 투입비</th>
                                     <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">집행률</th>
+                                    <th class="py-2.5 px-2 text-rose-700 dark:text-rose-400 sticky top-0 bg-slate-100 dark:bg-slate-800">미지급</th>
+                                    <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">정보</th>
                                     <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">바로가기</th>
                                     <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">보고서</th>
                                 </tr>
@@ -4273,6 +4290,42 @@
                     <div class="flex gap-2 px-5 pb-5">
                         <button onclick="closeRowTransferModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">취소</button>
                         <button id="rt-confirm-btn" onclick="confirmRowTransfer()" class="flex-1 py-2.5 rounded-lg text-white text-xs font-bold transition-all" disabled>문서 선택 후 확인</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 현장 정보(담당자/연락처/메모) 모달 -->
+            <div id="site-info-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onclick="if(event.target===this) closeSiteInfoModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
+                    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                        <div class="p-2 rounded-xl bg-blue-500">
+                            <i data-lucide="user-round" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">현장 정보</p>
+                            <p id="site-info-name" class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate"></p>
+                        </div>
+                        <button onclick="closeSiteInfoModal()" class="ml-auto shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="px-5 py-4 space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-500 dark:text-slate-400 mb-1">담당자</label>
+                            <input type="text" id="site-info-manager" placeholder="예: 김현장" class="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-500 dark:text-slate-400 mb-1">담당자 연락처</label>
+                            <input type="text" id="site-info-phone" placeholder="예: 010-1234-5678" class="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-500 dark:text-slate-400 mb-1">메모 (특이사항)</label>
+                            <textarea id="site-info-memo" rows="3" placeholder="이 현장에 대해 기억해둘 내용" class="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 px-5 pb-5">
+                        <button onclick="closeSiteInfoModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">취소</button>
+                        <button onclick="saveSiteInfoModal()" class="flex-1 py-2.5 rounded-lg text-white text-xs font-bold transition-all bg-blue-600 hover:bg-blue-700">저장</button>
                     </div>
                 </div>
             </div>
@@ -4856,9 +4909,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '8.3';
+        const APP_VERSION = '8.4';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '법인카드·개인경비 금액 입력칸에 천 단위 콤마 실시간 적용 — 기존엔 숫자 전용(type=number) 입력이라 타이핑 중 콤마 없이 숫자만 보였는데, 청구명세서 금액칸처럼 입력하는 즉시 1,500,000 형태로 보이도록 통일.';
+        const APP_VERSION_NOTE = '공사 현장 관리 비교표에 "미지급" 열과 "현장 정보(담당자/연락처/메모)" 등록 기능 추가 — 대금지급현황과 연동해 현장별로 아직 다 지급되지 않은 금액을 바로 보여주고, 담당자·연락처·특이사항을 등록해둘 수 있음. 엑셀 내보내기·인쇄에도 함께 반영.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -13028,6 +13081,42 @@ function changePrintScale(value) {
         /* ============================================================
            현장별 분리 관리 (V12)
         ============================================================ */
+        const SITE_META_KEY = 'cons_site_meta_v1';
+        const SITE_STATUS_OPTIONS = [
+            { v: '진행중', color: 'blue' },
+            { v: '준공',   color: 'emerald' },
+            { v: '중단',   color: 'slate' }
+        ];
+        function getSiteMeta() {
+            try { return JSON.parse(localStorage.getItem(SITE_META_KEY) || '{}'); } catch (e) { return {}; }
+        }
+        function setSiteMeta(obj) {
+            localStorage.setItem(SITE_META_KEY, JSON.stringify(obj));
+        }
+        function updateSiteStatus(site, status) {
+            const meta = getSiteMeta();
+            meta[site] = { ...(meta[site] || {}), status };
+            setSiteMeta(meta);
+            renderSiteComparisonTable();
+        }
+        function updateSiteDueDate(site, dueDate) {
+            const meta = getSiteMeta();
+            meta[site] = { ...(meta[site] || {}), dueDate };
+            setSiteMeta(meta);
+            renderSiteComparisonTable();
+        }
+        // 준공예정일까지 D-day 텍스트 — 지난 날짜는 "D+N (지연)"으로 표시
+        function siteDueDayLabel(dueDate) {
+            if (!dueDate) return '';
+            const today = new Date(); today.setHours(0,0,0,0);
+            const due = new Date(dueDate + 'T00:00:00');
+            if (isNaN(due.getTime())) return '';
+            const diffDays = Math.round((due - today) / 86400000);
+            if (diffDays > 0) return { text: `D-${diffDays}`, cls: diffDays <= 14 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400' };
+            if (diffDays === 0) return { text: 'D-DAY', cls: 'text-rose-600 dark:text-rose-400 font-extrabold' };
+            return { text: `D+${-diffDays} 지연`, cls: 'text-rose-700 dark:text-rose-400 font-extrabold' };
+        }
+
         function getSiteBudgets() {
             try { return JSON.parse(localStorage.getItem(SITE_BUDGET_KEY) || '{}'); } catch(e) { return {}; }
         }
@@ -13602,8 +13691,9 @@ function changePrintScale(value) {
                     stats[site].prepaidAmt += (row.prepaid || 0);
                 });
             });
-            // 법인카드 경비도 현장별로 합산 (총 투입비에 포함)
-            (typeof ccLoad === 'function' ? ccLoad() : []).forEach(r => {
+            // 법인카드 경비도 현장별로 합산 (총 투입비에 포함) — 단, 이미 청구명세서에 반영되어
+            // 위에서 관리비 행으로 합산된 건은 제외한다 (중복 집계 방지, buildTotalInvestData와 동일 원칙)
+            (typeof ccLoad === 'function' ? ccLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
                 const site = (r.site || '현장 미지정').trim();
                 if (!stats[site]) {
                     stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
@@ -13616,6 +13706,21 @@ function changePrintScale(value) {
             Object.values(stats).forEach(s => {
                 s.companies = [...s.companies].filter(Boolean);
                 s.totalInvest = s.requestAmt + s.prepaidAmt + s.ccAmt;
+                s.unpaidCount = 0;
+                s.unpaidAmt = 0;
+            });
+            // 대금지급현황과 연동 — 청구금액보다 지급금액이 적게 기록된 건을 "미지급"으로 집계
+            // (sourceDocId로 그 건이 어느 현장 문서에서 왔는지 추적)
+            const docSiteMap = {};
+            savedDocuments.forEach(doc => { docSiteMap[doc.id] = (doc.site || '현장 미지정').trim(); });
+            (typeof pmLoad === 'function' ? pmLoad() : []).forEach(p => {
+                const site = p.sourceDocId ? docSiteMap[p.sourceDocId] : null;
+                if (!site || !stats[site]) return;
+                const unpaid = (p.claimAmount || 0) - (p.payAmount || 0);
+                if (unpaid > 0) {
+                    stats[site].unpaidCount++;
+                    stats[site].unpaidAmt += unpaid;
+                }
             });
             return stats;
         }
@@ -13799,18 +13904,40 @@ function changePrintScale(value) {
             }
 
             if (!sites.length) {
-                tbody.innerHTML = `<tr><td colspan="12" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="15" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">등록된 현장 문서가 없습니다.</td></tr>`;
+                renderSiteBudgetAlertBanner([]);
                 return;
             }
+            const siteMeta = getSiteMeta();
             const totalAmt = sites.reduce((s, k) => s + stats[k].totalInvest, 0);
+            const alertSites = []; // 예산 90% 이상 소진된 현장 — 상단 알림 배너용
             sites.sort((a, b) => stats[b].totalInvest - stats[a].totalInvest).forEach(site => {
                 const s      = stats[site];
                 const budget = budgets[site] || 0;
-                const pct    = budget > 0 ? Math.min(100, Math.round(s.requestAmt / budget * 100)) : '-';
+                const rawPct = budget > 0 ? Math.round(s.requestAmt / budget * 100) : 0;
+                const pct    = budget > 0 ? Math.min(999, rawPct) : '-';
+                if (budget > 0 && rawPct >= 90) alertSites.push({ site, pct: rawPct, over: rawPct >= 100 });
                 const pctBadge = pct !== '-'
-                    ? `<span class="font-bold ${pct >= 90 ? 'text-rose-600' : pct >= 70 ? 'text-amber-600' : 'text-emerald-600'}">${pct}%</span>`
+                    ? `<span class="font-bold ${pct >= 100 ? 'text-rose-700' : pct >= 90 ? 'text-rose-600' : pct >= 70 ? 'text-amber-600' : 'text-emerald-600'}">${pct}%</span>`
                     : `<span class="text-slate-400 text-[10px]">예산 미설정</span>`;
                 const sharePct = totalAmt > 0 ? Math.round(s.totalInvest / totalAmt * 100) : 0;
+                const meta = siteMeta[site] || {};
+                const curStatus = meta.status || '진행중';
+                const dday = siteDueDayLabel(meta.dueDate);
+                const statusCell = `
+                    <div class="flex flex-col items-center gap-1">
+                        <select onchange="updateSiteStatus('${site.replace(/'/g,"\\'")}', this.value)" class="text-[10px] font-bold border rounded px-1 py-0.5 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 w-full">
+                            ${SITE_STATUS_OPTIONS.map(o => `<option value="${o.v}" ${o.v === curStatus ? 'selected' : ''}>${o.v}</option>`).join('')}
+                        </select>
+                        <div class="flex items-center gap-1 w-full">
+                            <input type="date" value="${meta.dueDate || ''}" onchange="updateSiteDueDate('${site.replace(/'/g,"\\'")}', this.value)" class="text-[9px] border rounded px-1 py-0.5 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 w-full" title="준공예정일">
+                        </div>
+                        ${dday ? `<span class="text-[9px] ${dday.cls}">${dday.text}</span>` : ''}
+                    </div>`;
+                const unpaidCell = s.unpaidCount > 0
+                    ? `<button onclick="openSiteInfoModal('${site.replace(/'/g,"\\'")}')" class="text-rose-600 dark:text-rose-400 font-extrabold hover:underline" title="대금지급현황에서 아직 다 지급되지 않은 건">${formatNumber(s.unpaidAmt)}원<br><span class="text-[9px] font-semibold">${s.unpaidCount}건</span></button>`
+                    : `<span class="text-slate-300 dark:text-slate-600 text-[10px]">-</span>`;
+                const hasInfo = meta.manager || meta.managerPhone || meta.memo;
                 // 선택 현장의 대장만 월별로 필터링해 이동 대상으로 제공
                 const siteDocs = savedDocuments
                     .filter(d => (d.site||'현장 미지정').trim() === site)
@@ -13821,6 +13948,7 @@ function changePrintScale(value) {
                 tr.innerHTML = `
                     <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100" style="word-break:keep-all; overflow-wrap:break-word; white-space:normal;">${site}</td>
                     <td class="py-2.5 px-3 text-center"><div class="flex flex-wrap justify-center gap-1">${coTags || '-'}</div></td>
+                    <td class="py-2 px-2 text-center">${statusCell}</td>
                     <td class="py-2.5 px-3 text-center text-blue-600 dark:text-blue-400 font-bold">${s.docCount}</td>
                     <td class="py-2.5 px-3 text-center font-semibold">${s.rowCount}</td>
                     <td class="py-2.5 px-3 text-right font-semibold text-slate-700 dark:text-slate-200">${formatNumber(s.supply)}원</td>
@@ -13831,6 +13959,12 @@ function changePrintScale(value) {
                     <td class="py-2.5 px-3 text-right font-semibold text-amber-600 dark:text-amber-400">${formatNumber(s.ccAmt)}원</td>
                     <td class="py-2.5 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${formatNumber(s.totalInvest)}원</td>
                     <td class="py-2.5 px-3 text-center">${pctBadge}</td>
+                    <td class="py-2.5 px-3 text-center text-[10px]">${unpaidCell}</td>
+                    <td class="py-2.5 px-2 text-center">
+                        <button onclick="openSiteInfoModal('${site.replace(/'/g,"\\'")}')" class="p-1 rounded-lg ${hasInfo ? 'text-blue-600 dark:text-blue-400' : 'text-slate-300 dark:text-slate-600'} hover:bg-slate-100 dark:hover:bg-slate-800" title="${hasInfo ? '담당자/메모 보기·수정' : '담당자/메모 등록'}">
+                            <i data-lucide="user-round" class="w-3.5 h-3.5 inline"></i>
+                        </button>
+                    </td>
                     <td class="py-2.5 px-3 text-center">
                         ${siteDocs.length ? `<select onchange="if(this.value){ loadSavedDocument(this.value); closeSiteManagerModal(); }" class="text-[10px] font-bold border rounded px-1 py-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600" title="${site} 대장으로 이동 (회사 · 월 선택)">
                             <option value="">이동 (회사 · 월 선택)</option>
@@ -13849,6 +13983,155 @@ function changePrintScale(value) {
                 `;
                 tbody.appendChild(tr);
             });
+            renderSiteBudgetAlertBanner(alertSites);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // ── 현장 정보(담당자/연락처/메모) 편집 모달 ──
+        let _siteInfoTarget = '';
+        function openSiteInfoModal(site) {
+            _siteInfoTarget = site;
+            const meta = getSiteMeta()[site] || {};
+            document.getElementById('site-info-name').textContent = site;
+            document.getElementById('site-info-manager').value = meta.manager || '';
+            document.getElementById('site-info-phone').value = meta.managerPhone || '';
+            document.getElementById('site-info-memo').value = meta.memo || '';
+            document.getElementById('site-info-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeSiteInfoModal() {
+            document.getElementById('site-info-modal').classList.add('hidden');
+            _siteInfoTarget = '';
+        }
+        function saveSiteInfoModal() {
+            if (!_siteInfoTarget) return;
+            const meta = getSiteMeta();
+            meta[_siteInfoTarget] = {
+                ...(meta[_siteInfoTarget] || {}),
+                manager: document.getElementById('site-info-manager').value.trim(),
+                managerPhone: document.getElementById('site-info-phone').value.trim(),
+                memo: document.getElementById('site-info-memo').value.trim()
+            };
+            setSiteMeta(meta);
+            closeSiteInfoModal();
+            renderSiteComparisonTable();
+            showToast('현장 정보가 저장되었습니다.', 'success');
+        }
+
+        // 예산 90% 이상 소진된 현장을 비교표 상단에 모아서 보여주는 알림 배너
+        function renderSiteBudgetAlertBanner(alertSites) {
+            const box = document.getElementById('site-budget-alert-banner');
+            if (!box) return;
+            if (!alertSites || !alertSites.length) { box.innerHTML = ''; box.classList.add('hidden'); return; }
+            box.classList.remove('hidden');
+            const overCount = alertSites.filter(a => a.over).length;
+            const headline = overCount
+                ? `예산을 초과한 현장이 ${overCount}곳 있습니다`
+                : `예산의 90% 이상을 사용한 현장이 ${alertSites.length}곳 있습니다`;
+            box.innerHTML = `
+                <div class="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/20 px-3 py-2.5 mb-3 flex items-start gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5"></i>
+                    <div class="text-[11px] min-w-0">
+                        <p class="font-bold text-rose-700 dark:text-rose-300">${headline}</p>
+                        <div class="flex flex-wrap gap-1.5 mt-1.5">
+                            ${alertSites.sort((a,b)=>b.pct-a.pct).map(a => `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${a.over ? 'bg-rose-600 text-white' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'}">${escCc(a.site)} ${a.pct}%</span>`).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // 현재 비교표 내용을 공통 행 배열로 뽑아낸다 (엑셀/인쇄 공용)
+        function buildSiteComparisonRows() {
+            const stats = getSiteStats();
+            const budgets = getSiteBudgets();
+            const siteMeta = getSiteMeta();
+            const sites = Object.keys(stats).sort((a, b) => stats[b].totalInvest - stats[a].totalInvest);
+            return sites.map(site => {
+                const s = stats[site];
+                const budget = budgets[site] || 0;
+                const pct = budget > 0 ? Math.round(s.requestAmt / budget * 100) : null;
+                const meta = siteMeta[site] || {};
+                return {
+                    site, companies: s.companies.join(', '),
+                    status: meta.status || '진행중', dueDate: meta.dueDate || '',
+                    manager: meta.manager || '', managerPhone: meta.managerPhone || '', memo: meta.memo || '',
+                    docCount: s.docCount, rowCount: s.rowCount,
+                    supply: s.supply, requestAmt: s.requestAmt, prepaidAmt: s.prepaidAmt, ccAmt: s.ccAmt,
+                    totalInvest: s.totalInvest, budget, pct,
+                    unpaidCount: s.unpaidCount || 0, unpaidAmt: s.unpaidAmt || 0
+                };
+            });
+        }
+
+        function exportSiteComparisonExcel() {
+            if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
+            const rows = buildSiteComparisonRows();
+            if (!rows.length) { showToast('내보낼 현장 데이터가 없습니다.', 'error'); return; }
+            const sheetRows = rows.map((r, i) => ({
+                'No': i + 1, '현장명': r.site, '참여 회사': r.companies, '상태': r.status, '준공예정일': r.dueDate,
+                '담당자': r.manager, '담당자 연락처': r.managerPhone, '메모': r.memo,
+                '대장 수': r.docCount, '총 청구건': r.rowCount,
+                '공급가액 합계': r.supply, '지급요청 합계': r.requestAmt, '선지급': r.prepaidAmt, '법인카드': r.ccAmt,
+                '총 투입비': r.totalInvest, '예산': r.budget || '', '집행률(%)': r.pct == null ? '' : r.pct,
+                '미지급 건수': r.unpaidCount || '', '미지급 금액': r.unpaidAmt || ''
+            }));
+            const ws = XLSX.utils.json_to_sheet(sheetRows);
+            ws['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:8},{wch:12},{wch:10},{wch:14},{wch:24},{wch:8},{wch:9},{wch:14},{wch:14},{wch:12},{wch:12},{wch:14},{wch:12},{wch:9},{wch:10},{wch:12}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '현장별 비교표');
+            XLSX.writeFile(wb, `현장별_자금집행_비교표_${localDateStr()}.xlsx`);
+            showToast('현장별 비교표를 엑셀로 내보냈습니다.', 'success');
+        }
+
+        function printSiteComparison() {
+            const rows = buildSiteComparisonRows();
+            if (!rows.length) { showToast('인쇄할 현장 데이터가 없습니다.', 'error'); return; }
+            const win = window.open('', '_blank', 'width=1100,height=800');
+            if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
+            const trs = rows.map((r, i) => `
+                <tr style="background:${i % 2 ? '#f8fafc' : '#fff'};">
+                    <td style="text-align:center;color:#94a3b8;font-size:10px;">${i + 1}</td>
+                    <td style="font-weight:700;">${escCc(r.site)}</td>
+                    <td style="text-align:center;color:#64748b;">${escCc(r.companies)}</td>
+                    <td style="text-align:center;">${escCc(r.status)}</td>
+                    <td style="text-align:center;color:#64748b;font-family:monospace;">${escCc(r.dueDate)}</td>
+                    <td style="text-align:center;">${r.docCount}</td>
+                    <td style="text-align:center;">${r.rowCount}</td>
+                    <td style="text-align:right;">${r.requestAmt.toLocaleString('ko-KR')}</td>
+                    <td style="text-align:right;color:#b45309;">${r.prepaidAmt.toLocaleString('ko-KR')}</td>
+                    <td style="text-align:right;font-weight:900;color:#047857;">${r.totalInvest.toLocaleString('ko-KR')}</td>
+                    <td style="text-align:center;font-weight:700;color:${r.pct==null?'#94a3b8':r.pct>=100?'#b91c1c':r.pct>=90?'#dc2626':r.pct>=70?'#d97706':'#059669'};">${r.pct==null?'-':r.pct+'%'}</td>
+                    <td style="text-align:right;color:${r.unpaidAmt?'#be123c':'#94a3b8'};font-weight:${r.unpaidAmt?'900':'400'};">${r.unpaidAmt ? r.unpaidAmt.toLocaleString('ko-KR')+' ('+r.unpaidCount+'건)' : '-'}</td>
+                </tr>`).join('');
+            const totalInvest = rows.reduce((s, r) => s + r.totalInvest, 0);
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+                <title>현장별 자금집행 비교표</title>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+                <style>
+                    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+                    body{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#1e293b;margin:0;padding:12mm;}
+                    @page{size:A4 landscape;margin:10mm;}
+                    h1{font-size:16px;font-weight:900;text-align:center;margin-bottom:4px;}
+                    .sub{text-align:center;font-size:10px;color:#64748b;margin-bottom:12px;}
+                    table{width:100%;border-collapse:collapse;}
+                    th,td{border:1px solid #e2e8f0;padding:5px 6px;}
+                    th{background:#f1f5f9;font-weight:700;text-align:center;}
+                    tfoot td{font-weight:900;background:#ecfdf5;}
+                </style></head><body>
+                <h1>현장별 자금집행 비교표</h1>
+                <p class="sub">출력일: ${coverDateLabel()} · 총 ${rows.length}개 현장</p>
+                <table>
+                    <thead><tr>
+                        <th>No</th><th>현장명</th><th>참여 회사</th><th>상태</th><th>준공예정일</th>
+                        <th>대장 수</th><th>총 청구건</th><th>지급요청 합계</th><th>선지급</th><th>총 투입비</th><th>집행률</th><th>미지급</th>
+                    </tr></thead>
+                    <tbody>${trs}</tbody>
+                    <tfoot><tr><td colspan="9" style="text-align:right;">합계</td><td style="text-align:right;">${totalInvest.toLocaleString('ko-KR')}</td><td colspan="2"></td></tr></tfoot>
+                </table>
+                <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300));<\\/script>
+            </body></html>`);
+            win.document.close();
         }
 
         /* ── 현장별 종합 보고서 1클릭 생성 (총 투입비 + 예산집행률 + 결재현황 + 노무비명세서) ── */
@@ -17585,7 +17868,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         'docArchive', 'paymentStatus', CHECKLIST_ITEMS_KEY, TRASH_KEY,
                         REQ_SHOW_PREPAID_KEY, APPROVAL_OWNER_KEY, SNAPSHOT_KEY,
                         BACKUP_LAST_KEY, BACKUP_LAST_ISO_KEY, SITE_BUDGET_KEY,
-                        MONTH_CLOSE_KEY, LABOR_STMT_KEY, REPEAT_KEY, COVER_LAYOUT_KEY,
+                        MONTH_CLOSE_KEY, LABOR_STMT_KEY, REPEAT_KEY, COVER_LAYOUT_KEY, SITE_META_KEY,
                         ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY,
                         GH_SYNC_KEYS.repo, GH_SYNC_KEYS.branch, GH_SYNC_KEYS.path, GH_SYNC_KEYS.token
                     ];
