@@ -1191,6 +1191,9 @@
                 </button>
             </div>
 
+            <button onclick="openBulkExcelImportModal()" class="hdr-btn shrink-0" style="padding:7px 10px;background:#0f766e;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="엑셀 파일로 청구 항목을 한 번에 여러 건 등록합니다 (노무비 인원이 많을 때 특히 유용)">
+                <i data-lucide="upload" class="w-4 h-4"></i> <span style="font-size:12px;font-weight:800;">엑셀 일괄등록</span>
+            </button>
             <button id="add-row-hdr-btn" onclick="openAddRowModal()" class="hdr-btn shrink-0" style="padding:7px 14px;background:#dc2626;color:#fff;border:1px solid rgba(255,255,255,0.35);" title="어느 탭에서든 자금 청구 항목을 바로 등록합니다">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> <span style="font-size:12px;font-weight:800;">청구 항목 추가</span>
             </button>
@@ -2170,6 +2173,7 @@
                             <div class="text-right font-semibold">
                                 <span class="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">위의 청구내역이 틀림없음을 확인합니다.</span>
                             </div>
+                            <img id="req-sign-stamp-img" class="hidden no-print" style="height:40px;width:auto;object-fit:contain;margin-left:8px;" title="등록된 도장 — 출력 시에도 함께 찍힙니다">
                         </div>
 
                     </div>
@@ -2235,6 +2239,9 @@
                     </div>
                     <button onclick="printRequestCover()" class="qbtn" style="--qc:#b45309;" title="현재 청구서의 현장명·회사명·제출일자가 반영된 A4 표지를 새 창에서 인쇄합니다">
                         <i data-lucide="bookmark" class="w-3.5 h-3.5"></i><span>표지 인쇄</span>
+                    </button>
+                    <button onclick="openStampModal()" id="stamp-qbtn" class="qbtn" style="--qc:#7c2d12;" title="도장(서명) 이미지를 한 번 등록해두면 지불의뢰서 인쇄·Word 출력 시 확인 문구 옆에 자동으로 찍힙니다">
+                        <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span id="stamp-qbtn-label">도장 등록</span>
                     </button>
                     <button onclick="openCoverEditor()" class="qbtn" style="--qc:#0f766e;" title="표지 제목·현장명·회사명·제출일자와 원하는 항목(공사명, 계약금액, 담당자 등)을 직접 입력해서 표지를 출력합니다">
                         <i data-lucide="file-pen-line" class="w-3.5 h-3.5"></i><span>사용자 입력 표지</span>
@@ -4294,6 +4301,93 @@
                 </div>
             </div>
 
+            <!-- 도장(서명) 이미지 등록 모달 — 지불의뢰서 출력 시 확인 문구 옆에 자동으로 찍힌다 -->
+            <div id="stamp-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeStampModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
+                    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                        <div class="p-2 rounded-xl" style="background:#7c2d12;">
+                            <i data-lucide="badge-check" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">도장(서명) 등록</p>
+                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">지불의뢰서 인쇄·Word 출력 시 자동으로 찍힙니다</p>
+                        </div>
+                        <button onclick="closeStampModal()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="px-5 py-4 space-y-3 text-xs">
+                        <div id="stamp-preview-box" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 h-32 flex items-center justify-center text-slate-400">
+                            등록된 도장 이미지가 없습니다
+                        </div>
+                        <label class="block w-full text-center px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                            이미지 선택 (PNG 권장, 배경 투명)
+                            <input type="file" accept="image/png,image/jpeg" class="hidden" onchange="handleStampFileSelect(this)">
+                        </label>
+                        <p class="text-[10px] text-slate-400 leading-relaxed">도장 이미지는 이 기기(브라우저)에만 저장되며 서버로 전송되지 않습니다. 배경이 투명한 PNG 도장 이미지를 쓰면 가장 자연스럽게 찍힙니다.</p>
+                    </div>
+                    <div class="flex gap-2 px-5 pb-5">
+                        <button onclick="removeStampImg()" class="flex-1 py-2.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/30">등록 해제</button>
+                        <button onclick="closeStampModal()" class="flex-1 py-2.5 rounded-lg text-white text-xs font-bold transition-all" style="background:#7c2d12;">닫기</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 청구 항목 엑셀 일괄등록 모달 -->
+            <div id="bulk-excel-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeBulkExcelImportModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[88vh] flex flex-col">
+                    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                        <div class="p-2 rounded-xl bg-teal-600">
+                            <i data-lucide="upload" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">청구 항목 엑셀 일괄등록</p>
+                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">현재 열려있는 청구서에 여러 항목을 한 번에 등록합니다</p>
+                        </div>
+                        <button onclick="closeBulkExcelImportModal()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="overflow-y-auto flex-1 px-5 py-4 space-y-3 text-xs">
+                        <div class="rounded-xl border border-teal-100 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-950/20 p-3 space-y-1.5">
+                            <p class="font-bold text-teal-800 dark:text-teal-300">사용 방법</p>
+                            <p class="text-teal-700 dark:text-teal-400">① 아래 "양식 다운로드"로 엑셀 서식을 받아 작성 → ② 그 파일을 업로드하면 미리보기가 뜨고 → ③ 확인 후 등록</p>
+                            <p class="text-teal-600 dark:text-teal-500">필수: 구분(외주비/자재비/장비비/노무비/관리비), 거래처명(성명). 나머지는 비워도 됩니다.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="downloadBulkImportTemplate()" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5">
+                                <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 양식 다운로드
+                            </button>
+                            <label class="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold cursor-pointer flex items-center gap-1.5">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> 작성한 엑셀 업로드
+                                <input type="file" accept=".xlsx,.xls" class="hidden" onchange="handleBulkExcelFile(this)">
+                            </label>
+                        </div>
+                        <div id="bulk-excel-preview-wrap" class="hidden">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <p class="font-bold text-slate-600 dark:text-slate-300">미리보기 — <span id="bulk-excel-ok-count">0</span>건 등록 가능<span id="bulk-excel-err-summary" class="text-rose-500 font-normal"></span></p>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-auto max-h-64">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead class="bg-slate-100 dark:bg-slate-800 sticky top-0">
+                                        <tr class="text-center font-bold text-slate-600 dark:text-slate-300">
+                                            <th class="px-2 py-1.5">#</th><th class="px-2 py-1.5">구분</th><th class="px-2 py-1.5 text-left">거래처명</th>
+                                            <th class="px-2 py-1.5">대표자</th><th class="px-2 py-1.5">공급가액</th><th class="px-2 py-1.5">세액</th>
+                                            <th class="px-2 py-1.5">공제</th><th class="px-2 py-1.5">선지급</th><th class="px-2 py-1.5 text-left">비고</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bulk-excel-preview-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 px-5 pb-5 pt-2 shrink-0">
+                        <button onclick="closeBulkExcelImportModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">취소</button>
+                        <button id="bulk-excel-confirm-btn" onclick="confirmBulkExcelImport()" class="flex-1 py-2.5 rounded-lg text-white text-xs font-bold transition-all bg-teal-600 hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed" disabled>등록하기</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 현장 정보(담당자/연락처/메모) 모달 -->
             <div id="site-info-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onclick="if(event.target===this) closeSiteInfoModal()">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
@@ -4909,9 +5003,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '8.4';
+        const APP_VERSION = '8.6';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '공사 현장 관리 비교표에 "미지급" 열과 "현장 정보(담당자/연락처/메모)" 등록 기능 추가 — 대금지급현황과 연동해 현장별로 아직 다 지급되지 않은 금액을 바로 보여주고, 담당자·연락처·특이사항을 등록해둘 수 있음. 엑셀 내보내기·인쇄에도 함께 반영.';
+        const APP_VERSION_NOTE = '지불의뢰서 "도장(서명) 자동 삽입" 추가 — 도장 이미지를 한 번 등록해두면 인쇄·대량발행·Word(.docx) 내보내기 시 확인 문구 옆에 자동으로 찍힘. 이미지는 이 기기에만 저장됨.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5027,6 +5121,7 @@
             document.title = `${APP_NAME} ${label}`;
         }
         document.addEventListener('DOMContentLoaded', applyAppVersionBadges);
+        document.addEventListener('DOMContentLoaded', updateStampQuickBtnLabel);
 
         // ══════════════════════════════════════════════════════
         // 인쇄/PDF 출력 시 다크모드 강제 해제
@@ -6831,6 +6926,7 @@
                 tabRequest.classList.remove('hidden');
                 btnRequest.classList.add('tab-active','sidebar-tab-active');
                 refreshRequestSelector();
+                updateStampQuickBtnLabel();
             } else if (tabId === 'stats') {
                 tabStats.classList.remove('hidden');
                 btnStats.classList.add('tab-active','sidebar-tab-active');
@@ -8218,6 +8314,9 @@
                             <button onclick="convertRowToRequest(${row.id})" class="text-violet-600 hover:text-violet-800 p-1" title="이 항목을 지불의뢰서로 변환">
                                 <i data-lucide="file-output" class="w-4 h-4"></i>
                             </button>
+                            <button onclick="duplicateRow(${row.id})" class="text-blue-600 hover:text-blue-800 p-1" title="이 항목 복제 (거래처·계좌정보 그대로, 금액만 새로 입력)">
+                                <i data-lucide="copy-plus" class="w-4 h-4"></i>
+                            </button>
                             <button onclick="deleteRow(${row.id})" class="text-rose-600 hover:text-rose-800 p-1" title="삭제">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
@@ -8638,6 +8737,27 @@
             const n = loadTrash().length;
             if (n > 0) { badge.textContent = n; badge.classList.remove('hidden'); }
             else { badge.classList.add('hidden'); }
+        }
+
+        // 거래처명·대표자·계좌정보·적요는 그대로 두고 금액만 0으로 초기화해 바로 아래에 새 행을 넣는다 —
+        // 같은 거래처에 또 다른 건을 등록할 때 매번 처음부터 입력하지 않아도 되게 하기 위함
+        function duplicateRow(id) {
+            const idx = dataset.findIndex(r => r.id === id);
+            if (idx === -1) return;
+            const orig = dataset[idx];
+            const newRow = {
+                ...orig,
+                id: genDatasetId(),
+                supply: 0, tax: 0, deduction: 0, prepaid: 0,
+                status: '대기'
+            };
+            if (newRow.vendorItems && newRow.vendorItems.length > 0) {
+                newRow.vendorItems = newRow.vendorItems.map(it => ({ ...it, supply: 0, tax: 0 }));
+            }
+            dataset.splice(idx + 1, 0, newRow);
+            saveToLocalStorage();
+            renderStatementTable();
+            showToast(`[${orig.vendor || '항목'}] 항목이 복제되었습니다. 금액을 입력해주세요.`, 'success');
         }
 
         function deleteRow(id) {
@@ -9549,6 +9669,7 @@ function changePrintScale(value) {
 
                     <div style="flex:0 0 auto; margin-top:auto;" class="flex justify-end items-center border-t border-slate-300 pt-2">
                         <span class="text-[11px] text-slate-700 font-black">위의 청구내역이 틀림없음을 확인합니다.</span>
+                        ${renderStampImgHtml(40)}
                     </div>
                 </div>`;
 
@@ -13987,6 +14108,132 @@ function changePrintScale(value) {
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
+        // ── 청구 항목 엑셀 일괄등록 ──
+        const BULK_IMPORT_TYPES = ['외주비', '자재비', '장비비', '노무비', '관리비'];
+        let _bulkImportRows = []; // { valid, type, vendor, ceo, supply, tax, deduction, prepaid, note, error }
+
+        function openBulkExcelImportModal() {
+            if (!currentDocId) { showToast('먼저 청구서를 열거나 새로 만들어주세요.'); return; }
+            _bulkImportRows = [];
+            document.getElementById('bulk-excel-preview-wrap').classList.add('hidden');
+            document.getElementById('bulk-excel-confirm-btn').disabled = true;
+            document.getElementById('bulk-excel-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeBulkExcelImportModal() {
+            document.getElementById('bulk-excel-modal').classList.add('hidden');
+        }
+
+        function downloadBulkImportTemplate() {
+            if (typeof XLSX === 'undefined') { showToast('엑셀 기능을 불러오지 못했습니다. 인터넷 연결을 확인해주세요.', 'error'); return; }
+            const sample = [
+                { '구분': '노무비', '거래처명(성명)': '홍길동', '대표자': '', '공급가액': 2000000, '세액': 0, '공제': 66000, '선지급': 0, '비고': '목공' },
+                { '구분': '외주비', '거래처명(성명)': '가나상사', '대표자': '김대표', '공급가액': 1000000, '세액': 100000, '공제': 0, '선지급': 0, '비고': '' }
+            ];
+            const ws = XLSX.utils.json_to_sheet(sample);
+            ws['!cols'] = [{wch:8},{wch:16},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:18}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '청구항목');
+            XLSX.writeFile(wb, '청구항목_일괄등록_양식.xlsx');
+        }
+
+        function handleBulkExcelFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (typeof XLSX === 'undefined') { showToast('엑셀 기능을 불러오지 못했습니다.', 'error'); input.value = ''; return; }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const wb = XLSX.read(e.target.result, { type: 'array', cellDates: false });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+                    if (!rows.length) { showToast('엑셀에 데이터가 없습니다.', 'error'); input.value = ''; return; }
+
+                    const toNum = (v) => {
+                        const n = Number(String(v).replace(/[,\s원]/g, ''));
+                        return isFinite(n) ? n : 0;
+                    };
+                    const pick = (row, ...keys) => {
+                        for (const k of Object.keys(row)) {
+                            const norm = k.replace(/[\s()]/g, '');
+                            if (keys.some(kk => norm.includes(kk))) return row[k];
+                        }
+                        return '';
+                    };
+
+                    _bulkImportRows = rows.map(row => {
+                        const typeRaw = String(pick(row, '구분', '유형')).trim();
+                        const vendor = String(pick(row, '거래처명', '성명', '업체명')).trim();
+                        const type = BULK_IMPORT_TYPES.find(t => typeRaw.includes(t.slice(0, 2))) || '';
+                        let error = '';
+                        if (!type) error = '구분 값이 올바르지 않음(외주비/자재비/장비비/노무비/관리비 중 하나)';
+                        else if (!vendor) error = '거래처명이 비어있음';
+                        return {
+                            valid: !error, error,
+                            type, vendor,
+                            ceo: String(pick(row, '대표자')).trim(),
+                            supply: toNum(pick(row, '공급가액')),
+                            tax: toNum(pick(row, '세액')),
+                            deduction: toNum(pick(row, '공제')),
+                            prepaid: toNum(pick(row, '선지급')),
+                            note: String(pick(row, '비고', '적요')).trim()
+                        };
+                    });
+
+                    renderBulkImportPreview();
+                } catch (err) {
+                    showToast('엑셀 파일을 읽는 중 오류가 발생했습니다. 양식을 확인해주세요.', 'error');
+                } finally {
+                    input.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderBulkImportPreview() {
+            const wrap = document.getElementById('bulk-excel-preview-wrap');
+            const tbody = document.getElementById('bulk-excel-preview-tbody');
+            const okCount = _bulkImportRows.filter(r => r.valid).length;
+            const errCount = _bulkImportRows.length - okCount;
+
+            tbody.innerHTML = _bulkImportRows.map((r, i) => `
+                <tr class="${r.valid ? '' : 'bg-rose-50 dark:bg-rose-950/20'} border-t border-slate-100 dark:border-slate-800">
+                    <td class="px-2 py-1 text-center text-slate-400">${i + 1}</td>
+                    <td class="px-2 py-1 text-center ${r.valid ? '' : 'text-rose-500 font-bold'}">${escAttr(r.type) || '-'}</td>
+                    <td class="px-2 py-1 text-left font-semibold">${escAttr(r.vendor) || '<span class="text-rose-500">(없음)</span>'}</td>
+                    <td class="px-2 py-1 text-center">${escAttr(r.ceo)}</td>
+                    <td class="px-2 py-1 text-right">${r.supply.toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1 text-right">${r.tax.toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1 text-right">${r.deduction.toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1 text-right">${r.prepaid.toLocaleString('ko-KR')}</td>
+                    <td class="px-2 py-1 text-left text-slate-400">${r.error ? `<span class="text-rose-500 font-bold">⚠ ${escAttr(r.error)}</span>` : escAttr(r.note)}</td>
+                </tr>`).join('');
+
+            document.getElementById('bulk-excel-ok-count').textContent = okCount;
+            document.getElementById('bulk-excel-err-summary').textContent = errCount ? ` · 오류 ${errCount}건은 제외하고 등록됩니다` : '';
+            wrap.classList.remove('hidden');
+            document.getElementById('bulk-excel-confirm-btn').disabled = okCount === 0;
+        }
+
+        function confirmBulkExcelImport() {
+            const validRows = _bulkImportRows.filter(r => r.valid);
+            if (!validRows.length) return;
+            validRows.forEach(r => {
+                dataset.push({
+                    id: genDatasetId(),
+                    type: r.type, vendor: r.vendor, ceo: r.ceo,
+                    supply: r.supply, tax: r.tax, deduction: r.deduction, prepaid: r.prepaid,
+                    note: r.note, status: '대기'
+                });
+            });
+            saveToLocalStorage();
+            sortDatasetByPriority();
+            renderStatementTable();
+            closeBulkExcelImportModal();
+            showToast(`${validRows.length}건이 청구서에 등록되었습니다.`, 'success');
+        }
+
         // ── 현장 정보(담당자/연락처/메모) 편집 모달 ──
         let _siteInfoTarget = '';
         function openSiteInfoModal(site) {
@@ -15445,7 +15692,7 @@ function changePrintScale(value) {
                     ${checklistHtml ? `<p class="sec">● 구비 서류 체크리스트</p><div class="chk-list">${checklistHtml}</div>` : ''}
                     ${memo ? `<p class="sec">● 담당자 메모 / 특이사항</p><div class="memo-box">${esc(memo).replace(/\n/g,'<br>')}</div>` : ''}
 
-                    <p class="confirm">위의 청구내역이 틀림없음을 확인합니다.</p>
+                    <p class="confirm">위의 청구내역이 틀림없음을 확인합니다.${renderStampImgHtml(40)}</p>
                 </div>
             </div>` };
         }
@@ -15509,6 +15756,77 @@ function changePrintScale(value) {
            · 사용자 입력 표지: 제목/문구/하단 항목을 직접 입력, 항목 구성은 브라우저에 저장되어 다음에도 유지
         ============================================================ */
         const COVER_LAYOUT_KEY = 'req_cover_layout_v1';
+
+        // ── 도장(서명) 이미지 — 지불의뢰서 출력(인쇄·Word) 시 확인 문구 옆에 자동으로 찍힌다 ──
+        const STAMP_KEY = 'cons_stamp_img_v1';
+        function getStampImg() {
+            try { return JSON.parse(localStorage.getItem(STAMP_KEY) || 'null'); } catch (e) { return null; }
+        }
+        function setStampImg(obj) {
+            try { localStorage.setItem(STAMP_KEY, JSON.stringify(obj)); return true; }
+            catch (e) { showToast('도장 이미지를 저장하지 못했습니다. 이미지 용량이 너무 클 수 있습니다.', 'error'); return false; }
+        }
+        function updateStampQuickBtnLabel() {
+            const s = getStampImg();
+            const label = document.getElementById('stamp-qbtn-label');
+            if (label) label.textContent = s ? '도장 등록됨' : '도장 등록';
+            const previewImg = document.getElementById('req-sign-stamp-img');
+            if (previewImg) {
+                if (s) { previewImg.src = s.dataUrl; previewImg.classList.remove('hidden'); }
+                else { previewImg.removeAttribute('src'); previewImg.classList.add('hidden'); }
+            }
+        }
+        function openStampModal() {
+            const s = getStampImg();
+            const box = document.getElementById('stamp-preview-box');
+            box.innerHTML = s
+                ? `<img src="${s.dataUrl}" style="max-height:110px;max-width:100%;object-fit:contain;">`
+                : '등록된 도장 이미지가 없습니다';
+            document.getElementById('stamp-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closeStampModal() {
+            document.getElementById('stamp-modal').classList.add('hidden');
+        }
+        function handleStampFileSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 1.5 * 1024 * 1024) {
+                showToast('도장 이미지는 1.5MB 이하로 올려주세요.', 'error');
+                input.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    if (setStampImg({ dataUrl: e.target.result, width: img.naturalWidth, height: img.naturalHeight })) {
+                        document.getElementById('stamp-preview-box').innerHTML =
+                            `<img src="${e.target.result}" style="max-height:110px;max-width:100%;object-fit:contain;">`;
+                        updateStampQuickBtnLabel();
+                        showToast('도장이 등록되었습니다. 이제 지불의뢰서 출력 시 자동으로 찍힙니다.', 'success');
+                    }
+                };
+                img.onerror = function () { showToast('이미지를 읽을 수 없습니다.', 'error'); };
+                img.src = e.target.result;
+            };
+            reader.onerror = function () { showToast('파일을 읽는 중 오류가 발생했습니다.', 'error'); };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+        function removeStampImg() {
+            try { localStorage.removeItem(STAMP_KEY); } catch (e) {}
+            document.getElementById('stamp-preview-box').innerHTML = '등록된 도장 이미지가 없습니다';
+            updateStampQuickBtnLabel();
+            showToast('도장 등록이 해제되었습니다.');
+        }
+        // HTML 출력(인쇄/미리보기)용 — 확인 문구 옆에 넣을 <img> 태그. 등록된 도장이 없으면 빈 문자열.
+        function renderStampImgHtml(heightPx) {
+            const s = getStampImg();
+            if (!s) return '';
+            const h = heightPx || 48;
+            return `<img src="${s.dataUrl}" style="height:${h}px;width:auto;object-fit:contain;vertical-align:middle;margin-left:8px;">`;
+        }
         const COVER_TITLE_MAP = { '외주비':'외 주 비', '자재비':'자 재 비', '장비비':'장 비 대', '노무비':'노 무 비', '관리비':'관 리 비', 'ALL':'지 불 의 뢰 서' };
         const COVER_TITLE_SIZES = { small:'2.25rem', normal:'3rem', large:'3.75rem' };
 
@@ -16498,6 +16816,29 @@ ${REQ_CARD_CSS}
            mode = 'all'     : 현재 대장 전체 거래처 시트별 저장
         ============================================================ */
         /* ── docx XML 공통 빌더 ── */
+        // 도장 이미지를 Word 문서에 삽입하는 인라인 그림 XML (rIdStamp 관계는 makeDocxBlob에서 등록)
+        // 가로세로 비율을 유지하면서 높이 약 1.4cm로 고정한다
+        function buildStampDrawingXml(stamp) {
+            if (!stamp || !stamp.width || !stamp.height) return '';
+            const cy = 504000; // 1.4cm, EMU(360000 EMU = 1cm)
+            const cx = Math.round(cy * (stamp.width / stamp.height));
+            return `<w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:drawing>
+<wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+<wp:extent cx="${cx}" cy="${cy}"/>
+<wp:docPr id="1" name="Stamp"/>
+<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+<pic:nvPicPr><pic:cNvPr id="0" name="Stamp"/><pic:cNvPicPr/></pic:nvPicPr>
+<pic:blipFill><a:blip r:embed="rIdStamp"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>
+<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>
+</pic:pic>
+</a:graphicData>
+</a:graphic>
+</wp:inline>
+</w:drawing></w:r></w:p>`;
+        }
+
         function buildRequestDocxXml(d) {
             // d: { category, site, period, type, contract, vendor, ceo,
             //      bizNum, bank, account, holder, phone,
@@ -16612,6 +16953,7 @@ ${d.memo?para(d.memo,{size:18}):''}
 ${d.memo?para('',{size:6}):''}
 <w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>
 ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',size:18,bold:true})}
+${buildStampDrawingXml(d.stamp)}
 `;
             return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16664,13 +17006,26 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
   <w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat>
 </w:settings>`;
 
-        /* ── docx Blob 직접 생성 (JSZip 한 개, zip-in-zip 없음) ── */
-        async function makeDocxBlob(docXml) {
+        /* ── docx Blob 직접 생성 (JSZip 한 개, zip-in-zip 없음) ──
+           stampDataUrl이 주어지면 도장 이미지를 word/media에 추가하고 rIdStamp 관계를 등록한다 */
+        async function makeDocxBlob(docXml, stampDataUrl) {
             const zip = new JSZip();
-            zip.file('[Content_Types].xml',        DOCX_CONTENT_TYPES);
+            let contentTypes = DOCX_CONTENT_TYPES;
+            let wordRels = DOCX_WORD_RELS;
+            const m = stampDataUrl ? /^data:image\/(png|jpe?g);base64,(.+)$/i.exec(stampDataUrl) : null;
+            if (m) {
+                const isJpg = /jpe?g/i.test(m[1]);
+                const ext = isJpg ? 'jpg' : 'png';
+                const mime = isJpg ? 'image/jpeg' : 'image/png';
+                zip.file(`word/media/stamp.${ext}`, m[2], { base64: true });
+                contentTypes = contentTypes.replace('</Types>', `<Default Extension="${ext}" ContentType="${mime}"/></Types>`);
+                wordRels = wordRels.replace('</Relationships>',
+                    `<Relationship Id="rIdStamp" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/stamp.${ext}"/></Relationships>`);
+            }
+            zip.file('[Content_Types].xml',        contentTypes);
             zip.file('_rels/.rels',                DOCX_ROOT_RELS);
             zip.file('word/document.xml',          docXml);
-            zip.file('word/_rels/document.xml.rels', DOCX_WORD_RELS);
+            zip.file('word/_rels/document.xml.rels', wordRels);
             zip.file('word/styles.xml',            DOCX_STYLES);
             zip.file('word/settings.xml',          DOCX_SETTINGS);
             return zip.generateAsync({
@@ -16722,9 +17077,10 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
                 memo:       (document.getElementById('req-manager-memo')||{}).value||'',
                 checklist:  chkIds.map((id,i) => ({label:chkLabels[i], checked:!!(document.getElementById(id)||{}).checked})),
                 itemRows,
+                stamp: getStampImg(),
             };
             try {
-                const blob  = await makeDocxBlob(buildRequestDocxXml(d));
+                const blob  = await makeDocxBlob(buildRequestDocxXml(d), d.stamp && d.stamp.dataUrl);
                 const fname = `${d.vendor||'거래처'}_지불의뢰서_${(d.period||'').replace(/[\s~]/g,'').substring(0,12)}.docx`;
                 downloadBlob(blob, fname);
                 showToast(`Word 저장: ${fname}`);
@@ -16750,6 +17106,7 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
             const outerZip  = new JSZip();
             let count = 0;
             const fnameCount = {}; // 같은 거래처+대표자로 파일명이 겹치면 (2),(3)... 붙여 구분 (zip 내 덮어쓰기 방지)
+            const stamp = getStampImg();
 
             showToast('Word 파일 생성 중...');
 
@@ -16792,10 +17149,11 @@ ${para('위의 청구내역이 틀림없음을 확인합니다.',{align:'right',
                     calcTax:    formatNumber(taxSum),
                     calcTotal:  formatNumber(totalSum)+' 원',
                     memo: '', checklist, itemRows,
+                    stamp,
                 };
 
                 const docXml  = buildRequestDocxXml(d);
-                const docBlob = await makeDocxBlob(docXml);
+                const docBlob = await makeDocxBlob(docXml, stamp && stamp.dataUrl);
                 const ceoSuffix = row.ceo ? `_${row.ceo}` : '';
                 let fname = `${row.vendor}${ceoSuffix}_지불의뢰서.docx`;
                 // 같은 거래처+대표자로 파일명이 겹치면 뒤에 번호를 붙여 구분
@@ -17869,7 +18227,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         REQ_SHOW_PREPAID_KEY, APPROVAL_OWNER_KEY, SNAPSHOT_KEY,
                         BACKUP_LAST_KEY, BACKUP_LAST_ISO_KEY, SITE_BUDGET_KEY,
                         MONTH_CLOSE_KEY, LABOR_STMT_KEY, REPEAT_KEY, COVER_LAYOUT_KEY, SITE_META_KEY,
-                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY,
+                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY, STAMP_KEY,
                         GH_SYNC_KEYS.repo, GH_SYNC_KEYS.branch, GH_SYNC_KEYS.path, GH_SYNC_KEYS.token
                     ];
                     // 문서별·건별로 동적으로 만들어지는 키(체크리스트 상태, 지불의뢰서 담당자 메모 등)는
