@@ -5003,9 +5003,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '8.6';
+        const APP_VERSION = '8.7';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '지불의뢰서 "도장(서명) 자동 삽입" 추가 — 도장 이미지를 한 번 등록해두면 인쇄·대량발행·Word(.docx) 내보내기 시 확인 문구 옆에 자동으로 찍힘. 이미지는 이 기기에만 저장됨.';
+        const APP_VERSION_NOTE = '내보내기 오류 수정 — ① CSV 내보내기(청구명세서·계좌DB·집계표) 3곳에서 거래처명·비고 등에 쉼표가 있으면 열이 밀려 파일이 깨지던 문제(큰따옴표로 감싸도록 수정), ② 청구명세서 Excel 내보내기에서 첫 번째 데이터 행에 천단위 콤마 서식이 빠지던 오류(행 위치 계산 오류) 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -7679,7 +7679,7 @@
                     const d = vendorStats[vendor];
                     const total = d.supply + d.tax;
                     const reqAmt = total - d.deduction;
-                    csvContent += `${vendor},${cat},${d.ceo},${d.supply},${d.tax},${total},${d.deduction},${d.prepaid},${reqAmt}\n`;
+                    csvContent += `${csvField(vendor)},${csvField(cat)},${csvField(d.ceo)},${d.supply},${d.tax},${total},${d.deduction},${d.prepaid},${reqAmt}\n`;
                 });
             });
 
@@ -12148,7 +12148,7 @@ function changePrintScale(value) {
         function exportAccountDbToCSV() {
             let csvContent = "\uFEFF예금주,은행,계좌번호,대표자,거래처,사업자등록번호,연락처\n";
             accountDb.forEach(acc => {
-                csvContent += `${acc.holder || ''},${acc.bank || ''},${acc.account || ''},${acc.ceo || ''},${acc.vendor || ''},${acc.biznum || ''},${acc.phone || ''}\n`;
+                csvContent += `${csvField(acc.holder)},${csvField(acc.bank)},${csvField(acc.account)},${csvField(acc.ceo)},${csvField(acc.vendor)},${csvField(acc.biznum)},${csvField(acc.phone)}\n`;
             });
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -15300,8 +15300,11 @@ function changePrintScale(value) {
             ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:15} }];
 
             // 숫자 셀 서식 (금액 컬럼: E~J = col 4~9)
+            // ★ ws1Data 조립 시 빈 줄([])은 .filter(r => r.length > 0)에서 항상 제거되므로,
+            //   실제 헤더 행 위치는 site 유무와 무관하게 "빈 줄 한 칸"만큼 당겨진다.
+            //   (이전엔 +1이 더 커서 첫 데이터 행에 천단위 콤마 서식이 빠지는 오류가 있었음)
             const numFmt = '#,##0';
-            const dataStartRow = site ? 4 : 3; // 헤더 행 위치
+            const dataStartRow = site ? 3 : 2; // 첫 데이터 행(합계 행 포함) 위치
             rows.forEach((_, ri) => {
                 [4,5,6,7,8,9].forEach(ci => {
                     const cellAddr = XLSX.utils.encode_cell({ r: dataStartRow + ri, c: ci });
@@ -18099,6 +18102,14 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             }
         }
 
+        // CSV 필드 이스케이프 — 거래처명·비고 등에 쉼표(,)나 줄바꿈, 큰따옴표가 있으면 열이 밀리거나
+        // 파일이 깨지므로, 그런 값은 큰따옴표로 감싸고 내부 큰따옴표는 두 번 적어 이스케이프한다
+        function csvField(v) {
+            const s = String(v == null ? '' : v);
+            if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+            return s;
+        }
+
         function exportToCSV() {
             let csvContent = "\uFEFF";
             csvContent += "번호,구분,거래처,대표자,공급가액,부가세,결제금액,공제금액,선지급,지급요청금액,은행,입금계좌,예금주,비고\n";
@@ -18106,7 +18117,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             dataset.forEach((row, index) => {
                 const total = (row.supply || 0) + (row.tax || 0);
                 const reqAmt = total - (row.deduction || 0) - (row.prepaid || 0);
-                csvContent += `${index + 1},${row.type},${row.vendor || ''},${row.ceo || ''},${row.supply},${row.tax},${total},${row.deduction},${row.prepaid},${reqAmt},${row.bank},${row.account},${row.holder},${row.note || ''}\n`;
+                csvContent += `${index + 1},${csvField(row.type)},${csvField(row.vendor)},${csvField(row.ceo)},${row.supply||0},${row.tax||0},${total},${row.deduction||0},${row.prepaid||0},${reqAmt},${csvField(row.bank)},${csvField(row.account)},${csvField(row.holder)},${csvField(row.note)}\n`;
             });
 
             // ★ 구분별(외주비/자재비/장비비/노무비/관리비) 소계 + 전체 합계 추가
