@@ -3006,6 +3006,45 @@
 
             <div id="ti-summary-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-3"></div>
 
+            <!-- 월별 집계표 : 회사·현장 구분 없이(또는 위 필터 조건대로) 월 단위로만 합산 -->
+            <div class="mb-4 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="flex items-center justify-between flex-wrap gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
+                    <h3 class="text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                        <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-emerald-600"></i> 월별 투입비 집계표
+                        <span class="text-[10px] font-semibold text-slate-400">— 위 회사·현장 필터 기준, 월 단위 합계와 누계</span>
+                    </h3>
+                    <div class="flex gap-1.5">
+                        <button onclick="exportMonthlyInvestToXLSX()" class="ctrl-btn" style="background:#15803d;" title="월별 집계표를 엑셀로 저장">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 엑셀
+                        </button>
+                        <button onclick="printMonthlyInvest()" class="ctrl-btn" style="background:#0f172a;" title="월별 집계표 인쇄">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> 인쇄
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-[11px]">
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-center font-bold text-slate-700 dark:text-slate-200">
+                                <th class="py-2 px-3 text-left">월</th>
+                                <th class="py-2 px-2" style="color:#2563eb;">외주비</th>
+                                <th class="py-2 px-2" style="color:#7c3aed;">노무비</th>
+                                <th class="py-2 px-2" style="color:#ea580c;">장비대</th>
+                                <th class="py-2 px-2" style="color:#059669;">자재비</th>
+                                <th class="py-2 px-2" style="color:#e11d48;">관리비</th>
+                                <th class="py-2 px-2" style="color:#d97706;">법인카드</th>
+                                <th class="py-2 px-2" style="color:#db2777;">개인경비</th>
+                                <th class="py-2 px-3 bg-emerald-100 dark:bg-emerald-900/40">월 합계</th>
+                                <th class="py-2 px-2">전월 대비</th>
+                                <th class="py-2 px-3">누계</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ti-month-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200"></tbody>
+                        <tfoot id="ti-month-tfoot" class="border-t-2 border-slate-300 dark:border-slate-600 font-extrabold text-slate-800 dark:text-slate-100"></tfoot>
+                    </table>
+                </div>
+            </div>
+
             <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
                 <table class="w-full border-collapse text-[11px]">
                     <thead>
@@ -4133,6 +4172,16 @@
                             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i> 현장별 자금 집행 비교표
                         </h4>
                         <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            <div class="relative">
+                                <i data-lucide="search" class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="site-search-input" oninput="renderSiteComparisonTable()" placeholder="현장명 검색" class="pl-6 pr-2 py-1 text-[10px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 w-28">
+                            </div>
+                            <select id="site-sort-select" onchange="renderSiteComparisonTable()" class="text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 px-1.5 py-1 outline-none">
+                                <option value="name">이름순</option>
+                                <option value="pct">집행률 높은순</option>
+                                <option value="invest">총투입비 큰순</option>
+                                <option value="unpaid">미지급 큰순</option>
+                            </select>
                             <div class="flex items-center gap-1.5 flex-wrap" id="site-company-filter-bar">
                                 <span class="text-[10px] text-slate-400 font-bold shrink-0">회사별:</span>
                                 <button onclick="filterSiteByCompany('ALL')" id="site-co-btn-ALL"
@@ -5003,9 +5052,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '8.7';
+        const APP_VERSION = '9.5';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '내보내기 오류 수정 — ① CSV 내보내기(청구명세서·계좌DB·집계표) 3곳에서 거래처명·비고 등에 쉼표가 있으면 열이 밀려 파일이 깨지던 문제(큰따옴표로 감싸도록 수정), ② 청구명세서 Excel 내보내기에서 첫 번째 데이터 행에 천단위 콤마 서식이 빠지던 오류(행 위치 계산 오류) 수정.';
+        const APP_VERSION_NOTE = '"월별 투입비 집계표" 추가 — 총 투입비 화면에서 회사·현장 필터 기준으로 월 단위 합계(외주비·노무비·장비대·자재비·관리비·법인카드·개인경비), 전월 대비 증감, 누계를 한 표로 확인하고 엑셀·인쇄로 내보낼 수 있음.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5443,8 +5492,8 @@
                         <div class="flex items-center gap-1">
                             <span class="text-[8.5px] font-bold px-1.5 py-0.5 rounded shrink-0" style="background:${color}1a;color:${color};">${d.type}</span>
                         </div>
-                        <div class="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate mt-1">${d.vendor}</div>
-                        <div class="text-[9.5px] text-slate-400 truncate">${d.date || ''}${d.memo ? ' · ' + d.memo : ''}</div>
+                        <div class="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate mt-1">${escCc(d.vendor)}</div>
+                        <div class="text-[9.5px] text-slate-400 truncate">${escCc(d.date)}${d.memo ? ' · ' + escCc(d.memo) : ''}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -6024,7 +6073,7 @@
                 duplicateWrap.classList.remove('hidden');
                 duplicateList.innerHTML = duplicates.map(d => `
                     <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-[11px] opacity-70">
-                        <span class="font-semibold text-slate-600 dark:text-slate-300">${d.vendor || d.record}${d.ceo ? ' ('+d.ceo+')' : ''}</span>
+                        <span class="font-semibold text-slate-600 dark:text-slate-300">${escCc(d.vendor || d.record)}${d.ceo ? ' ('+escCc(d.ceo)+')' : ''}</span>
                         <span class="text-slate-400">${d.date}</span>
                         <span class="font-bold text-slate-500 dark:text-slate-400">${d.amount.toLocaleString('ko-KR')}원</span>
                     </div>`).join('');
@@ -6207,7 +6256,7 @@
                 return `
                 <div class="border border-slate-200 dark:border-slate-800 rounded-xl p-3">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="font-extrabold text-slate-800 dark:text-slate-100">${g.vendor || '(업체명 미입력)'}${g.ceo ? ` <span class="font-normal text-slate-400">(${g.ceo})</span>` : ''}</span>
+                        <span class="font-extrabold text-slate-800 dark:text-slate-100">${escCc(g.vendor || '(업체명 미입력)')}${g.ceo ? ` <span class="font-normal text-slate-400">(${escCc(g.ceo)})</span>` : ''}</span>
                         <span class="text-[10px] text-slate-400">${months.length}개월 거래</span>
                     </div>
                     <div class="grid grid-cols-3 gap-2 mb-2 text-center">
@@ -6544,9 +6593,15 @@
                 savedDocuments[docIndex].period = document.getElementById('req-meta-period').value;
             }
 
-            localStorage.setItem('cons_accounts_v3', JSON.stringify(accountDb));
-            localStorage.setItem('cons_saved_docs_v3', JSON.stringify(savedDocuments));
-            localStorage.setItem('cons_current_doc_id_v3', currentDocId);
+            // ★ 저장 공간이 가득 차면 setItem이 예외를 던져 아래 화면 갱신까지 중단되고 사용자는 아무 안내도 못 받았음
+            //   → 예외를 잡아 한 번만 안내하고 나머지 처리는 계속 진행
+            try {
+                localStorage.setItem('cons_accounts_v3', JSON.stringify(accountDb));
+                localStorage.setItem('cons_saved_docs_v3', JSON.stringify(savedDocuments));
+                localStorage.setItem('cons_current_doc_id_v3', currentDocId);
+            } catch (e) {
+                showToast('브라우저 저장 공간이 부족해 자동 저장에 실패했습니다. 백업 파일을 먼저 내려받고, 영수증·도장 같은 큰 이미지를 정리해 주세요.', 'error');
+            }
 
             if (typeof refreshVendorDatalist === 'function') refreshVendorDatalist();
             if (typeof updateVendorMasterBadge === 'function') updateVendorMasterBadge();
@@ -6686,8 +6741,8 @@
                 html += `<p class="font-extrabold mb-1 text-rose-700 dark:text-rose-300">🚨 동일 거래처명 · 대표자별 계좌 미등록 (${unmatchedCeoRows.length}건) — 잘못된 계좌로 표시될 위험</p>`;
                 unmatchedCeoRows.forEach(r => {
                     html += `<div class="ml-2 text-[10px] flex items-center gap-1.5 flex-wrap py-0.5">
-                        <span>· <span class="font-mono">${r.vendor}</span> — 대표자 <strong>${r.ceo}</strong> 명의 계좌가 마스터 DB에 없어, 같은 거래처명의 다른 대표자 계좌로 표시될 수 있습니다.</span>
-                        <button onclick="jumpToAccountDbNewEntry('${r.vendor.replace(/'/g,"\\'")}', '${r.ceo.replace(/'/g,"\\'")}')" class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold">
+                        <span>· <span class="font-mono">${escCc(r.vendor)}</span> — 대표자 <strong>${escCc(r.ceo)}</strong> 명의 계좌가 마스터 DB에 없어, 같은 거래처명의 다른 대표자 계좌로 표시될 수 있습니다.</span>
+                        <button onclick="jumpToAccountDbNewEntry('${escCc(r.vendor).replace(/'/g,"\\'")}', '${escCc(r.ceo).replace(/'/g,"\\'")}')" class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold">
                             <i data-lucide="plus-circle" class="w-2.5 h-2.5"></i> 계좌 등록하러 가기
                         </button>
                     </div>`;
@@ -6698,8 +6753,8 @@
                 html += `<p class="font-extrabold mb-1 text-rose-700 dark:text-rose-300">🚨 동일 계좌번호 · 대표자 불일치 (${ceoConflictGroups.length}건) — 오매칭 위험</p>`;
                 ceoConflictGroups.forEach(g => {
                     html += `<div class="ml-2 text-[10px] flex items-center gap-1.5 flex-wrap py-0.5">
-                        <span>· <span class="font-mono">${g[0].account}</span> → ${g.map(a=>`<strong>${a.ceo||'(대표자 미입력)'}</strong> / ${a.holder}(${a.vendor||'-'})`).join('  vs  ')}</span>
-                        <button onclick="jumpToAccountDbEdit('${g[0].account.replace(/'/g,"\\'")}')" class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold">
+                        <span>· <span class="font-mono">${escCc(g[0].account)}</span> → ${g.map(a=>`<strong>${escCc(a.ceo)||'(대표자 미입력)'}</strong> / ${escCc(a.holder)}(${escCc(a.vendor)||'-'})`).join('  vs  ')}</span>
+                        <button onclick="jumpToAccountDbEdit('${escCc(g[0].account).replace(/'/g,"\\'")}')" class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold">
                             <i data-lucide="edit-3" class="w-2.5 h-2.5"></i> 수정하러 가기
                         </button>
                     </div>`;
@@ -6716,8 +6771,8 @@
                         ? `<span class="text-slate-500">(동일 예금주 — 같은 계좌가 중복 등록됨)</span>`
                         : `<span class="text-rose-600 font-bold">(예금주가 서로 다름 — 확인 필요)</span>`;
                     html += `<div class="ml-2 text-[10px] flex items-center gap-1.5 flex-wrap py-0.5">
-                        <span>· <span class="font-mono">${g[0].account}</span> → ${g.map(a=>`<strong>${a.holder}</strong>(${a.vendor||'-'})`).join(', ')} ${typeLabel}</span>
-                        <button onclick="jumpToAccountDbEdit('${g[0].account.replace(/'/g,"\\'")}')" class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold">
+                        <span>· <span class="font-mono">${escCc(g[0].account)}</span> → ${g.map(a=>`<strong>${escCc(a.holder)}</strong>(${escCc(a.vendor)||'-'})`).join(', ')} ${typeLabel}</span>
+                        <button onclick="jumpToAccountDbEdit('${escCc(g[0].account).replace(/'/g,"\\'")}')" class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold">
                             <i data-lucide="edit-3" class="w-2.5 h-2.5"></i> 수정하러 가기
                         </button>
                     </div>`;
@@ -6726,19 +6781,19 @@
             if (dupBizGroups.length) {
                 html += `<p class="font-extrabold mt-2 mb-1">⚠️ 사업자번호 중복 (${dupBizGroups.length}건)</p>`;
                 dupBizGroups.forEach(g => {
-                    html += `<p class="ml-2 text-[10px]">· <span class="font-mono">${g[0].biznum}</span> → ${g.map(a=>`<strong>${a.holder}</strong>(${a.vendor||'-'})`).join(', ')}</p>`;
+                    html += `<p class="ml-2 text-[10px]">· <span class="font-mono">${escCc(g[0].biznum)}</span> → ${g.map(a=>`<strong>${escCc(a.holder)}</strong>(${escCc(a.vendor)||'-'})`).join(', ')}</p>`;
                 });
             }
             if (dupPhoneGroups.length) {
                 html += `<p class="font-extrabold mt-2 mb-1">⚠️ 연락처 중복 (${dupPhoneGroups.length}건)</p>`;
                 dupPhoneGroups.forEach(g => {
-                    html += `<p class="ml-2 text-[10px]">· <span class="font-mono">${g[0].phone}</span> → ${g.map(a=>`<strong>${a.holder}</strong>(${a.vendor||'-'})`).join(', ')}</p>`;
+                    html += `<p class="ml-2 text-[10px]">· <span class="font-mono">${escCc(g[0].phone)}</span> → ${g.map(a=>`<strong>${escCc(a.holder)}</strong>(${escCc(a.vendor)||'-'})`).join(', ')}</p>`;
                 });
             }
             if (dupCeoGroups.length) {
                 html += `<p class="font-extrabold mt-2 mb-1 text-amber-600 dark:text-amber-400">⚠️ 대표자 중복 의심 (${dupCeoGroups.length}건)</p>`;
                 dupCeoGroups.forEach(g => {
-                    html += `<p class="ml-2 text-[10px] text-amber-600 dark:text-amber-400">· <strong>${g[0].ceo}</strong> → ${g.map(a=>`${a.holder}(${a.vendor||'-'})`).join(', ')}</p>`;
+                    html += `<p class="ml-2 text-[10px] text-amber-600 dark:text-amber-400">· <strong>${escCc(g[0].ceo)}</strong> → ${g.map(a=>`${escCc(a.holder)}(${escCc(a.vendor)||'-'})`).join(', ')}</p>`;
                 });
             }
 
@@ -7192,12 +7247,12 @@
                     <div class="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 mb-1">
                         <p class="font-extrabold text-slate-700 dark:text-slate-200 text-[11px] mb-1.5">📍 현재 항목</p>
                         <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
-                            <span>구분: <b class="text-slate-800 dark:text-slate-100">${currentRow.type||'-'}</b></span>
-                            <span>거래처: <b class="text-slate-800 dark:text-slate-100">${currentRow.vendor||'-'}</b></span>
-                            <span>대표자: <b class="text-slate-800 dark:text-slate-100">${currentRow.ceo||'-'}</b></span>
+                            <span>구분: <b class="text-slate-800 dark:text-slate-100">${escCc(currentRow.type)||'-'}</b></span>
+                            <span>거래처: <b class="text-slate-800 dark:text-slate-100">${escCc(currentRow.vendor)||'-'}</b></span>
+                            <span>대표자: <b class="text-slate-800 dark:text-slate-100">${escCc(currentRow.ceo)||'-'}</b></span>
                             <span>공급가액: <b class="text-slate-800 dark:text-slate-100">${won(currentRow.supply)}</b></span>
-                            <span>계좌: <b class="text-slate-800 dark:text-slate-100">${currentRow.bank||''} ${currentRow.account||'-'}</b></span>
-                            <span>예금주: <b class="text-slate-800 dark:text-slate-100">${currentRow.holder||'-'}</b></span>
+                            <span>계좌: <b class="text-slate-800 dark:text-slate-100">${escCc(currentRow.bank)} ${escCc(currentRow.account)||'-'}</b></span>
+                            <span>예금주: <b class="text-slate-800 dark:text-slate-100">${escCc(currentRow.holder)||'-'}</b></span>
                         </div>
                     </div>`;
                 }
@@ -7215,10 +7270,10 @@
                                 </tr></thead>
                                 <tbody>${d.matches.map(m => `
                                     <tr class="border-t border-${color}-200 dark:border-${color}-800">
-                                        <td class="py-1 font-bold text-slate-700 dark:text-slate-200">${m.vendor||'-'}</td>
-                                        <td class="py-1">${m.holder||'-'}</td>
-                                        <td class="py-1">${m.account||'-'}</td>
-                                        <td class="py-1 text-slate-400">${m.source||'-'}</td>
+                                        <td class="py-1 font-bold text-slate-700 dark:text-slate-200">${escCc(m.vendor)||'-'}</td>
+                                        <td class="py-1">${escCc(m.holder)||'-'}</td>
+                                        <td class="py-1">${escCc(m.account)||'-'}</td>
+                                        <td class="py-1 text-slate-400">${escCc(m.source)||'-'}</td>
                                     </tr>`).join('')}
                                 </tbody>
                             </table>`;
@@ -7232,11 +7287,11 @@
                                 </tr></thead>
                                 <tbody>${d.matches.map(m => `
                                     <tr class="border-t border-${color}-200 dark:border-${color}-800">
-                                        <td class="py-1">${m.type||'-'}</td>
-                                        <td class="py-1 font-bold text-slate-700 dark:text-slate-200">${m.vendor||'-'}</td>
-                                        <td class="py-1">${m.ceo||'-'}</td>
+                                        <td class="py-1">${escCc(m.type)||'-'}</td>
+                                        <td class="py-1 font-bold text-slate-700 dark:text-slate-200">${escCc(m.vendor)||'-'}</td>
+                                        <td class="py-1">${escCc(m.ceo)||'-'}</td>
                                         <td class="py-1 text-right">${won(m.supply)}</td>
-                                        <td class="py-1 text-slate-400">${m.note||'-'}</td>
+                                        <td class="py-1 text-slate-400">${escCc(m.note)||'-'}</td>
                                     </tr>`).join('')}
                                 </tbody>
                             </table>`;
@@ -7368,7 +7423,7 @@
                                 <div class="font-extrabold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1 truncate">
                                     ${vendor} <i data-lucide="zoom-in" class="w-3 h-3 text-slate-400 shrink-0"></i>
                                 </div>
-                                ${data.ceo ? `<div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">대표: ${data.ceo}</div>` : ''}
+                                ${data.ceo ? `<div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">대표: ${escCc(data.ceo)}</div>` : ''}
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
                                 <span class="text-[9px] ${cc.badge} px-2 py-0.5 rounded font-extrabold border">${data.count}건</span>
@@ -7711,8 +7766,8 @@
                 tr.className = "divide-x divide-slate-200 dark:divide-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-center text-slate-850 dark:text-slate-100";
                 tr.innerHTML = `
                     <td class="py-2 px-1 font-bold text-slate-500 dark:text-slate-400">${idx + 1}</td>
-                    <td class="py-2 px-2 font-bold text-slate-800 dark:text-slate-200 text-center">${row.ceo || '-'}</td>
-                    <td class="py-2 px-2 text-left font-semibold text-slate-750 dark:text-slate-300">${row.note || '일반 청구'}</td>
+                    <td class="py-2 px-2 font-bold text-slate-800 dark:text-slate-200 text-center">${escCc(row.ceo) || '-'}</td>
+                    <td class="py-2 px-2 text-left font-semibold text-slate-750 dark:text-slate-300">${escCc(row.note) || '일반 청구'}</td>
                     <td class="py-2 px-2 text-right font-semibold text-slate-900 dark:text-slate-100">${formatNumber(row.supply)}원</td>
                     <td class="py-2 px-2 text-right text-slate-600 dark:text-slate-400">${formatNumber(row.tax)}원</td>
                     <td class="py-2 px-2 text-right text-rose-650 dark:text-rose-400">${formatNumber(row.deduction)}원</td>
@@ -7902,7 +7957,7 @@
                     acc.vendor !== vendorName
                 );
                 if (conflictAcc) {
-                    const msg = `입력한 계좌번호 <strong>${accountVal}</strong>이<br>이미 <strong>[${conflictAcc.holder} / ${conflictAcc.vendor}]</strong>에 등록된 계좌번호와 일치합니다.<br><br>오매칭으로 인한 지급 오류가 발생할 수 있습니다.<br>계속 저장하시겠습니까?`;
+                    const msg = `입력한 계좌번호 <strong>${accountVal}</strong>이<br>이미 <strong>[${escCc(conflictAcc.holder)} / ${escCc(conflictAcc.vendor)}]</strong>에 등록된 계좌번호와 일치합니다.<br><br>오매칭으로 인한 지급 오류가 발생할 수 있습니다.<br>계속 저장하시겠습니까?`;
                     showDupAccountModal(msg, () => {
                         // 강제 저장 진행 (중복 무시)
                         proceedSyncRequestForm(vendorName, ceoName, bizNumVal, bankVal, accountVal, holderVal, phoneVal);
@@ -8238,7 +8293,7 @@
                     </td>
                     <td class="py-1 px-1">
                         <span ondblclick="openEditRowModal(${row.id})" title="더블클릭하여 이 청구 항목 전체 수정"
-                                class="block w-full text-center p-1 rounded cursor-pointer select-none text-slate-800 dark:text-slate-100 font-semibold hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:ring-1 hover:ring-violet-300 dark:hover:ring-violet-700 transition-colors">${row.ceo ? row.ceo : '<span class="text-slate-300 dark:text-slate-600">기입</span>'}</span>
+                                class="block w-full text-center p-1 rounded cursor-pointer select-none text-slate-800 dark:text-slate-100 font-semibold hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:ring-1 hover:ring-violet-300 dark:hover:ring-violet-700 transition-colors">${row.ceo ? escCc(row.ceo) : '<span class="text-slate-300 dark:text-slate-600">기입</span>'}</span>
                     </td>
                     <td class="py-1 px-1">
                         <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateSupplyAndAutoVat(${row.id}, Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
@@ -8268,10 +8323,10 @@
                         ${formatMoneyByUnit(requestAmt)}
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${row.bank || ''}" placeholder="자동" readonly class="w-full bg-slate-50 dark:bg-slate-800 text-center border-none font-semibold text-slate-650 dark:text-slate-350 cursor-not-allowed rounded p-1 outline-none">
+                        <input type="text" value="${escAttr(row.bank)}" placeholder="자동" readonly class="w-full bg-slate-50 dark:bg-slate-800 text-center border-none font-semibold text-slate-650 dark:text-slate-350 cursor-not-allowed rounded p-1 outline-none">
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${row.account || ''}" placeholder="자동" readonly class="w-full bg-slate-50 dark:bg-slate-800 text-left text-[11px] border-none text-slate-650 dark:text-slate-350 cursor-not-allowed rounded px-1.5 py-1 outline-none font-semibold">
+                        <input type="text" value="${escAttr(row.account)}" placeholder="자동" readonly class="w-full bg-slate-50 dark:bg-slate-800 text-left text-[11px] border-none text-slate-650 dark:text-slate-350 cursor-not-allowed rounded px-1.5 py-1 outline-none font-semibold">
                     </td>
                     <td class="py-1 px-1">
                         <div class="flex items-center w-full justify-between gap-1">
@@ -8616,13 +8671,13 @@
                 bodyRows += `<tr>
                     <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:center;">${i+1}</td>
                     <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:center;">${r.type||''}</td>
-                    <td style="padding:5px 6px;border:1px solid #cbd5e1;">${r.vendor||''}</td>
-                    <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:center;">${r.ceo||''}</td>
+                    <td style="padding:5px 6px;border:1px solid #cbd5e1;">${escCc(r.vendor)}</td>
+                    <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:center;">${escCc(r.ceo)}</td>
                     <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:right;">${supply.toLocaleString('ko-KR')}</td>
                     <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:right;">${tax.toLocaleString('ko-KR')}</td>
                     <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:right;font-weight:700;">${request.toLocaleString('ko-KR')}</td>
                     <td style="padding:5px 6px;border:1px solid #cbd5e1;text-align:center;">${r.status||'대기'}</td>
-                    <td style="padding:5px 6px;border:1px solid #cbd5e1;">${r.note||''}</td>
+                    <td style="padding:5px 6px;border:1px solid #cbd5e1;">${escCc(r.note)}</td>
                 </tr>`;
             });
 
@@ -8804,7 +8859,7 @@
                 const amt = (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
                 return `<div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 py-2 px-1 text-xs">
                     <div class="min-w-0">
-                        <span class="font-bold text-slate-700 dark:text-slate-200">${r.vendor||'(거래처 미입력)'}</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${escCc(r.vendor)||'(거래처 미입력)'}</span>
                         <span class="text-slate-400 ml-1">${r.type||''} · ${amt.toLocaleString('ko-KR')}원 · ${t.docLabel}</span>
                         <div class="text-[10px] text-slate-400">삭제일시: ${t.deletedAt}</div>
                     </div>
@@ -9543,7 +9598,7 @@ function changePrintScale(value) {
 
                     itemsHtml += `
                         <tr class="divide-x divide-slate-300">
-                            <td class="py-2.5 px-2 text-center border border-slate-300">${row.type} - ${row.note || '품목 청구'}</td>
+                            <td class="py-2.5 px-2 text-center border border-slate-300">${escCc(row.type)} - ${escCc(row.note) || '품목 청구'}</td>
                             <td class="py-2.5 px-2 text-center border border-slate-300">1.0</td>
                             <td class="py-2.5 px-2 text-right border border-slate-300">${formatMoneyByUnit(row.supply)}</td>
                             <td class="py-2.5 px-2 text-right border border-slate-300">${formatMoneyByUnit(row.tax)}</td>
@@ -10004,7 +10059,7 @@ function changePrintScale(value) {
             container.innerHTML = items.map(it => `
                 <label class="chk-card" data-chk="${it.id}">
                     <input type="checkbox" id="${it.id}" onchange="saveChecklistStateDirectly();updateChkCard(this)" class="print-checkbox sr-only">
-                    <span class="chk-icon">${it.icon || '📎'}</span><span class="chk-label">${it.label}</span><span class="chk-mark">✓</span>
+                    <span class="chk-icon">${it.icon || '📎'}</span><span class="chk-label">${escCc(it.label)}</span><span class="chk-mark">✓</span>
                 </label>
             `).join('');
             refreshChkSummary();
@@ -10084,7 +10139,7 @@ function changePrintScale(value) {
                 <div class="flex items-center gap-1.5">
                     <input type="text" maxlength="2" value="${it.icon || ''}" onchange="updateChecklistItemField(${i}, 'icon', this.value)"
                         class="w-11 px-2 py-1 text-sm text-center border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                    <input type="text" value="${it.label}" onchange="updateChecklistItemField(${i}, 'label', this.value)"
+                    <input type="text" value="${escAttr(it.label)}" onchange="updateChecklistItemField(${i}, 'label', this.value)"
                         class="flex-1 px-3 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                     <button onclick="removeChecklistItemAt(${i})" class="text-slate-400 hover:text-rose-500 px-1.5 shrink-0" title="삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                 </div>
@@ -11303,7 +11358,7 @@ function changePrintScale(value) {
             if (!currentDoc) { showToast('먼저 이동할 청구서를 선택하세요.', 'error'); return; }
 
             document.getElementById('move-doc-current-info').innerHTML =
-                `현재: <b>${currentDoc.company || '(회사 미지정)'}</b> · ${currentDoc.site || '-'} · ${currentDoc.month || '-'} (${(currentDoc.dataset||[]).length}건)`;
+                `현재: <b>${escCc(currentDoc.company) || '(회사 미지정)'}</b> · ${escCc(currentDoc.site) || '-'} · ${escCc(currentDoc.month) || '-'} (${(currentDoc.dataset||[]).length}건)`;
 
             const companies = [...new Set(savedDocuments.map(d => d.company).filter(Boolean))]
                 .filter(c => c !== currentDoc.company)
@@ -11500,8 +11555,8 @@ function changePrintScale(value) {
                 const info = APPROVAL_STEPS[doc.approvalStatus || 'draft'] || APPROVAL_STEPS.draft;
                 return `<tr class="border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer" onclick="closeCompanyMonthlyStats(); loadSavedDocument('${doc.id}'); switchTab('statement');">
                     <td class="py-1.5 px-2 font-bold text-slate-800 dark:text-slate-100">${doc.month||'-'}</td>
-                    <td class="py-1.5 px-2 text-slate-500">${doc.company||'-'}</td>
-                    <td class="py-1.5 px-2 text-slate-500">${doc.site||'-'}</td>
+                    <td class="py-1.5 px-2 text-slate-500">${escCc(doc.company)||'-'}</td>
+                    <td class="py-1.5 px-2 text-slate-500">${escCc(doc.site)||'-'}</td>
                     <td class="py-1.5 px-2 text-right">${rows.length}건</td>
                     <td class="py-1.5 px-2 text-right">${supply.toLocaleString('ko-KR')}원</td>
                     <td class="py-1.5 px-2 text-right">${tax.toLocaleString('ko-KR')}원</td>
@@ -11669,7 +11724,7 @@ function changePrintScale(value) {
             const hist = document.getElementById('approval-history-box');
             const log = currentDoc.approvalLog || [];
             hist.innerHTML = log.length
-                ? log.slice().reverse().map(h => `<div>· <b>${(APPROVAL_STEPS[h.status]||{}).label||h.status}</b> — ${h.by||'미기재'} (${h.at})${h.note ? ' · '+h.note : ''}</div>`).join('')
+                ? log.slice().reverse().map(h => `<div>· <b>${escCc((APPROVAL_STEPS[h.status]||{}).label||h.status)}</b> — ${escCc(h.by)||'미기재'} (${escCc(h.at)})${h.note ? ' · '+escCc(h.note) : ''}</div>`).join('')
                 : '<div class="italic">처리 이력 없음</div>';
             updateApprovalOwnerDisplay();
             toggleApprovalLockUI();
@@ -11880,28 +11935,28 @@ function changePrintScale(value) {
                             : '<span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">거래처</span>'}
                     </td>
                     <td class="py-1 px-2 font-bold text-slate-900 dark:text-slate-100 text-left">
-                        <input type="text" value="${acc.holder || ''}" onchange="updateAccountDB(${acc.id}, 'holder', this.value)" class="w-full bg-transparent outline-none font-bold text-slate-900 dark:text-slate-100">${dupIcon}
+                        <input type="text" value="${escAttr(acc.holder)}" onchange="updateAccountDB(${acc.id}, 'holder', this.value)" class="w-full bg-transparent outline-none font-bold text-slate-900 dark:text-slate-100">${dupIcon}
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${acc.bank || ''}" onchange="updateAccountDB(${acc.id}, 'bank', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
+                        <input type="text" value="${escAttr(acc.bank)}" onchange="updateAccountDB(${acc.id}, 'bank', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
                     </td>
                     <td class="py-1 px-1 ${isDupAcc ? 'bg-rose-100/60 dark:bg-rose-950/30' : ''}">
-                        <input type="text" value="${acc.account || ''}" onchange="updateAccountDB(${acc.id}, 'account', this.value)" class="w-full text-left bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs ${isDupAcc ? 'text-rose-700 dark:text-rose-400 font-black' : ''}">
+                        <input type="text" value="${escAttr(acc.account)}" onchange="updateAccountDB(${acc.id}, 'account', this.value)" class="w-full text-left bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs ${isDupAcc ? 'text-rose-700 dark:text-rose-400 font-black' : ''}">
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${acc.ceo || ''}" onchange="updateAccountDB(${acc.id}, 'ceo', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
+                        <input type="text" value="${escAttr(acc.ceo)}" onchange="updateAccountDB(${acc.id}, 'ceo', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${acc.vendor || ''}" onchange="updateAccountDB(${acc.id}, 'vendor', this.value)" class="w-full text-left bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
+                        <input type="text" value="${escAttr(acc.vendor)}" onchange="updateAccountDB(${acc.id}, 'vendor', this.value)" class="w-full text-left bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200">
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${acc.biznum || ''}" oninput="formatBusinessNumber(this)" onchange="updateAccountDB(${acc.id}, 'biznum', this.value)" placeholder="000-00-00000" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs font-mono">
+                        <input type="text" value="${escAttr(acc.biznum)}" oninput="formatBusinessNumber(this)" onchange="updateAccountDB(${acc.id}, 'biznum', this.value)" placeholder="000-00-00000" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs font-mono">
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${acc.phone || ''}" oninput="formatPhoneNumberHelper(this)" onchange="updateAccountDB(${acc.id}, 'phone', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs">
+                        <input type="text" value="${escAttr(acc.phone)}" oninput="formatPhoneNumberHelper(this)" onchange="updateAccountDB(${acc.id}, 'phone', this.value)" class="w-full text-center bg-transparent outline-none font-semibold text-slate-700 dark:text-slate-200 text-xs">
                     </td>
                     <td class="py-1 px-1">
-                        <button onclick="showVendorUsage('${(acc.vendor||acc.holder||'').replace(/'/g,"\\'")}')" class="text-sky-500 hover:text-sky-700 font-bold text-[10px] shrink-0 underline decoration-dotted">조회</button>
+                        <button onclick="showVendorUsage('${escAttr(acc.vendor||acc.holder||'').replace(/'/g,"\\'")}')" class="text-sky-500 hover:text-sky-700 font-bold text-[10px] shrink-0 underline decoration-dotted">조회</button>
                     </td>
                     <td class="py-1 px-1">
                         <button onclick="deleteAccountFromDb(${acc.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs shrink-0">삭제</button>
@@ -12136,7 +12191,7 @@ function changePrintScale(value) {
                 // 계좌번호 끝 4자리를 함께 표시해 혼동 방지
                 const accountSuffix = acc.account ? acc.account.slice(-4) : '??';
                 const ceoTag = rowCeo && norm(acc.ceo) === norm(rowCeo) ? ' ★대표자일치' : (acc.ceo ? ` (대표:${acc.ceo})` : '');
-                options += `<option value="${acc.holder}" ${isSelected}>${acc.holder} (${acc.bank || '미기입'} …${accountSuffix})${ceoTag}</option>`;
+                options += `<option value="${escAttr(acc.holder)}" ${isSelected}>${escCc(acc.holder)} (${escCc(acc.bank) || '미기입'} …${escCc(accountSuffix)})${ceoTag}</option>`;
             });
             return options;
         }
@@ -12433,6 +12488,10 @@ function changePrintScale(value) {
             } else {
                 // ── 병합 모드: 작성자(다른 PC)가 다른 파일일 수 있으므로 기존 데이터는 유지하고 새 항목만 추가 ──
                 const localDocIds = new Set(savedDocuments.map(d => d.id));
+                stats.mergedIntoExisting = 0;
+                stats.mergedRows = 0;
+                // 같은 청구서(항목)를 중복으로 추가하지 않기 위한 행 식별 키
+                const rowSig = r => [r.type, (r.vendor||'').trim(), (r.ceo||'').trim(), r.supply||0, r.tax||0, r.deduction||0, r.prepaid||0, (r.note||'').trim()].join('|');
                 parsed.savedDocuments.forEach(doc => {
                     // 동일 id가 이미 있으면(같은 작성자거나 우연히 id 충돌) 내용까지 같은지 확인
                     if (localDocIds.has(doc.id)) {
@@ -12443,6 +12502,23 @@ function changePrintScale(value) {
                         const oldId = doc.id;
                         doc = { ...doc, id: 'doc-' + Date.now() + '-' + Math.floor(Math.random()*10000) }; // id 충돌 → 새 id 부여 후 추가
                         docIdRemap[oldId] = doc.id;
+                    } else {
+                        // ★ id는 다르지만(서로 다른 PC에서 각자 만들어 id가 우연히 겹치지 않는 경우) 같은
+                        //   현장+회사+월의 청구서가 이미 있으면, 새 청구서를 또 만들지 않고 그 안에 항목만
+                        //   병합한다. (이전엔 이 검사가 없어 PC마다 따로 만든 같은 달 청구서가 매번
+                        //   중복으로 쌓였음)
+                        const existing = typeof findDuplicateDoc === 'function' ? findDuplicateDoc(doc.site, doc.company, doc.month, null) : null;
+                        if (existing) {
+                            const existingSigs = new Set((existing.dataset||[]).map(rowSig));
+                            const newRows = (doc.dataset||[]).filter(r => !existingSigs.has(rowSig(r)));
+                            if (newRows.length) {
+                                mergeDatasetIntoDoc(existing, newRows);
+                                stats.mergedRows += newRows.length;
+                            }
+                            docIdRemap[doc.id] = existing.id;
+                            stats.mergedIntoExisting++;
+                            return; // 새 문서로 추가하지 않음
+                        }
                     }
                     savedDocuments.push(doc);
                     localDocIds.add(doc.id);
@@ -12709,7 +12785,7 @@ function changePrintScale(value) {
 
                 saveSnapshot('GitHub 동기화 불러오기 전 자동 스냅샷');
                 const stats = applyRestoredData(parsed, mode);
-                ghSyncSetStatus(`불러오기 완료! 추가 ${stats.addedDocs}건 / 건너뜀 ${stats.skippedDocs}건 (계좌 추가 ${stats.addedAccounts}건, 법인카드 추가 ${stats.addedCc||0}건)`);
+                ghSyncSetStatus(`불러오기 완료! 추가 ${stats.addedDocs}건 / 기존 대장에 병합 ${stats.mergedIntoExisting||0}건 / 건너뜀 ${stats.skippedDocs}건 (계좌 추가 ${stats.addedAccounts}건, 법인카드 추가 ${stats.addedCc||0}건)`);
                 showToast('GitHub 데이터 불러오기 완료!');
                 closeBackupModal();
             } catch (e) {
@@ -12882,7 +12958,7 @@ function changePrintScale(value) {
                 const stats = applyRestoredData(parsed, 'merge');
                 input.value = '';
 
-                showToast(`다른PC 파일 병합 완료! 새 대장 ${stats.addedDocs}개, 새 거래처 ${stats.addedAccounts}개 추가 (중복 대장 ${stats.skippedDocs}개, 중복 거래처 ${stats.skippedAccounts}개는 건너뜀)`, 'success');
+                showToast(`다른PC 파일 병합 완료! 새 대장 ${stats.addedDocs}개, 기존 대장에 항목 병합 ${stats.mergedIntoExisting||0}건(${stats.mergedRows||0}개 항목), 새 거래처 ${stats.addedAccounts}개 추가 (중복 대장 ${stats.skippedDocs}개, 중복 거래처 ${stats.skippedAccounts}개는 건너뜀)`, 'success');
             };
             reader.readAsText(file);
         }
@@ -12915,7 +12991,7 @@ function changePrintScale(value) {
                     closeBackupModal();
 
                     if (mode === 'merge') {
-                        showToast(`병합 완료! 새 대장 ${stats.addedDocs}개, 새 거래처 ${stats.addedAccounts}개 추가 (중복 대장 ${stats.skippedDocs}개, 중복 거래처 ${stats.skippedAccounts}개는 건너뜀)`, 'success');
+                        showToast(`병합 완료! 새 대장 ${stats.addedDocs}개, 기존 대장에 항목 병합 ${stats.mergedIntoExisting||0}건(${stats.mergedRows||0}개 항목), 새 거래처 ${stats.addedAccounts}개 추가 (중복 대장 ${stats.skippedDocs}개, 중복 거래처 ${stats.skippedAccounts}개는 건너뜀)`, 'success');
                     } else {
                         showToast('데이터 복원 완료! (이전 데이터는 스냅샷에 보관됨)');
                     }
@@ -12952,7 +13028,7 @@ function changePrintScale(value) {
             el.innerHTML = snaps.map((s, i) => `
                 <div class="flex items-center justify-between bg-white dark:bg-slate-800 border border-amber-100 dark:border-amber-900/40 rounded-lg px-3 py-2 text-[10px]">
                     <div>
-                        <span class="font-bold text-slate-700 dark:text-slate-200">${s.label}</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${escCc(s.label)}</span>
                         <span class="text-slate-400 dark:text-slate-500 ml-2">${s.time}</span>
                         <span class="ml-2 text-amber-700 dark:text-amber-400">(대장 ${s.savedDocuments.length}개 · 계좌 ${s.accountDb.length}개)</span>
                     </div>
@@ -13023,7 +13099,7 @@ function changePrintScale(value) {
             const box = document.getElementById('month-close-current-box');
             if (box) {
                 if (currentDoc) {
-                    box.innerHTML = `<p class="text-[11px] text-amber-700 dark:text-amber-400">현재 열려있는 <b>${currentDoc.company||''} · ${currentDoc.month||''} · ${currentDoc.site||''}</b> 문서를 마감 확정본으로 저장합니다. 확정 이후에도 데이터는 계속 수정할 수 있지만, 확정 시점의 데이터는 그대로 보존되어 나중에 비교·복원할 수 있습니다.</p>`;
+                    box.innerHTML = `<p class="text-[11px] text-amber-700 dark:text-amber-400">현재 열려있는 <b>${escCc(currentDoc.company)} · ${escCc(currentDoc.month)} · ${escCc(currentDoc.site)}</b> 문서를 마감 확정본으로 저장합니다. 확정 이후에도 데이터는 계속 수정할 수 있지만, 확정 시점의 데이터는 그대로 보존되어 나중에 비교·복원할 수 있습니다.</p>`;
                 } else {
                     box.innerHTML = `<p class="text-[11px] text-rose-600">먼저 마감할 문서를 선택해 주세요.</p>`;
                 }
@@ -13083,7 +13159,7 @@ function changePrintScale(value) {
                 const stillExists = savedDocuments.some(d => d.id === c.docId);
                 return `<div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-[10px]">
                     <div class="min-w-0">
-                        <span class="font-bold text-slate-700 dark:text-slate-200">${c.company} · ${c.month} · ${c.site}</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${escCc(c.company)} · ${escCc(c.month)} · ${escCc(c.site)}</span>
                         <span class="block text-slate-400 mt-0.5">마감일시: ${c.closedAt} ${!stillExists ? '<span class="text-rose-500 font-bold">· 원본 문서 삭제됨</span>' : ''}</span>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
@@ -13146,16 +13222,16 @@ function changePrintScale(value) {
             } else {
                 if (added.length) {
                     html += `<p class="font-bold text-emerald-600 mb-1">➕ 마감 이후 추가된 항목 (${added.length}건)</p>`;
-                    html += added.map(r => `<div class="pl-3 py-1 border-l-2 border-emerald-300">${r.vendor||''} · ${won((r.supply||0)+(r.tax||0))}</div>`).join('');
+                    html += added.map(r => `<div class="pl-3 py-1 border-l-2 border-emerald-300">${escCc(r.vendor)} · ${won((r.supply||0)+(r.tax||0))}</div>`).join('');
                 }
                 if (removed.length) {
                     html += `<p class="font-bold text-rose-600 mb-1 mt-2">➖ 마감 이후 삭제된 항목 (${removed.length}건)</p>`;
-                    html += removed.map(r => `<div class="pl-3 py-1 border-l-2 border-rose-300">${r.vendor||''} · ${won((r.supply||0)+(r.tax||0))}</div>`).join('');
+                    html += removed.map(r => `<div class="pl-3 py-1 border-l-2 border-rose-300">${escCc(r.vendor)} · ${won((r.supply||0)+(r.tax||0))}</div>`).join('');
                 }
                 if (changed.length) {
                     html += `<p class="font-bold text-amber-600 mb-1 mt-2">✏ 마감 이후 수정된 항목 (${changed.length}건)</p>`;
                     html += changed.map(({before, after}) => `<div class="pl-3 py-1 border-l-2 border-amber-300">
-                        ${after.vendor||''}<br>
+                        ${escCc(after.vendor)}<br>
                         <span class="text-slate-400">이전: ${won((before.supply||0)+(before.tax||0))} → </span>
                         <span class="text-amber-700 dark:text-amber-400 font-bold">현재: ${won((after.supply||0)+(after.tax||0))}</span>
                     </div>`).join('');
@@ -13223,6 +13299,14 @@ function changePrintScale(value) {
         function updateSiteDueDate(site, dueDate) {
             const meta = getSiteMeta();
             meta[site] = { ...(meta[site] || {}), dueDate };
+            setSiteMeta(meta);
+            renderSiteComparisonTable();
+        }
+        // 즐겨찾기 고정 — 고정한 현장은 정렬 기준과 무관하게 비교표 맨 위에 표시
+        function toggleSitePinned(site) {
+            const meta = getSiteMeta();
+            const cur = meta[site] || {};
+            meta[site] = { ...cur, pinned: !cur.pinned };
             setSiteMeta(meta);
             renderSiteComparisonTable();
         }
@@ -13431,7 +13515,7 @@ function changePrintScale(value) {
                 <div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 rounded-lg px-3 py-1.5 text-[11px]">
                     <div class="min-w-0">
                         <span class="font-bold text-slate-700 dark:text-slate-200">${s.subcontractor}</span>
-                        <span class="text-slate-400 ml-1">${s.company||'-'} · ${s.site||'-'} · ${s.month||'-'} · 근로자 ${s.workerCount}명</span>
+                        <span class="text-slate-400 ml-1">${escCc(s.company)||'-'} · ${escCc(s.site)||'-'} · ${escCc(s.month)||'-'} · 근로자 ${s.workerCount}명</span>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <span class="font-bold text-violet-600 dark:text-violet-400">${s.totalAmount.toLocaleString('ko-KR')}원</span>
@@ -13527,6 +13611,8 @@ function changePrintScale(value) {
             );
             filtered.sort((a,b) => a.company.localeCompare(b.company,'ko-KR') || a.site.localeCompare(b.site,'ko-KR') || a.monthKey - b.monthKey);
 
+            renderMonthlyInvestTable(filtered);
+
             const tbody = document.getElementById('ti-tbody');
             const tfoot = document.getElementById('ti-tfoot');
             const summaryBox = document.getElementById('ti-summary-cards');
@@ -13544,7 +13630,7 @@ function changePrintScale(value) {
             const cellBtn = (g, cat) => {
                 const v = g.amounts[cat] || 0;
                 if (v <= 0) return `<td class="py-2 px-2 text-right text-slate-300 dark:text-slate-700">-</td>`;
-                return `<td class="py-2 px-2 text-right"><button onclick="showTiDetail('${g.company.replace(/'/g,"\\'")}','${g.site.replace(/'/g,"\\'")}','${g.month.replace(/'/g,"\\'")}','${cat}')" class="font-bold hover:underline" style="color:${TI_CAT_COLOR[cat]}">${v.toLocaleString('ko-KR')}원</button></td>`;
+                return `<td class="py-2 px-2 text-right"><button onclick="showTiDetail('${escCc(g.company).replace(/'/g,"\\'")}','${escCc(g.site).replace(/'/g,"\\'")}','${escCc(g.month).replace(/'/g,"\\'")}','${cat}')" class="font-bold hover:underline" style="color:${TI_CAT_COLOR[cat]}">${v.toLocaleString('ko-KR')}원</button></td>`;
             };
 
             tbody.innerHTML = filtered.map(g => {
@@ -13553,8 +13639,8 @@ function changePrintScale(value) {
                 gTotal['법인카드'] += (g.amounts['법인카드']||0);
                 gTotal['개인경비'] += (g.amounts['개인경비']||0);
                 return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
-                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200">${g.company}</td>
-                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200">${g.site}</td>
+                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200">${escCc(g.company)}</td>
+                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200">${escCc(g.site)}</td>
                     <td class="py-2 px-3 text-slate-500">${g.month}</td>
                     ${cellBtn(g,'외주비')}${cellBtn(g,'노무비')}${cellBtn(g,'장비비')}${cellBtn(g,'자재비')}${cellBtn(g,'관리비')}${cellBtn(g,'법인카드')}${cellBtn(g,'개인경비')}
                     <td class="py-2 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${monthTotal.toLocaleString('ko-KR')}원</td>
@@ -13579,6 +13665,160 @@ function changePrintScale(value) {
             if (dashCnt) dashCnt.innerHTML = `${grandTotal.toLocaleString('ko-KR')}원`;
         }
 
+        /* ── 월별 투입비 집계표 ──
+           buildTotalInvestData()의 (회사·현장·월) 그룹을 "월" 기준으로만 다시 합산한다.
+           월 표기가 "2026년 7월"/"2026년 07월"처럼 달라도 monthKey(연*100+월)로 같은 달로 묶는다. */
+        const MONTHLY_INVEST_COLS = ['외주비', '노무비', '장비비', '자재비', '관리비', '법인카드', '개인경비'];
+        const MONTHLY_INVEST_LABEL = { '외주비':'외주비', '노무비':'노무비', '장비비':'장비대', '자재비':'자재비', '관리비':'관리비', '법인카드':'법인카드', '개인경비':'개인경비' };
+
+        function buildMonthlyInvestRows(groups) {
+            const map = new Map();
+            groups.forEach(g => {
+                const key = g.monthKey || 0;
+                if (!map.has(key)) {
+                    const amounts = {};
+                    MONTHLY_INVEST_COLS.forEach(c => amounts[c] = 0);
+                    map.set(key, { key, amounts, groupCount: 0 });
+                }
+                const r = map.get(key);
+                MONTHLY_INVEST_COLS.forEach(c => { r.amounts[c] += (g.amounts[c] || 0); });
+                r.groupCount++;
+            });
+            const rows = [...map.values()].sort((a, b) => {
+                if (a.key === 0) return 1;          // 월 미지정은 맨 아래
+                if (b.key === 0) return -1;
+                return a.key - b.key;
+            });
+            let cum = 0, prev = null;
+            rows.forEach(r => {
+                r.label = r.key ? `${Math.floor(r.key / 100)}년 ${String(r.key % 100).padStart(2, '0')}월` : '(월 미지정)';
+                r.total = MONTHLY_INVEST_COLS.reduce((sum, c) => sum + r.amounts[c], 0);
+                cum += r.total;
+                r.cumulative = cum;
+                r.diff = (prev !== null && r.key !== 0) ? r.total - prev : null;
+                r.diffPct = (prev !== null && prev > 0 && r.key !== 0) ? Math.round((r.total - prev) / prev * 100) : null;
+                if (r.key !== 0) prev = r.total;
+            });
+            return rows;
+        }
+
+        function getMonthlyInvestFiltered() {
+            const company = document.getElementById('ti-filter-company')?.value || '';
+            const site = document.getElementById('ti-filter-site')?.value || '';
+            return {
+                company, site,
+                groups: buildTotalInvestData().filter(g => (!company || g.company === company) && (!site || g.site === site))
+            };
+        }
+
+        function renderMonthlyInvestTable(filteredGroups) {
+            const tbody = document.getElementById('ti-month-tbody');
+            const tfoot = document.getElementById('ti-month-tfoot');
+            if (!tbody || !tfoot) return;
+            const rows = buildMonthlyInvestRows(filteredGroups || []);
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="11" class="py-5 text-center text-slate-400 text-[11px]">집계할 데이터가 없습니다.</td></tr>';
+                tfoot.innerHTML = '';
+                return;
+            }
+            const fmt = v => v > 0 ? v.toLocaleString('ko-KR') : '<span class="text-slate-300 dark:text-slate-700">-</span>';
+            const sum = {};
+            MONTHLY_INVEST_COLS.forEach(c => sum[c] = 0);
+            let grand = 0;
+            tbody.innerHTML = rows.map(r => {
+                MONTHLY_INVEST_COLS.forEach(c => sum[c] += r.amounts[c]);
+                grand += r.total;
+                let diffHtml = '<span class="text-slate-300 dark:text-slate-700">-</span>';
+                if (r.diff !== null) {
+                    const up = r.diff > 0, same = r.diff === 0;
+                    const color = same ? 'text-slate-400' : (up ? 'text-rose-600 dark:text-rose-400' : 'text-blue-600 dark:text-blue-400');
+                    const arrow = same ? '' : (up ? '▲ ' : '▼ ');
+                    diffHtml = `<span class="${color} font-bold">${arrow}${Math.abs(r.diff).toLocaleString('ko-KR')}${r.diffPct !== null && !same ? `<span class="text-[9px] font-semibold"> (${r.diffPct > 0 ? '+' : ''}${r.diffPct}%)</span>` : ''}</span>`;
+                }
+                return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">${escCc(r.label)}</td>
+                    ${MONTHLY_INVEST_COLS.map(c => `<td class="py-2 px-2 text-right">${fmt(r.amounts[c])}</td>`).join('')}
+                    <td class="py-2 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${r.total.toLocaleString('ko-KR')}</td>
+                    <td class="py-2 px-2 text-right whitespace-nowrap">${diffHtml}</td>
+                    <td class="py-2 px-3 text-right text-slate-500 dark:text-slate-400">${r.cumulative.toLocaleString('ko-KR')}</td>
+                </tr>`;
+            }).join('');
+            tfoot.innerHTML = `<tr>
+                <td class="py-2.5 px-3">합계 (${rows.length}개월)</td>
+                ${MONTHLY_INVEST_COLS.map(c => `<td class="py-2.5 px-2 text-right" style="color:${TI_CAT_COLOR[c]}">${sum[c].toLocaleString('ko-KR')}</td>`).join('')}
+                <td class="py-2.5 px-3 text-right bg-emerald-100 dark:bg-emerald-900/40">${grand.toLocaleString('ko-KR')}</td>
+                <td class="py-2.5 px-2"></td>
+                <td class="py-2.5 px-3 text-right text-slate-500 dark:text-slate-400">${grand.toLocaleString('ko-KR')}</td>
+            </tr>`;
+        }
+
+        function exportMonthlyInvestToXLSX() {
+            if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
+            const { company, site, groups } = getMonthlyInvestFiltered();
+            const rows = buildMonthlyInvestRows(groups);
+            if (!rows.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
+            const sheetRows = rows.map(r => {
+                const o = { '월': r.label };
+                MONTHLY_INVEST_COLS.forEach(c => o[MONTHLY_INVEST_LABEL[c]] = r.amounts[c]);
+                o['월 합계'] = r.total;
+                o['전월 대비'] = r.diff === null ? '' : r.diff;
+                o['전월 대비(%)'] = r.diffPct === null ? '' : r.diffPct;
+                o['누계'] = r.cumulative;
+                return o;
+            });
+            const tot = { '월': `합계 (${rows.length}개월)` };
+            MONTHLY_INVEST_COLS.forEach(c => tot[MONTHLY_INVEST_LABEL[c]] = rows.reduce((s, r) => s + r.amounts[c], 0));
+            const grand = rows.reduce((s, r) => s + r.total, 0);
+            tot['월 합계'] = grand; tot['전월 대비'] = ''; tot['전월 대비(%)'] = ''; tot['누계'] = grand;
+            sheetRows.push(tot);
+
+            const ws = XLSX.utils.json_to_sheet(sheetRows);
+            ws['!cols'] = [{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:15},{wch:13},{wch:12},{wch:15}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '월별투입비');
+            const label = [company, site].filter(Boolean).join('_') || '전체';
+            XLSX.writeFile(wb, `월별투입비집계_${label.replace(/[\\/*?:"<>|]/g, '_')}_${localDateStr()}.xlsx`);
+            showToast('월별 집계표 엑셀 내보내기 완료', 'success');
+        }
+
+        function printMonthlyInvest() {
+            const { company, site, groups } = getMonthlyInvestFiltered();
+            const rows = buildMonthlyInvestRows(groups);
+            if (!rows.length) { showToast('인쇄할 데이터가 없습니다.', 'error'); return; }
+            const n = v => v > 0 ? v.toLocaleString('ko-KR') : '-';
+            const sum = {}; MONTHLY_INVEST_COLS.forEach(c => sum[c] = rows.reduce((s, r) => s + r.amounts[c], 0));
+            const grand = rows.reduce((s, r) => s + r.total, 0);
+            const trs = rows.map(r => {
+                const diff = r.diff === null ? '-' : `${r.diff > 0 ? '▲' : r.diff < 0 ? '▼' : ''} ${Math.abs(r.diff).toLocaleString('ko-KR')}`;
+                return `<tr><td style="text-align:center;font-weight:700;">${escCc(r.label)}</td>
+                    ${MONTHLY_INVEST_COLS.map(c => `<td style="text-align:right;">${n(r.amounts[c])}</td>`).join('')}
+                    <td style="text-align:right;font-weight:900;background:#ecfdf5;">${r.total.toLocaleString('ko-KR')}</td>
+                    <td style="text-align:right;">${diff}</td>
+                    <td style="text-align:right;">${r.cumulative.toLocaleString('ko-KR')}</td></tr>`;
+            }).join('');
+            const win = window.open('', '_blank', 'width=1100,height=800');
+            if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
+            const filterText = [company, site].filter(Boolean).map(escCc).join(' / ') || '전체 회사·현장';
+            win.document.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>월별 투입비 집계표</title>
+<style>
+ body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;margin:24px;color:#0f172a;}
+ h1{font-size:18px;margin:0 0 4px;} .sub{font-size:11px;color:#64748b;margin-bottom:12px;}
+ table{width:100%;border-collapse:collapse;font-size:11px;} th,td{border:1px solid #cbd5e1;padding:5px 7px;}
+ th{background:#f1f5f9;} tfoot td{font-weight:900;background:#f8fafc;}
+ .unit{text-align:right;font-size:10px;color:#64748b;margin-bottom:3px;}
+ @media print{@page{size:A4 landscape;margin:12mm;} body{margin:0;} -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+</style></head><body>
+ <h1>월별 투입비 집계표</h1>
+ <div class="sub">${filterText} · 출력일 ${localDateStr()}</div>
+ <div class="unit">(단위: 원)</div>
+ <table><thead><tr><th>월</th>${MONTHLY_INVEST_COLS.map(c => `<th>${MONTHLY_INVEST_LABEL[c]}</th>`).join('')}<th>월 합계</th><th>전월 대비</th><th>누계</th></tr></thead>
+ <tbody>${trs}</tbody>
+ <tfoot><tr><td style="text-align:center;">합계 (${rows.length}개월)</td>${MONTHLY_INVEST_COLS.map(c => `<td style="text-align:right;">${n(sum[c])}</td>`).join('')}<td style="text-align:right;">${grand.toLocaleString('ko-KR')}</td><td></td><td style="text-align:right;">${grand.toLocaleString('ko-KR')}</td></tr></tfoot></table>
+ <script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});<\/script>
+</body></html>`);
+            win.document.close();
+        }
+
         function showTiDetail(company, site, month, cat) {
             const data = buildTotalInvestData();
             const g = data.find(x => x.company === company && x.site === site && x.month === month);
@@ -13594,7 +13834,7 @@ function changePrintScale(value) {
                 thead.innerHTML = `<th class="text-left font-bold py-2 px-2">사용일자</th><th class="text-left font-bold py-2 px-2">가맹점</th><th class="text-left font-bold py-2 px-2">카테고리</th><th class="text-right font-bold py-2 px-2">금액</th><th class="text-left font-bold py-2 px-2">메모</th>`;
                 tbody.innerHTML = rows.map(r => {
                     total += r.amount;
-                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2">${r.date}</td><td class="py-1.5 px-2 font-semibold">${r.merchant}</td><td class="py-1.5 px-2">${r.cat}</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-slate-400">${r.memo}</td></tr>`;
+                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2">${r.date}</td><td class="py-1.5 px-2 font-semibold">${escCc(r.merchant)}</td><td class="py-1.5 px-2">${escCc(r.cat)}</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-slate-400">${r.memo}</td></tr>`;
                 }).join('');
             } else if (cat === '개인경비') {
                 thead.innerHTML = `<th class="text-left font-bold py-2 px-2">사용일자</th><th class="text-left font-bold py-2 px-2">직원명</th><th class="text-left font-bold py-2 px-2">가맹점</th><th class="text-left font-bold py-2 px-2">카테고리</th><th class="text-right font-bold py-2 px-2">금액</th><th class="text-center font-bold py-2 px-2">정산상태</th><th class="text-left font-bold py-2 px-2">메모</th>`;
@@ -13603,13 +13843,13 @@ function changePrintScale(value) {
                     const statusHtml = r.status === 'settled'
                         ? `<span class="text-emerald-600 font-bold text-[10px]">정산완료</span>`
                         : `<span class="text-rose-600 font-bold text-[10px]">미정산</span>`;
-                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2">${r.date}</td><td class="py-1.5 px-2 font-bold">${r.employee}</td><td class="py-1.5 px-2 font-semibold">${r.merchant}</td><td class="py-1.5 px-2">${r.cat}</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-center">${statusHtml}</td><td class="py-1.5 px-2 text-slate-400">${r.memo}</td></tr>`;
+                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2">${r.date}</td><td class="py-1.5 px-2 font-bold">${escCc(r.employee)}</td><td class="py-1.5 px-2 font-semibold">${escCc(r.merchant)}</td><td class="py-1.5 px-2">${escCc(r.cat)}</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-center">${statusHtml}</td><td class="py-1.5 px-2 text-slate-400">${r.memo}</td></tr>`;
                 }).join('');
             } else {
                 thead.innerHTML = `<th class="text-left font-bold py-2 px-2">거래처</th><th class="text-left font-bold py-2 px-2">대표자</th><th class="text-right font-bold py-2 px-2">공급가액</th><th class="text-right font-bold py-2 px-2">부가세</th><th class="text-right font-bold py-2 px-2">공제</th><th class="text-right font-bold py-2 px-2 text-amber-600 dark:text-amber-400">선지급(포함)</th><th class="text-right font-bold py-2 px-2">투입금액</th><th class="text-left font-bold py-2 px-2">메모</th>`;
                 tbody.innerHTML = rows.map(r => {
                     total += r.amount;
-                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2 font-semibold">${r.vendor}</td><td class="py-1.5 px-2">${r.ceo}</td><td class="py-1.5 px-2 text-right">${r.supply.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.tax.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.deduction.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.prepaid.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-slate-400">${r.note}</td></tr>`;
+                    return `<tr class="border-b border-slate-50 dark:border-slate-800/60"><td class="py-1.5 px-2 font-semibold">${escCc(r.vendor)}</td><td class="py-1.5 px-2">${escCc(r.ceo)}</td><td class="py-1.5 px-2 text-right">${r.supply.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.tax.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.deduction.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right">${r.prepaid.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-right font-bold">${r.amount.toLocaleString('ko-KR')}원</td><td class="py-1.5 px-2 text-slate-400">${r.note}</td></tr>`;
                 }).join('');
             }
 
@@ -13829,11 +14069,14 @@ function changePrintScale(value) {
                 s.totalInvest = s.requestAmt + s.prepaidAmt + s.ccAmt;
                 s.unpaidCount = 0;
                 s.unpaidAmt = 0;
+                s.nextDueDate = '';   // 미지급 건 중 가장 가까운 지급예정일
+                s.nextDueOverdue = false;
             });
             // 대금지급현황과 연동 — 청구금액보다 지급금액이 적게 기록된 건을 "미지급"으로 집계
             // (sourceDocId로 그 건이 어느 현장 문서에서 왔는지 추적)
             const docSiteMap = {};
             savedDocuments.forEach(doc => { docSiteMap[doc.id] = (doc.site || '현장 미지정').trim(); });
+            const todayStr = localDateStr();
             (typeof pmLoad === 'function' ? pmLoad() : []).forEach(p => {
                 const site = p.sourceDocId ? docSiteMap[p.sourceDocId] : null;
                 if (!site || !stats[site]) return;
@@ -13841,7 +14084,15 @@ function changePrintScale(value) {
                 if (unpaid > 0) {
                     stats[site].unpaidCount++;
                     stats[site].unpaidAmt += unpaid;
+                    // 지급예정일이 등록된 미지급 건 중 가장 이른 날짜를 "다음 지급 예정"으로 표시
+                    // (이미 지난 날짜도 포함 — 그 경우 연체로 표시해 가장 시급한 건이 먼저 보이게 함)
+                    if (p.payDueDate && (!stats[site].nextDueDate || p.payDueDate < stats[site].nextDueDate)) {
+                        stats[site].nextDueDate = p.payDueDate;
+                    }
                 }
+            });
+            Object.values(stats).forEach(s => {
+                if (s.nextDueDate) s.nextDueOverdue = s.nextDueDate < todayStr;
             });
             return stats;
         }
@@ -14032,7 +14283,33 @@ function changePrintScale(value) {
             const siteMeta = getSiteMeta();
             const totalAmt = sites.reduce((s, k) => s + stats[k].totalInvest, 0);
             const alertSites = []; // 예산 90% 이상 소진된 현장 — 상단 알림 배너용
-            sites.sort((a, b) => stats[b].totalInvest - stats[a].totalInvest).forEach(site => {
+
+            // ★ 현장명 검색 + 정렬(이름순/집행률순/총투입비순/미지급순) — 고정(즐겨찾기)한 현장은 항상 맨 위
+            const searchText = (document.getElementById('site-search-input')?.value || '').trim().toLowerCase();
+            const sortMode = document.getElementById('site-sort-select')?.value || 'name';
+            let visibleSites = sites.filter(site => !searchText || site.toLowerCase().includes(searchText));
+            visibleSites.sort((a, b) => {
+                const pinA = !!(siteMeta[a] && siteMeta[a].pinned);
+                const pinB = !!(siteMeta[b] && siteMeta[b].pinned);
+                if (pinA !== pinB) return pinA ? -1 : 1;
+                if (sortMode === 'pct') {
+                    const budgetsNow = budgets;
+                    const pa = budgetsNow[a] > 0 ? stats[a].requestAmt / budgetsNow[a] : -1;
+                    const pb = budgetsNow[b] > 0 ? stats[b].requestAmt / budgetsNow[b] : -1;
+                    return pb - pa;
+                }
+                if (sortMode === 'invest') return stats[b].totalInvest - stats[a].totalInvest;
+                if (sortMode === 'unpaid') return (stats[b].unpaidAmt || 0) - (stats[a].unpaidAmt || 0);
+                return a.localeCompare(b, 'ko-KR');
+            });
+
+            if (searchText && !visibleSites.length) {
+                tbody.innerHTML = `<tr><td colspan="15" class="py-6 text-center text-slate-400 dark:text-slate-600 text-[11px]">"${escapeMetaHtml(searchText)}"와(과) 일치하는 현장이 없습니다.</td></tr>`;
+                renderSiteBudgetAlertBanner([]);
+                return;
+            }
+
+            visibleSites.forEach(site => {
                 const s      = stats[site];
                 const budget = budgets[site] || 0;
                 const rawPct = budget > 0 ? Math.round(s.requestAmt / budget * 100) : 0;
@@ -14055,19 +14332,27 @@ function changePrintScale(value) {
                         </div>
                         ${dday ? `<span class="text-[9px] ${dday.cls}">${dday.text}</span>` : ''}
                     </div>`;
+                const nextDueLine = s.nextDueDate
+                    ? `<br><span class="text-[9px] font-bold ${s.nextDueOverdue ? 'text-rose-700 dark:text-rose-300' : 'text-slate-400 dark:text-slate-500'}">${s.nextDueDate}${s.nextDueOverdue ? ' 지연' : ' 예정'}</span>`
+                    : '';
                 const unpaidCell = s.unpaidCount > 0
-                    ? `<button onclick="openSiteInfoModal('${site.replace(/'/g,"\\'")}')" class="text-rose-600 dark:text-rose-400 font-extrabold hover:underline" title="대금지급현황에서 아직 다 지급되지 않은 건">${formatNumber(s.unpaidAmt)}원<br><span class="text-[9px] font-semibold">${s.unpaidCount}건</span></button>`
+                    ? `<button onclick="openSiteInfoModal('${site.replace(/'/g,"\\'")}')" class="text-rose-600 dark:text-rose-400 font-extrabold hover:underline" title="대금지급현황에서 아직 다 지급되지 않은 건 — 날짜는 가장 가까운 지급예정일">${formatNumber(s.unpaidAmt)}원<br><span class="text-[9px] font-semibold">${s.unpaidCount}건</span>${nextDueLine}</button>`
                     : `<span class="text-slate-300 dark:text-slate-600 text-[10px]">-</span>`;
                 const hasInfo = meta.manager || meta.managerPhone || meta.memo;
                 // 선택 현장의 대장만 월별로 필터링해 이동 대상으로 제공
                 const siteDocs = savedDocuments
                     .filter(d => (d.site||'현장 미지정').trim() === site)
                     .sort((a, b) => (a.month||'').localeCompare(b.month||''));
-                const coTags = s.companies.map(c => `<span class="inline-block bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded px-1.5 py-0.5 text-[9px] font-semibold">${c}</span>`).join(' ');
+                const coTags = s.companies.map(c => `<span class="inline-block bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded px-1.5 py-0.5 text-[9px] font-semibold">${escCc(c)}</span>`).join(' ');
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-all';
+                const isPinned = !!(meta && meta.pinned);
                 tr.innerHTML = `
-                    <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100" style="word-break:keep-all; overflow-wrap:break-word; white-space:normal;">${site}</td>
+                    <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100" style="word-break:keep-all; overflow-wrap:break-word; white-space:normal;">
+                        <button onclick="toggleSitePinned('${site.replace(/'/g,"\\'")}')" class="inline-block align-middle mr-1 ${isPinned ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'} hover:text-amber-500" title="${isPinned ? '고정 해제' : '목록 맨 위에 고정'}">
+                            <i data-lucide="star" class="w-3 h-3" style="${isPinned ? 'fill:currentColor;' : ''}"></i>
+                        </button>${escapeMetaHtml(site)}
+                    </td>
                     <td class="py-2.5 px-3 text-center"><div class="flex flex-wrap justify-center gap-1">${coTags || '-'}</div></td>
                     <td class="py-2 px-2 text-center">${statusCell}</td>
                     <td class="py-2.5 px-3 text-center text-blue-600 dark:text-blue-400 font-bold">${s.docCount}</td>
@@ -14306,7 +14591,8 @@ function changePrintScale(value) {
                     docCount: s.docCount, rowCount: s.rowCount,
                     supply: s.supply, requestAmt: s.requestAmt, prepaidAmt: s.prepaidAmt, ccAmt: s.ccAmt,
                     totalInvest: s.totalInvest, budget, pct,
-                    unpaidCount: s.unpaidCount || 0, unpaidAmt: s.unpaidAmt || 0
+                    unpaidCount: s.unpaidCount || 0, unpaidAmt: s.unpaidAmt || 0,
+                    nextDueDate: s.nextDueDate || '', nextDueOverdue: !!s.nextDueOverdue
                 };
             });
         }
@@ -14321,10 +14607,11 @@ function changePrintScale(value) {
                 '대장 수': r.docCount, '총 청구건': r.rowCount,
                 '공급가액 합계': r.supply, '지급요청 합계': r.requestAmt, '선지급': r.prepaidAmt, '법인카드': r.ccAmt,
                 '총 투입비': r.totalInvest, '예산': r.budget || '', '집행률(%)': r.pct == null ? '' : r.pct,
-                '미지급 건수': r.unpaidCount || '', '미지급 금액': r.unpaidAmt || ''
+                '미지급 건수': r.unpaidCount || '', '미지급 금액': r.unpaidAmt || '',
+                '다음 지급예정일': r.nextDueDate ? (r.nextDueDate + (r.nextDueOverdue ? ' (지연)' : '')) : ''
             }));
             const ws = XLSX.utils.json_to_sheet(sheetRows);
-            ws['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:8},{wch:12},{wch:10},{wch:14},{wch:24},{wch:8},{wch:9},{wch:14},{wch:14},{wch:12},{wch:12},{wch:14},{wch:12},{wch:9},{wch:10},{wch:12}];
+            ws['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:8},{wch:12},{wch:10},{wch:14},{wch:24},{wch:8},{wch:9},{wch:14},{wch:14},{wch:12},{wch:12},{wch:14},{wch:12},{wch:9},{wch:10},{wch:12},{wch:14}];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '현장별 비교표');
             XLSX.writeFile(wb, `현장별_자금집행_비교표_${localDateStr()}.xlsx`);
@@ -14350,6 +14637,7 @@ function changePrintScale(value) {
                     <td style="text-align:right;font-weight:900;color:#047857;">${r.totalInvest.toLocaleString('ko-KR')}</td>
                     <td style="text-align:center;font-weight:700;color:${r.pct==null?'#94a3b8':r.pct>=100?'#b91c1c':r.pct>=90?'#dc2626':r.pct>=70?'#d97706':'#059669'};">${r.pct==null?'-':r.pct+'%'}</td>
                     <td style="text-align:right;color:${r.unpaidAmt?'#be123c':'#94a3b8'};font-weight:${r.unpaidAmt?'900':'400'};">${r.unpaidAmt ? r.unpaidAmt.toLocaleString('ko-KR')+' ('+r.unpaidCount+'건)' : '-'}</td>
+                    <td style="text-align:center;color:${r.nextDueOverdue?'#be123c':'#64748b'};font-weight:${r.nextDueDate?'700':'400'};">${r.nextDueDate ? r.nextDueDate + (r.nextDueOverdue?' 지연':'') : '-'}</td>
                 </tr>`).join('');
             const totalInvest = rows.reduce((s, r) => s + r.totalInvest, 0);
             win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -14371,10 +14659,10 @@ function changePrintScale(value) {
                 <table>
                     <thead><tr>
                         <th>No</th><th>현장명</th><th>참여 회사</th><th>상태</th><th>준공예정일</th>
-                        <th>대장 수</th><th>총 청구건</th><th>지급요청 합계</th><th>선지급</th><th>총 투입비</th><th>집행률</th><th>미지급</th>
+                        <th>대장 수</th><th>총 청구건</th><th>지급요청 합계</th><th>선지급</th><th>총 투입비</th><th>집행률</th><th>미지급</th><th>다음 지급예정</th>
                     </tr></thead>
                     <tbody>${trs}</tbody>
-                    <tfoot><tr><td colspan="9" style="text-align:right;">합계</td><td style="text-align:right;">${totalInvest.toLocaleString('ko-KR')}</td><td colspan="2"></td></tr></tfoot>
+                    <tfoot><tr><td colspan="9" style="text-align:right;">합계</td><td style="text-align:right;">${totalInvest.toLocaleString('ko-KR')}</td><td colspan="3"></td></tr></tfoot>
                 </table>
                 <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300));<\\/script>
             </body></html>`);
@@ -14548,7 +14836,7 @@ function changePrintScale(value) {
                 el.innerHTML += `
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
                         <p class="font-extrabold text-slate-800 dark:text-slate-100 text-[11px] mb-2 flex items-center gap-1.5">
-                            <i data-lucide="map-pin" class="w-3 h-3 text-rose-500"></i> ${site}
+                            <i data-lucide="map-pin" class="w-3 h-3 text-rose-500"></i> ${escapeMetaHtml(site)}
                         </p>
                         <div class="space-y-1">${monthBars || '<p class="text-[10px] text-slate-400">청구 항목 없음</p>'}</div>
                     </div>
@@ -14570,7 +14858,7 @@ function changePrintScale(value) {
                 const budget = budgets[site] || '';
                 el.innerHTML += `
                     <div class="flex items-center gap-3">
-                        <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200 w-40 truncate shrink-0">${site}</span>
+                        <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200 w-40 truncate shrink-0">${escapeMetaHtml(site)}</span>
                         <input type="number" id="budget-input-${CSS.escape(site)}" value="${budget}" placeholder="예산 (원)" min="0"
                             class="flex-1 border border-amber-200 dark:border-amber-800 rounded px-2 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-amber-400">
                         <button onclick="saveSiteBudget('${site.replace(/'/g, "\\'")}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-[10px] font-bold shrink-0 transition-all">저장</button>
@@ -14733,10 +15021,10 @@ function changePrintScale(value) {
                 return `
                 <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-[11px]">
                     <span class="shrink-0 bg-${c}-100 dark:bg-${c}-900/40 text-${c}-700 dark:text-${c}-400 px-1.5 py-0.5 rounded font-bold text-[10px]">${it.type}</span>
-                    <span class="font-extrabold text-slate-800 dark:text-slate-100 flex-1 truncate">${it.vendor}</span>
-                    ${it.ceo ? `<span class="text-slate-400 dark:text-slate-500 text-[10px]">${it.ceo}</span>` : ''}
+                    <span class="font-extrabold text-slate-800 dark:text-slate-100 flex-1 truncate">${escCc(it.vendor)}</span>
+                    ${it.ceo ? `<span class="text-slate-400 dark:text-slate-500 text-[10px]">${escCc(it.ceo)}</span>` : ''}
                     <span class="text-indigo-600 dark:text-indigo-400 font-bold shrink-0">${formatNumber(total)}원</span>
-                    ${it.note ? `<span class="text-slate-400 dark:text-slate-500 text-[10px] italic truncate max-w-[80px]">${it.note}</span>` : ''}
+                    ${it.note ? `<span class="text-slate-400 dark:text-slate-500 text-[10px] italic truncate max-w-[80px]">${escCc(it.note)}</span>` : ''}
                     <button onclick="deleteRepeatItem(${it.id})" class="shrink-0 text-rose-400 hover:text-rose-600 transition-all p-0.5 rounded hover:bg-rose-50 dark:hover:bg-rose-950/40">
                         <i data-lucide="x" class="w-3 h-3"></i>
                     </button>
@@ -14879,7 +15167,7 @@ function changePrintScale(value) {
             // ── 월별 바 차트 ──
             const monthMap = {};
             allRows.forEach(({ doc, row: r }) => {
-                const key = (doc.month || '미지정') + ' (' + (doc.site || '현장 미지정') + ')';
+                const key = escCc(doc.month || '미지정') + ' (' + escCc(doc.site || '현장 미지정') + ')';
                 monthMap[key] = (monthMap[key] || 0) + ((r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0));
             });
             const months  = Object.keys(monthMap).sort();
@@ -14909,22 +15197,22 @@ function changePrintScale(value) {
             tbody.innerHTML = allRows.map(({ doc, row: r }) => {
                 const reqAmt = (r.supply||0)+(r.tax||0)-(r.deduction||0)-(r.prepaid||0);
                 const sc     = STATUS_COLOR[r.status] || 'slate';
-                const docLabel = [doc.site, doc.company, doc.month].filter(Boolean).join(' / ') || '(현재 대장)';
+                const docLabel = [doc.site, doc.company, doc.month].map(escCc).filter(Boolean).join(' / ') || '(현재 대장)';
                 return `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
                     <td class="py-2 px-3 font-semibold text-slate-700 dark:text-slate-200">${docLabel}</td>
                     <td class="py-2 px-2 text-center">
-                        <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-bold">${r.type||''}</span>
+                        <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-bold">${escCc(r.type)}</span>
                     </td>
-                    <td class="py-2 px-2 text-center font-semibold text-slate-700 dark:text-slate-200">${r.ceo || '—'}</td>
+                    <td class="py-2 px-2 text-center font-semibold text-slate-700 dark:text-slate-200">${escCc(r.ceo) || '—'}</td>
                     <td class="py-2 px-3 text-right font-semibold text-slate-700 dark:text-slate-200">${formatNumber(r.supply||0)}</td>
                     <td class="py-2 px-3 text-right text-slate-500 dark:text-slate-400">${formatNumber(r.tax||0)}</td>
                     <td class="py-2 px-3 text-right font-extrabold text-indigo-700 dark:text-indigo-400">${formatNumber(reqAmt)}</td>
                     <td class="py-2 px-2 text-center">
-                        <span class="bg-${sc}-100 dark:bg-${sc}-900/40 text-${sc}-700 dark:text-${sc}-400 px-1.5 py-0.5 rounded text-[10px] font-bold">${r.status||'대기'}</span>
+                        <span class="bg-${sc}-100 dark:bg-${sc}-900/40 text-${sc}-700 dark:text-${sc}-400 px-1.5 py-0.5 rounded text-[10px] font-bold">${escCc(r.status)||'대기'}</span>
                     </td>
                     <td class="py-2 px-2 text-center">
-                        ${r.memo ? `<span class="text-amber-500 dark:text-amber-400" title="${r.memo.substring(0,60)}"><i data-lucide="message-square" style="width:12px;height:12px;display:inline;"></i></span>` : '<span class="text-slate-200 dark:text-slate-700">—</span>'}
+                        ${r.memo ? `<span class="text-amber-500 dark:text-amber-400" title="${escAttr(r.memo.substring(0,60))}"><i data-lucide="message-square" style="width:12px;height:12px;display:inline;"></i></span>` : '<span class="text-slate-200 dark:text-slate-700">—</span>'}
                     </td>
                 </tr>`;
             }).join('');
@@ -14933,10 +15221,10 @@ function changePrintScale(value) {
             const accEl = document.getElementById('vh-account-info');
             if (accMatch) {
                 accEl.innerHTML = `
-                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">은행</span><span class="font-semibold">${accMatch.bank||'—'}</span></div>
-                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">계좌</span><span class="font-semibold font-mono">${accMatch.account||'—'}</span></div>
-                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">예금주</span><span class="font-semibold">${accMatch.holder||'—'}</span></div>
-                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">연락처</span><span class="font-semibold">${accMatch.phone||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">은행</span><span class="font-semibold">${escCc(accMatch.bank)||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">계좌</span><span class="font-semibold font-mono">${escCc(accMatch.account)||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">예금주</span><span class="font-semibold">${escCc(accMatch.holder)||'—'}</span></div>
+                    <div class="flex gap-2"><span class="w-16 shrink-0 text-slate-400 font-bold">연락처</span><span class="font-semibold">${escCc(accMatch.phone)||'—'}</span></div>
                 `;
             } else {
                 accEl.innerHTML = '<p class="text-slate-400 dark:text-slate-500 italic">계좌 DB에 등록되지 않은 거래처입니다.</p>';
@@ -14977,7 +15265,7 @@ function changePrintScale(value) {
                 monthCount[key] = (monthCount[key] || 0) + 1;
             });
             Object.entries(monthCount).forEach(([m, cnt]) => {
-                if (cnt >= 2) anomalies.push({ level:'high', msg: `[${m}] 동일 월 ${cnt}건 청구 — 중복 청구 여부 확인 필요` });
+                if (cnt >= 2) anomalies.push({ level:'high', msg: `[${escCc(m)}] 동일 월 ${cnt}건 청구 — 중복 청구 여부 확인 필요` });
             });
 
             // 2) 단가 급등: 최근 공급가액이 평균 대비 150% 이상
@@ -15003,7 +15291,7 @@ function changePrintScale(value) {
                 const sup = r.supply || 0;
                 const ded = (r.deduction || 0) + (r.prepaid || 0);
                 if (sup > 0 && ded > sup * 0.5) {
-                    anomalies.push({ level:'warn', msg: `[${doc.month||''}] 공제·선급(${formatNumber(ded)}원)이 공급가(${formatNumber(sup)}원)의 50% 초과` });
+                    anomalies.push({ level:'warn', msg: `[${escCc(doc.month)}] 공제·선급(${formatNumber(ded)}원)이 공급가(${formatNumber(sup)}원)의 50% 초과` });
                 }
             });
 
@@ -15013,7 +15301,7 @@ function changePrintScale(value) {
             );
             if (accMatch && accMatch.ceo) ceoSet.add(accMatch.ceo.trim());
             if (ceoSet.size >= 2) {
-                anomalies.push({ level:'high', msg: `대표자 불일치 — 등록된 이름: ${[...ceoSet].join(' / ')} (명의 도용·오입력 확인 필요)` });
+                anomalies.push({ level:'high', msg: `대표자 불일치 — 등록된 이름: ${[...ceoSet].map(escCc).join(' / ')} (명의 도용·오입력 확인 필요)` });
             }
 
             // 7) 동일 계좌번호를 다른 거래처가 사용 중인지 전체 대장 검사
@@ -15041,7 +15329,7 @@ function changePrintScale(value) {
                 });
                 if (conflictVendors.size > 0) {
                     const display = '…' + cleanAcc.slice(-4);
-                    anomalies.push({ level:'high', msg: `계좌 ${display}가 다른 거래처(${[...conflictVendors].join(', ')})에도 등록됨 — 계좌 공유 또는 오매칭 확인` });
+                    anomalies.push({ level:'high', msg: `계좌 ${display}가 다른 거래처(${[...conflictVendors].map(escCc).join(', ')})에도 등록됨 — 계좌 공유 또는 오매칭 확인` });
                 }
             });
 
@@ -18595,11 +18883,13 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 return;
             }
 
+            // ★ 하이라이트 태그(<span>)는 넣어야 하므로 통째로 escCc 할 수 없음 — 검색어 앞/일치부/뒤를
+            //   원본 문자열 기준으로 잘라낸 뒤 각 조각을 따로 이스케이프해서 특수문자로 드롭다운이 깨지는 것을 막는다
             function hl(str, q) {
                 if (!str) return '';
                 const idx = str.toLowerCase().indexOf(q.toLowerCase());
-                if (idx < 0) return str;
-                return str.slice(0, idx) + '<span class="vendor-ac-mark">' + str.slice(idx, idx + q.length) + '</span>' + str.slice(idx + q.length);
+                if (idx < 0) return escCc(str);
+                return escCc(str.slice(0, idx)) + '<span class="vendor-ac-mark">' + escCc(str.slice(idx, idx + q.length)) + '</span>' + escCc(str.slice(idx + q.length));
             }
 
             drop.innerHTML = '<div class="vendor-ac-header">계좌 DB — ' + matches.length + '건</div>' +
@@ -18609,7 +18899,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         onmousedown="applyVendorAc(event, ${rowId}, ${a.id})"
                         onmouseenter="vacHover(${rowId}, ${i})">
                         <div class="vendor-ac-name">${hl(a.vendor || a.holder, q)}</div>
-                        <div class="vendor-ac-sub">${hl(a.ceo || '', q) ? '대표 ' + hl(a.ceo, q) + ' · ' : ''}${a.bank || ''}은행 ${accMask} · ${hl(a.holder || '', q)}</div>
+                        <div class="vendor-ac-sub">${hl(a.ceo || '', q) ? '대표 ' + hl(a.ceo, q) + ' · ' : ''}${escCc(a.bank)}은행 ${escCc(accMask)} · ${hl(a.holder || '', q)}</div>
                     </div>`;
                 }).join('');
 
@@ -18973,7 +19263,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     .slice(0, 6);
                 siteStatsEl.innerHTML = siteList.length ? siteList.map(s => `
                     <div class="flex items-center justify-between px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
-                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate">${s.site}</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(s.site)}</span>
                         <span class="text-right shrink-0 ml-2">
                             <span class="block font-extrabold text-teal-600 dark:text-teal-400">${s.total.toLocaleString('ko-KR')}원</span>
                             <span class="block text-[9px] text-slate-400">청구 ${s.claim.toLocaleString('ko-KR')} · 카드 ${s.card.toLocaleString('ko-KR')}</span>
@@ -18999,7 +19289,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     .slice(0, 6);
                 companyStatsEl.innerHTML = companyList.length ? companyList.map(c => `
                     <div class="flex items-center justify-between px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
-                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate">${c.company}</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(c.company)}</span>
                         <span class="text-right shrink-0 ml-2">
                             <span class="block font-extrabold text-cyan-600 dark:text-cyan-400">${c.claim.toLocaleString('ko-KR')}원</span>
                             <span class="block text-[9px] text-slate-400">문서 ${c.docs}건</span>
@@ -19061,9 +19351,9 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             el.innerHTML = vendors.map(v => {
                 const balColor = v.balance > 0 ? 'text-amber-600 dark:text-amber-400' : (v.balance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400');
                 const balLabel = v.balance > 0 ? '미정산 잔액' : (v.balance < 0 ? '공제 초과' : '정산 완료');
-                return `<button onclick="showVendorUsage('${v.vendor.replace(/'/g,"\\'")}')" class="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left">
+                return `<button onclick="showVendorUsage('${escCc(v.vendor).replace(/'/g,"\\'")}')" class="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left">
                     <div class="min-w-0">
-                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${v.vendor}</span>
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(v.vendor)}</span>
                         <span class="block text-[9px] text-slate-400">선지급 ${fmt(v.prepaid)} · 공제(정산) ${fmt(v.deduction)} · 최근 ${v.lastMonth||'-'}</span>
                     </div>
                     <div class="text-right shrink-0">
@@ -19110,11 +19400,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 const acc = findAccountMatch({ vendor: name, holder: name });
                 return `<div class="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
                     <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-500 shrink-0"></i>
-                    <button onclick="showVendorUsage('${name.replace(/'/g,"\\'")}')" class="flex-1 min-w-0 text-left">
-                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${name}</span>
-                        <span class="block text-[9px] text-slate-400 truncate">${acc ? `${acc.bank||''} ${acc.account||''}` : '계좌 마스터 DB 미등록'}</span>
+                    <button onclick="showVendorUsage('${escCc(name).replace(/'/g,"\\'")}')" class="flex-1 min-w-0 text-left">
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(name)}</span>
+                        <span class="block text-[9px] text-slate-400 truncate">${acc ? `${escCc(acc.bank)} ${escCc(acc.account)}` : '계좌 마스터 DB 미등록'}</span>
                     </button>
-                    <button onclick="unpinVendor('${name.replace(/'/g,"\\'")}')" class="text-slate-300 hover:text-rose-500 shrink-0" title="즐겨찾기 해제"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="unpinVendor('${escCc(name).replace(/'/g,"\\'")}')" class="text-slate-300 hover:text-rose-500 shrink-0" title="즐겨찾기 해제"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                 </div>`;
             }).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -19184,8 +19474,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         <i data-lucide="${it.icon}" class="w-3.5 h-3.5"></i>
                     </span>
                     <span class="flex-1 min-w-0">
-                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${it.label}</span>
-                        <span class="block text-[9px] text-slate-400">${typeLabel[it.type]||''} · ${it.dateLabel||''}</span>
+                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(it.label)}</span>
+                        <span class="block text-[9px] text-slate-400">${typeLabel[it.type]||''} · ${escCc(it.dateLabel)}</span>
                     </span>
                     <span class="text-[11px] font-extrabold shrink-0" style="color:${it.color};">${it.amount ? Number(it.amount).toLocaleString('ko-KR')+'원' : ''}</span>
                     <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0"></i>
@@ -19380,7 +19670,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     </span>
                     <span class="flex-1 min-w-0">
                         <span class="flex items-center gap-1.5">
-                            <span class="text-[11.5px] font-bold text-slate-700 dark:text-slate-200 truncate">${r.label}</span>
+                            <span class="text-[11.5px] font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(r.label)}</span>
                             <span class="shrink-0 text-[8.5px] font-bold px-1.5 py-0.5 rounded" style="background:${r.color}1a;color:${r.color};">${r.typeLabel}</span>
                         </span>
                         <span class="flex items-center gap-1.5 mt-0.5">
@@ -19546,7 +19836,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-0.5">
                                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="background:${r.color}22;color:${r.color};">${r.source}</span>
-                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">${r.label}</span>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">${escCc(r.label)}</span>
                                     <span class="ml-auto text-[10px] text-slate-400 font-semibold whitespace-nowrap">${r.date||''}</span>
                                 </div>
                                 ${r.detail ? `<div class="text-[10px] text-slate-400">${r.detail}</div>` : ''}
@@ -19751,20 +20041,20 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                             <!-- 헤더 행 -->
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
                                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="background:${catColor}22;color:${catColor};">${h.category||'-'}</span>
-                                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100">${h.vendor||'(거래처 미입력)'}</span>
-                                ${h.ceo ? `<span class="text-[10px] text-slate-400">${h.ceo} 대표</span>` : ''}
+                                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100">${escCc(h.vendor)||'(거래처 미입력)'}</span>
+                                ${h.ceo ? `<span class="text-[10px] text-slate-400">${escCc(h.ceo)} 대표</span>` : ''}
                                 <span class="ml-auto text-[10px] text-violet-600 font-bold">${h.month}</span>
                             </div>
                             <!-- 메타 정보 -->
                             <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-slate-500 dark:text-slate-400 mb-1.5">
-                                ${h.site ? `<span>📍 ${h.site}</span>` : ''}
+                                ${h.site ? `<span>📍 ${escCc(h.site)}</span>` : ''}
                                 ${h.period ? `<span>📅 ${h.period}</span>` : ''}
-                                ${h.memo ? `<span class="text-violet-500 font-semibold">💬 ${h.memo}</span>` : ''}
+                                ${h.memo ? `<span class="text-violet-500 font-semibold">💬 ${escCc(h.memo)}</span>` : ''}
                             </div>
                             <!-- 금액 + 계좌 -->
                             <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px]">
                                 <span class="font-bold text-indigo-700 dark:text-indigo-400">청구 ${h.total||'0 원'}</span>
-                                ${h.bank ? `<span class="text-slate-400">${h.bank} ${h.account||''} (${h.holder||''})</span>` : ''}
+                                ${h.bank ? `<span class="text-slate-400">${escCc(h.bank)} ${escCc(h.account)} (${escCc(h.holder)})</span>` : ''}
                             </div>
                             <!-- 품목 요약 -->
                             ${(h.items||[]).length ? `<div class="mt-1 text-[9px] text-slate-400 truncate">품목: ${h.items.map(r=>r.name).filter(Boolean).join(' · ')}</div>` : ''}
@@ -21195,7 +21485,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             const accounts = [...seen.values()];
             sel.innerHTML = '<option value="">+ 새 계좌 직접 입력</option>' +
-                accounts.map((a,i) => `<option value="${i}">${a.bank||'(은행 미입력)'} ${a.account||''}${a.holder?' ('+a.holder+')':''}</option>`).join('');
+                accounts.map((a,i) => `<option value="${i}">${escCc(a.bank)||'(은행 미입력)'} ${escCc(a.account)}${a.holder?' ('+escCc(a.holder)+')':''}</option>`).join('');
             sel.dataset.accounts = JSON.stringify(accounts);
 
             // 현재 입력된 계좌와 일치하는 항목이 있으면 자동 선택
@@ -21479,7 +21769,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     <td style="text-align:center;">${v.count}건</td>
                     <td style="text-align:right;color:#059669;">${v.settled.toLocaleString('ko-KR')}원</td>
                     <td style="text-align:right;color:#e11d48;">${v.pending.toLocaleString('ko-KR')}원</td>
-                    <td style="text-align:center;font-size:10px;color:#64748b;">${escCc(v.bank)} ${escCc(v.account)}${v.holder?' ('+v.holder+')':''}</td>
+                    <td style="text-align:center;font-size:10px;color:#64748b;">${escCc(v.bank)} ${escCc(v.account)}${v.holder?' ('+escCc(v.holder)+')':''}</td>
                 </tr>`).join('');
 
             const detailRowsHtml = [...list].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map((r,i) => `
