@@ -2999,6 +2999,13 @@
                 <select id="ti-filter-company" onchange="renderTotalInvestTab(); renderLaborStatementList();" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
                     <option value="">전체 회사</option>
                 </select>
+                <div class="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                    <input type="month" id="ti-filter-from" onchange="renderTotalInvestTab()" title="시작월" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-100 outline-none">
+                    <span>~</span>
+                    <input type="month" id="ti-filter-to" onchange="renderTotalInvestTab()" title="종료월" class="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-100 outline-none">
+                    <button onclick="clearTiPeriod()" class="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] font-bold hover:bg-slate-50 dark:hover:bg-slate-800" title="기간 필터 해제">기간 해제</button>
+                </div>
                 <select id="ti-filter-site" onchange="renderTotalInvestTab(); renderLaborStatementList();" class="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500">
                     <option value="">전체 현장</option>
                 </select>
@@ -3013,7 +3020,10 @@
                         <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-emerald-600"></i> 월별 투입비 집계표
                         <span class="text-[10px] font-semibold text-slate-400">— 위 회사·현장 필터 기준, 월 단위 합계와 누계</span>
                     </h3>
-                    <div class="flex gap-1.5">
+                    <div class="flex gap-1.5 items-center">
+                        <label class="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 cursor-pointer select-none mr-1" title="각 공종이 그 달 합계에서 차지하는 비율을 같이 표시">
+                            <input type="checkbox" id="ti-month-share" onchange="renderTotalInvestTab()" class="w-3 h-3 rounded"> 공종 비중(%)
+                        </label>
                         <button onclick="exportMonthlyInvestToXLSX()" class="ctrl-btn" style="background:#15803d;" title="월별 집계표를 엑셀로 저장">
                             <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> 엑셀
                         </button>
@@ -5052,9 +5062,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '9.5';
+        const APP_VERSION = '9.7';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '"월별 투입비 집계표" 추가 — 총 투입비 화면에서 회사·현장 필터 기준으로 월 단위 합계(외주비·노무비·장비대·자재비·관리비·법인카드·개인경비), 전월 대비 증감, 누계를 한 표로 확인하고 엑셀·인쇄로 내보낼 수 있음.';
+        const APP_VERSION_NOTE = '대시보드 총 투입비 카드를 전체 기간으로 고정 — 총 투입비 화면에서 회사·현장·기간 필터를 걸면 대시보드 카드 숫자까지 필터 기준으로 바뀌던 문제 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -13591,6 +13601,38 @@ function changePrintScale(value) {
             return Object.values(groups);
         }
 
+        /* ── 총 투입비 기간(시작월~종료월) 필터 ── */
+        function getTiPeriod() {
+            const k = v => { const m = /^(\d{4})-(\d{2})$/.exec(v || ''); return m ? parseInt(m[1], 10) * 100 + parseInt(m[2], 10) : 0; };
+            let from = k(document.getElementById('ti-filter-from')?.value);
+            let to = k(document.getElementById('ti-filter-to')?.value);
+            if (from && to && from > to) [from, to] = [to, from];   // 거꾸로 입력해도 자동으로 바로잡음
+            return { from, to };
+        }
+        function clearTiPeriod() {
+            const f = document.getElementById('ti-filter-from'), t = document.getElementById('ti-filter-to');
+            if (f) f.value = ''; if (t) t.value = '';
+            renderTotalInvestTab();
+        }
+        // 회사·현장·기간 조건을 한 번에 적용 (월이 지정되지 않은 그룹은 기간을 걸면 제외)
+        function tiApplyFilters(data, company, site) {
+            const { from, to } = getTiPeriod();
+            return data.filter(g =>
+                (!company || g.company === company) &&
+                (!site || g.site === site) &&
+                (!from || (g.monthKey && g.monthKey >= from)) &&
+                (!to || (g.monthKey && g.monthKey <= to))
+            );
+        }
+        function tiPeriodLabel() {
+            const { from, to } = getTiPeriod();
+            const f = k => `${Math.floor(k / 100)}년 ${String(k % 100).padStart(2, '0')}월`;
+            if (from && to) return `${f(from)} ~ ${f(to)}`;
+            if (from) return `${f(from)} 이후`;
+            if (to) return `${f(to)} 이전`;
+            return '';
+        }
+
         function renderTotalInvestTab() {
             const data = buildTotalInvestData();
 
@@ -13605,10 +13647,7 @@ function changePrintScale(value) {
             companySel.value = companies.includes(curCompany) ? curCompany : '';
             siteSel.value = sites.includes(curSite) ? curSite : '';
 
-            let filtered = data.filter(g =>
-                (!companySel.value || g.company === companySel.value) &&
-                (!siteSel.value || g.site === siteSel.value)
-            );
+            let filtered = tiApplyFilters(data, companySel.value, siteSel.value);
             filtered.sort((a,b) => a.company.localeCompare(b.company,'ko-KR') || a.site.localeCompare(b.site,'ko-KR') || a.monthKey - b.monthKey);
 
             renderMonthlyInvestTable(filtered);
@@ -13616,13 +13655,13 @@ function changePrintScale(value) {
             const tbody = document.getElementById('ti-tbody');
             const tfoot = document.getElementById('ti-tfoot');
             const summaryBox = document.getElementById('ti-summary-cards');
-            const dashCnt = document.getElementById('dash-cnt-totalinvest');
+            // ※ 대시보드의 "총 투입비" 카드는 renderDashboard()가 전체 기간 기준으로만 갱신한다.
+            //   (이 화면의 회사·현장·기간 필터 값으로 덮어쓰지 않는다)
 
             if (!filtered.length) {
                 tbody.innerHTML = '<tr><td colspan="11" class="py-6 text-center text-slate-400 text-[11px]">등록된 데이터가 없습니다.</td></tr>';
                 tfoot.innerHTML = '';
                 summaryBox.innerHTML = '';
-                if (dashCnt) dashCnt.innerHTML = '&nbsp;';
                 return;
             }
 
@@ -13662,7 +13701,6 @@ function changePrintScale(value) {
                     <div class="text-sm font-extrabold" style="color:${TI_CAT_COLOR[c]}">${gTotal[c].toLocaleString('ko-KR')}원</div>
                 </div>`).join('');
 
-            if (dashCnt) dashCnt.innerHTML = `${grandTotal.toLocaleString('ko-KR')}원`;
         }
 
         /* ── 월별 투입비 집계표 ──
@@ -13671,19 +13709,29 @@ function changePrintScale(value) {
         const MONTHLY_INVEST_COLS = ['외주비', '노무비', '장비비', '자재비', '관리비', '법인카드', '개인경비'];
         const MONTHLY_INVEST_LABEL = { '외주비':'외주비', '노무비':'노무비', '장비비':'장비대', '자재비':'자재비', '관리비':'관리비', '법인카드':'법인카드', '개인경비':'개인경비' };
 
-        function buildMonthlyInvestRows(groups) {
+        function buildMonthlyInvestRows(groups, period) {
+            const zero = () => { const o = {}; MONTHLY_INVEST_COLS.forEach(c => o[c] = 0); return o; };
             const map = new Map();
             groups.forEach(g => {
                 const key = g.monthKey || 0;
-                if (!map.has(key)) {
-                    const amounts = {};
-                    MONTHLY_INVEST_COLS.forEach(c => amounts[c] = 0);
-                    map.set(key, { key, amounts, groupCount: 0 });
-                }
+                if (!map.has(key)) map.set(key, { key, amounts: zero(), groupCount: 0, missing: false });
                 const r = map.get(key);
                 MONTHLY_INVEST_COLS.forEach(c => { r.amounts[c] += (g.amounts[c] || 0); });
                 r.groupCount++;
             });
+            // ★ 빠진 달 채우기 — 첫 달~마지막 달(기간을 지정했으면 그 구간) 사이에 청구 데이터가 없는 달도
+            //   "데이터 없음" 줄로 보여줘서 청구서 누락을 바로 알아볼 수 있게 한다
+            const keys = [...map.keys()].filter(k => k > 0);
+            const lo = (period && period.from) || (keys.length ? Math.min(...keys) : 0);
+            const hi = (period && period.to) || (keys.length ? Math.max(...keys) : 0);
+            if (lo && hi && lo <= hi) {
+                let y = Math.floor(lo / 100), m = lo % 100, guard = 0;
+                while (y * 100 + m <= hi && guard++ < 240) {
+                    const k = y * 100 + m;
+                    if (!map.has(k)) map.set(k, { key: k, amounts: zero(), groupCount: 0, missing: true });
+                    m++; if (m > 12) { m = 1; y++; }
+                }
+            }
             const rows = [...map.values()].sort((a, b) => {
                 if (a.key === 0) return 1;          // 월 미지정은 맨 아래
                 if (b.key === 0) return -1;
@@ -13695,37 +13743,56 @@ function changePrintScale(value) {
                 r.total = MONTHLY_INVEST_COLS.reduce((sum, c) => sum + r.amounts[c], 0);
                 cum += r.total;
                 r.cumulative = cum;
-                r.diff = (prev !== null && r.key !== 0) ? r.total - prev : null;
-                r.diffPct = (prev !== null && prev > 0 && r.key !== 0) ? Math.round((r.total - prev) / prev * 100) : null;
-                if (r.key !== 0) prev = r.total;
+                // 전월 대비는 "직전에 데이터가 있던 달"과 비교 (빠진 달은 비교 대상에서 제외)
+                r.diff = (!r.missing && prev !== null && r.key !== 0) ? r.total - prev : null;
+                r.diffPct = (!r.missing && prev !== null && prev > 0 && r.key !== 0) ? Math.round((r.total - prev) / prev * 100) : null;
+                if (r.key !== 0 && !r.missing) prev = r.total;
             });
             return rows;
         }
 
+        // 공종 비중(%) 텍스트 — 0 초과 0.5% 미만은 "<1"로 표시
+        function miSharePct(amount, total) {
+            if (!total || amount <= 0) return '';
+            const p = amount / total * 100;
+            return p < 0.5 ? '<1' : String(Math.round(p));
+        }
+        function isMonthlyShareOn() { return !!document.getElementById('ti-month-share')?.checked; }
+
         function getMonthlyInvestFiltered() {
             const company = document.getElementById('ti-filter-company')?.value || '';
             const site = document.getElementById('ti-filter-site')?.value || '';
-            return {
-                company, site,
-                groups: buildTotalInvestData().filter(g => (!company || g.company === company) && (!site || g.site === site))
-            };
+            return { company, site, period: getTiPeriod(), periodLabel: tiPeriodLabel(), groups: tiApplyFilters(buildTotalInvestData(), company, site) };
         }
 
         function renderMonthlyInvestTable(filteredGroups) {
             const tbody = document.getElementById('ti-month-tbody');
             const tfoot = document.getElementById('ti-month-tfoot');
             if (!tbody || !tfoot) return;
-            const rows = buildMonthlyInvestRows(filteredGroups || []);
+            const rows = buildMonthlyInvestRows(filteredGroups || [], getTiPeriod());
             if (!rows.length) {
                 tbody.innerHTML = '<tr><td colspan="11" class="py-5 text-center text-slate-400 text-[11px]">집계할 데이터가 없습니다.</td></tr>';
                 tfoot.innerHTML = '';
                 return;
             }
-            const fmt = v => v > 0 ? v.toLocaleString('ko-KR') : '<span class="text-slate-300 dark:text-slate-700">-</span>';
-            const sum = {};
-            MONTHLY_INVEST_COLS.forEach(c => sum[c] = 0);
-            let grand = 0;
+            const showShare = isMonthlyShareOn();
+            const cell = (v, total) => {
+                if (v <= 0) return '<span class="text-slate-300 dark:text-slate-700">-</span>';
+                const base = v.toLocaleString('ko-KR');
+                return showShare ? `${base}<span class="block text-[9px] font-semibold text-slate-400">${miSharePct(v, total)}%</span>` : base;
+            };
+            const sum = {}; MONTHLY_INVEST_COLS.forEach(c => sum[c] = 0);
+            let grand = 0, missingCnt = 0;
             tbody.innerHTML = rows.map(r => {
+                if (r.missing) {
+                    missingCnt++;
+                    return `<tr class="bg-amber-50/60 dark:bg-amber-900/10">
+                        <td class="py-2 px-3 font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap">${escCc(r.label)}</td>
+                        <td colspan="8" class="py-2 px-3 text-center text-[10px] font-bold text-amber-600 dark:text-amber-400">⚠ 이 달 청구 데이터 없음 (청구서 누락 여부 확인)</td>
+                        <td class="py-2 px-2 text-right text-slate-300 dark:text-slate-700">-</td>
+                        <td class="py-2 px-3 text-right text-slate-400 dark:text-slate-500">${r.cumulative.toLocaleString('ko-KR')}</td>
+                    </tr>`;
+                }
                 MONTHLY_INVEST_COLS.forEach(c => sum[c] += r.amounts[c]);
                 grand += r.total;
                 let diffHtml = '<span class="text-slate-300 dark:text-slate-700">-</span>';
@@ -13737,15 +13804,16 @@ function changePrintScale(value) {
                 }
                 return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td class="py-2 px-3 font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">${escCc(r.label)}</td>
-                    ${MONTHLY_INVEST_COLS.map(c => `<td class="py-2 px-2 text-right">${fmt(r.amounts[c])}</td>`).join('')}
+                    ${MONTHLY_INVEST_COLS.map(c => `<td class="py-2 px-2 text-right">${cell(r.amounts[c], r.total)}</td>`).join('')}
                     <td class="py-2 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${r.total.toLocaleString('ko-KR')}</td>
                     <td class="py-2 px-2 text-right whitespace-nowrap">${diffHtml}</td>
                     <td class="py-2 px-3 text-right text-slate-500 dark:text-slate-400">${r.cumulative.toLocaleString('ko-KR')}</td>
                 </tr>`;
             }).join('');
+            const dataMonths = rows.filter(r => !r.missing).length;
             tfoot.innerHTML = `<tr>
-                <td class="py-2.5 px-3">합계 (${rows.length}개월)</td>
-                ${MONTHLY_INVEST_COLS.map(c => `<td class="py-2.5 px-2 text-right" style="color:${TI_CAT_COLOR[c]}">${sum[c].toLocaleString('ko-KR')}</td>`).join('')}
+                <td class="py-2.5 px-3">합계 (${dataMonths}개월${missingCnt ? ` · <span class="text-amber-600 dark:text-amber-400">누락 ${missingCnt}개월</span>` : ''})</td>
+                ${MONTHLY_INVEST_COLS.map(c => `<td class="py-2.5 px-2 text-right" style="color:${TI_CAT_COLOR[c]}">${sum[c].toLocaleString('ko-KR')}${showShare && sum[c] > 0 ? `<span class="block text-[9px] font-semibold opacity-70">${miSharePct(sum[c], grand)}%</span>` : ''}</td>`).join('')}
                 <td class="py-2.5 px-3 text-right bg-emerald-100 dark:bg-emerald-900/40">${grand.toLocaleString('ko-KR')}</td>
                 <td class="py-2.5 px-2"></td>
                 <td class="py-2.5 px-3 text-right text-slate-500 dark:text-slate-400">${grand.toLocaleString('ko-KR')}</td>
@@ -13754,9 +13822,10 @@ function changePrintScale(value) {
 
         function exportMonthlyInvestToXLSX() {
             if (typeof XLSX === 'undefined') { showToast('XLSX 로딩 중…', 'error'); return; }
-            const { company, site, groups } = getMonthlyInvestFiltered();
-            const rows = buildMonthlyInvestRows(groups);
-            if (!rows.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
+            const { company, site, period, periodLabel, groups } = getMonthlyInvestFiltered();
+            const rows = buildMonthlyInvestRows(groups, period);
+            if (!rows.some(r => !r.missing)) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
+            const showShare = isMonthlyShareOn();
             const sheetRows = rows.map(r => {
                 const o = { '월': r.label };
                 MONTHLY_INVEST_COLS.forEach(c => o[MONTHLY_INVEST_LABEL[c]] = r.amounts[c]);
@@ -13764,41 +13833,54 @@ function changePrintScale(value) {
                 o['전월 대비'] = r.diff === null ? '' : r.diff;
                 o['전월 대비(%)'] = r.diffPct === null ? '' : r.diffPct;
                 o['누계'] = r.cumulative;
+                if (showShare) MONTHLY_INVEST_COLS.forEach(c => { o[MONTHLY_INVEST_LABEL[c] + ' 비중(%)'] = (!r.missing && r.total > 0) ? Math.round(r.amounts[c] / r.total * 1000) / 10 : ''; });
+                o['비고'] = r.missing ? '청구 데이터 없음' : '';
                 return o;
             });
-            const tot = { '월': `합계 (${rows.length}개월)` };
-            MONTHLY_INVEST_COLS.forEach(c => tot[MONTHLY_INVEST_LABEL[c]] = rows.reduce((s, r) => s + r.amounts[c], 0));
-            const grand = rows.reduce((s, r) => s + r.total, 0);
+            const dataRows = rows.filter(r => !r.missing);
+            const grand = dataRows.reduce((sum, r) => sum + r.total, 0);
+            const tot = { '월': `합계 (${dataRows.length}개월)` };
+            MONTHLY_INVEST_COLS.forEach(c => tot[MONTHLY_INVEST_LABEL[c]] = dataRows.reduce((sum, r) => sum + r.amounts[c], 0));
             tot['월 합계'] = grand; tot['전월 대비'] = ''; tot['전월 대비(%)'] = ''; tot['누계'] = grand;
+            if (showShare) MONTHLY_INVEST_COLS.forEach(c => { tot[MONTHLY_INVEST_LABEL[c] + ' 비중(%)'] = grand > 0 ? Math.round(tot[MONTHLY_INVEST_LABEL[c]] / grand * 1000) / 10 : ''; });
+            tot['비고'] = rows.length - dataRows.length ? `누락 ${rows.length - dataRows.length}개월` : '';
             sheetRows.push(tot);
 
             const ws = XLSX.utils.json_to_sheet(sheetRows);
-            ws['!cols'] = [{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:15},{wch:13},{wch:12},{wch:15}];
+            ws['!cols'] = [{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13},{wch:15},{wch:13},{wch:12},{wch:15}].concat(showShare ? MONTHLY_INVEST_COLS.map(() => ({wch:12})) : []).concat([{wch:16}]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '월별투입비');
-            const label = [company, site].filter(Boolean).join('_') || '전체';
+            const label = [company, site, periodLabel.replace(/\s/g, '')].filter(Boolean).join('_') || '전체';
             XLSX.writeFile(wb, `월별투입비집계_${label.replace(/[\\/*?:"<>|]/g, '_')}_${localDateStr()}.xlsx`);
             showToast('월별 집계표 엑셀 내보내기 완료', 'success');
         }
 
         function printMonthlyInvest() {
-            const { company, site, groups } = getMonthlyInvestFiltered();
-            const rows = buildMonthlyInvestRows(groups);
-            if (!rows.length) { showToast('인쇄할 데이터가 없습니다.', 'error'); return; }
-            const n = v => v > 0 ? v.toLocaleString('ko-KR') : '-';
-            const sum = {}; MONTHLY_INVEST_COLS.forEach(c => sum[c] = rows.reduce((s, r) => s + r.amounts[c], 0));
-            const grand = rows.reduce((s, r) => s + r.total, 0);
+            const { company, site, period, periodLabel, groups } = getMonthlyInvestFiltered();
+            const rows = buildMonthlyInvestRows(groups, period);
+            if (!rows.some(r => !r.missing)) { showToast('인쇄할 데이터가 없습니다.', 'error'); return; }
+            const showShare = isMonthlyShareOn();
+            const dataRows = rows.filter(r => !r.missing);
+            const missingCnt = rows.length - dataRows.length;
+            const cellTxt = (v, total) => v > 0 ? v.toLocaleString('ko-KR') + (showShare ? ` <span style="color:#64748b;font-size:9px;">(${miSharePct(v, total)}%)</span>` : '') : '-';
+            const sum = {}; MONTHLY_INVEST_COLS.forEach(c => sum[c] = dataRows.reduce((acc, r) => acc + r.amounts[c], 0));
+            const grand = dataRows.reduce((acc, r) => acc + r.total, 0);
             const trs = rows.map(r => {
+                if (r.missing) {
+                    return `<tr style="background:#fffbeb;"><td style="text-align:center;font-weight:700;color:#b45309;">${escCc(r.label)}</td>
+                        <td colspan="8" style="text-align:center;color:#b45309;font-weight:700;">청구 데이터 없음 (누락 확인)</td>
+                        <td style="text-align:right;">-</td><td style="text-align:right;">${r.cumulative.toLocaleString('ko-KR')}</td></tr>`;
+                }
                 const diff = r.diff === null ? '-' : `${r.diff > 0 ? '▲' : r.diff < 0 ? '▼' : ''} ${Math.abs(r.diff).toLocaleString('ko-KR')}`;
                 return `<tr><td style="text-align:center;font-weight:700;">${escCc(r.label)}</td>
-                    ${MONTHLY_INVEST_COLS.map(c => `<td style="text-align:right;">${n(r.amounts[c])}</td>`).join('')}
+                    ${MONTHLY_INVEST_COLS.map(c => `<td style="text-align:right;">${cellTxt(r.amounts[c], r.total)}</td>`).join('')}
                     <td style="text-align:right;font-weight:900;background:#ecfdf5;">${r.total.toLocaleString('ko-KR')}</td>
                     <td style="text-align:right;">${diff}</td>
                     <td style="text-align:right;">${r.cumulative.toLocaleString('ko-KR')}</td></tr>`;
             }).join('');
             const win = window.open('', '_blank', 'width=1100,height=800');
             if (!win) { showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.', 'error'); return; }
-            const filterText = [company, site].filter(Boolean).map(escCc).join(' / ') || '전체 회사·현장';
+            const filterText = [company, site, periodLabel].filter(Boolean).map(escCc).join(' / ') || '전체 회사·현장';
             win.document.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>월별 투입비 집계표</title>
 <style>
  body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;margin:24px;color:#0f172a;}
@@ -13809,11 +13891,11 @@ function changePrintScale(value) {
  @media print{@page{size:A4 landscape;margin:12mm;} body{margin:0;} -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 </style></head><body>
  <h1>월별 투입비 집계표</h1>
- <div class="sub">${filterText} · 출력일 ${localDateStr()}</div>
+ <div class="sub">${filterText} · 출력일 ${localDateStr()}${missingCnt ? ` · 청구 데이터 없는 달 ${missingCnt}개월 포함` : ''}</div>
  <div class="unit">(단위: 원)</div>
  <table><thead><tr><th>월</th>${MONTHLY_INVEST_COLS.map(c => `<th>${MONTHLY_INVEST_LABEL[c]}</th>`).join('')}<th>월 합계</th><th>전월 대비</th><th>누계</th></tr></thead>
  <tbody>${trs}</tbody>
- <tfoot><tr><td style="text-align:center;">합계 (${rows.length}개월)</td>${MONTHLY_INVEST_COLS.map(c => `<td style="text-align:right;">${n(sum[c])}</td>`).join('')}<td style="text-align:right;">${grand.toLocaleString('ko-KR')}</td><td></td><td style="text-align:right;">${grand.toLocaleString('ko-KR')}</td></tr></tfoot></table>
+ <tfoot><tr><td style="text-align:center;">합계 (${dataRows.length}개월)</td>${MONTHLY_INVEST_COLS.map(c => `<td style="text-align:right;">${cellTxt(sum[c], grand)}</td>`).join('')}<td style="text-align:right;">${grand.toLocaleString('ko-KR')}</td><td></td><td style="text-align:right;">${grand.toLocaleString('ko-KR')}</td></tr></tfoot></table>
  <script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});<\/script>
 </body></html>`);
             win.document.close();
@@ -13869,10 +13951,7 @@ function changePrintScale(value) {
             const companyFilter = document.getElementById('ti-filter-company')?.value || '';
             const siteFilter = document.getElementById('ti-filter-site')?.value || '';
 
-            let filtered = data.filter(g =>
-                (!companyFilter || g.company === companyFilter) &&
-                (!siteFilter || g.site === siteFilter)
-            );
+            let filtered = tiApplyFilters(data, companyFilter, siteFilter);
             if (!filtered.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
             filtered.sort((a,b) => a.company.localeCompare(b.company,'ko-KR') || a.site.localeCompare(b.site,'ko-KR') || a.monthKey - b.monthKey);
 
@@ -13908,10 +13987,7 @@ function changePrintScale(value) {
             const companyFilter = document.getElementById('ti-filter-company')?.value || '';
             const siteFilter = document.getElementById('ti-filter-site')?.value || '';
 
-            let filtered = data.filter(g =>
-                (!companyFilter || g.company === companyFilter) &&
-                (!siteFilter || g.site === siteFilter)
-            );
+            let filtered = tiApplyFilters(data, companyFilter, siteFilter);
             if (!filtered.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
 
             const monthKeyOf = (g) => g.monthKey;
