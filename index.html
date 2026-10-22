@@ -2081,10 +2081,12 @@
                                         <span id="lbl-req-prepaid">선지급액 :</span>
                                         <input type="text" id="req-calc-prepaid" value="0" class="font-bold text-rose-600 dark:text-rose-400 text-right bg-transparent border-none max-w-[120px] outline-none" readonly>
                                     </div>
+                                    <div id="req-prepaid-detail" class="hidden pl-2 pb-0.5 text-[10px] text-rose-500 dark:text-rose-400 font-semibold"></div>
                                     <div class="flex justify-between py-0.5 text-indigo-650 dark:text-indigo-400 font-bold">
                                         <span id="lbl-req-total">청구 금액 계 :</span>
                                         <input type="text" id="req-calc-total" value="0 원" class="font-black text-indigo-700 dark:text-indigo-400 text-right bg-transparent border-none max-w-[140px] outline-none" readonly>
                                     </div>
+                                    <div id="req-prepaid-notes" class="no-print hidden mt-1 space-y-0.5 text-[10px] font-semibold"></div>
                                 </div>
                             </div>
 
@@ -4360,6 +4362,40 @@
                 </div>
             </div>
 
+            <!-- 선지급 내역(일자·금액·사유) / 초과 선지급 이월 모달 -->
+            <div id="prepaid-log-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closePrepaidLogModal()">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[88vh] flex flex-col">
+                    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                        <div class="p-2 rounded-xl bg-rose-500"><i data-lucide="wallet" class="w-5 h-5 text-white"></i></div>
+                        <div class="min-w-0">
+                            <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">선지급 내역</p>
+                            <p id="plm-vendor" class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate"></p>
+                        </div>
+                        <button onclick="closePrepaidLogModal()" class="ml-auto shrink-0 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="overflow-y-auto flex-1 px-5 py-4 space-y-3 text-xs">
+                        <div id="plm-carry-box" class="hidden rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/20 p-3 space-y-1.5">
+                            <p class="font-bold text-blue-800 dark:text-blue-300">초과 선지급 이월 잔액</p>
+                            <p id="plm-carry-text" class="text-blue-700 dark:text-blue-400"></p>
+                            <button id="plm-carry-btn" onclick="applyPrepaidCarry()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed">이번 청구에 선지급으로 이월 반영</button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="font-bold text-slate-600 dark:text-slate-300">선지급 지급 내역 <span class="font-normal text-slate-400">(일자 · 금액 · 사유)</span></p>
+                            <button onclick="addPrepaidLogRow()" class="px-2 py-0.5 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-100">+ 추가</button>
+                        </div>
+                        <div id="plm-rows" class="space-y-1.5"></div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <span class="font-bold text-slate-500">선지급 합계 (청구명세서 선지급에 반영)</span>
+                            <span id="plm-total" class="font-extrabold text-rose-600 dark:text-rose-400 text-sm">0원</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 px-5 pb-5 pt-2 shrink-0">
+                        <button onclick="closePrepaidLogModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">닫기</button>
+                        <button onclick="savePrepaidLog(true)" class="flex-1 py-2.5 rounded-lg text-white text-xs font-bold bg-rose-500 hover:bg-rose-600">저장</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 도장(서명) 이미지 등록 모달 — 지불의뢰서 출력 시 확인 문구 옆에 자동으로 찍힌다 -->
             <div id="stamp-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeStampModal()">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm">
@@ -5062,9 +5098,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '9.7';
+        const APP_VERSION = '9.8';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '대시보드 총 투입비 카드를 전체 기간으로 고정 — 총 투입비 화면에서 회사·현장·기간 필터를 걸면 대시보드 카드 숫자까지 필터 기준으로 바뀌던 문제 수정.';
+        const APP_VERSION_NOTE = '지불의뢰서 선지급 개선 — ① 선지급이 청구액보다 클 때 청구금액이 음수로 표시되고 일금 문구가 "사십 원정"처럼 잘못 찍히던 오류 수정(지급요청 0원 + 선지급 초과분 안내), ② 선지급 내역(일자·금액·사유) 기록과 의뢰서·Word 표기, ③ 초과 선지급 잔액을 다음 청구의 공제로 이월 반영.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5240,6 +5276,10 @@
         // ★ 안전한 ID 생성기 — 삭제 후 재추가 시 충돌 방지 (전체 이력 최댓값 + 1)
         let _datasetIdCounter  = 0;
         let _accountDbIdCounter = 0;
+
+        // 선지급 이월 잔액 계산용 캐시 (저장할 때마다 무효화) / 지불의뢰서 선지급 내역 문구
+        var _carryEntriesCache = null;
+        var _reqPrepaidLines = [];
 
         function genDatasetId() {
             const maxExisting = dataset.length > 0 ? Math.max(...dataset.map(r => r.id || 0)) : 0;
@@ -6591,6 +6631,7 @@
         }
 
         function saveToLocalStorage() {
+            _carryEntriesCache = null;
             sortAccountDbByName();
             sortDatasetByPriority();
 
@@ -8327,7 +8368,10 @@
                         </div>
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${Number(row.prepaid || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'prepaid', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                        <div class="flex items-center gap-0.5">
+                        <input type="text" value="${Number(row.prepaid || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'prepaid', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" ${(row.prepaidLog && row.prepaidLog.length) ? 'readonly title="선지급 내역에서 수정할 수 있습니다 (오른쪽 목록+ 버튼)"' : ''} class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                        ${prepaidLogBtnHtml(row)}
+                        </div>
                     </td>
                     <td class="py-2 px-2 text-right font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20">
                         ${formatMoneyByUnit(requestAmt)}
@@ -8804,6 +8848,184 @@
             else { badge.classList.add('hidden'); }
         }
 
+        /* ============================================================
+           선지급 내역(일자·금액·사유) 기록 + 초과 선지급 이월
+           · row.prepaidLog = [{date, amount, note}] — 있으면 row.prepaid 는 항상 내역 합계
+           · 초과분 = 선지급 − (공급가+세액−공제) 가 양수일 때의 차액 (그 행의 청구액으로 다 못 쓴 선지급)
+           · 이월 반영 = 다음 청구 행의 선지급 내역에 "전월 선지급 이월" 한 줄(carry:true)로 더함
+             → 지불의뢰서에 선지급액으로 표시·차감되고, 총 투입비(지급요청+선지급)도 청구액과 일치
+             · row.prepaidCarryIn = 내역 중 carry 줄의 합계 (잔액 계산에서 이미 이월한 금액으로 차감)
+        ============================================================ */
+        function mkMonthKey(m) {
+            const x = /(\d{4})\D+(\d{1,2})/.exec(m || '');
+            return x ? parseInt(x[1], 10) * 100 + parseInt(x[2], 10) : 0;
+        }
+        function fmtPlogDate(d) {
+            const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(d || '');
+            return m ? `${m[1]}/${m[2]}` : '';
+        }
+        function prepaidLogLine(e) {
+            const d = fmtPlogDate(e.date);
+            return `${d ? d + ' ' : ''}${(e.note || '').trim() || '선지급'}`;
+        }
+        function prepaidExcessOfRow(r) {
+            const payable = Math.max(0, (Number(r.supply) || 0) + (Number(r.tax) || 0) - (Number(r.deduction) || 0));
+            return Math.max(0, (Number(r.prepaid) || 0) - payable);
+        }
+        function carryKeyOf(doc, r) {
+            return [(doc.site || '').trim(), (doc.company || '').trim(), (r.vendor || '').trim(), (r.ceo || '').trim()].join('|');
+        }
+        function buildCarryEntries() {
+            const list = [];
+            savedDocuments.forEach(d => {
+                const mk = mkMonthKey(d.month);
+                (d.dataset || []).forEach(r => {
+                    if (!(r.vendor || '').trim()) return;
+                    list.push({ docId: d.id, rowId: r.id, mk, key: carryKeyOf(d, r), excess: prepaidExcessOfRow(r), carryIn: Number(r.prepaidCarryIn) || 0 });
+                });
+            });
+            return list;
+        }
+        // 이 행에 이월해 쓸 수 있는 선지급 잔액 — 같은 현장·회사·거래처·대표자의 "이번 달 이전" 초과분 합계에서 이미 이월한 금액을 뺀 값
+        function getPrepaidCarryBalance(row) {
+            const doc = savedDocuments.find(d => d.id === currentDocId);
+            if (!doc || !row || !(row.vendor || '').trim()) return 0;
+            if (!_carryEntriesCache) _carryEntriesCache = buildCarryEntries();
+            const key = carryKeyOf(doc, row);
+            const curMk = mkMonthKey(doc.month);
+            let bal = 0;
+            _carryEntriesCache.forEach(e => {
+                if (e.key !== key || e.mk > curMk) return;
+                const own = e.docId === doc.id && e.rowId === row.id;
+                bal += (own ? 0 : e.excess) - e.carryIn;   // 자기 행의 초과분은 자기에게 이월할 수 없음
+            });
+            return Math.max(0, bal);
+        }
+        function prepaidLogBtnHtml(row) {
+            const bal = getPrepaidCarryBalance(row);
+            const has = !!(row.prepaidLog && row.prepaidLog.length);
+            const color = bal > 0 ? 'text-amber-500' : (has ? 'text-rose-500' : 'text-slate-300 dark:text-slate-600');
+            const tip = bal > 0 ? `선지급 내역 · 이월 가능한 잔액 ${Number(bal).toLocaleString('ko-KR')}원` : (has ? '선지급 내역 보기·수정' : '선지급 내역(일자·사유) 기록');
+            return `<button onclick="openPrepaidLogModal(${row.id})" class="no-print shrink-0 p-0.5 rounded ${color} hover:text-blue-600" title="${tip}"><i data-lucide="list-plus" class="w-3.5 h-3.5"></i></button>`;
+        }
+
+        let _plmRowId = null;
+        function openPrepaidLogModal(rowId) {
+            const row = dataset.find(r => r.id === rowId);
+            if (!row) return;
+            _plmRowId = rowId;
+            document.getElementById('plm-vendor').textContent = (row.vendor || '(거래처 미입력)') + (row.ceo ? ` (${row.ceo})` : '');
+            let entries = (row.prepaidLog || []).map(e => ({ ...e }));
+            if (!entries.length && (Number(row.prepaid) || 0) > 0) entries = [{ date: '', amount: Number(row.prepaid), note: '기존 입력 금액' }];
+            if (!entries.length) entries = [{ date: '', amount: 0, note: '' }];
+            renderPrepaidLogRows(entries);
+            updatePrepaidLogCarryBox();
+            document.getElementById('prepaid-log-modal').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function closePrepaidLogModal() {
+            document.getElementById('prepaid-log-modal').classList.add('hidden');
+            _plmRowId = null;
+        }
+        function renderPrepaidLogRows(entries) {
+            const box = document.getElementById('plm-rows');
+            box.innerHTML = '';
+            const base = 'px-2 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-rose-400';
+            entries.forEach(e => {
+                const row = document.createElement('div');
+                row.className = 'plm-row flex items-center gap-1.5';
+                row.dataset.carry = e.carry ? '1' : '';
+                const d = document.createElement('input'); d.type = 'date'; d.value = e.date || ''; d.className = base + ' plm-date w-32 shrink-0';
+                const a = document.createElement('input'); a.type = 'text'; a.inputMode = 'numeric'; a.placeholder = '금액';
+                a.value = (Number(e.amount) || 0) > 0 ? Number(e.amount).toLocaleString('ko-KR') : '';
+                a.className = base + ' plm-amount w-28 shrink-0 text-right';
+                a.oninput = () => { formatMoneyInputLive(a); updatePrepaidLogTotal(); };
+                const n = document.createElement('input'); n.type = 'text'; n.placeholder = '사유 (예: 계약금)'; n.value = e.note || ''; n.maxLength = 40;
+                n.className = base + ' plm-note flex-1 min-w-0';
+                const x = document.createElement('button'); x.type = 'button'; x.textContent = '삭제';
+                x.className = 'shrink-0 text-rose-500 hover:text-rose-700 font-bold px-1';
+                x.onclick = () => { row.remove(); updatePrepaidLogTotal(); };
+                row.append(d, a, n, x);
+                box.appendChild(row);
+            });
+            updatePrepaidLogTotal();
+        }
+        function readPrepaidLogRows(keepEmpty) {
+            const list = [...document.querySelectorAll('#plm-rows .plm-row')].map(r => ({
+                date: r.querySelector('.plm-date').value || '',
+                amount: Number((r.querySelector('.plm-amount').value || '').replace(/[^0-9]/g, '')) || 0,
+                note: (r.querySelector('.plm-note').value || '').trim(),
+                ...(r.dataset.carry === '1' ? { carry: true } : {})
+            }));
+            return keepEmpty ? list : list.filter(e => e.amount > 0);
+        }
+        function updatePrepaidLogTotal() {
+            const sum = readPrepaidLogRows().reduce((t, e) => t + e.amount, 0);
+            document.getElementById('plm-total').textContent = sum.toLocaleString('ko-KR') + '원';
+        }
+        function addPrepaidLogRow() {
+            const cur = readPrepaidLogRows(true);
+            cur.push({ date: '', amount: 0, note: '' });
+            renderPrepaidLogRows(cur);
+        }
+        // 모달의 내용을 행에 반영 (내역 합계 = 선지급 금액)
+        function persistPrepaidLogRows() {
+            const row = dataset.find(r => r.id === _plmRowId);
+            if (!row) return null;
+            const entries = readPrepaidLogRows();
+            if (entries.length) { row.prepaidLog = entries; row.prepaid = entries.reduce((t, e) => t + e.amount, 0); }
+            else { delete row.prepaidLog; row.prepaid = 0; }
+            // 이월 줄을 지우거나 고쳤을 때를 위해 이월 반영액은 항상 내역의 carry 줄 합계로 다시 계산
+            const carrySum = entries.filter(e => e.carry).reduce((t, e) => t + e.amount, 0);
+            if (carrySum > 0) row.prepaidCarryIn = carrySum; else delete row.prepaidCarryIn;
+            saveToLocalStorage();
+            return row;
+        }
+        function savePrepaidLog(closeAfter) {
+            const row = persistPrepaidLogRows();
+            if (!row) return;
+            renderStatementTable();
+            if (typeof refreshRequestSelector === 'function') refreshRequestSelector();
+            if (closeAfter) closePrepaidLogModal();
+            showToast(`선지급 ${Number(row.prepaid).toLocaleString('ko-KR')}원이 저장되었습니다.`, 'success');
+        }
+        function updatePrepaidLogCarryBox() {
+            const row = dataset.find(r => r.id === _plmRowId);
+            const box = document.getElementById('plm-carry-box');
+            if (!row || !box) return;
+            const bal = getPrepaidCarryBalance(row);
+            const done = Number(row.prepaidCarryIn) || 0;
+            const payable = Math.max(0, (Number(row.supply) || 0) + (Number(row.tax) || 0) - (Number(row.deduction) || 0) - (Number(row.prepaid) || 0));
+            const usable = Math.min(bal, payable);
+            if (bal <= 0 && done <= 0) { box.classList.add('hidden'); return; }
+            const parts = [];
+            if (bal > 0) parts.push(`이전 청구에서 청구액을 넘어 남은 선지급 <b>${bal.toLocaleString('ko-KR')}원</b>이 있습니다. (이번 청구에 반영 가능: ${usable.toLocaleString('ko-KR')}원)`);
+            if (done > 0) parts.push(`이 행에는 이미 <b>${done.toLocaleString('ko-KR')}원</b>이 선지급으로 이월 반영되어 있습니다.`);
+            document.getElementById('plm-carry-text').innerHTML = parts.join('<br>');
+            const btn = document.getElementById('plm-carry-btn');
+            btn.disabled = usable <= 0;
+            btn.classList.toggle('hidden', bal <= 0);
+            box.classList.remove('hidden');
+        }
+        function applyPrepaidCarry() {
+            const row = persistPrepaidLogRows();   // 모달에서 수정 중이던 내역을 먼저 반영
+            if (!row) return;
+            const bal = getPrepaidCarryBalance(row);
+            const payable = Math.max(0, (Number(row.supply) || 0) + (Number(row.tax) || 0) - (Number(row.deduction) || 0) - (Number(row.prepaid) || 0));
+            const x = Math.min(bal, payable);   // 이번 청구액을 넘겨서 이월하지 않음
+            if (x <= 0) { showToast('이번 청구에 반영할 수 있는 금액이 없습니다.', 'error'); return; }
+            row.prepaidLog = (row.prepaidLog || []).concat([{ date: '', amount: x, note: '전월 선지급 이월', carry: true }]);
+            row.prepaid = (Number(row.prepaid) || 0) + x;
+            row.prepaidCarryIn = (Number(row.prepaidCarryIn) || 0) + x;
+            saveToLocalStorage();
+            // 모달 목록도 새 내역으로 다시 그림
+            renderPrepaidLogRows(row.prepaidLog.map(e => ({ ...e })));
+            renderStatementTable();
+            if (typeof refreshRequestSelector === 'function') refreshRequestSelector();
+            updatePrepaidLogCarryBox();
+            showToast(`선지급 잔액 ${x.toLocaleString('ko-KR')}원을 이번 청구의 선지급으로 이월 반영했습니다.`, 'success');
+        }
+
         // 거래처명·대표자·계좌정보·적요는 그대로 두고 금액만 0으로 초기화해 바로 아래에 새 행을 넣는다 —
         // 같은 거래처에 또 다른 건을 등록할 때 매번 처음부터 입력하지 않아도 되게 하기 위함
         function duplicateRow(id) {
@@ -8819,6 +9041,7 @@
             if (newRow.vendorItems && newRow.vendorItems.length > 0) {
                 newRow.vendorItems = newRow.vendorItems.map(it => ({ ...it, supply: 0, tax: 0 }));
             }
+            delete newRow.prepaidLog; delete newRow.prepaidCarryIn;   // 금액을 비웠으니 선지급 내역·이월 반영분도 함께 비움
             dataset.splice(idx + 1, 0, newRow);
             saveToLocalStorage();
             renderStatementTable();
@@ -8985,6 +9208,7 @@
             document.getElementById('modal-tax').value = "";
             document.getElementById('modal-deduction').value = "";
             document.getElementById('modal-prepaid').value = "";
+            document.getElementById('modal-prepaid').readOnly = false; document.getElementById('modal-prepaid').title = '';
             document.getElementById('modal-note').value = "";
             document.getElementById('modal-account-preview').classList.add('hidden');
             document.getElementById('modal-korean-amount-preview').classList.add('hidden');
@@ -9011,6 +9235,9 @@
             document.getElementById('modal-tax').value       = row.tax ? Number(row.tax).toLocaleString('ko-KR') : "";
             document.getElementById('modal-deduction').value = row.deduction ? Number(row.deduction).toLocaleString('ko-KR') : "";
             document.getElementById('modal-prepaid').value   = row.prepaid ? Number(row.prepaid).toLocaleString('ko-KR') : "";
+            const _plmLocked = !!(row.prepaidLog && row.prepaidLog.length);
+            document.getElementById('modal-prepaid').readOnly = _plmLocked;   // 선지급 내역이 있으면 내역 화면에서만 수정
+            document.getElementById('modal-prepaid').title = _plmLocked ? '선지급 내역에서 수정할 수 있습니다' : '';
             document.getElementById('modal-note').value      = row.note || "";
 
             if (row.account) {
@@ -9133,6 +9360,7 @@
                     row.tax = 0;
                     row.deduction = 0;
                     row.prepaid = 0;
+                    delete row.prepaidLog; delete row.prepaidCarryIn;
                     row.status = "대기";
                     // 품목 프리셋 금액도 초기화 (품목명/수량은 유지)
                     if (row.vendorItems && row.vendorItems.length > 0) {
@@ -9455,7 +9683,7 @@
                     }
                 }
 
-                dataset[idx] = { ...existing, type, vendor, ceo, supply, tax, deduction, prepaid, note, bank, account, holder, phone, biznum };
+                dataset[idx] = { ...existing, type, vendor, ceo, supply, tax, deduction, prepaid: (existing.prepaidLog && existing.prepaidLog.length) ? existing.prepaid : prepaid, note, bank, account, holder, phone, biznum };
 
                 closeAddRowModal();
                 saveToLocalStorage();
@@ -10490,6 +10718,7 @@ function changePrintScale(value) {
             const showPrepaidChk = document.getElementById('req-show-prepaid');
             const showPrepaid = !!(showPrepaidChk && showPrepaidChk.checked);
             let prepaidSum = 0;
+            let prepaidRowsSel = [];
             if (showPrepaid) {
                 const vendorName = document.getElementById('req-field-vendor')?.value?.trim() || '';
                 const ceoName    = document.getElementById('req-field-ceo')?.value?.trim() || '';
@@ -10504,18 +10733,51 @@ function changePrintScale(value) {
                     prepaidRows = dataset.filter(r => r.vendor === vendorName && (r.ceo||'') === ceoName);
                 }
                 prepaidSum = prepaidRows.reduce((s, r) => s + (Number(r.prepaid) || 0), 0);
+                prepaidRowsSel = prepaidRows;
             }
             const finalTotal = finalSupplyTax - prepaidSum;
+            // ★ 선지급이 청구액보다 크면 지급요청액은 0원, 넘친 금액은 "선지급 초과분"으로 따로 안내
+            //   (이전엔 -400,000원으로 표시되고 일금 문구가 "사십 원정"처럼 잘못 찍혔음)
+            const payableTotal = Math.max(0, finalTotal);
+            const excessPrepaid = Math.max(0, -finalTotal);
 
             const prepaidRow = document.getElementById('req-calc-prepaid-row');
             if (prepaidRow) prepaidRow.classList.toggle('hidden', !showPrepaid);
             const prepaidInput = document.getElementById('req-calc-prepaid');
             if (prepaidInput) prepaidInput.value = '-' + formatMoneyByUnit(prepaidSum);
 
-            document.getElementById('req-field-contract').value = `일금 ${getKoreanNumber(finalTotal)} 원정 (￦${formatNumber(finalTotal)})`;
+            document.getElementById('req-field-contract').value = `일금 ${getKoreanNumber(payableTotal)} 원정 (￦${formatNumber(payableTotal)})`;
             document.getElementById('req-calc-supply').value = formatMoneyByUnit(totalRequestSupply);
             document.getElementById('req-calc-tax').value = formatMoneyByUnit(totalRequestTax);
-            document.getElementById('req-calc-total').value = formatMoneyByUnit(finalTotal) + " 원";
+            document.getElementById('req-calc-total').value = formatMoneyByUnit(payableTotal) + " 원";
+
+            // ── 선지급 내역(일자·사유·금액) 표시 + 안내 문구 ──
+            _reqPrepaidLines = [];
+            const detailEl = document.getElementById('req-prepaid-detail');
+            if (showPrepaid) {
+                prepaidRowsSel.forEach(r => (r.prepaidLog || []).forEach(e => {
+                    _reqPrepaidLines.push(`${prepaidLogLine(e)} ${formatMoneyByUnit(Number(e.amount) || 0)}`);
+                }));
+            }
+            if (detailEl) {
+                detailEl.classList.toggle('hidden', !_reqPrepaidLines.length);
+                detailEl.innerHTML = _reqPrepaidLines.map(t => `<div>· ${escCc(t)}</div>`).join('');
+            }
+            const notesEl = document.getElementById('req-prepaid-notes');
+            if (notesEl) {
+                const notes = [];
+                if (showPrepaid && excessPrepaid > 0) {
+                    notes.push(`<div class="text-amber-700 dark:text-amber-400">⚠ 선지급 초과분 ${formatNumber(excessPrepaid)}원 — 이번 청구액을 넘는 금액이라 지급요청액은 0원입니다. 다음 청구에 이월하세요.</div>`);
+                }
+                const selKeyNow = document.getElementById('request-selector')?.value || '';
+                if (selKeyNow.startsWith('row-')) {
+                    const rowNow = dataset.find(r => r.id == selKeyNow.replace('row-', ''));
+                    const carry = rowNow ? getPrepaidCarryBalance(rowNow) : 0;
+                    if (carry > 0) notes.push(`<div class="text-blue-700 dark:text-blue-400">ℹ 이월 가능한 선지급 잔액 ${formatNumber(carry)}원 — 청구명세서의 선지급 내역(<b>목록+</b> 버튼)에서 이번 청구에 반영할 수 있습니다.</div>`);
+                }
+                notesEl.classList.toggle('hidden', !notes.length);
+                notesEl.innerHTML = notes.join('');
+            }
 
             // ── 명세서 원본 금액과 비교해 동기화 상태 뱃지 갱신 ──
             updateItemsSyncBadge(totalRequestSupply, totalRequestTax);
@@ -15971,7 +16233,9 @@ function changePrintScale(value) {
             const total     = supplySum+taxSum;
             const dedSum    = row.deduction||0;
             const preSum    = row.prepaid||0;
-            const reqAmt    = total - dedSum - (showPrepaidInDoc ? preSum : 0);
+            const rawReqAmt = total - dedSum - (showPrepaidInDoc ? preSum : 0);
+            const reqAmt    = Math.max(0, rawReqAmt);          // 선지급이 더 크면 지급요청액은 0원
+            const excessPre = Math.max(0, -rawReqAmt);          // 넘친 금액은 선지급 초과분으로 별도 표기
             const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor','ceo','holder']);
             const bank    = accMatch?.bank    || row.bank    || '';
             const account = accMatch?.account || row.account || '';
@@ -16042,6 +16306,8 @@ function changePrintScale(value) {
                             <div class="kv"><span>부가가치세</span><b>${won(taxSum)}</b></div>
                             ${dedSum ? `<div class="kv"><span>공제금액</span><b>${won(dedSum)}</b></div>` : ''}
                             ${showPrepaidInDoc ? `<div class="kv" style="color:#e11d48;"><span>선지급액</span><b>-${won(preSum)}</b></div>` : ''}
+                            ${showPrepaidInDoc ? (row.prepaidLog || []).map(e => `<div class="kv" style="color:#e11d48;font-size:9px;padding-left:10px;"><span>· ${esc(prepaidLogLine(e))}</span><b>${won(Number(e.amount)||0)}</b></div>`).join('') : ''}
+                            ${showPrepaidInDoc && excessPre > 0 ? `<div class="kv" style="color:#92400e;font-size:10px;"><span>선지급 초과분(차기 이월)</span><b>${won(excessPre)}</b></div>` : ''}
                             <div class="kv total"><span>청구 금액 계</span><b>${won(reqAmt)}</b></div>
                         </div>
                         <div class="req-box">
@@ -17304,6 +17570,7 @@ ${row(cell('부가가치세',{bold:true,width:4819,bg:'E8ECEF',align:'left',size
 ${row(cell('청구 금액 계',{bold:true,width:4819,bg:'D1E4F5',align:'left',size:20,color:'1D4ED8'}),cell(d.calcTotal||'0',{width:4819,align:'right',size:20,bold:true,color:'1D4ED8'}))}
 </w:tbl>
 ${para('',{size:6})}
+${(d.prepaidLines && d.prepaidLines.length) ? para('● 선지급 내역',{bold:true,size:18}) + d.prepaidLines.map(t => para('· ' + t,{size:16,color:'BE123C'})).join('') + para('',{size:6}) : ''}
 ${para('● 거래처 및 입금 계좌 정보',{bold:true,size:20})}
 <w:tbl><w:tblPr><w:tblW w:w="${TW}" w:type="dxa"/></w:tblPr>
 <w:tblGrid>${LC.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
@@ -17444,6 +17711,7 @@ ${buildStampDrawingXml(d.stamp)}
                 memo:       (document.getElementById('req-manager-memo')||{}).value||'',
                 checklist:  chkIds.map((id,i) => ({label:chkLabels[i], checked:!!(document.getElementById(id)||{}).checked})),
                 itemRows,
+                prepaidLines: _reqPrepaidLines.slice(),
                 stamp: getStampImg(),
             };
             try {
@@ -17481,7 +17749,7 @@ ${buildStampDrawingXml(d.stamp)}
                 const supplySum  = row.supply||0;
                 const taxSum     = row.tax||0;
                 const totalSum   = supplySum + taxSum;
-                const reqAmt     = totalSum - (row.deduction||0) - (row.prepaid||0);
+                const reqAmt     = Math.max(0, totalSum - (row.deduction||0) - (row.prepaid||0));
 
                 const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                 const bank    = accMatch?.bank    || row.bank    || '';
@@ -18012,7 +18280,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const supplySum  = row.supply||0;
                     const taxSum     = row.tax||0;
                     const totalSum   = supplySum+taxSum;
-                    const reqAmt     = totalSum - (row.deduction||0) - (row.prepaid||0);
+                    const reqAmt     = Math.max(0, totalSum - (row.deduction||0) - (row.prepaid||0));
 
                     const accMatch = findAccountMatch({ vendor: row.vendor, ceo: row.ceo, holder: row.holder }, ['vendor', 'ceo', 'holder']);
                     const bank    = accMatch?.bank    || row.bank    || '';
@@ -18351,6 +18619,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     newRow.tax = 0;
                     newRow.deduction = 0;
                     newRow.prepaid = 0;
+                    delete newRow.prepaidLog; delete newRow.prepaidCarryIn;
                     if (newRow.vendorItems && newRow.vendorItems.length > 0) {
                         newRow.vendorItems = newRow.vendorItems.map(it => ({ ...it, supply: 0, tax: 0 }));
                     }
@@ -18517,6 +18786,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         function getKoreanNumber(num) {
             if (num === 0) return '영';
+            if (num < 0) return '마이너스 ' + getKoreanNumber(-num);   // 음수가 들어와도 엉뚱한 글자("사십")가 나오지 않게 방어
             const hanA = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
             const danA = ["", "십", "백", "천"];
             const tmA  = ["", "만", "억", "조"];
