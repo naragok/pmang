@@ -4242,7 +4242,7 @@
                                     <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">공급가액 합계</th>
                                     <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">지급요청 합계</th>
                                     <th class="py-2.5 px-2 text-amber-700 dark:text-amber-400 sticky top-0 bg-slate-100 dark:bg-slate-800">선지급</th>
-                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800">법인카드</th>
+                                    <th class="py-2.5 px-2 sticky top-0 bg-slate-100 dark:bg-slate-800" title="법인카드 + 개인경비">카드·경비</th>
                                     <th class="py-2.5 px-2 bg-emerald-100 dark:bg-emerald-900/40 sticky top-0">총 투입비</th>
                                     <th class="py-2.5 px-1 sticky top-0 bg-slate-100 dark:bg-slate-800">집행률</th>
                                     <th class="py-2.5 px-2 text-rose-700 dark:text-rose-400 sticky top-0 bg-slate-100 dark:bg-slate-800">미지급</th>
@@ -5098,9 +5098,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '9.8';
+        const APP_VERSION = '10.0';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '지불의뢰서 선지급 개선 — ① 선지급이 청구액보다 클 때 청구금액이 음수로 표시되고 일금 문구가 "사십 원정"처럼 잘못 찍히던 오류 수정(지급요청 0원 + 선지급 초과분 안내), ② 선지급 내역(일자·금액·사유) 기록과 의뢰서·Word 표기, ③ 초과 선지급 잔액을 다음 청구의 공제로 이월 반영.';
+        const APP_VERSION_NOTE = '총 투입비 기준 통일 — ① 현장 관리 비교표·현장 카드·현장 보고서에서 개인경비와 업로드된 노무비명세서가 총 투입비에서 빠져 총 투입비 탭·대시보드와 숫자가 달랐던 문제, ② 대시보드 월별 자금 흐름 차트에서 청구서에 반영된 법인카드가 두 번 더해지던 문제, ③ 대시보드 "선택월 전체 합산"이 반영 여부와 무관하게 법인카드를 통째로 빼던 문제 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -14378,7 +14378,7 @@ function changePrintScale(value) {
             savedDocuments.forEach(doc => {
                 const site = (doc.site || '현장 미지정').trim();
                 if (!stats[site]) {
-                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, peAmt: 0, laborStmtAmt: 0, totalInvest: 0, months: [] };
                 }
                 stats[site].companies.add(doc.company || '');
                 stats[site].docCount++;
@@ -14395,16 +14395,32 @@ function changePrintScale(value) {
             (typeof ccLoad === 'function' ? ccLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
                 const site = (r.site || '현장 미지정').trim();
                 if (!stats[site]) {
-                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, totalInvest: 0, months: [] };
+                    stats[site] = { site, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, peAmt: 0, laborStmtAmt: 0, totalInvest: 0, months: [] };
                 }
                 stats[site].ccAmt += Number(r.amount || 0);
                 if (r.company) stats[site].companies.add(r.company);
+            });
+            // ★ 개인경비와 업로드된 노무비명세서도 총 투입비에 포함 — 총 투입비 탭·대시보드(buildTotalInvestData)와
+            //   같은 기준으로 맞춘다. (이전엔 이 둘이 빠져 현장 비교표·보고서의 총 투입비가 탭 숫자보다 작게 나왔음)
+            const _ensureSite = (name) => {
+                if (!stats[name]) stats[name] = { site: name, companies: new Set(), docCount: 0, rowCount: 0, supply: 0, requestAmt: 0, prepaidAmt: 0, ccAmt: 0, peAmt: 0, laborStmtAmt: 0, totalInvest: 0, months: [] };
+                return stats[name];
+            };
+            (typeof peLoad === 'function' ? peLoad() : []).filter(r => !r.appliedToStatement).forEach(r => {
+                const st = _ensureSite((r.site || '현장 미지정').trim());
+                st.peAmt += Number(r.amount || 0);
+                if (r.company) st.companies.add(r.company);
+            });
+            (typeof loadLaborStatements === 'function' ? loadLaborStatements() : []).forEach(ls => {
+                const st = _ensureSite((ls.site || '현장 미지정').trim());
+                st.laborStmtAmt += Number(ls.totalAmount || 0);
+                if (ls.company) st.companies.add(ls.company);
             });
             // Set → Array, 총 투입비(청구명세서 지급요청액 + 선지급액 + 법인카드) 계산
             // ※ 선지급액은 이미 실제 지급된 금액이므로 총 투입비에는 다시 더해서 포함시킨다
             Object.values(stats).forEach(s => {
                 s.companies = [...s.companies].filter(Boolean);
-                s.totalInvest = s.requestAmt + s.prepaidAmt + s.ccAmt;
+                s.totalInvest = s.requestAmt + s.prepaidAmt + s.ccAmt + s.peAmt + s.laborStmtAmt;
                 s.unpaidCount = 0;
                 s.unpaidAmt = 0;
                 s.nextDueDate = '';   // 미지급 건 중 가장 가까운 지급예정일
@@ -14561,7 +14577,7 @@ function changePrintScale(value) {
                         </div>
                         <div class="text-right shrink-0">
                             <p class="font-extrabold text-emerald-700 dark:text-emerald-400 text-[13px]">${formatNumber(s.totalInvest)}원 <span class="text-[9px] font-semibold text-slate-400">총투입</span></p>
-                            <p class="text-[9px] text-slate-400">지급요청 ${formatNumber(s.requestAmt)}원 + 선지급 ${formatNumber(s.prepaidAmt)}원 + 법인카드 ${formatNumber(s.ccAmt)}원</p>
+                            <p class="text-[9px] text-slate-400">지급요청 ${formatNumber(s.requestAmt)}원 + 선지급 ${formatNumber(s.prepaidAmt)}원 + 법인카드 ${formatNumber(s.ccAmt)}원${s.peAmt ? ` + 개인경비 ${formatNumber(s.peAmt)}원` : ''}${s.laborStmtAmt ? ` + 노무비명세서 ${formatNumber(s.laborStmtAmt)}원` : ''}</p>
                         </div>
                     </div>
                     ${pctBar}
@@ -14700,7 +14716,7 @@ function changePrintScale(value) {
                         <span class="ml-1 text-[9px] text-slate-400">(${sharePct}%)</span>
                     </td>
                     <td class="py-2.5 px-3 text-right font-semibold text-amber-700 dark:text-amber-400">${formatNumber(s.prepaidAmt)}원</td>
-                    <td class="py-2.5 px-3 text-right font-semibold text-amber-600 dark:text-amber-400">${formatNumber(s.ccAmt)}원</td>
+                    <td class="py-2.5 px-3 text-right font-semibold text-amber-600 dark:text-amber-400" title="법인카드 ${formatNumber(s.ccAmt)}원 + 개인경비 ${formatNumber(s.peAmt)}원${s.laborStmtAmt ? ` · 총 투입비에는 업로드된 노무비명세서 ${formatNumber(s.laborStmtAmt)}원도 포함` : ''}">${formatNumber(s.ccAmt + s.peAmt)}원</td>
                     <td class="py-2.5 px-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20">${formatNumber(s.totalInvest)}원</td>
                     <td class="py-2.5 px-3 text-center">${pctBadge}</td>
                     <td class="py-2.5 px-3 text-center text-[10px]">${unpaidCell}</td>
@@ -14927,7 +14943,7 @@ function changePrintScale(value) {
                     status: meta.status || '진행중', dueDate: meta.dueDate || '',
                     manager: meta.manager || '', managerPhone: meta.managerPhone || '', memo: meta.memo || '',
                     docCount: s.docCount, rowCount: s.rowCount,
-                    supply: s.supply, requestAmt: s.requestAmt, prepaidAmt: s.prepaidAmt, ccAmt: s.ccAmt,
+                    supply: s.supply, requestAmt: s.requestAmt, prepaidAmt: s.prepaidAmt, ccAmt: s.ccAmt, peAmt: s.peAmt || 0, laborStmtAmt: s.laborStmtAmt || 0,
                     totalInvest: s.totalInvest, budget, pct,
                     unpaidCount: s.unpaidCount || 0, unpaidAmt: s.unpaidAmt || 0,
                     nextDueDate: s.nextDueDate || '', nextDueOverdue: !!s.nextDueOverdue
@@ -14943,13 +14959,13 @@ function changePrintScale(value) {
                 'No': i + 1, '현장명': r.site, '참여 회사': r.companies, '상태': r.status, '준공예정일': r.dueDate,
                 '담당자': r.manager, '담당자 연락처': r.managerPhone, '메모': r.memo,
                 '대장 수': r.docCount, '총 청구건': r.rowCount,
-                '공급가액 합계': r.supply, '지급요청 합계': r.requestAmt, '선지급': r.prepaidAmt, '법인카드': r.ccAmt,
+                '공급가액 합계': r.supply, '지급요청 합계': r.requestAmt, '선지급': r.prepaidAmt, '법인카드': r.ccAmt, '개인경비': r.peAmt, '노무비명세서(업로드)': r.laborStmtAmt,
                 '총 투입비': r.totalInvest, '예산': r.budget || '', '집행률(%)': r.pct == null ? '' : r.pct,
                 '미지급 건수': r.unpaidCount || '', '미지급 금액': r.unpaidAmt || '',
                 '다음 지급예정일': r.nextDueDate ? (r.nextDueDate + (r.nextDueOverdue ? ' (지연)' : '')) : ''
             }));
             const ws = XLSX.utils.json_to_sheet(sheetRows);
-            ws['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:8},{wch:12},{wch:10},{wch:14},{wch:24},{wch:8},{wch:9},{wch:14},{wch:14},{wch:12},{wch:12},{wch:14},{wch:12},{wch:9},{wch:10},{wch:12},{wch:14}];
+            ws['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:8},{wch:12},{wch:10},{wch:14},{wch:24},{wch:8},{wch:9},{wch:14},{wch:14},{wch:12},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:9},{wch:10},{wch:12},{wch:14}];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '현장별 비교표');
             XLSX.writeFile(wb, `현장별_자금집행_비교표_${localDateStr()}.xlsx`);
@@ -15028,7 +15044,7 @@ function changePrintScale(value) {
             // 공종별 집계 (회사가 지정되면 해당 회사만, 아니면 현장의 모든 회사 합산)
             const tiData = buildTotalInvestData().filter(g => g.site === site && (!company || g.company === company));
             if (!tiData.length) { showToast('해당 조건의 데이터를 찾을 수 없습니다.', 'error'); return; }
-            const catTotal = { '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0 };
+            const catTotal = { '외주비':0,'노무비':0,'장비비':0,'자재비':0,'관리비':0,'법인카드':0,'개인경비':0 };
             tiData.forEach(g => Object.keys(catTotal).forEach(c => catTotal[c] += (g.amounts[c]||0)));
             const totalInvest = Object.values(catTotal).reduce((a,b)=>a+b,0);
 
@@ -15085,7 +15101,7 @@ function changePrintScale(value) {
         <div class="kpi"><div class="label">법인카드</div><div class="value" style="color:#d97706;">${fmt(ccAmt)}</div></div>
     </div>
     <table>
-        <thead><tr><th>외주비</th><th>노무비</th><th>장비대</th><th>자재비</th><th>관리비</th><th>법인카드</th><th>합계</th></tr></thead>
+        <thead><tr><th>외주비</th><th>노무비</th><th>장비대</th><th>자재비</th><th>관리비</th><th>법인카드</th><th>개인경비</th><th>합계</th></tr></thead>
         <tbody><tr>
             <td class="num">${fmt(catTotal['외주비'])}</td>
             <td class="num">${fmt(catTotal['노무비'])}</td>
@@ -15093,6 +15109,7 @@ function changePrintScale(value) {
             <td class="num">${fmt(catTotal['자재비'])}</td>
             <td class="num">${fmt(catTotal['관리비'])}</td>
             <td class="num">${fmt(catTotal['법인카드'])}</td>
+            <td class="num">${fmt(catTotal['개인경비'])}</td>
             <td class="num grand">${fmt(Object.values(catTotal).reduce((a,b)=>a+b,0))}</td>
         </tr></tbody>
     </table>
@@ -19382,8 +19399,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             // 4) 전체 합산 — 자금청구명세서 관리비 항목에 법인카드 사용액이 이미 반영되어 있으면
             //    (ccApplyToStatement 기능 사용 시) 법인카드 합계를 중복으로 더하지 않는다.
-            const claimMgmtHasCardAmt = claimRows.some(r => r.type === '관리비' && r.vendor === '법인카드');
-            const cardAddForAll = claimMgmtHasCardAmt ? 0 : cardTotal;
+            // ★ 이전엔 "관리비/법인카드 행이 하나라도 있으면 이번 달 카드 합계 전체를 뺐기" 때문에 아직 반영하지 않은 카드까지
+            //   사라졌다. 이제는 "현재 청구서에 반영된 카드 건"만 정확히 제외한다.
+            const cardAddForAll = cardThisMonth
+                .filter(r => !(r.appliedToStatement && r.appliedDocId === currentDocId))
+                .reduce((s,r) => s + Number(r.amount||0), 0);
             const allTotal = claimTotal + reqTotal + cardAddForAll;
             const elAll = document.getElementById('dash-total-all');
             if (elAll) elAll.textContent = fmt(allTotal);
@@ -19553,6 +19573,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     if (monthTotals[h.month] !== undefined) monthTotals[h.month] += parseInt((h.total||'0').replace(/[^0-9]/g,''),10)||0;
                 });
                 cardRows.forEach(r => {
+                    if (r.appliedToStatement) return;   // 청구서(관리비)에 이미 반영된 카드 건은 위 청구 합계에 들어 있으므로 중복 제외
                     const m = (r.date||'').slice(0,7);
                     if (monthTotals[m] !== undefined) monthTotals[m] += Number(r.amount||0);
                 });
