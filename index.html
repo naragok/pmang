@@ -1054,6 +1054,10 @@
         
             .tab-btn { padding: 8px 10px; font-size: 10px; }
         }
+        @media print {
+            #statement-master-table { transform: none !important; width: 100% !important; }
+            #tab-statement .table-scroll-container { height: auto !important; max-height: none !important; overflow: visible !important; }
+        }
         .site-mgr-tab-btn { color: #94a3b8; border-color: transparent; }
         .site-mgr-tab-btn.site-mgr-tab-active { color: #2563eb; border-color: #2563eb; }
         .dark .site-mgr-tab-btn.site-mgr-tab-active { color: #60a5fa; border-color: #60a5fa; }
@@ -1932,7 +1936,13 @@
                     </div>
                 </div>
 
-                <div class="table-scroll-container overflow-y-auto max-h-[78vh] border border-slate-200 dark:border-slate-800 rounded-lg relative">
+                <div class="no-print flex items-center justify-end gap-2 mb-1">
+                    <span id="fit-screen-hint" class="text-[10px] text-slate-400"></span>
+                    <button id="fit-screen-btn" onclick="toggleFitScreen()" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1" title="행이 많아도 스크롤 없이 한 화면에 전체가 보이도록 화면 높이에 맞춰 표를 자동 축소합니다">
+                        <i data-lucide="scan" class="w-3.5 h-3.5"></i><span id="fit-screen-label">한 화면 보기</span>
+                    </button>
+                </div>
+                <div class="table-scroll-container overflow-y-auto max-h-[78vh] border border-slate-200 dark:border-slate-700 rounded-lg relative">
                     <table class="w-full border-collapse text-xs text-left text-gray-750 dark:text-slate-300" id="statement-master-table" style="font-size: 12px; table-layout: fixed;">
                         <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm text-slate-850 dark:text-slate-100">
                             <tr class="divide-x divide-slate-200 dark:divide-slate-700 text-center font-bold">
@@ -5098,9 +5108,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '10.0';
+        const APP_VERSION = '10.1';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '총 투입비 기준 통일 — ① 현장 관리 비교표·현장 카드·현장 보고서에서 개인경비와 업로드된 노무비명세서가 총 투입비에서 빠져 총 투입비 탭·대시보드와 숫자가 달랐던 문제, ② 대시보드 월별 자금 흐름 차트에서 청구서에 반영된 법인카드가 두 번 더해지던 문제, ③ 대시보드 "선택월 전체 합산"이 반영 여부와 무관하게 법인카드를 통째로 빼던 문제 수정.';
+        const APP_VERSION_NOTE = '청구명세서 "한 화면 보기" 추가 — 행이 많아도 스크롤 없이 전체가 한 화면에 보이도록 화면 높이에 맞춰 표를 자동 축소(최소 60%). 표 위 버튼으로 켜고 끌 수 있고 인쇄는 원래 크기 유지.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -9025,6 +9035,99 @@
             updatePrepaidLogCarryBox();
             showToast(`선지급 잔액 ${x.toLocaleString('ko-KR')}원을 이번 청구의 선지급으로 이월 반영했습니다.`, 'success');
         }
+
+        /* ============================================================
+           청구명세서 "한 화면 보기" — 행이 많아도 스크롤 없이 전체가 보이도록 화면 높이에 맞춰 표를 자동 축소
+           · CSS transform:scale 사용 (입력·드래그·클릭 좌표는 그대로 정상 동작, 인쇄 시에는 원래 크기)
+           · 최소 배율(60%) 안에서도 다 안 들어가면 축소하지 않고 기존처럼 표 안에서 스크롤
+        ============================================================ */
+        var FIT_SCREEN_KEY = 'cons_fit_screen_v1';
+        var FIT_MIN_SCALE = 0.6;
+        function isFitScreenOn() {
+            try { return localStorage.getItem(FIT_SCREEN_KEY) !== '0'; } catch (e) { return true; }   // 기본값: 켜짐
+        }
+        // measure(z) : 배율 z에서 표가 차지하는 "보이는 높이"를 돌려주는 함수. 목표 높이 avail 안에 들어가는 최대 배율을 찾는다.
+        // 표를 축소하면 가로 폭이 넓어져 줄바꿈이 줄고 높이도 같이 줄기 때문에 몇 번 반복해서 수렴시킨다.
+        function fitScaleSearch(measure, avail, minScale) {
+            if (measure(1) <= avail) return 1;
+            let z = Math.max(minScale, Math.min(1, avail / measure(1)));
+            for (let i = 0; i < 8; i++) {
+                const h = measure(z);
+                if (h <= avail) {
+                    // 더 키워도 되는지(여유가 큰지) 한 번 더 시도해서 지나치게 작아지지 않게 함
+                    const up = Math.min(1, z * (avail / h));
+                    if (up - z > 0.01 && measure(up) <= avail) { z = up; continue; }
+                    return z;
+                }
+                const next = Math.max(minScale, z * (avail / h) * 0.995);
+                if (Math.abs(next - z) < 0.002) break;
+                z = next;
+            }
+            return measure(z) <= avail ? z : null;   // null = 최소 배율로도 안 들어감
+        }
+        function applyFitScreen() {
+            const btn = document.getElementById('fit-screen-btn');
+            const label = document.getElementById('fit-screen-label');
+            const hint = document.getElementById('fit-screen-hint');
+            const table = document.getElementById('statement-master-table');
+            const wrap = table ? table.closest('.table-scroll-container') : null;
+            if (!table || !wrap) return;
+            const on = isFitScreenOn();
+            if (btn) { btn.classList.toggle('bg-blue-50', on); btn.classList.toggle('dark:bg-blue-950/30', on); btn.classList.toggle('text-blue-700', on); }
+            if (label) label.textContent = on ? '한 화면 보기 ON' : '한 화면 보기';
+            // 초기화
+            table.style.transform = ''; table.style.transformOrigin = ''; table.style.width = '';
+            wrap.style.height = ''; wrap.style.maxHeight = ''; wrap.style.overflowY = '';
+            wrap.classList.add('overflow-y-auto', 'max-h-[78vh]');
+            if (hint) hint.textContent = '';
+            const tab = document.getElementById('tab-statement');
+            if (!on || !tab || tab.classList.contains('hidden') || !table.offsetParent) return;
+
+            const rectTop = wrap.getBoundingClientRect().top + window.scrollY;
+            const avail = Math.max(window.innerHeight * 0.5, window.innerHeight - rectTop - 16);
+            wrap.classList.remove('overflow-y-auto', 'max-h-[78vh]');
+            const measure = (z) => {
+                table.style.transformOrigin = 'top left';
+                table.style.transform = z < 1 ? `scale(${z})` : '';
+                table.style.width = z < 1 ? `${100 / z}%` : '';
+                return table.offsetHeight * z;
+            };
+            const z = fitScaleSearch(measure, avail, FIT_MIN_SCALE);
+            if (z === null) {
+                // 행이 너무 많아 최소 배율로도 한 화면에 안 들어감 → 원래대로 표 안 스크롤
+                table.style.transform = ''; table.style.transformOrigin = ''; table.style.width = '';
+                wrap.classList.add('overflow-y-auto', 'max-h-[78vh]');
+                if (hint) hint.textContent = '행이 많아 한 화면에 다 들어가지 않아 스크롤로 표시합니다';
+                return;
+            }
+            measure(z);
+            wrap.style.height = `${Math.ceil(table.offsetHeight * z) + 2}px`;
+            wrap.style.overflowY = 'hidden';
+            if (hint) hint.textContent = z < 1 ? `화면에 맞춰 ${Math.round(z * 100)}%로 표시 중` : '';
+            // 표의 아래쪽이 화면 밖이면 페이지를 살짝 내려서 전체가 보이게 함
+            const bottom = wrap.getBoundingClientRect().bottom;
+            if (bottom > window.innerHeight) window.scrollBy({ top: bottom - window.innerHeight + 8, behavior: 'auto' });
+        }
+        function toggleFitScreen() {
+            try { localStorage.setItem(FIT_SCREEN_KEY, isFitScreenOn() ? '0' : '1'); } catch (e) {}
+            applyFitScreen();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        var _fitTimer = null;
+        function scheduleFitScreen() {
+            clearTimeout(_fitTimer);
+            _fitTimer = setTimeout(() => { try { applyFitScreen(); } catch (e) { console.error(e); } }, 60);
+        }
+        // 표를 다시 그리거나 탭을 바꾸거나 창 크기가 바뀌면 자동으로 다시 맞춤
+        (function () {
+            const _render = renderStatementTable;
+            renderStatementTable = function () { const r = _render.apply(this, arguments); scheduleFitScreen(); return r; };
+            const _switch = switchTab;
+            switchTab = function () { const r = _switch.apply(this, arguments); scheduleFitScreen(); return r; };
+            window.addEventListener('resize', scheduleFitScreen);
+            document.addEventListener('DOMContentLoaded', scheduleFitScreen);
+            window.addEventListener('load', scheduleFitScreen);
+        })();
 
         // 거래처명·대표자·계좌정보·적요는 그대로 두고 금액만 0으로 초기화해 바로 아래에 새 행을 넣는다 —
         // 같은 거래처에 또 다른 건을 등록할 때 매번 처음부터 입력하지 않아도 되게 하기 위함
@@ -18889,7 +18992,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         REQ_SHOW_PREPAID_KEY, APPROVAL_OWNER_KEY, SNAPSHOT_KEY,
                         BACKUP_LAST_KEY, BACKUP_LAST_ISO_KEY, SITE_BUDGET_KEY,
                         MONTH_CLOSE_KEY, LABOR_STMT_KEY, REPEAT_KEY, COVER_LAYOUT_KEY, SITE_META_KEY,
-                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY, STAMP_KEY,
+                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY, STAMP_KEY, FIT_SCREEN_KEY,
                         GH_SYNC_KEYS.repo, GH_SYNC_KEYS.branch, GH_SYNC_KEYS.path, GH_SYNC_KEYS.token
                     ];
                     // 문서별·건별로 동적으로 만들어지는 키(체크리스트 상태, 지불의뢰서 담당자 메모 등)는
