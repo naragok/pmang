@@ -1058,6 +1058,7 @@
             #statement-master-table { transform: none !important; width: 100% !important; }
             #tab-statement .table-scroll-container { height: auto !important; max-height: none !important; overflow: visible !important; }
         }
+        #site-quick-selector.active-site-on { border-color: #f87171 !important; box-shadow: 0 0 0 2px rgba(248,113,113,.45); font-weight: 800; }
         .site-mgr-tab-btn { color: #94a3b8; border-color: transparent; }
         .site-mgr-tab-btn.site-mgr-tab-active { color: #2563eb; border-color: #2563eb; }
         .dark .site-mgr-tab-btn.site-mgr-tab-active { color: #60a5fa; border-color: #60a5fa; }
@@ -1654,6 +1655,7 @@
         </div>
 
         <div id="tab-statement" class="hidden">
+                <div id="active-site-banner" class="no-print hidden mb-2 flex items-center flex-wrap gap-x-3 gap-y-1 px-3 py-2 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-200 text-xs"></div>
             <div id="bulk-action-bar" class="hidden no-print mb-3 text-white rounded-xl shadow-lg p-3 flex items-center justify-between transition-all duration-300 sticky top-0 z-30" style="background:linear-gradient(135deg,#1e1b4b,#1e3a5f);border:1px solid rgba(99,102,241,0.3);box-shadow:0 4px 20px rgba(99,102,241,0.35);">
                 <div class="flex items-center gap-3 text-xs pl-2">
                     <i data-lucide="check-square" class="w-4 h-4" style="color:#a5b4fc;"></i>
@@ -4194,6 +4196,7 @@
                             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i> 현장별 자금 집행 비교표
                         </h4>
                         <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            <button id="site-active-clear-btn" onclick="clearActiveSite()" class="hidden px-2 py-1 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-300 text-[10px] font-bold hover:bg-rose-50 dark:hover:bg-rose-950/30" title="선택한 현장 필터를 해제하고 전체 현장을 표시">전체 현장 보기</button>
                             <div class="relative">
                                 <i data-lucide="search" class="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                 <input type="text" id="site-search-input" oninput="renderSiteComparisonTable()" placeholder="현장명 검색" class="pl-6 pr-2 py-1 text-[10px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 w-28">
@@ -5108,9 +5111,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '10.1';
+        const APP_VERSION = '10.3';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '청구명세서 "한 화면 보기" 추가 — 행이 많아도 스크롤 없이 전체가 한 화면에 보이도록 화면 높이에 맞춰 표를 자동 축소(최소 60%). 표 위 버튼으로 켜고 끌 수 있고 인쇄는 원래 크기 유지.';
+        const APP_VERSION_NOTE = '지불의뢰서 "전체 인쇄" 오류 수정 — 구비 서류 체크리스트 항목을 바꾸거나 삭제하면 전체 인쇄가 오류로 멈추던 문제, 항목이 기본 6개로 고정 출력되던 문제를 등록된 체크리스트 그대로 출력하도록 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5286,6 +5289,26 @@
         // ★ 안전한 ID 생성기 — 삭제 후 재추가 시 충돌 방지 (전체 이력 최댓값 + 1)
         let _datasetIdCounter  = 0;
         let _accountDbIdCounter = 0;
+
+        /* ============================================================
+           활성 현장(선택 현장) — 상단 "현장" 선택기에서 고른 현장만 모든 화면에 표시
+           집계표·청구명세서·지불의뢰서(이력 포함)·법인카드·개인경비·대금지급현황·노무비명세서·대시보드
+        ============================================================ */
+        var ACTIVE_SITE_KEY = 'cons_active_site_v1';
+        function siteKeyOf(v) {
+            const t = ((v == null ? '' : v) + '').trim();
+            return (!t || t === '(현장 미지정)' || t === '(현장명 없음)') ? '현장 미지정' : t;
+        }
+        function getActiveSite() { try { return localStorage.getItem(ACTIVE_SITE_KEY) || ''; } catch (e) { return ''; } }
+        function setActiveSiteValue(v) { try { if (v) localStorage.setItem(ACTIVE_SITE_KEY, v); else localStorage.removeItem(ACTIVE_SITE_KEY); } catch (e) {} }
+        function matchesActiveSite(site) { const a = getActiveSite(); return !a || siteKeyOf(site) === a; }
+        function siteScoped(arr) { const a = getActiveSite(); return a ? (arr || []).filter(r => siteKeyOf(r && r.site) === a) : (arr || []); }
+        // 대금지급현황 항목은 sourceDocId로 어느 현장 청구서에서 왔는지 찾는다 (출처를 알 수 없는 옛 항목은 현장 선택 중에는 숨김)
+        function pmMatchesActiveSite(p) {
+            const a = getActiveSite(); if (!a) return true;
+            const doc = p && p.sourceDocId ? savedDocuments.find(d => d.id === p.sourceDocId) : null;
+            return !!doc && siteKeyOf(doc.site) === a;
+        }
 
         // 선지급 이월 잔액 계산용 캐시 (저장할 때마다 무효화) / 지불의뢰서 선지급 내역 문구
         var _carryEntriesCache = null;
@@ -5766,6 +5789,7 @@
             });
 
             let filtered = withStatus.filter(p => {
+                if (!pmMatchesActiveSite(p)) return false;
                 if (monthFilter && p.month !== monthFilter) return false;
                 if (statusFilter && p.status !== statusFilter) return false;
                 if (keyword && !((p.vendor||'').toLowerCase().includes(keyword) || (p.ceo||'').toLowerCase().includes(keyword) || (p.note||'').toLowerCase().includes(keyword))) return false;
@@ -9118,6 +9142,37 @@
             clearTimeout(_fitTimer);
             _fitTimer = setTimeout(() => { try { applyFitScreen(); } catch (e) { console.error(e); } }, 60);
         }
+        // 활성 현장: 다른 현장의 청구서를 열면(대시보드·검색 등에서) 선택 현장을 그 현장으로 따라가고, 화면을 다시 그린 뒤 필터칸을 동기화
+        (function () {
+            const _load = loadSavedDocument;
+            loadSavedDocument = function (id) {
+                const doc = savedDocuments.find(d => d.id === id);
+                const a = getActiveSite();
+                let followed = '';
+                if (doc && a && siteKeyOf(doc.site) !== a) { followed = siteKeyOf(doc.site); setActiveSiteValue(followed); }
+                const r = _load.apply(this, arguments);
+                if (followed) { showToast(`선택 현장이 [${followed}](으)로 바뀌었습니다.`); refreshAfterActiveSiteChange(); }
+                return r;
+            };
+            ['ccRender', 'peRender', 'renderTotalInvestTab', 'pmRender'].forEach(name => {
+                const orig = window[name];
+                if (typeof orig !== 'function') return;
+                window[name] = function () {
+                    const r = orig.apply(this, arguments);
+                    try { applyActiveSiteToFilterSelects(); } catch (e) {}
+                    if (name === 'pmRender' && getActiveSite()) {
+                        const hidden = (paymentStatus || []).filter(p => !p.sourceDocId).length;
+                        const lbl = document.getElementById('pm-summary-label');
+                        if (lbl && hidden) lbl.textContent += ` · 출처 현장을 알 수 없는 옛 항목 ${hidden}건 숨김`;
+                    }
+                    return r;
+                };
+            });
+            const _render2 = renderStatementTable;
+            renderStatementTable = function () { const r = _render2.apply(this, arguments); try { updateActiveSiteBanner(); } catch (e) {} return r; };
+            document.addEventListener('DOMContentLoaded', () => { try { refreshAfterActiveSiteChange(); } catch (e) {} });
+        })();
+
         // 표를 다시 그리거나 탭을 바꾸거나 창 크기가 바뀌면 자동으로 다시 맞춤
         (function () {
             const _render = renderStatementTable;
@@ -9904,12 +9959,10 @@ function changePrintScale(value) {
                 return;
             }
 
-            const chkBiz = document.getElementById('chk-biz').checked;
-            const chkBank = document.getElementById('chk-bank').checked;
-            const chkTax = document.getElementById('chk-tax').checked;
-            const chkTrans = document.getElementById('chk-trans').checked;
-            const chkLease = document.getElementById('chk-lease').checked;
-            const chkEquip = document.getElementById('chk-equip').checked;
+            // ★ 체크리스트는 사용자가 항목을 추가·삭제·이름 변경할 수 있으므로, 고정된 6개 id를 직접 읽지 않고
+            //   현재 등록된 항목과 화면의 체크 상태를 그대로 가져온다 (이전엔 항목을 바꾸면 전체 인쇄가 오류로 멈췄음)
+            const checklistForPrint = getChecklistItems().map(it => ({ label: it.label, checked: !!(document.getElementById(it.id) || {}).checked }));
+            const checklistPrintHtml = checklistForPrint.map(c => `<label class="flex items-center gap-1"><input type="checkbox" ${c.checked ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> ${escCc(c.label)}</label>`).join('');
 
             const periodText = document.getElementById('req-meta-period').value;
 
@@ -10054,12 +10107,7 @@ function changePrintScale(value) {
                     <div style="flex:0 0 auto;" class="border border-slate-300 rounded p-2 text-[10px] mb-2">
                         <p class="font-bold text-slate-800 mb-1">● 구비 서류 체크리스트</p>
                         <div class="grid grid-cols-3 gap-1 font-bold text-slate-800">
-                            <label class="flex items-center gap-1"><input type="checkbox" ${chkBiz ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 사업자등록증 사본</label>
-                            <label class="flex items-center gap-1"><input type="checkbox" ${chkBank ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 통장사본</label>
-                            <label class="flex items-center gap-1"><input type="checkbox" ${chkTax ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 세금계산서</label>
-                            <label class="flex items-center gap-1"><input type="checkbox" ${chkTrans ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 거래명세표</label>
-                            <label class="flex items-center gap-1"><input type="checkbox" ${chkLease ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 장비임대차계약서</label>
-                            <label class="flex items-center gap-1"><input type="checkbox" ${chkEquip ? 'checked' : ''} onclick="return false;" class="w-3 h-3"> 건설기계등록증</label>
+                            ${checklistPrintHtml}
                         </div>
                     </div>
 
@@ -11099,8 +11147,8 @@ function changePrintScale(value) {
             const selectedCompanyVal = filterCompany.value || "ALL";
             const selectedMonthVal = filterMonth.value || "ALL";
 
-            const companies = [...new Set(savedDocuments.map(doc => doc.company))].filter(Boolean);
-            const months = [...new Set(savedDocuments.map(doc => doc.month))].filter(Boolean)
+            const companies = [...new Set(siteScoped(savedDocuments).map(doc => doc.company))].filter(Boolean);
+            const months = [...new Set(siteScoped(savedDocuments).map(doc => doc.month))].filter(Boolean)
                 .sort((a, b) => parseMonthToNum(a) - parseMonthToNum(b));
 
             filterCompany.innerHTML = `<option value="ALL">전체 회사</option>`;
@@ -11280,6 +11328,7 @@ function changePrintScale(value) {
             updateCompanyDatalist();
             populateSiteDatalist();       // 현장명 datalist + 칩 갱신
             if (willOpen) setYearMonthSelectToNow('new-doc-year', 'new-doc-month');
+            if (willOpen && getActiveSite()) { const ns = document.getElementById('new-doc-site'); if (ns && !ns.value) ns.value = getActiveSite() === '현장 미지정' ? '' : getActiveSite(); }
             modal.classList.toggle('hidden');
         }
 
@@ -13878,7 +13927,8 @@ function changePrintScale(value) {
             const siteFilter = document.getElementById('ti-filter-site')?.value || '';
             const list = loadLaborStatements().filter(s =>
                 (!companyFilter || s.company === companyFilter) &&
-                (!siteFilter || s.site === siteFilter)
+                (!siteFilter || s.site === siteFilter) &&
+                matchesActiveSite(s.site)
             );
 
             if (!list.length) { wrap.classList.add('hidden'); listEl.innerHTML = ''; return; }
@@ -13983,6 +14033,7 @@ function changePrintScale(value) {
         function tiApplyFilters(data, company, site) {
             const { from, to } = getTiPeriod();
             return data.filter(g =>
+                matchesActiveSite(g.site) &&
                 (!company || g.company === company) &&
                 (!site || g.site === site) &&
                 (!from || (g.monthKey && g.monthKey >= from)) &&
@@ -14804,11 +14855,13 @@ function changePrintScale(value) {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-all';
                 const isPinned = !!(meta && meta.pinned);
+                const isActiveSite = getActiveSite() === siteKeyOf(site);
                 tr.innerHTML = `
                     <td class="py-2.5 px-3 font-extrabold text-slate-800 dark:text-slate-100" style="word-break:keep-all; overflow-wrap:break-word; white-space:normal;">
                         <button onclick="toggleSitePinned('${site.replace(/'/g,"\\'")}')" class="inline-block align-middle mr-1 ${isPinned ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'} hover:text-amber-500" title="${isPinned ? '고정 해제' : '목록 맨 위에 고정'}">
                             <i data-lucide="star" class="w-3 h-3" style="${isPinned ? 'fill:currentColor;' : ''}"></i>
                         </button>${escapeMetaHtml(site)}
+                        <button onclick="selectActiveSiteFromManager('${site.replace(/'/g,"\\'")}')" class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold border ${isActiveSite ? 'bg-rose-500 text-white border-rose-500' : 'text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-900 hover:bg-rose-50 dark:hover:bg-rose-950/30'}" title="${isActiveSite ? '선택 해제 (전체 현장 보기)' : '이 현장만 선택해서 모든 화면에 이 현장 자료만 표시'}">${isActiveSite ? '✓ 선택됨' : '이 현장만'}</button>
                     </td>
                     <td class="py-2.5 px-3 text-center"><div class="flex flex-wrap justify-center gap-1">${coTags || '-'}</div></td>
                     <td class="py-2 px-2 text-center">${statusCell}</td>
@@ -15347,28 +15400,88 @@ function changePrintScale(value) {
             const siteList = companyFilter !== 'ALL'
                 ? [...new Set(savedDocuments.filter(d => (d.company||'') === companyFilter).map(d => (d.site||'현장 미지정').trim()))].sort((a,b)=>a.localeCompare(b,'ko-KR'))
                 : (sites || Object.keys(getSiteStats()));
+            // ★ 선택값은 localStorage의 "활성 현장"이 기준 — 새로고침해도 유지되고, 회사 필터로 목록에서 빠져도 선택은 유지
+            const active = getActiveSite();
+            const list2 = (active && !siteList.includes(active)) ? [...siteList, active] : siteList;
             sel.innerHTML = '<option value="">전체 현장</option>';
-            siteList.forEach(s => {
+            list2.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s; opt.textContent = s;
-                if (s === cur) opt.selected = true;
+                if (s === active) opt.selected = true;
                 sel.appendChild(opt);
             });
-            // 회사 필터 변경으로 현재 선택된 현장이 목록에서 사라졌다면 선택 해제
-            if (cur && !siteList.includes(cur)) sel.value = '';
+            sel.value = active || '';
+            sel.classList.toggle('active-site-on', !!active);
         }
 
         function onSiteQuickSelect(site) {
+            setActiveSiteValue(site || '');
             if (site) {
-                const companyFilter = document.getElementById('filter-company')?.value || 'ALL';
-                const docs = savedDocuments
-                    .filter(d => (d.site || '현장 미지정').trim() === site && (companyFilter === 'ALL' || (d.company||'') === companyFilter))
-                    .sort((a, b) => parseMonthToNum(b.month) - parseMonthToNum(a.month));
-                const doc = docs[0];
-                if (doc) { loadSavedDocument(doc.id); showToast(`[${site}] 현장으로 이동 (${doc.month||''})`); }
+                // 지금 열려 있는 청구서가 다른 현장 것이면 선택한 현장의 가장 최근 청구서로 이동
+                const curDoc = savedDocuments.find(d => d.id === currentDocId);
+                if (!curDoc || siteKeyOf(curDoc.site) !== site) {
+                    const companyFilter = document.getElementById('filter-company')?.value || 'ALL';
+                    const docs = savedDocuments
+                        .filter(d => siteKeyOf(d.site) === site && (companyFilter === 'ALL' || (d.company||'') === companyFilter))
+                        .sort((a, b) => parseMonthToNum(b.month) - parseMonthToNum(a.month));
+                    const doc = docs[0];
+                    if (doc) { loadSavedDocument(doc.id); showToast(`[${site}] 현장으로 이동 (${doc.month||''}) — 이제 이 현장 자료만 표시됩니다.`); }
+                    else showToast(`[${site}] 현장의 청구서가 아직 없습니다. 새 청구서를 만들어 주세요. (법인카드·개인경비 등은 이 현장 기준으로 표시됩니다)`);
+                } else {
+                    showToast(`[${site}] 현장만 표시합니다.`);
+                }
+            } else {
+                showToast('전체 현장을 표시합니다.');
             }
-            // ★ 현장 선택(또는 "전체 현장" 해제) 후 "대장" 선택 목록을 해당 현장 기준으로 다시 필터링
-            if (typeof updateSavedSheetsSelector === 'function') updateSavedSheetsSelector();
+            refreshAfterActiveSiteChange();
+        }
+        function clearActiveSite() { onSiteQuickSelect(''); }
+        // 현장 관리 창의 "선택" 버튼
+        function selectActiveSiteFromManager(site) { onSiteQuickSelect(getActiveSite() === siteKeyOf(site) ? '' : siteKeyOf(site)); }
+
+        // 선택 현장이 바뀌면 화면 전체를 다시 그린다
+        function refreshAfterActiveSiteChange() {
+            applyActiveSiteToFilterSelects();   // 먼저 필터칸을 정리(해제 시 값 비우기)한 뒤 다시 그린다
+            const calls = ['updateSiteQuickSelector', 'buildFilterOptions', 'updateSavedSheetsSelector', 'renderStatementTable', 'refreshRequestSelector',
+                           'renderTotalInvestTab', 'renderLaborStatementList', 'ccRender', 'peRender', 'pmRender', 'rhRender', 'renderDashboard', 'renderSiteComparisonTable'];
+            calls.forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) { console.error('[활성 현장 새로고침]', fn, e); } });
+            updateActiveSiteBanner();
+            applyActiveSiteToFilterSelects();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        function updateActiveSiteBanner() {
+            const a = getActiveSite();
+            const sel = document.getElementById('site-quick-selector');
+            if (sel) sel.classList.toggle('active-site-on', !!a);
+            const clr = document.getElementById('site-active-clear-btn');
+            if (clr) clr.classList.toggle('hidden', !a);
+            const box = document.getElementById('active-site-banner');
+            if (!box) return;
+            if (!a) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+            const docs = savedDocuments.filter(d => siteKeyOf(d.site) === a);
+            const curDoc = savedDocuments.find(d => d.id === currentDocId);
+            const mismatch = !curDoc || siteKeyOf(curDoc.site) !== a;
+            box.classList.remove('hidden');
+            box.innerHTML = `<span class="flex items-center gap-1.5 font-bold"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 선택 현장: ${escCc(a)}</span>
+                <span class="text-[11px] font-semibold opacity-80">청구서 ${docs.length}개${mismatch ? ' · <b class="text-amber-700 dark:text-amber-300">이 현장의 청구서가 없어 다른 현장 문서가 열려 있습니다. 새 청구서를 만드세요</b>' : ''} · 집계표·지불의뢰서·법인카드·개인경비·대금지급현황이 이 현장만 표시됩니다</span>
+                <button onclick="clearActiveSite()" class="ml-auto px-2.5 py-1 rounded-lg bg-white/70 dark:bg-slate-900/50 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-[11px] font-bold hover:bg-white">전체 현장 보기</button>`;
+        }
+        // 법인카드·개인경비·총 투입비의 "현장" 필터칸은 선택 현장으로 고정해서 보여줌
+        function applyActiveSiteToFilterSelects() {
+            const a = getActiveSite();
+            ['cc-filter-site', 'pe-filter-site', 'ti-filter-site'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                if (a) {
+                    if (![...sel.options].some(o => o.value === a)) { const o = document.createElement('option'); o.value = a; o.textContent = a; sel.appendChild(o); }
+                    sel.value = a; sel.disabled = true; sel.dataset.siteLock = '1';
+                    sel.title = '상단에서 선택한 현장으로 고정되어 있습니다 (전체 현장 보기를 누르면 해제)';
+                } else {
+                    // 고정했던 칸은 해제할 때 값도 비워야 이전 현장 필터가 남지 않는다
+                    if (sel.dataset.siteLock === '1') { sel.value = ''; delete sel.dataset.siteLock; }
+                    sel.disabled = false; sel.title = '';
+                }
+            });
         }
 
         /* ============================================================
@@ -18992,7 +19105,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                         REQ_SHOW_PREPAID_KEY, APPROVAL_OWNER_KEY, SNAPSHOT_KEY,
                         BACKUP_LAST_KEY, BACKUP_LAST_ISO_KEY, SITE_BUDGET_KEY,
                         MONTH_CLOSE_KEY, LABOR_STMT_KEY, REPEAT_KEY, COVER_LAYOUT_KEY, SITE_META_KEY,
-                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY, STAMP_KEY, FIT_SCREEN_KEY,
+                        ONBOARDING_DISMISSED_KEY, PINNED_VENDORS_KEY, RH_KEY, CC_KEY, PE_KEY, STAMP_KEY, FIT_SCREEN_KEY, ACTIVE_SITE_KEY,
                         GH_SYNC_KEYS.repo, GH_SYNC_KEYS.branch, GH_SYNC_KEYS.path, GH_SYNC_KEYS.token
                     ];
                     // 문서별·건별로 동적으로 만들어지는 키(체크리스트 상태, 지불의뢰서 담당자 메모 등)는
@@ -19480,10 +19593,10 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             // 자금청구명세서 — 바로가기 카드는 이제 선택월(현재 문서) 기준. allSavedDocs는
             // 아래 월별 차트·현장별 현황(여러 문서를 넘나드는 집계)에 여전히 필요해 유지.
-            const allSavedDocs = (typeof savedDocuments !== 'undefined') ? savedDocuments : [];
+            const allSavedDocs = (typeof savedDocuments !== 'undefined') ? siteScoped(savedDocuments) : [];
 
             // 2) 지불의뢰서 발행 이력 — 이번 달(YYYY-MM) 필터
-            const reqHist = (typeof rhLoad === 'function') ? rhLoad() : [];
+            const reqHist = (typeof rhLoad === 'function') ? rhLoad().filter(h => matchesActiveSite(h.site)) : [];
             const reqThisMonth = reqHist.filter(h => (h.month||'') === thisMonth);
             const reqTotal = reqThisMonth.reduce((s,h) => s + (parseInt((h.total||'0').replace(/[^0-9]/g,''),10)||0), 0);
             const elReq = document.getElementById('dash-total-request');
@@ -19492,7 +19605,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             if (elReqSub) elReqSub.textContent = `${thisMonth} 발행 ${reqThisMonth.length}건 (전체 ${reqHist.length}건)`;
 
             // 3) 법인카드 — 이번 달 필터
-            const cardRows = (typeof ccData !== 'undefined') ? ccData : [];
+            const cardRows = (typeof ccData !== 'undefined') ? siteScoped(ccData) : [];
             const cardThisMonth = cardRows.filter(r => (r.date||'').slice(0,7) === thisMonth);
             const cardTotal = cardThisMonth.reduce((s,r) => s + Number(r.amount||0), 0);
             const elCard = document.getElementById('dash-total-card');
@@ -19520,7 +19633,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             // 총 투입비 카드 — 전체 기간(모든 회사·현장·월) 총 투입비 합계 표시
             const elTi = document.getElementById('dash-cnt-totalinvest');
             if (elTi && typeof buildTotalInvestData === 'function') {
-                const tiData = buildTotalInvestData();
+                const tiData = buildTotalInvestData().filter(g => matchesActiveSite(g.site));
                 const tiGrand = tiData.reduce((s,g) => s + Object.values(g.amounts).reduce((a,b)=>a+b,0), 0);
                 elTi.textContent = fmt(tiGrand);
             }
@@ -19534,7 +19647,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             // 대금지급현황 카드 — 전체 등록 건수 표시
             if (typeof pmLoad === 'function') {
                 pmLoad();
-                setCnt('dash-cnt-payment', paymentStatus.length);
+                setCnt('dash-cnt-payment', paymentStatus.filter(pmMatchesActiveSite).length);
             }
 
             // 6) 현재 현장 정보
@@ -19549,7 +19662,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     `<div class="flex justify-between"><span class="text-slate-400">청구 월</span><b>${month}</b></div>`,
                     `<div class="flex justify-between"><span class="text-slate-400">회사명</span><b>${company}</b></div>`,
                     `<div class="flex justify-between"><span class="text-slate-400">등록 거래처 수</span><b>${vendorCnt}개사</b></div>`,
-                    `<div class="flex justify-between"><span class="text-slate-400">저장된 문서 수</span><b>${(typeof savedDocuments!=='undefined'?savedDocuments.length:0)}건</b></div>`,
+                    `<div class="flex justify-between"><span class="text-slate-400">저장된 문서 수</span><b>${(typeof savedDocuments!=='undefined'?siteScoped(savedDocuments).length:0)}건</b></div>`,
                 ].join('');
             }
 
@@ -19599,7 +19712,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 }
                 // ── 같은 거래처명, 다른 대표자인데 그 대표자 명의 계좌가 DB에 없는 경우 (엉뚱한 계좌로 표시될 위험) ──
                 const vendorCeoUsageDash = {};
-                (savedDocuments||[]).forEach(doc => {
+                siteScoped(savedDocuments||[]).forEach(doc => {
                     (doc.dataset||[]).forEach(row => {
                         const v = (row.vendor||'').trim();
                         const c = (row.ceo||'').trim();
@@ -19619,7 +19732,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     alerts.push(`<button onclick="openAccountModal();setTimeout(()=>checkAccountDbDuplicates(),150);" class="w-full flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 rounded-lg px-3 py-2 text-left hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors font-bold"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i><span>🚨 같은 거래처명, 다른 대표자의 계좌 미등록 <b>${unmatchedCeoCountDash}건</b> — 엉뚱한 계좌로 표시될 위험</span></button>`);
                 }
                 // ── 미정산 개인경비 알림 ──
-                const pePending = (typeof peLoad === 'function' ? peLoad() : []).filter(r => (r.status||'pending') !== 'settled');
+                const pePending = siteScoped(typeof peLoad === 'function' ? peLoad() : []).filter(r => (r.status||'pending') !== 'settled');
                 if (pePending.length > 0) {
                     const pePendingTotal = pePending.reduce((s,r)=>s+Number(r.amount||0),0);
                     alerts.push(`<button onclick="switchTab('personalexp')" class="w-full flex items-center gap-2 bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-300 rounded-lg px-3 py-2 text-left hover:bg-pink-100 dark:hover:bg-pink-950/40 transition-colors"><i data-lucide="user-round" class="w-3.5 h-3.5 shrink-0"></i><span>미정산 개인경비 <b>${pePending.length}건</b> · ${Number(pePendingTotal).toLocaleString('ko-KR')}원</span></button>`);
@@ -19628,7 +19741,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                 if (typeof pmLoad === 'function') {
                     pmLoad();
                     const todayStr2 = localDateStr();
-                    const overdueItems = paymentStatus.filter(p => {
+                    const overdueItems = paymentStatus.filter(pmMatchesActiveSite).filter(p => {
                         const balance = (p.claimAmount||0) - (p.payAmount||0);
                         return balance > 0 && p.payDueDate && p.payDueDate < todayStr2;
                     });
@@ -19886,7 +19999,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const items = [];
 
             // 1) 자금청구명세서 — 저장된 문서 목록
-            (typeof savedDocuments !== 'undefined' ? savedDocuments : []).forEach(doc => {
+            (typeof savedDocuments !== 'undefined' ? siteScoped(savedDocuments) : []).forEach(doc => {
                 const ts = parseInt(String(doc.id||'').replace('doc-',''), 10) || 0;
                 const total = (doc.dataset||[]).reduce((s,r) =>
                     s + (Number(r.supply||0) + Number(r.tax||0) - Number(r.deduction||0) - Number(r.prepaid||0)), 0);
@@ -19898,7 +20011,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             });
 
             // 2) 지불의뢰서 — 발행 이력
-            (typeof rhLoad === 'function' ? rhLoad() : []).forEach(h => {
+            (typeof rhLoad === 'function' ? rhLoad().filter(h => matchesActiveSite(h.site)) : []).forEach(h => {
                 items.push({
                     id: h.id, ts: Number(h.id)||0, type: 'request', color: '#7c3aed', icon: 'file-check',
                     label: `${h.vendor || '거래처 미입력'} · ${h.category||''}`,
@@ -19907,7 +20020,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             });
 
             // 3) 법인카드 경비
-            (typeof ccData !== 'undefined' ? ccData : []).forEach(r => {
+            (typeof ccData !== 'undefined' ? siteScoped(ccData) : []).forEach(r => {
                 const ts = parseInt(String(r.id||'').replace('cc-',''), 10) || 0;
                 items.push({
                     id: r.id, ts, type: 'corpcard', color: '#f59e0b', icon: 'credit-card',
@@ -20047,7 +20160,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             };
 
             // 1) 자금청구명세서 — 저장된 모든 문서를 대상으로 검색
-            (typeof savedDocuments !== 'undefined' ? savedDocuments : []).forEach(doc => {
+            (typeof savedDocuments !== 'undefined' ? siteScoped(savedDocuments) : []).forEach(doc => {
                 (doc.dataset || []).forEach(row => {
                     const amtStr = String((row.supply||0) + (row.tax||0));
                     const hit = (row.vendor||'').toLowerCase().includes(qLower)
@@ -20069,7 +20182,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             });
 
             // 2) 지불의뢰서 발행 이력
-            (typeof rhLoad === 'function' ? rhLoad() : []).forEach(h => {
+            (typeof rhLoad === 'function' ? rhLoad().filter(h => matchesActiveSite(h.site)) : []).forEach(h => {
                 const amtStr = (h.total||'').replace(/[^0-9]/g,'');
                 const hit = (h.vendor||'').toLowerCase().includes(qLower)
                     || (h.ceo||'').toLowerCase().includes(qLower)
@@ -20089,7 +20202,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             });
 
             // 3) 법인카드 경비
-            (typeof ccData !== 'undefined' ? ccData : []).forEach(r => {
+            (typeof ccData !== 'undefined' ? siteScoped(ccData) : []).forEach(r => {
                 const hit = (r.merchant||'').toLowerCase().includes(qLower)
                     || (r.memo||'').toLowerCase().includes(qLower)
                     || (r.site||'').toLowerCase().includes(qLower)
@@ -20232,7 +20345,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             });
 
             // 2) 저장된 자금청구 문서들 (savedDocuments)
-            (typeof savedDocuments !== 'undefined' ? savedDocuments : []).forEach(doc => {
+            (typeof savedDocuments !== 'undefined' ? siteScoped(savedDocuments) : []).forEach(doc => {
                 (doc.dataset||[]).forEach(row => {
                     if ((row.vendor||'').trim() === v) {
                         records.push({
@@ -20450,7 +20563,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         }
 
         function rhRender() {
-            const arr  = rhLoad();
+            const arr  = rhLoad().filter(h => matchesActiveSite(h.site));
             const q    = (document.getElementById('rh-search')?.value||'').toLowerCase();
             const mf   = document.getElementById('rh-filter-month')?.value || '';
 
@@ -20706,6 +20819,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const noReceiptOnly = !!document.getElementById('cc-filter-noreceipt')?.checked;
             const noProofOnly   = !!document.getElementById('cc-filter-noproof')?.checked;
             return ccData.filter(r => {
+                if (!matchesActiveSite(r.site)) return false;
                 if (month  && !(r.date||'').startsWith(month))  return false;
                 if (cat    && r.cat !== cat)                     return false;
                 if (site   && r.site !== site)                   return false;
@@ -20763,12 +20877,12 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* KPI 카드 갱신 */
         function ccUpdateKpi(filtered) {
-            const total = ccData.reduce((s,r)=>s+Number(r.amount||0),0);
+            const total = siteScoped(ccData).reduce((s,r)=>s+Number(r.amount||0),0);
             const thisMonth = localMonthStr();
-            const monthTotal = ccData.filter(r=>(r.date||'').startsWith(thisMonth)).reduce((s,r)=>s+Number(r.amount||0),0);
+            const monthTotal = siteScoped(ccData).filter(r=>(r.date||'').startsWith(thisMonth)).reduce((s,r)=>s+Number(r.amount||0),0);
             const count = filtered.length;
             const catCount = {};
-            ccData.forEach(r=>{ catCount[r.cat||'기타']=(catCount[r.cat||'기타']||0)+1; });
+            siteScoped(ccData).forEach(r=>{ catCount[r.cat||'기타']=(catCount[r.cat||'기타']||0)+1; });
             const topCat = Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
 
             const el = id => document.getElementById(id);
@@ -20840,7 +20954,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     barBtn.className  = 'text-[10px] px-2 py-1 rounded-lg font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300';
                 }
             }
-            ccDrawMonthlyChart(ccData);
+            ccDrawMonthlyChart(siteScoped(ccData));
         }
 
         function ccDrawMonthlyChart(data) {
@@ -21104,7 +21218,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             ccUpdateKpi(filteredSorted);
             ccUpdateCharts(filteredSorted);
-            ccDrawMonthlyChart(ccData);
+            ccDrawMonthlyChart(siteScoped(ccData));
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
@@ -21622,6 +21736,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const status   = document.getElementById('pe-filter-status')?.value || '';
             const search   = (document.getElementById('pe-filter-search')?.value || '').trim().toLowerCase();
             return peData.filter(r => {
+                if (!matchesActiveSite(r.site)) return false;
                 if (month && !(r.date||'').startsWith(month)) return false;
                 if (employee && r.employee !== employee) return false;
                 if (cat && r.cat !== cat) return false;
@@ -21695,11 +21810,11 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         /* KPI 카드 갱신 */
         function peUpdateKpi(filtered) {
-            const pending = peData.filter(r => (r.status||'pending') !== 'settled').reduce((s,r)=>s+Number(r.amount||0),0);
-            const settled = peData.filter(r => r.status === 'settled').reduce((s,r)=>s+Number(r.amount||0),0);
+            const pending = siteScoped(peData).filter(r => (r.status||'pending') !== 'settled').reduce((s,r)=>s+Number(r.amount||0),0);
+            const settled = siteScoped(peData).filter(r => r.status === 'settled').reduce((s,r)=>s+Number(r.amount||0),0);
             const count = filtered.length;
             const empCount = {};
-            peData.forEach(r => { if (r.employee) empCount[r.employee] = (empCount[r.employee]||0)+1; });
+            siteScoped(peData).forEach(r => { if (r.employee) empCount[r.employee] = (empCount[r.employee]||0)+1; });
             const topEmp = Object.entries(empCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
 
             const el = id => document.getElementById(id);
@@ -21841,7 +21956,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
             // 대시보드 바로가기 카드 건수 갱신
             const cntEl = document.getElementById('dash-cnt-personalexp');
-            if (cntEl) cntEl.textContent = peData.filter(r=>(r.status||'pending')!=='settled').length + '건';
+            if (cntEl) cntEl.textContent = siteScoped(peData).filter(r=>(r.status||'pending')!=='settled').length + '건';
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
@@ -22196,7 +22311,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         }
         function peUpdateClosePreview() {
             const month = document.getElementById('pe-close-month')?.value || '';
-            const list = peData.filter(r => !month || (r.date||'').startsWith(month));
+            const list = siteScoped(peData).filter(r => !month || (r.date||'').startsWith(month));
             const pending = list.filter(r => (r.status||'pending') !== 'settled');
             const settled = list.filter(r => r.status === 'settled');
             const pendingTotal = pending.reduce((s,r)=>s+Number(r.amount||0),0);
@@ -22214,7 +22329,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         function peGenerateCloseReport() {
             peData = peLoad();
             const month = document.getElementById('pe-close-month')?.value || '';
-            const list = peData.filter(r => !month || (r.date||'').startsWith(month));
+            const list = siteScoped(peData).filter(r => !month || (r.date||'').startsWith(month));
             if (!list.length) { showToast('해당 기간에 데이터가 없습니다.', 'error'); return; }
 
             const monthLabel = month ? `${month.slice(0,4)}년 ${month.slice(5,7)}월` : '전체 기간';
