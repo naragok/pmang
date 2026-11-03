@@ -2729,7 +2729,7 @@
                         <button onclick="peAddRow()" class="ctrl-btn" style="background:#db2777;">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> 내역 추가
                         </button>
-                        <button onclick="peApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="선택한 정산완료 건 중 현재 열려있는 청구명세서와 같은 월(사용일자 기준)인 건만 직원별로 합산해 관리비 항목으로 추가합니다">
+                        <button onclick="peApplyToStatement()" class="ctrl-btn" style="background:#4338ca;" title="선택한 건(정산·미정산 모두) 중 현재 열려있는 청구명세서와 같은 월(사용일자 기준)인 건만 직원별로 합산해 관리비 항목으로 추가합니다">
                             <i data-lucide="file-plus-2" class="w-3.5 h-3.5"></i> 청구명세서에 반영
                         </button>
                         <button onclick="peExportExcel()" class="ctrl-btn" style="background:#059669;">
@@ -2831,7 +2831,7 @@
                     </table>
                 </div>
                 <div class="px-3 py-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                    💡 체크박스로 <b class="text-indigo-500">정산완료</b> 건을 선택한 뒤 상단 "청구명세서에 반영"을 누르면, 현재 열려있는 청구명세서에 노무비 항목으로 자동 추가됩니다. (이미 반영된 건은 <span class="text-emerald-600 font-bold">반영됨</span>으로 표시되어 중복 반영을 막습니다)
+                    💡 체크박스로 건을 선택한 뒤 상단 "청구명세서에 반영"을 누르면, 현재 열려있는 청구명세서에 관리비 항목으로 자동 추가됩니다. <b class="text-indigo-500">정산 전(미정산) 건도</b> 반영할 수 있고, 반영된 항목의 적요에 "미정산 N건 포함"으로 표시됩니다. (이미 반영된 건은 <span class="text-emerald-600 font-bold">반영됨</span>으로 표시되어 중복 반영을 막습니다)
                 </div>
             </div>
 
@@ -5111,9 +5111,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '10.3';
+        const APP_VERSION = '10.4';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '지불의뢰서 "전체 인쇄" 오류 수정 — 구비 서류 체크리스트 항목을 바꾸거나 삭제하면 전체 인쇄가 오류로 멈추던 문제, 항목이 기본 6개로 고정 출력되던 문제를 등록된 체크리스트 그대로 출력하도록 수정.';
+        const APP_VERSION_NOTE = '개인경비 미정산 건도 청구명세서에 반영 가능 — 정산완료 여부와 관계없이 미반영 건을 선택해 직원별 관리비로 올릴 수 있고, 미정산 건이 포함되면 적요에 "미정산 N건 포함"으로 표시. 반영 안내 문구의 "노무비" 표기도 실제 동작(관리비)에 맞게 수정.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -21905,8 +21905,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     const acctLine = acctText ? escCc(acctText) : '<span class="text-slate-300">미등록</span>';
                     const appliedBadge = r.appliedToStatement
                         ? `<span class="text-emerald-600 font-bold text-[9px]" title="${escCc(r.appliedDocMonth)} 청구서에 반영됨">반영됨</span>`
-                        : (r.status === 'settled' ? `<span class="text-slate-300 text-[9px]">미반영</span>` : `<span class="text-slate-200 text-[9px]">-</span>`);
-                    const canApply = r.status === 'settled' && !r.appliedToStatement;
+                        : `<span class="text-slate-300 text-[9px]">미반영</span>`;
+                    const canApply = !r.appliedToStatement;   // 정산 여부와 무관하게 반영 가능 (미정산 건도 청구명세서에 먼저 올릴 수 있음)
                     const canCheck = !r.appliedToStatement;
                     return `<tr class="${rowBg} hover:bg-pink-50 dark:hover:bg-pink-900/10 transition-colors">
                         <td class="px-1 py-2 text-center no-print">${canCheck ? `<input type="checkbox" class="pe-row-check" value="${r.id}" onchange="peUpdateCheckAllState()">` : ''}</td>
@@ -22200,14 +22200,14 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         }
 
         /* ── 개인경비 → 청구명세서 반영 ──
-              체크된(또는 explicitIds로 지정된) "정산완료 & 미반영" 개인경비 건들을, 직원별로 합산해서
+              체크된(또는 explicitIds로 지정된) "미반영" 개인경비 건들을(정산 여부 무관), 직원별로 합산해서
               청구명세서에 관리비 항목으로 추가한다. vendor=직원명, holder/계좌는 개인경비에 등록된 입금계좌 사용.
               explicitIds가 주어지면 체크박스 선택 없이 해당 건만 바로 반영한다 (행별 원클릭 반영용). */
         function peApplyToStatement(explicitIds) {
             const checked = explicitIds && explicitIds.length
                 ? explicitIds
                 : [...document.querySelectorAll('.pe-row-check:checked')].map(cb => cb.value);
-            if (!checked.length) { showToast('반영할 항목을 체크해 주세요. (정산완료 & 미반영 건만 선택 가능)', 'error'); return; }
+            if (!checked.length) { showToast('반영할 항목을 체크해 주세요. (미반영 건이면 정산 여부와 관계없이 선택 가능)', 'error'); return; }
 
             if (typeof dataset === 'undefined' || !currentDocId) {
                 showToast('먼저 청구명세서 탭에서 반영할 문서를 열어주세요.', 'error');
@@ -22220,17 +22220,16 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const mm = /(\d{4}).*?(\d{1,2})/.exec(curDoc.month || '');
             const docMonthKey = mm ? `${mm[1]}-${String(parseInt(mm[2],10)).padStart(2,'0')}` : '';
             const checkedRows = checked.map(id => peData.find(r => r.id === id)).filter(Boolean);
-            const notSettled = checkedRows.filter(r => r.status !== 'settled' && !r.appliedToStatement);
-            const offMonth = checkedRows.filter(r => r.status === 'settled' && docMonthKey && !(r.date||'').startsWith(docMonthKey));
-            const targets = checkedRows.filter(r => r.status === 'settled' && !r.appliedToStatement && (!docMonthKey || (r.date||'').startsWith(docMonthKey)));
+            // ★ 정산완료 여부와 무관하게 "미반영 & 같은 월" 건이면 반영한다 (미정산 건은 note에 표시해 구분)
+            const offMonth = checkedRows.filter(r => !r.appliedToStatement && docMonthKey && !(r.date||'').startsWith(docMonthKey));
+            const targets = checkedRows.filter(r => !r.appliedToStatement && (!docMonthKey || (r.date||'').startsWith(docMonthKey)));
+            const pendingInTargets = targets.filter(r => (r.status || 'pending') !== 'settled').length;
 
             if (!targets.length) {
-                if (notSettled.length) {
-                    showToast(`체크한 항목 중 정산완료 상태가 아닌 건은 반영할 수 없습니다. (${notSettled.length}건)`, 'error');
-                } else if (offMonth.length) {
+                if (offMonth.length) {
                     showToast(`체크한 항목이 현재 청구명세서 월(${curDoc.month||''})과 달라 반영할 수 없습니다.`, 'error');
                 } else {
-                    showToast('반영 가능한 항목이 없습니다. (정산완료 & 미반영 & 해당 월 건만 반영 가능)', 'error');
+                    showToast('반영 가능한 항목이 없습니다. (이미 반영된 건이거나 현재 청구명세서 월과 다른 건입니다)', 'error');
                 }
                 return;
             }
@@ -22240,9 +22239,10 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             targets.forEach(r => {
                 const key = r.employee || '(이름 미입력)';
                 if (!byEmployee[key]) {
-                    byEmployee[key] = { total: 0, bank: r.bank||'', account: r.account||'', holder: r.holder||r.employee||'', items: [] };
+                    byEmployee[key] = { total: 0, pending: 0, bank: r.bank||'', account: r.account||'', holder: r.holder||r.employee||'', items: [] };
                 }
                 byEmployee[key].total += Number(r.amount||0);
+                if ((r.status || 'pending') !== 'settled') byEmployee[key].pending++;
                 if (!byEmployee[key].bank && r.bank) byEmployee[key].bank = r.bank;
                 if (!byEmployee[key].account && r.account) byEmployee[key].account = r.account;
                 byEmployee[key].items.push(`${r.date||''} ${r.merchant||''}`);
@@ -22272,7 +22272,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
                     phone: '',
                     biznum: '',
                     status: '대기',
-                    note: `개인경비 정산 반영 · ${noteDetail}`.trim()
+                    note: `개인경비 ${g.pending ? `반영(미정산 ${g.pending}건 포함)` : '정산 반영'} · ${noteDetail}`.trim()
                 });
                 addedCount++;
                 addedTotal += g.total;
@@ -22290,7 +22290,7 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             refreshRequestSelector();
             peRender();
             const offNote = offMonth.length ? ` (월 불일치 ${offMonth.length}건 제외)` : '';
-            const notSettledNote = notSettled.length ? ` (미정산 ${notSettled.length}건 제외)` : '';
+            const notSettledNote = pendingInTargets ? ` (미정산 ${pendingInTargets}건 포함)` : '';
             showToast(`[${curDoc.month||''}] 청구명세서에 직원 ${addedCount}명 · ${addedTotal.toLocaleString('ko-KR')}원이 관리비로 반영되었습니다.${offNote}${notSettledNote}`, 'success');
         }
 
