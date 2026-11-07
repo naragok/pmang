@@ -3380,11 +3380,11 @@
                         <div id="cc-amt-vat-wrap" class="hidden grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-[9px] text-slate-400 mb-0.5">공급가액</label>
-                                <input type="number" id="cc-edit-supply" placeholder="0" oninput="ccCalcVatTotal()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                                <input type="text" inputmode="numeric" id="cc-edit-supply" placeholder="0" oninput="formatMoneyInputLive(this); ccCalcVatTotal()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                             </div>
                             <div>
                                 <label class="block text-[9px] text-slate-400 mb-0.5">부가세</label>
-                                <input type="number" id="cc-edit-tax" placeholder="0" oninput="ccCalcVatTotal()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                                <input type="text" inputmode="numeric" id="cc-edit-tax" placeholder="0" oninput="formatMoneyInputLive(this); ccCalcVatTotal()" class="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
                             </div>
                             <span id="cc-vat-total-preview" class="col-span-2 text-[10px] text-violet-600 font-semibold"></span>
                         </div>
@@ -4716,11 +4716,11 @@
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">공급가액</label>
-                            <input type="number" id="repeat-supply" placeholder="0" min="0" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                            <input type="text" inputmode="numeric" id="repeat-supply" placeholder="0" oninput="formatMoneyInputLive(this)" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">부가세</label>
-                            <input type="number" id="repeat-tax" placeholder="0" min="0" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
+                            <input type="text" inputmode="numeric" id="repeat-tax" placeholder="0" oninput="formatMoneyInputLive(this)" class="w-full border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none text-[11px]">
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">적요</label>
@@ -5111,9 +5111,9 @@
         // 이 세 값만 갱신하면 헤더 뱃지·타이틀·인쇄 푸터에 자동 반영됨
         // ══════════════════════════════════════════════════════
         const APP_NAME = '현장 자금관리';
-        const APP_VERSION = '10.4';
+        const APP_VERSION = '10.5';
         const APP_VERSION_DATE = '2026-09-28';
-        const APP_VERSION_NOTE = '개인경비 미정산 건도 청구명세서에 반영 가능 — 정산완료 여부와 관계없이 미반영 건을 선택해 직원별 관리비로 올릴 수 있고, 미정산 건이 포함되면 적요에 "미정산 N건 포함"으로 표시. 반영 안내 문구의 "노무비" 표기도 실제 동작(관리비)에 맞게 수정.';
+        const APP_VERSION_NOTE = '금액 세 자리 쉼표(,) 실시간 표시 — 청구명세서 공급가액·세액·공제·선지급, 지불의뢰서 품목 금액, 대금지급현황 지급액이 입력하는 도중에도 1,234,567처럼 쉼표가 유지되고(기존엔 클릭하면 쉼표가 사라졌음), 법인카드 공급가·부가세, 반복 항목 공급가·부가세, 현장 예산 입력칸에도 쉼표 적용. 쉼표 입력 시 커서 위치도 유지.';
 
         // ══════════════════════════════════════════════════════
         // PWA(홈 화면 설치) 지원
@@ -5839,7 +5839,7 @@
                     </td>
                     <td class="px-2 py-1.5 text-right relative">
                         <div class="flex items-center justify-end gap-1">
-                            <input type="text" value="${(p.payAmount||0).toLocaleString('ko-KR')}" onfocus="this.value=(this.value.replace(/[^0-9]/g,''))" onchange="pmUpdateField('${p.id}','payAmount',this.value)"
+                            <input type="text" value="${(p.payAmount||0).toLocaleString('ko-KR')}" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onchange="pmUpdateField('${p.id}','payAmount',this.value)"
                                 class="w-full bg-transparent outline-none text-right text-[11px]">
                             ${Math.abs((p.claimAmount||0) - (p.payAmount||0)) > 50000 && Array.isArray(p.bankLog) && p.bankLog.length ? `
                                 <button onclick="pmOpenPaymentPickerModal('${p.id}')" class="shrink-0 text-rose-500 hover:text-rose-700" title="청구금액과 5만원 넘게 차이납니다 — 클릭해 통장거래내역 중에서 다시 선택">
@@ -8381,11 +8381,11 @@
                                 class="block w-full text-center p-1 rounded cursor-pointer select-none text-slate-800 dark:text-slate-100 font-semibold hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:ring-1 hover:ring-violet-300 dark:hover:ring-violet-700 transition-colors">${row.ceo ? escCc(row.ceo) : '<span class="text-slate-300 dark:text-slate-600">기입</span>'}</span>
                     </td>
                     <td class="py-1 px-1">
-                        <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateSupplyAndAutoVat(${row.id}, Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                        <input type="text" value="${Number(row.supply || 0).toLocaleString('ko-KR')}" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onchange="updateSupplyAndAutoVat(${row.id}, Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-bold text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
                     </td>
                     <td class="py-1 px-1">
                         <div class="flex items-center gap-1">
-                            <input type="text" value="${Number(row.tax || 0).toLocaleString('ko-KR')}" onblur="completeEditing(${row.id})" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'tax', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-semibold text-slate-800 dark:text-slate-150 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
+                            <input type="text" value="${Number(row.tax || 0).toLocaleString('ko-KR')}" onblur="completeEditing(${row.id})" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onchange="updateCell(${row.id}, 'tax', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right font-semibold text-slate-800 dark:text-slate-150 focus:ring-1 focus:ring-blue-500 rounded p-1 outline-none">
                             <div class="flex flex-col no-print gap-0.5 shrink-0">
                                 <button onclick="toggleVatCalc(${row.id}, 'vat')" class="bg-blue-50 dark:bg-blue-950/40 text-[9px] hover:bg-blue-100 dark:hover:bg-blue-900 px-1 py-0.5 text-blue-700 dark:text-blue-400 rounded scale-90 border border-blue-200 dark:border-blue-800 font-bold">10%</button>
                                 <button onclick="toggleVatCalc(${row.id}, 'free')" class="bg-gray-100 dark:bg-slate-800 text-[9px] hover:bg-gray-200 dark:hover:bg-slate-700 px-1 py-0.5 text-slate-600 dark:text-slate-400 rounded scale-90 border border-slate-300 dark:border-slate-700 font-bold">면세</button>
@@ -8397,13 +8397,13 @@
                     </td>
                     <td class="py-1 px-1">
                         <div class="flex items-center gap-1">
-                            <input type="text" value="${Number(row.deduction || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'deduction', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                            <input type="text" value="${Number(row.deduction || 0).toLocaleString('ko-KR')}" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onchange="updateCell(${row.id}, 'deduction', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
                             ${row.type === '노무비' ? `<button onclick="calcLaborWithholdingTax(${row.id})" class="shrink-0 bg-purple-50 dark:bg-purple-950/40 text-[9px] text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 font-extrabold px-1 py-0.5 rounded transition-all shadow-sm" title="공급가액의 3.3% 원천징수 자동 입력">3.3%</button>` : ''}
                         </div>
                     </td>
                     <td class="py-1 px-1">
                         <div class="flex items-center gap-0.5">
-                        <input type="text" value="${Number(row.prepaid || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onchange="updateCell(${row.id}, 'prepaid', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" ${(row.prepaidLog && row.prepaidLog.length) ? 'readonly title="선지급 내역에서 수정할 수 있습니다 (오른쪽 목록+ 버튼)"' : ''} class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
+                        <input type="text" value="${Number(row.prepaid || 0).toLocaleString('ko-KR')}" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onchange="updateCell(${row.id}, 'prepaid', Number(this.value.replace(/,/g,'')) || 0)" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR'); completeEditing(${row.id})" ${(row.prepaidLog && row.prepaidLog.length) ? 'readonly title="선지급 내역에서 수정할 수 있습니다 (오른쪽 목록+ 버튼)"' : ''} class="w-full bg-transparent text-right focus:ring-1 focus:ring-blue-500 rounded p-1 text-slate-800 dark:text-slate-100 font-semibold outline-none">
                         ${prepaidLogBtnHtml(row)}
                         </div>
                     </td>
@@ -10848,10 +10848,10 @@ function changePrintScale(value) {
                         <input type="text" value="${escapeAttrReq(item.qty)}" onchange="updateRequestItem(${index}, 'qty', this.value)" class="w-full text-center bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-bold dark:text-slate-300 outline-none">
                     </td>
                     <td class="py-2 px-1">
-                        <input type="text" value="${Number(item.supply || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'supply', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-bold text-slate-900 dark:text-slate-100 px-1.5 outline-none">
+                        <input type="text" value="${Number(item.supply || 0).toLocaleString('ko-KR')}" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'supply', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-bold text-slate-900 dark:text-slate-100 px-1.5 outline-none">
                     </td>
                     <td class="py-2 px-1">
-                        <input type="text" value="${Number(item.tax || 0).toLocaleString('ko-KR')}" onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'tax', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-600 dark:text-slate-400 px-1.5 outline-none">
+                        <input type="text" value="${Number(item.tax || 0).toLocaleString('ko-KR')}" oninput="formatMoneyInputLive(this)" onfocus="this.select()" onblur="this.value=Number(this.value.replace(/,/g,'')||0).toLocaleString('ko-KR');" onchange="updateRequestItemFormatted(${index}, 'tax', this.value)" class="w-full text-right bg-transparent focus:ring-1 focus:ring-blue-500 rounded font-semibold text-slate-600 dark:text-slate-400 px-1.5 outline-none">
                     </td>
                     <td class="py-2 px-1 text-right font-extrabold text-blue-600 dark:text-blue-400 px-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 print-req-sum">
                         ${formatMoneyByUnit(totalItemAmt)}
@@ -15370,7 +15370,7 @@ function changePrintScale(value) {
                 el.innerHTML += `
                     <div class="flex items-center gap-3">
                         <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200 w-40 truncate shrink-0">${escapeMetaHtml(site)}</span>
-                        <input type="number" id="budget-input-${CSS.escape(site)}" value="${budget}" placeholder="예산 (원)" min="0"
+                        <input type="text" inputmode="numeric" id="budget-input-${CSS.escape(site)}" value="${budget ? Number(budget).toLocaleString('ko-KR') : ''}" placeholder="예산 (원)" oninput="formatMoneyInputLive(this)"
                             class="flex-1 border border-amber-200 dark:border-amber-800 rounded px-2 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-amber-400">
                         <button onclick="saveSiteBudget('${site.replace(/'/g, "\\'")}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-[10px] font-bold shrink-0 transition-all">저장</button>
                     </div>
@@ -15382,7 +15382,7 @@ function changePrintScale(value) {
             const safeId  = CSS.escape(site);
             const input   = document.getElementById('budget-input-' + safeId);
             if (!input) return;
-            const val     = parseInt(input.value) || 0;
+            const val     = parseInt(String(input.value).replace(/,/g, '')) || 0;
             const budgets = getSiteBudgets();
             budgets[site] = val;
             setSiteBudgets(budgets);
@@ -15557,8 +15557,8 @@ function changePrintScale(value) {
                 type:   document.getElementById('repeat-type').value,
                 vendor,
                 ceo:    document.getElementById('repeat-ceo').value.trim(),
-                supply: Number(document.getElementById('repeat-supply').value) || 0,
-                tax:    Number(document.getElementById('repeat-tax').value)    || 0,
+                supply: Number(String(document.getElementById('repeat-supply').value).replace(/,/g, '')) || 0,
+                tax:    Number(String(document.getElementById('repeat-tax').value).replace(/,/g, ''))    || 0,
                 note:   document.getElementById('repeat-note').value.trim(),
             });
             setRepeatItems(items);
@@ -20765,8 +20765,22 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
         // 금액 입력칸에 타이핑하는 즉시 천 단위 콤마를 넣어준다 (커서는 입력칸 맨 끝에 유지 —
         // 이 입력칸들은 금액을 끝에서부터 입력하는 짧은 모달용이라 끝 고정으로 충분함)
         function formatMoneyInputLive(el) {
-            const digitsOnly = el.value.replace(/[^0-9]/g, '');
-            el.value = digitsOnly ? Number(digitsOnly).toLocaleString('ko-KR') : '';
+            const before = el.value;
+            let pos = null;
+            try { pos = el.selectionStart; } catch (e) {}
+            const digits = before.replace(/[^0-9]/g, '');
+            const out = digits ? Number(digits).toLocaleString('ko-KR') : '';
+            if (out === before) return;
+            // 커서 앞에 있던 숫자 개수를 세어, 쉼표가 들어간 새 문자열에서 같은 숫자 뒤로 커서를 되돌린다
+            const digitsBeforeCaret = pos == null ? null : (before.slice(0, pos).match(/[0-9]/g) || []).length;
+            el.value = out;
+            if (digitsBeforeCaret != null && document.activeElement === el) {
+                let np = 0, cnt = 0;
+                if (digitsBeforeCaret > 0) {
+                    for (; np < out.length; np++) { if (/[0-9]/.test(out[np])) cnt++; if (cnt >= digitsBeforeCaret) { np++; break; } }
+                }
+                try { el.setSelectionRange(np, np); } catch (e) {}
+            }
         }
 
         function escCc(v) {
@@ -21273,8 +21287,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             document.getElementById('cc-edit-company').value = r.company||'';
             document.getElementById('cc-edit-memo').value = r.memo||'';
             document.getElementById('cc-edit-vat-toggle').checked = !!r.vatApplied;
-            document.getElementById('cc-edit-supply').value = r.vatApplied ? (r.supply||'') : '';
-            document.getElementById('cc-edit-tax').value = r.vatApplied ? (r.tax||'') : '';
+            document.getElementById('cc-edit-supply').value = (r.vatApplied && r.supply) ? Number(r.supply).toLocaleString('ko-KR') : '';
+            document.getElementById('cc-edit-tax').value = (r.vatApplied && r.tax) ? Number(r.tax).toLocaleString('ko-KR') : '';
             ccToggleVatInput();
             ccFormatAmtPreview();
             ccTempReceipt = r.receipt ? { dataUrl: r.receipt, type: r.receiptType||'image/jpeg', name: r.receiptName||'' } : null;
@@ -21290,8 +21304,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
             const proofType = document.getElementById('cc-edit-prooftype').value;
             const merchant = document.getElementById('cc-edit-merchant').value.trim();
             const vatApplied = document.getElementById('cc-edit-vat-toggle').checked;
-            const supply   = vatApplied ? (Number(document.getElementById('cc-edit-supply').value) || 0) : null;
-            const tax      = vatApplied ? (Number(document.getElementById('cc-edit-tax').value) || 0) : null;
+            const supply   = vatApplied ? (Number(String(document.getElementById('cc-edit-supply').value).replace(/,/g, '')) || 0) : null;
+            const tax      = vatApplied ? (Number(String(document.getElementById('cc-edit-tax').value).replace(/,/g, '')) || 0) : null;
             const amount   = Number((document.getElementById('cc-edit-amount').value || '').replace(/,/g, '')) || 0;
             const site     = document.getElementById('cc-edit-site').value.trim();
             const company  = document.getElementById('cc-edit-company').value.trim();
@@ -21476,8 +21490,8 @@ ${sheetRels.map(s=>`<Relationship Id="${s.id}" Type="http://schemas.openxmlforma
 
         // 공급가액 + 부가세 입력 시 합계금액을 계산해서 미리보기 + 실제 금액 필드에 반영
         function ccCalcVatTotal() {
-            const supply = Number(document.getElementById('cc-edit-supply').value) || 0;
-            const tax = Number(document.getElementById('cc-edit-tax').value) || 0;
+            const supply = Number(String(document.getElementById('cc-edit-supply').value).replace(/,/g, '')) || 0;
+            const tax = Number(String(document.getElementById('cc-edit-tax').value).replace(/,/g, '')) || 0;
             const total = supply + tax;
             document.getElementById('cc-edit-amount').value = total ? Number(total).toLocaleString('ko-KR') : '';
             const el = document.getElementById('cc-vat-total-preview');
